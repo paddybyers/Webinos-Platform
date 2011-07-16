@@ -1,0 +1,498 @@
+Abstract
+
+Interface for TV control and managment.
+
+Table of Contents
+
+1. Introduction
+2. Interfaces
+2.1. WebinosTV
+2.2. TVManager
+2.3. TVDisplayManager
+2.4. TVDisplaySuccessCB
+2.5. TVTunerManager
+2.6. TVSuccessCB
+2.7. TVErrorCB
+2.8. TVError
+2.9. TVSource
+2.10. Channel
+2.11. ChannelChangeEvent
+3. Features
+4. Full WebIDL
+Summary of Methods
+
+Interface	Method
+WebinosTV	
+TVManager	
+TVDisplayManager	void setChannel(Channel channel, TVDisplaySuccessCB successCallback, TVErrorCB errorCallback)
+TVDisplaySuccessCB	void onSuccess(Channel channel)
+TVTunerManager	void getTVSources(TVSuccessCB successCallback, TVErrorCB errorCallback)
+TVSuccessCB	void onSuccess(TVSource [] sources)
+TVErrorCB	void onError(TVError error)
+TVError	
+TVSource	
+Channel	
+ChannelChangeEvent	void initChannelChangeEvent(DOMString type, boolean bubbles, boolean cancelable, Channel channel)
+1. Introduction
+
+The interface provides means to acquire a list of tv sources, channels and their streams.
+
+The TV channel streams can be displayed in HTMLVideoElement object (http://dev.w3.org/html5/spec/video.html). Alternatively the API provides means to control channel management of the native hardware TV, by allowing to set a channel or watch for channel changes that are invoked otherwise.
+
+The tv object is made available under the webinos namespace, i.e. webinos.tv.
+
+2. Interfaces
+
+2.1. WebinosTV
+
+Creates tv object.
+
+[NoInterfaceObject] 
+interface WebinosTV {
+  readonly attribute TVManager tv;
+};
+webinoscore::Webinos implements WebinosTV;
+2.2. TVManager
+
+Access to tuner and display managers.
+
+[NoInterfaceObject] 
+interface TVManager {
+  readonly attribute TVDisplayManager display;
+  readonly attribute TVTunerManager tuner;
+};
+2.3. TVDisplayManager
+
+Interface to manage what's currently displayed on TV screen.
+
+[NoInterfaceObject]
+interface TVDisplayManager {
+  void setChannel(Channel channel, TVDisplaySuccessCB successCallback, optional TVErrorCB errorCallback);
+};
+This interface is useful when an app doesn't want to show the broadcast itself, but let the TV natively handle playback, i.e. not in a web context. Useful to build an control interface that allows channel switching.
+
+Code example
+
+  <p>Currently shown on TV: <span id='tv'>Undetermined</span></p>
+  <script>
+  var channel; // holding a previously obtained channel object.
+  webinos.tv.display.setChannel(channel, success);
+  var ontv = document.getElementById('tv');
+  function success(channel) {
+    ontv.normalize();
+    ontv.removeChild(ontv.childNodes[0]);
+    ontv.appendChild(document.createTextNode(channel.name + ' (source: ' + channel.tvsource.name + ')'));
+  }
+  </script>
+ 
+Methods
+
+setChannel
+Switches the channel natively on the TV (same as when a hardware remote control would be used).
+
+Signature
+
+void setChannel(Channel channel, TVDisplaySuccessCB successCallback, optional TVErrorCB errorCallback);
+Parameters
+
+channel
+Optional: No.
+Nullable: No
+Type: Channel
+Description: The TV channel to switch to.
+successCallback
+Optional: No.
+Nullable: No
+Type: TVDisplaySuccessCB
+Description: The callback to notify the caller that the channel change succeeded.
+errorCallback
+Optional: Yes.
+Nullable: No
+Type: TVErrorCB
+Description: The callback called in case the channel could not be switched and an error occured.
+2.4. TVDisplaySuccessCB
+
+Callback function when current channel changed successfully.
+
+[Callback=FunctionOnly, NoInterfaceObject]
+interface TVDisplaySuccessCB {
+  void onSuccess(Channel channel);
+};
+2.5. TVTunerManager
+
+Get a list of all available TV tuners.
+
+[NoInterfaceObject] 
+interface TVTunerManager {
+  void getTVSources(TVSuccessCB successCallback, optional TVErrorCB errorCallback);
+};
+Code example
+
+  <label>Pick a TV Source: <select id='source'>
+  <option>None</option>
+  </select></label>
+  <label>Pick a  channel: <select id='channel'>
+  <option>None</option>
+  </select></label>
+  <video id='display' width='640' height='400' poster='nochannel.png'></video>
+  <script>
+  webinos.tv.tuner.getTVSources(successCB);
+  var tvsourceselector = document.getElementById('source');
+  var channelselector = document.getElementById('channel');
+  var v = document.getElementById('display');
+  var currentTVSource;
+  var tvsources = [];
+  function successCB(sources) {
+    tvsources = sources;
+    for (var i in sources) {
+      var o = document.createElement('option');
+      o.value = i;
+      o.appendChild(document.createTextNode(sources[i].name);
+      tvsourceselector.appendChild(o);
+    }
+  }
+  tvsourceselector.addEventListener('change', function (e) {
+    currentTVSource = tvsources[e.target.value];
+    // start showing first channel
+    if (currentTVSource.channelList.length) {
+      v.src = currentTVSource.channelList[0].stream;
+      for (var i in currentTVSource.channelList) {
+          var channel = currentTVSource.channelList[i];
+          var o = document.createElement('option');
+          o.appendChild(document.createTextNode(channel.name);          
+          o.value = i;
+          channelselector.appendChild(o);
+    }
+  }, false);
+  channelselector.addEventListener('change', function (e) {
+     if (e.target.value) {
+       v.src = currentTVSource.channelList[e.target.value].stream;
+     }
+  }, false);
+  </script>
+ 
+Methods
+
+getTVSources
+Get a list of all available TV tuners.
+
+Signature
+
+void getTVSources(TVSuccessCB successCallback, optional TVErrorCB errorCallback);
+Parameters
+
+successCallback
+Optional: No.
+Nullable: No
+Type: TVSuccessCB
+Description: Callback that receives all available TV sources.
+errorCallback
+Optional: Yes.
+Nullable: No
+Type: TVErrorCB
+Description: Callback called in case something goes wrong.
+2.6. TVSuccessCB
+
+Callback for found TV tuners.
+
+[Callback=FunctionOnly, NoInterfaceObject] 
+interface TVSuccessCB {
+  void onSuccess(TVSource[] sources);
+};
+Methods
+
+onSuccess
+Callback that is called with the found TV sources.
+
+Signature
+
+void onSuccess(
+              TVSource
+            [] sources);
+Parameters
+
+sources
+Optional: No.
+Nullable: No
+Type: array
+Description: An array of TVSource objects representing available tuners.
+2.7. TVErrorCB
+
+Error callback for errors when trying to get TV tuners.
+
+[Callback=FunctionOnly, NoInterfaceObject] 
+interface TVErrorCB {
+  void onError(TVError error);
+};
+Methods
+
+onError
+Callback that is called when an error occures while getting TV sources
+
+Signature
+
+void onError(TVError error);
+Parameters
+
+error
+Optional: No.
+Nullable: No
+Type: TVError
+Description: Error object detailing what went wrong.
+2.8. TVError
+
+Error codes.
+
+[NoInterfaceObject] 
+interface TVError {
+  const unsigned short UNKNOWN_ERROR = 0;
+  
+  const unsigned short ILLEGAL_CHANNEL_ERROR = 1;
+  
+  readonly attribute unsigned short code;
+};
+Constants
+
+unsigned short UNKNOWN_ERROR
+An unknown error.
+
+unsigned short ILLEGAL_CHANNEL_ERROR
+Invalid input channel.
+
+Attributes
+
+readonly unsigned short code
+Code.
+
+This attribute is readonly.
+2.9. TVSource
+
+TV source: a list of channels with a name.
+
+[NoInterfaceObject] 
+interface TVSource {
+  readonly attribute DOMString name;
+  
+  readonly attribute Channel[] channelList;
+};
+Attributes
+
+readonly DOMString name
+The name of the source.
+
+The name should describe the kind of tuner this source represents, e.g. DVB-T, DVB-C.
+
+This attribute is readonly.
+readonly Channel [] channelList
+List of channels for this source.
+
+This attribute is readonly.
+2.10. Channel
+
+The Channel Interface
+
+[NoInterfaceObject]
+interface Channel {
+  const unsigned short TYPE_TV = 0;
+  
+  const unsigned short TYPE_RADIO = 1;
+  
+  readonly attribute unsigned short channelType;
+  
+  readonly attribute DOMString name;
+  
+  readonly attribute DOMString longName;
+  
+  readonly attribute Stream stream;
+  
+  readonly attribute TVSource tvsource;
+};
+Channel objects provide access to the video stream.
+
+Constants
+
+unsigned short TYPE_TV
+Indicates a TV channel.
+
+unsigned short TYPE_RADIO
+Indicates a radio channel.
+
+Attributes
+
+readonly unsigned short channelType
+The type of channel.
+
+Type of channel is defined by one of the TYPE_* constants defined above.
+
+This attribute is readonly.
+readonly DOMString name
+The name of the channel.
+
+The name of the channel will typically be the call sign of the station.
+
+This attribute is readonly.
+readonly DOMString longName
+The long name of the channel.
+
+The long name of the channel if transmitted. Can be undefined if not available.
+
+This attribute is readonly.
+readonly Stream stream
+The video stream.
+
+This stream is a represents a valid source for a HTMLVideoElement.
+
+This attribute is readonly.
+readonly TVSource tvsource
+The source this channels belongs too.
+
+This attribute is readonly.
+2.11. ChannelChangeEvent
+
+Event that fires when the channel is changed.
+
+interface ChannelChangeEvent : Event {
+  readonly attribute Channel channel;
+
+  void initChannelChangeEvent(DOMString type, boolean bubbles, boolean cancelable, Channel channel);
+  
+};
+Changing channels could also be invoked by other parties, e.g. a hardware remote control. A ChannelChange event will be fire in these cases which provides the channel that was switched to.
+
+Code example
+
+  <p>Currently shown on TV: <span id='tv'>Undetermined</span></p>
+  <script>
+  window.addEventListener('channelchange', success);
+  var ontv = document.getElementById('tv');
+  function success(channel) {
+    ontv.normalize();
+    ontv.removeChild(ontv.childNodes[0]);
+    ontv.appendChild(document.createTextNode(channel.name + ' (source: ' + channel.tvsource.name + ')'));
+  }
+  </script>
+ 
+Attributes
+
+readonly Channel channel
+The new channel.
+
+This attribute is readonly.
+Methods
+
+initChannelChangeEvent
+Initializes a new channel change event.
+
+Signature
+
+void initChannelChangeEvent(DOMString type, boolean bubbles, boolean cancelable, Channel channel);
+Parameters
+
+type
+Optional: No.
+Nullable: No
+Type: DOMString
+Description: The type of event. Pass 'channelchange'.
+bubbles
+Optional: No.
+Nullable: No
+Type: boolean
+Description: Indicates whether the event bubbles.
+cancelable
+Optional: No.
+Nullable: No
+Type: boolean
+Description: Indicates whether the event is cancelable.
+channel
+Optional: No.
+Nullable: No
+Type: Channel
+Description: The channel that was changed to.
+3. Features
+
+This is the list of URIs used to declare this API's features, for use in the widget config.xml and as identifier for service type in service discovery functionality. For each URI, the list of functions covered is provided.
+
+http://webinos.org/api/tv
+4. Full WebIDL
+
+module tv {
+
+[NoInterfaceObject] 
+interface WebinosTV {
+  readonly attribute TVManager tv;
+};
+
+webinoscore::Webinos implements WebinosTV;
+
+[NoInterfaceObject] 
+interface TVManager {
+  readonly attribute TVDisplayManager display;
+  readonly attribute TVTunerManager tuner;
+}; 
+
+[NoInterfaceObject]
+interface TVDisplayManager {
+  void setChannel(Channel channel, TVDisplaySuccessCB successCallback, optional TVErrorCB errorCallback);
+};
+
+[Callback=FunctionOnly, NoInterfaceObject]
+interface TVDisplaySuccessCB {
+  void onSuccess(Channel channel);
+};
+
+[NoInterfaceObject] 
+interface TVTunerManager {
+  void getTVSources(TVSuccessCB successCallback, optional TVErrorCB errorCallback);
+};
+
+[Callback=FunctionOnly, NoInterfaceObject] 
+interface TVSuccessCB {
+  void onSuccess(TVSource[] sources);
+};
+
+[Callback=FunctionOnly, NoInterfaceObject] 
+interface TVErrorCB {
+  void onError(TVError error);
+};
+
+[NoInterfaceObject] 
+interface TVError {
+  const unsigned short UNKNOWN_ERROR = 0;
+  
+  const unsigned short ILLEGAL_CHANNEL_ERROR = 1;
+  
+  readonly attribute unsigned short code;
+};
+
+[NoInterfaceObject] 
+interface TVSource {
+  readonly attribute DOMString name;
+  
+  readonly attribute Channel[] channelList;
+};
+
+[NoInterfaceObject]
+interface Channel {
+  const unsigned short TYPE_TV = 0;
+  
+  const unsigned short TYPE_RADIO = 1;
+  
+  readonly attribute unsigned short channelType;
+  
+  readonly attribute DOMString name;
+  
+  readonly attribute DOMString longName;
+  
+  readonly attribute Stream stream;
+  
+  readonly attribute TVSource tvsource;
+};
+
+interface ChannelChangeEvent : Event {
+  readonly attribute Channel channel;
+
+  void initChannelChangeEvent(DOMString type, boolean bubbles, boolean cancelable, Channel channel);
+  
+};
+
+};

@@ -1,0 +1,992 @@
+Abstract
+
+The Context API
+
+Table of Contents
+
+1. Introduction
+2. Interfaces
+2.1. ContextManagerHook
+2.2. ContextManager
+2.3. Query
+2.4. ContextError
+2.5. QuerySuccessCallback
+2.6. QueryErrorCallback
+2.7. SubscribeSuccessCallback
+2.8. SubscribeErrorCallback
+2.9. OccuringEvent
+3. Features
+4. Full WebIDL
+Summary of Methods
+
+Interface	Method
+ContextManagerHook	
+ContextManager	void executeQuery(QuerySuccessCallback successCallback, QueryErrorCallback? errorCallback, Query query)
+void subscribeContextEvent(SubscribeSuccessCallback subscribeSuccessCallback, SubscribeErrorCallback? subscribeErrorCallback, OccuringEvent eventHandler, DOMString eventIdentifier)
+void unsubscribe(unsigned long subscriptionIdentifier)
+Query	
+ContextError	
+QuerySuccessCallback	void onsuccess(SPARQLquery queryResult)
+QueryErrorCallback	void onerror(ContextError error)
+SubscribeSuccessCallback	void onsuccess(unsigned long subscriptionIdentifier)
+SubscribeErrorCallback	void onerror(ContextError error)
+OccuringEvent	void onContextEvent(DOMString eventContextData)
+1. Introduction
+
+The Context API defines the high-level interfaces required to obtain access to a user's context data. The API supports two basic ways of accessing context data:
+
+1. executing a query against the context data storage and retrieving context data through the query results.
+
+2. subscribing to receive real time context data updates as soon as a context related event happens.
+
+2. Interfaces
+
+2.1. ContextManagerHook
+
+Defines what is instantiated in initialization.
+
+  [NoInterfaceObject] interface ContextManagerHook {
+    readonly attribute ContextManager context; 
+  };
+There will be a webinos.context object that allows accessing the * functionality of this module.
+
+2.2. ContextManager
+
+This is the entry point for the context API. The interface provides the two basic methods to access the User's context data, i.e. query or subscribe to updates.
+
+  [NoInterfaceObject] interface ContextManager {
+
+    void executeQuery(in QuerySuccessCallback successCallback,
+                      in QueryErrorCallback? errorCallback,
+                      in Query query)
+         raises(ContextError);
+  
+    void subscribeContextEvent(in SubscribeSuccessCallback subscribeSuccessCallback,
+                      in SubscribeErrorCallback? subscribeErrorCallback,
+                      in OccuringEvent eventHandler,
+                                          in DOMString eventIdentifier)
+         raises(ContextError);
+  
+    void unsubscribe(in unsigned long subscriptionIdentifier)
+         raises(ContextError);
+  };
+  webinos implements ContextManager;
+TODO: Long description
+
+Code example
+
+ TODO
+ 
+Methods
+
+executeQuery
+Performs a context query against the context storage.
+
+Signature
+
+void executeQuery(in QuerySuccessCallback successCallback, in QueryErrorCallback? errorCallback, in Query query);
+When this method is invoked it executes the provided query against the context storage. The context storage is a collection context objects, each one with specific attributes, which hold context data that have been acquired over time by identifying a number of context related events. The Query parameter that this method uses specifies what context data (i.e. from which context objects) should be retrieved.
+
+Mediation by policy and security: this method, as it provides application with data (context) about the user, is expected to have privacy considerations. Therefore the system is able to ignore the request of an app to receive context data if the User Privacy Policy dictates so (i.e. the user has not authorized the app to access the context data it ask for in the Query parameter).
+
+Parameters
+
+successCallback
+Optional: No.
+Nullable: No
+Type: QuerySuccessCallback
+Description: Function to be invoked if the asynchronous query operation completes successfully.
+errorCallback
+Optional: No.
+Nullable: Yes
+Type: QueryErrorCallback
+Description: Function to be invoked if the asynchronous query operation results in errors.
+query
+Optional: No.
+Nullable: No
+Type: Query
+Description: The Query object describing the query to be executed against the context storage.
+Return value
+
+void call
+Exceptions
+
+ContextError:
+with error code TYPE_MISMATCH_ERR if the input parameter is not compatible with the expected type for that parameter.
+
+Code example
+
+ TODO
+ 
+subscribeContextEvent
+Registers the function to be notifies when a context related event occurs.
+
+Signature
+
+void subscribeContextEvent(in SubscribeSuccessCallback subscribeSuccessCallback, in SubscribeErrorCallback? subscribeErrorCallback, in OccuringEvent eventHandler, in DOMString eventIdentifier);
+When this method is invoked, the implementation must register the (app) function that is passed in the eventHandler argument as the hander function that will be notified when the context related event, which in turn is identified in the eventIdentifier, happens. This function will be invoked every time the indicated event occurs until the unsubscribe method is invoked to cancel the subscription.
+
+If the subscription is successfully created, an identifier for the handler is created and returned in subscriptionSuccessCallback so that it is possible to cancel the subscription. If the subscription cannot be created, the subscriptionErrorCallback contains an error code that describes the reason for the error.
+
+Mediation by policy and security: this method, as it can provide an application with real-time data (context) about the user, is expected to have privacy considerations. Therefore the system is able to ignore the request of an app to receive context data if the User Privacy Policy dictates so (i.e. the user has not authorized the app to access the context data of the dictated event).
+
+Parameters
+
+subscribeSuccessCallback
+Optional: No.
+Nullable: No
+Type: SubscribeSuccessCallback
+Description: Function to be invoked if the asynchronous subscribe request completes successfully.
+subscribeErrorCallback
+Optional: No.
+Nullable: Yes
+Type: SubscribeErrorCallback
+Description: Function to be invoked if the asynchronous subscribe request results in errors.
+eventHandler
+Optional: No.
+Nullable: No
+Type: OccuringEvent
+Description: The function to be invoked when the dictated event occurs.
+eventIdentifier
+Optional: No.
+Nullable: No
+Type: DOMString
+Description: The event identifier, for example "UserProfileUpdate", "ShoppingBasketCheckout".
+Return value
+
+void call
+Exceptions
+
+ContextError:
+with error code TYPE_MISMATCH_ERR if the input parameter is not compatible with the expected type for that parameter.
+
+Code example
+
+ TODO
+ 
+unsubscribe
+Cancels a subscription to a context related event.
+
+Signature
+
+void unsubscribe(in unsigned long subscriptionIdentifier);
+If the subscriptionIdentifier argument is valid and corresponds to a subscription already in place the subscription process MUST be effectivelly stoped. If the subscriptionHandler argument does not correspond to a valid subscription, the method should return without any further action.
+
+Parameters
+
+subscriptionIdentifier
+Optional: No.
+Nullable: No
+Type: unsigned long
+Description: The identifier of the subscription, returned by subscribeContextEvent().
+Return value
+
+void call
+Exceptions
+
+ContextError:
+with error code TYPE_MISMATCH_ERR if the input parameter is not compatible with the expected type for that parameter.
+
+Code example
+
+ TODO
+ 
+2.3. Query
+
+Query interface,
+
+   [Callback, NoInterfaceObject] interface Query {
+
+    attribute SPARQLquery xmlQuery;
+  };
+TODO: Detail if this the right content for the query
+
+Attributes
+
+SPARQLquery xmlQuery
+query content in xml format
+
+SPARQL query language for RDF
+
+2.4. ContextError
+
+Defines the error codes for this module
+
+  [NoInterfaceObject] interface ContextError {
+     const unsigned short SECURITY_ERR = 1;
+
+     const unsigned short INVALID_QUERY_ERR = 2;
+
+     const unsigned short TYPE_MISMATCH_ERR = 3;
+   };
+Constants
+
+unsigned short SECURITY_ERR
+Security Error
+
+unsigned short INVALID_QUERY_ERR
+invalid query
+
+unsigned short TYPE_MISMATCH_ERR
+invalid query
+
+2.5. QuerySuccessCallback
+
+Interface for callbacks indicating success of executeQuery() operation.
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface QuerySuccessCallback {        
+    void onsuccess (SPARQLquery queryResult);
+  };
+Methods
+
+onsuccess
+Callback on success of a executeQuery() operation
+
+Signature
+
+void onsuccess(SPARQLquery queryResult);
+Parameters
+
+queryResult
+Optional: No.
+Nullable: No
+Type: SPARQLquery
+Description: Result of the query operation serialized as a json string, see SPARQL query language for RDF.
+Return value
+
+void
+2.6. QueryErrorCallback
+
+Interface for callbacks indicating error of executeQuery() operation.
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface QueryErrorCallback  {        
+    void onerror (ContextError error);
+  };
+Methods
+
+onerror
+Callback on failure of a executeQuery() operation
+
+Signature
+
+void onerror(ContextError error);
+Parameters
+
+error
+Optional: No.
+Nullable: No
+Type: ContextError
+Description: The ContextError object capturing the type of the error.
+Return value
+
+void
+2.7. SubscribeSuccessCallback
+
+Interface for callbacks indicating success of subscribeContextEvent() operation.
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface SubscribeSuccessCallback {        
+    void onsuccess (unsigned long subscriptionIdentifier);
+  };
+Methods
+
+onsuccess
+Callback on success of a subscribeContextEvent() operation
+
+Signature
+
+void onsuccess(unsigned long subscriptionIdentifier);
+Parameters
+
+subscriptionIdentifier
+Optional: No.
+Nullable: No
+Type: unsigned long
+Description: A subscription handler that can be later used to cancel the subscription.
+Return value
+
+void
+2.8. SubscribeErrorCallback
+
+Interface for callbacks indicating error of subscribeContextEvent() operation.
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface SubscribeErrorCallback  {        
+    void onerror (ContextError error);
+  };
+Methods
+
+onerror
+Callback on failure of a subscribeContextEvent() operation
+
+Signature
+
+void onerror(ContextError error);
+Parameters
+
+error
+Optional: No.
+Nullable: No
+Type: ContextError
+Description: The ContextError object capturing the type of the error.
+Return value
+
+void
+2.9. OccuringEvent
+
+Interface for specifying the method called when a new context related event occurs.
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface OccuringEvent {        
+    void onContextEvent (DOMString eventContextData);
+  };
+This interface specifies a function that provides a serialized json string of the context data retrieved from the happening of a context related event.
+
+Methods
+
+onContextEvent
+Method invoked when the context related event occurs.
+
+Signature
+
+void onContextEvent(DOMString eventContextData);
+Parameters
+
+eventContextData
+Optional: No.
+Nullable: No
+Type: DOMString
+Description: The context data acquired by the event.
+Return value
+
+void
+3. Features
+
+When the feature
+
+http://webinos.org/api/context
+or any of the features hierarchically under that feature is successfully requested, the interface ContextManager is instantiated, and the resulting object appears in the global namespace as .context.
+
+This is the list of URIs used to declare this API's features, for use in the widget config.xml and as identifier for service type in service discovery functionality. For each URI, the list of functions covered is provided.
+
+http://webinos.org/api/context
+Acccess to all the module. This feature provides access to the whole API. Security and Privacy enforcement may depend on the query or subscription requested by the developer.
+
+4. Full WebIDL
+
+module context {
+
+  [NoInterfaceObject] interface ContextManagerHook {
+    readonly attribute ContextManager context; 
+  };
+  webinos implements ContextManager;
+
+  [NoInterfaceObject] interface ContextManager {
+
+    void executeQuery(in QuerySuccessCallback successCallback,
+                      in QueryErrorCallback? errorCallback,
+                      in Query query)
+         raises(ContextError);
+  
+    void subscribeContextEvent(in SubscribeSuccessCallback subscribeSuccessCallback,
+                      in SubscribeErrorCallback? subscribeErrorCallback,
+                      in OccuringEvent eventHandler,
+                                          in DOMString eventIdentifier)
+         raises(ContextError);
+  
+    void unsubscribe(in unsigned long subscriptionIdentifier)
+         raises(ContextError);
+  };
+
+   [Callback, NoInterfaceObject] interface Query {
+
+    attribute SPARQLquery xmlQuery;
+  };
+  
+  [NoInterfaceObject] interface ContextError {
+     const unsigned short SECURITY_ERR = 1;
+
+     const unsigned short INVALID_QUERY_ERR = 2;
+
+     const unsigned short TYPE_MISMATCH_ERR = 3;
+   };
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface QuerySuccessCallback {        
+    void onsuccess (SPARQLquery queryResult);
+  };
+        
+  [Callback=FunctionOnly, NoInterfaceObject] interface QueryErrorCallback  {        
+    void onerror (ContextError error);
+  };
+  
+  [Callback=FunctionOnly, NoInterfaceObject] interface SubscribeSuccessCallback {        
+    void onsuccess (unsigned long subscriptionIdentifier);
+  };
+  
+  [Callback=FunctionOnly, NoInterfaceObject] interface SubscribeErrorCallback  {        
+    void onerror (ContextError error);
+  };
+  
+  [Callback=FunctionOnly, NoInterfaceObject] interface OccuringEvent {        
+    void onContextEvent (DOMString eventContextData);
+  };
+        
+};
+module context {
+
+  [NoInterfaceObject] interface ContextManagerHook {
+    readonly attribute ContextManager context; 
+  };
+  webinos implements ContextManager;
+
+  [NoInterfaceObject] interface ContextManager {
+
+    void executeQuery(in QuerySuccessCallback successCallback,
+                      in QueryErrorCallback? errorCallback,
+                      in Query query)
+         raises(ContextError);
+  
+    void subscribeContextEvent(in SubscribeSuccessCallback subscribeSuccessCallback,
+                      in SubscribeErrorCallback? subscribeErrorCallback,
+                      in OccuringEvent eventHandler,
+                                          in DOMString eventIdentifier)
+         raises(ContextError);
+  
+    void unsubscribe(in unsigned long subscriptionIdentifier)
+         raises(ContextError);
+  };
+
+   [Callback, NoInterfaceObject] interface Query {
+
+    attribute SPARQLquery xmlQuery;
+  };
+  
+  [NoInterfaceObject] interface ContextError {
+     const unsigned short SECURITY_ERR = 1;
+
+     const unsigned short INVALID_QUERY_ERR = 2;
+
+     const unsigned short TYPE_MISMATCH_ERR = 3;
+   };
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface QuerySuccessCallback {        
+    void onsuccess (SPARQLquery queryResult);
+  };
+        
+  [Callback=FunctionOnly, NoInterfaceObject] interface QueryErrorCallback  {        
+    void onerror (ContextError error);
+  };
+  
+  [Callback=FunctionOnly, NoInterfaceObject] interface SubscribeSuccessCallback {        
+    void onsuccess (unsigned long subscriptionIdentifier);
+  };
+  
+  [Callback=FunctionOnly, NoInterfaceObject] interface SubscribeErrorCallback  {        
+    void onerror (ContextError error);
+  };
+  
+  [Callback=FunctionOnly, NoInterfaceObject] interface OccuringEvent {        
+    void onContextEvent (DOMString eventContextData);
+  };
+        
+};
+
+APIs: The context module
+
+Webinos API Specifications
+
+1 Jul 2011
+
+Authors
+
+Heiko Desruelle <heiko.desruelle@intec.ugent.be>
+Dieter Blomme <dieter.blomme@intec.ugent.be>
+George Gionis <gionis@epu.ntua.gr>
+© 2011 webinos consortium, www.webinos.org.
+
+Abstract
+
+The Context API
+
+Table of Contents
+
+1. Introduction
+2. Interfaces
+2.1. ContextManagerHook
+2.2. ContextManager
+2.3. Query
+2.4. ContextError
+2.5. QuerySuccessCallback
+2.6. QueryErrorCallback
+2.7. SubscribeSuccessCallback
+2.8. SubscribeErrorCallback
+2.9. OccuringEvent
+3. Features
+4. Full WebIDL
+Summary of Methods
+
+Interface	Method
+ContextManagerHook	
+ContextManager	void executeQuery(QuerySuccessCallback successCallback, QueryErrorCallback? errorCallback, Query query)
+void subscribeContextEvent(SubscribeSuccessCallback subscribeSuccessCallback, SubscribeErrorCallback? subscribeErrorCallback, OccuringEvent eventHandler, DOMString eventIdentifier)
+void unsubscribe(unsigned long subscriptionIdentifier)
+Query	
+ContextError	
+QuerySuccessCallback	void onsuccess(SPARQLquery queryResult)
+QueryErrorCallback	void onerror(ContextError error)
+SubscribeSuccessCallback	void onsuccess(unsigned long subscriptionIdentifier)
+SubscribeErrorCallback	void onerror(ContextError error)
+OccuringEvent	void onContextEvent(DOMString eventContextData)
+1. Introduction
+
+The Context API defines the high-level interfaces required to obtain access to a user's context data. The API supports two basic ways of accessing context data:
+
+1. executing a query against the context data storage and retrieving context data through the query results.
+
+2. subscribing to receive real time context data updates as soon as a context related event happens.
+
+2. Interfaces
+
+2.10. ContextManagerHook
+
+Defines what is instantiated in initialization.
+
+  [NoInterfaceObject] interface ContextManagerHook {
+    readonly attribute ContextManager context; 
+  };
+There will be a webinos.context object that allows accessing the * functionality of this module.
+
+2.11. ContextManager
+
+This is the entry point for the context API. The interface provides the two basic methods to access the User's context data, i.e. query or subscribe to updates.
+
+  [NoInterfaceObject] interface ContextManager {
+
+    void executeQuery(in QuerySuccessCallback successCallback,
+                      in QueryErrorCallback? errorCallback,
+                      in Query query)
+         raises(ContextError);
+  
+    void subscribeContextEvent(in SubscribeSuccessCallback subscribeSuccessCallback,
+                      in SubscribeErrorCallback? subscribeErrorCallback,
+                      in OccuringEvent eventHandler,
+                                          in DOMString eventIdentifier)
+         raises(ContextError);
+  
+    void unsubscribe(in unsigned long subscriptionIdentifier)
+         raises(ContextError);
+  };
+  webinos implements ContextManager;
+TODO: Long description
+
+Code example
+
+ TODO
+ 
+Methods
+
+executeQuery
+Performs a context query against the context storage.
+
+Signature
+
+void executeQuery(in QuerySuccessCallback successCallback, in QueryErrorCallback? errorCallback, in Query query);
+When this method is invoked it executes the provided query against the context storage. The context storage is a collection context objects, each one with specific attributes, which hold context data that have been acquired over time by identifying a number of context related events. The Query parameter that this method uses specifies what context data (i.e. from which context objects) should be retrieved.
+
+Mediation by policy and security: this method, as it provides application with data (context) about the user, is expected to have privacy considerations. Therefore the system is able to ignore the request of an app to receive context data if the User Privacy Policy dictates so (i.e. the user has not authorized the app to access the context data it ask for in the Query parameter).
+
+Parameters
+
+successCallback
+Optional: No.
+Nullable: No
+Type: QuerySuccessCallback
+Description: Function to be invoked if the asynchronous query operation completes successfully.
+errorCallback
+Optional: No.
+Nullable: Yes
+Type: QueryErrorCallback
+Description: Function to be invoked if the asynchronous query operation results in errors.
+query
+Optional: No.
+Nullable: No
+Type: Query
+Description: The Query object describing the query to be executed against the context storage.
+Return value
+
+void call
+Exceptions
+
+ContextError:
+with error code TYPE_MISMATCH_ERR if the input parameter is not compatible with the expected type for that parameter.
+
+Code example
+
+ TODO
+ 
+subscribeContextEvent
+Registers the function to be notifies when a context related event occurs.
+
+Signature
+
+void subscribeContextEvent(in SubscribeSuccessCallback subscribeSuccessCallback, in SubscribeErrorCallback? subscribeErrorCallback, in OccuringEvent eventHandler, in DOMString eventIdentifier);
+When this method is invoked, the implementation must register the (app) function that is passed in the eventHandler argument as the hander function that will be notified when the context related event, which in turn is identified in the eventIdentifier, happens. This function will be invoked every time the indicated event occurs until the unsubscribe method is invoked to cancel the subscription.
+
+If the subscription is successfully created, an identifier for the handler is created and returned in subscriptionSuccessCallback so that it is possible to cancel the subscription. If the subscription cannot be created, the subscriptionErrorCallback contains an error code that describes the reason for the error.
+
+Mediation by policy and security: this method, as it can provide an application with real-time data (context) about the user, is expected to have privacy considerations. Therefore the system is able to ignore the request of an app to receive context data if the User Privacy Policy dictates so (i.e. the user has not authorized the app to access the context data of the dictated event).
+
+Parameters
+
+subscribeSuccessCallback
+Optional: No.
+Nullable: No
+Type: SubscribeSuccessCallback
+Description: Function to be invoked if the asynchronous subscribe request completes successfully.
+subscribeErrorCallback
+Optional: No.
+Nullable: Yes
+Type: SubscribeErrorCallback
+Description: Function to be invoked if the asynchronous subscribe request results in errors.
+eventHandler
+Optional: No.
+Nullable: No
+Type: OccuringEvent
+Description: The function to be invoked when the dictated event occurs.
+eventIdentifier
+Optional: No.
+Nullable: No
+Type: DOMString
+Description: The event identifier, for example "UserProfileUpdate", "ShoppingBasketCheckout".
+Return value
+
+void call
+Exceptions
+
+ContextError:
+with error code TYPE_MISMATCH_ERR if the input parameter is not compatible with the expected type for that parameter.
+
+Code example
+
+ TODO
+ 
+unsubscribe
+Cancels a subscription to a context related event.
+
+Signature
+
+void unsubscribe(in unsigned long subscriptionIdentifier);
+If the subscriptionIdentifier argument is valid and corresponds to a subscription already in place the subscription process MUST be effectivelly stoped. If the subscriptionHandler argument does not correspond to a valid subscription, the method should return without any further action.
+
+Parameters
+
+subscriptionIdentifier
+Optional: No.
+Nullable: No
+Type: unsigned long
+Description: The identifier of the subscription, returned by subscribeContextEvent().
+Return value
+
+void call
+Exceptions
+
+ContextError:
+with error code TYPE_MISMATCH_ERR if the input parameter is not compatible with the expected type for that parameter.
+
+Code example
+
+ TODO
+ 
+2.12. Query
+
+Query interface,
+
+   [Callback, NoInterfaceObject] interface Query {
+
+    attribute SPARQLquery xmlQuery;
+  };
+TODO: Detail if this the right content for the query
+
+Attributes
+
+SPARQLquery xmlQuery
+query content in xml format
+
+SPARQL query language for RDF
+
+2.13. ContextError
+
+Defines the error codes for this module
+
+  [NoInterfaceObject] interface ContextError {
+     const unsigned short SECURITY_ERR = 1;
+
+     const unsigned short INVALID_QUERY_ERR = 2;
+
+     const unsigned short TYPE_MISMATCH_ERR = 3;
+   };
+Constants
+
+unsigned short SECURITY_ERR
+Security Error
+
+unsigned short INVALID_QUERY_ERR
+invalid query
+
+unsigned short TYPE_MISMATCH_ERR
+invalid query
+
+2.14. QuerySuccessCallback
+
+Interface for callbacks indicating success of executeQuery() operation.
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface QuerySuccessCallback {        
+    void onsuccess (SPARQLquery queryResult);
+  };
+Methods
+
+onsuccess
+Callback on success of a executeQuery() operation
+
+Signature
+
+void onsuccess(SPARQLquery queryResult);
+Parameters
+
+queryResult
+Optional: No.
+Nullable: No
+Type: SPARQLquery
+Description: Result of the query operation serialized as a json string, see SPARQL query language for RDF.
+Return value
+
+void
+2.15. QueryErrorCallback
+
+Interface for callbacks indicating error of executeQuery() operation.
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface QueryErrorCallback  {        
+    void onerror (ContextError error);
+  };
+Methods
+
+onerror
+Callback on failure of a executeQuery() operation
+
+Signature
+
+void onerror(ContextError error);
+Parameters
+
+error
+Optional: No.
+Nullable: No
+Type: ContextError
+Description: The ContextError object capturing the type of the error.
+Return value
+
+void
+2.16. SubscribeSuccessCallback
+
+Interface for callbacks indicating success of subscribeContextEvent() operation.
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface SubscribeSuccessCallback {        
+    void onsuccess (unsigned long subscriptionIdentifier);
+  };
+Methods
+
+onsuccess
+Callback on success of a subscribeContextEvent() operation
+
+Signature
+
+void onsuccess(unsigned long subscriptionIdentifier);
+Parameters
+
+subscriptionIdentifier
+Optional: No.
+Nullable: No
+Type: unsigned long
+Description: A subscription handler that can be later used to cancel the subscription.
+Return value
+
+void
+2.17. SubscribeErrorCallback
+
+Interface for callbacks indicating error of subscribeContextEvent() operation.
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface SubscribeErrorCallback  {        
+    void onerror (ContextError error);
+  };
+Methods
+
+onerror
+Callback on failure of a subscribeContextEvent() operation
+
+Signature
+
+void onerror(ContextError error);
+Parameters
+
+error
+Optional: No.
+Nullable: No
+Type: ContextError
+Description: The ContextError object capturing the type of the error.
+Return value
+
+void
+2.18. OccuringEvent
+
+Interface for specifying the method called when a new context related event occurs.
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface OccuringEvent {        
+    void onContextEvent (DOMString eventContextData);
+  };
+This interface specifies a function that provides a serialized json string of the context data retrieved from the happening of a context related event.
+
+Methods
+
+onContextEvent
+Method invoked when the context related event occurs.
+
+Signature
+
+void onContextEvent(DOMString eventContextData);
+Parameters
+
+eventContextData
+Optional: No.
+Nullable: No
+Type: DOMString
+Description: The context data acquired by the event.
+Return value
+
+void
+3. Features
+
+When the feature
+
+http://webinos.org/api/context
+or any of the features hierarchically under that feature is successfully requested, the interface ContextManager is instantiated, and the resulting object appears in the global namespace as .context.
+
+This is the list of URIs used to declare this API's features, for use in the widget config.xml and as identifier for service type in service discovery functionality. For each URI, the list of functions covered is provided.
+
+http://webinos.org/api/context
+Acccess to all the module. This feature provides access to the whole API. Security and Privacy enforcement may depend on the query or subscription requested by the developer.
+
+4. Full WebIDL
+
+module context {
+
+  [NoInterfaceObject] interface ContextManagerHook {
+    readonly attribute ContextManager context; 
+  };
+  webinos implements ContextManager;
+
+  [NoInterfaceObject] interface ContextManager {
+
+    void executeQuery(in QuerySuccessCallback successCallback,
+                      in QueryErrorCallback? errorCallback,
+                      in Query query)
+         raises(ContextError);
+  
+    void subscribeContextEvent(in SubscribeSuccessCallback subscribeSuccessCallback,
+                      in SubscribeErrorCallback? subscribeErrorCallback,
+                      in OccuringEvent eventHandler,
+                                          in DOMString eventIdentifier)
+         raises(ContextError);
+  
+    void unsubscribe(in unsigned long subscriptionIdentifier)
+         raises(ContextError);
+  };
+
+   [Callback, NoInterfaceObject] interface Query {
+
+    attribute SPARQLquery xmlQuery;
+  };
+  
+  [NoInterfaceObject] interface ContextError {
+     const unsigned short SECURITY_ERR = 1;
+
+     const unsigned short INVALID_QUERY_ERR = 2;
+
+     const unsigned short TYPE_MISMATCH_ERR = 3;
+   };
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface QuerySuccessCallback {        
+    void onsuccess (SPARQLquery queryResult);
+  };
+        
+  [Callback=FunctionOnly, NoInterfaceObject] interface QueryErrorCallback  {        
+    void onerror (ContextError error);
+  };
+  
+  [Callback=FunctionOnly, NoInterfaceObject] interface SubscribeSuccessCallback {        
+    void onsuccess (unsigned long subscriptionIdentifier);
+  };
+  
+  [Callback=FunctionOnly, NoInterfaceObject] interface SubscribeErrorCallback  {        
+    void onerror (ContextError error);
+  };
+  
+  [Callback=FunctionOnly, NoInterfaceObject] interface OccuringEvent {        
+    void onContextEvent (DOMString eventContextData);
+  };
+        
+};
+module context {
+
+  [NoInterfaceObject] interface ContextManagerHook {
+    readonly attribute ContextManager context; 
+  };
+  webinos implements ContextManager;
+
+  [NoInterfaceObject] interface ContextManager {
+
+    void executeQuery(in QuerySuccessCallback successCallback,
+                      in QueryErrorCallback? errorCallback,
+                      in Query query)
+         raises(ContextError);
+  
+    void subscribeContextEvent(in SubscribeSuccessCallback subscribeSuccessCallback,
+                      in SubscribeErrorCallback? subscribeErrorCallback,
+                      in OccuringEvent eventHandler,
+                                          in DOMString eventIdentifier)
+         raises(ContextError);
+  
+    void unsubscribe(in unsigned long subscriptionIdentifier)
+         raises(ContextError);
+  };
+
+   [Callback, NoInterfaceObject] interface Query {
+
+    attribute SPARQLquery xmlQuery;
+  };
+  
+  [NoInterfaceObject] interface ContextError {
+     const unsigned short SECURITY_ERR = 1;
+
+     const unsigned short INVALID_QUERY_ERR = 2;
+
+     const unsigned short TYPE_MISMATCH_ERR = 3;
+   };
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface QuerySuccessCallback {        
+    void onsuccess (SPARQLquery queryResult);
+  };
+        
+  [Callback=FunctionOnly, NoInterfaceObject] interface QueryErrorCallback  {        
+    void onerror (ContextError error);
+  };
+  
+  [Callback=FunctionOnly, NoInterfaceObject] interface SubscribeSuccessCallback {        
+    void onsuccess (unsigned long subscriptionIdentifier);
+  };
+  
+  [Callback=FunctionOnly, NoInterfaceObject] interface SubscribeErrorCallback  {        
+    void onerror (ContextError error);
+  };
+  
+  [Callback=FunctionOnly, NoInterfaceObject] interface OccuringEvent {        
+    void onContextEvent (DOMString eventContextData);
+  };
+        
+};

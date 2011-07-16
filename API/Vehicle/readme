@@ -1,0 +1,1223 @@
+Abstract
+
+webinos Vehicle interface.
+
+Table of Contents
+
+1. Introduction
+2. Interfaces
+2.1. VehicleError
+2.2. Address
+2.3. VehicleEvent
+2.4. LatLng
+2.5. POI
+2.6. SuccessCallback
+2.7. ErrorCallback
+2.8. VehicleDataHandler
+2.9. VehicleInterface
+2.10. Vehicle
+2.11. DestinationCallback
+2.12. ClimateControlEvent
+2.13. ControlEvent
+2.14. NavigationEvent
+2.15. ParkSensorsEvent
+2.16. ShiftEvent
+2.17. TripComputerEvent
+3. Features
+4. Full WebIDL
+Summary of Methods
+
+Interface	Method
+VehicleError	
+Address	
+VehicleEvent	
+LatLng	
+POI	
+SuccessCallback	void onSuccess()
+ErrorCallback	void onError(VehicleError error)
+VehicleDataHandler	void handleVehicleData(VehicleEvent data)
+VehicleInterface	void get(DOMString vehicleDataId, VehicleDataHandler handler, ErrorCallback errorCB)
+void requestGuidance(SuccessCallback successCallback, ErrorCallback errorCallback, POI [] destinations)
+void findDestination(DestinationCallback destinationCallback, ErrorCallback errorCallback, DOMString search)
+Vehicle	
+DestinationCallback	void handleResults(POI [] pois)
+ClimateControlEvent	void initClimateControlEvent(boolean bubbles, boolean cancelable, DOMString zone, short desiredTemperature, boolean acStatus, short ventLevel, short ventMode)
+ControlEvent	void initControlEvent(boolean bubbles, boolean cancelable, DOMString controlId, boolean active)
+NavigationEvent	void initNavigationEvent(boolean bubbles, boolean cancelable, DOMString navigationEventId, Address destination)
+ParkSensorsEvent	void initParkSensorsEvent(boolean bubbles, boolean cancelable, DOMString position, short left, short midLeft, short midRight, short right)
+ShiftEvent	void initShiftEvent(boolean bubbles, boolean cancelable, short gear)
+TripComputerEvent	void initTripComputerEvent(boolean bubbles, boolean cancelable, float averageConsumption1, float averageConsumption2, float averageSpeed1, float averageSpeed2, float tripDistance, float mileage, float range)
+1. Introduction
+
+The webinos vehicle API provides access to specific vehicle data. It is derived from W3C's DOM Level 3 Events model and defines event types for retrieving information about the vehicle including trip computer data, gears or park sensors. Furthermore it offers methods for interacting with the on-board navigation system. The geolocation, speed and acceleration can be retrieved using the geolocation and device orientation API.
+
+The API gives access to vehicle data, which is available on the infotainment vehicle bus (e.g. MOST). The infotainment bus is the only access point for the headunit to receveive vehicle data (diagram on vehicle bus architecture). Some data from other busses (high/low speed CAN) are routed into the bus over the central gateway such as speed or gear (RPM is currently not provided on the MOST).
+
+2. Interfaces
+
+2.1. VehicleError
+
+The interface defines the vehicle specific error
+
+        interface VehicleError : Error{
+                const short ACCESS_DENIED = 1;
+                const short NOT_AVAILABLE = 2;
+                const short UNKNOWN = 0;
+        };
+Constants
+
+short ACCESS_DENIED
+Constant describes that the access to the requested vehicle feature has been denied.
+
+short NOT_AVAILABLE
+Constant describes that the requested vehicle feature is not available.
+
+short UNKNOWN
+Constant describes that an unkown error occured while requestung a vehicle feature.
+
+2.2. Address
+
+This interface defines the address properties, which can be passed to the navigation system using the requestGuidance() function. The Address interface defined in the v2 of the W3C Geolocation API is used for this purpose.
+
+        [NoInterfaceObject]
+        interface Address{
+                attribute DOMString country;
+                attribute DOMString? region;
+                attribute DOMString? county;
+                attribute DOMString city;
+                attribute DOMString street;
+                attribute DOMString streetNumber;
+                attribute DOMString? premises;
+                attribute DOMString additionalInformation;
+                attribute DOMString postalCode;
+        };
+Attributes
+
+DOMString country
+Attribute is specified by using the two-letter [ISO 3166-1] code.
+
+DOMString? region
+Attribute denotes the name of a country subdivision (e.g. the state name in the US).
+
+DOMString? county
+Attribute denotes the name of a land area within a larger region.
+
+DOMString city
+Attribute reflects the name of the city.
+
+DOMString street
+Attribute reflects the name of the street.
+
+DOMString streetNumber
+Attribute describes the location's street number.
+
+DOMString? premises
+Attribute denotes the details of the premises, such as a building name, block of flats, etc.
+
+DOMString additionalInformation
+Attribute contains other address details that are not captured by the rest of the attributes in this interface. Examples include a floor number in a building, an apartment number, the name of an office occupant, etc..
+
+DOMString postalCode
+Attribute reflects the postal code of the location (e.g. the zip code in the US).
+
+2.3. VehicleEvent
+
+The interface defines a generic event for vehicle data specific events.
+
+        [NoInterfaceObject]
+        interface VehicleEvent : Event{
+        
+        };
+2.4. LatLng
+
+This interface defines the LatLng properties, which can be passed to the navigation system using the requestGuidance() function. The format is WGS84. Note: The coordinate interface from the Geolocation API v2 includes attributes, which are not feasible for beeing handled by the navigation system (accurancy, alitude accurency, heading, speed). In some special cases (destination is on a bridge, which crosses another street) it might make sense to add the altitude to LatLng interface at a later stage.
+
+        [NoInterfaceObject]
+        interface LatLng{
+                attribute double latitude;
+                attribute double longitude;
+        };
+Attributes
+
+double latitude
+Attribute reflect the latitude of a geolocation in WGS84.
+
+double longitude
+Attribute reflect the Longitude of a geolocation in WGS84.
+
+2.5. POI
+
+This interface defines a Point of Interest (POI). The interface contains the name of a POI and its address and/or geolocation as a LatLng object. Note: The W3C POI WG has published a first working draft for the POI handling. The draft focuses on a XML representation of a POI and does not seem handy for beeing handled by a navigation system.
+
+        [NoInterfaceObject]
+        interface POI{
+                attribute DOMString? name;
+                attribute LatLng? position;
+                attribute Address address;
+        };
+Attributes
+
+DOMString? name
+Attribute denotes the name of the POI.
+
+LatLng? position
+Attribute reflects the geolocation of the POI as LatLng object.
+
+Address address
+Attribute denotes the address of the POI.
+
+2.6. SuccessCallback
+
+The interface defines the callback for a asynchronous function call insided the vehicle module.
+
+        [Callback=FunctionOnly, NoInterfaceObject]
+        interface SuccessCallback{
+                void onSuccess();
+        };
+Methods
+
+onSuccess
+Method is triggered, if function has been succesfully called.
+
+Signature
+
+void onSuccess();
+2.7. ErrorCallback
+
+The interface defines the callback for a failed asynchronous function call inside the vehilce module.
+
+        [Callback=FunctionOnly, NoInterfaceObject]
+        interface ErrorCallback{
+                void onError(in VehicleError error);
+        };
+Methods
+
+onError
+Method is triggered, if asychronous function call fails.
+
+Signature
+
+void onError(in VehicleError error);
+Parameters
+
+error
+Optional: No.
+Nullable: No
+Type: VehicleError
+Description: contains information about the error.
+2.8. VehicleDataHandler
+
+The interface defines the callback method to receive vehicle data in a non-recurring and asynchronous way.
+
+        interface VehicleDataHandler{
+                void handleVehicleData(in VehicleEvent data);
+        
+        };
+2.9. VehicleInterface
+
+The interface defines general information about the vehicle and is the object, where the event listener for vehicle related data can be registered. The interface is accessible through the webinos.vehicle object.
+
+        [NoInterfaceObject]
+        interface VehicleInterface : EventTarget {
+                const DOMString FUEL_UNLEADED = "unleaded";
+                const DOMString FUEL_PREMIUM = "premium";
+                const DOMString FUEL_DIESEL = "diesel";
+                const DOMString TRANSMISSION_AUTOMATIC = "automatic";
+                const DOMString TRANSMISSION_MANUAL = "manual";         
+                readonly attribute DOMString brand;
+                readonly attribute DOMString model;
+                readonly attribute DOMString year;
+                readonly attribute DOMString fuel;
+                readonly attribute DOMString transmission;
+                void get(DOMString vehicleDataId, VehicleDataHandler handler, in ErrorCallback errorCB);
+                void requestGuidance(in SuccessCallback successCallback, in ErrorCallback errorCallback, POI[] destinations);
+                void findDestination(DestinationCallback destinationCallback, in ErrorCallback errorCallback, DOMString search);
+        };
+Constants
+
+DOMString FUEL_UNLEADED
+Constant defines the fuel type unleaded.
+
+DOMString FUEL_PREMIUM
+Constant defines the fuel type premium.
+
+DOMString FUEL_DIESEL
+Constant defines the fuel type diesel.
+
+DOMString TRANSMISSION_AUTOMATIC
+Constant defines the transmission type automatic.
+
+DOMString TRANSMISSION_MANUAL
+Constant defines the transmission type manual.
+
+Attributes
+
+readonly DOMString brand
+Attribute denotes brand name of the vehicle.
+
+This attribute is readonly.
+readonly DOMString model
+Attribute reflects model name of the vehicle.
+
+This attribute is readonly.
+readonly DOMString year
+Attribute denotes production year of the vehicle.
+
+This attribute is readonly.
+readonly DOMString fuel
+Attribute reflects fuel type of the vehicle.
+
+This attribute is readonly.
+readonly DOMString transmission
+Attribute denotes transmission type of the vehicle.
+
+This attribute is readonly.
+Methods
+
+get
+Method allows to request vehicle data in a non-recurring way and is independant from value changes (cf. events). The same identifiers are used for vehicle data as well as for the different vehicle events (ClimateControlEvent, ControlEvent, NavigationEvent, ParkSensorsEvent, ShiftEvent).
+
+Signature
+
+void get(DOMString vehicleDataId, VehicleDataHandler handler, in ErrorCallback errorCB);
+Parameters
+
+vehicleDataId
+Optional: No.
+Nullable: No
+Type: DOMString
+Description: Parameter specifies the type of data, which shall be retrieved. The identifiers for the different data types are defined in the different vehicle event interfaces (ClimateControlEvent, ControlEvent, NavigationEvent, ParkSensorsEvent, ShiftEvent). The identifiers for climate control data are defined in constants CLIMATE_*, for control data in constants LIGHTS_* and WHIPER_*, for navigation data in constants DESTINATION_*, for park sensors data in constants PARKSENSORS_*, for shift data in constant SHIFT and for trip computer data in constant TRIPCOMPUTER.
+handler
+Optional: No.
+Nullable: No
+Type: VehicleDataHandler
+Description: Parameter specifies the function to handle the result.
+errorCB
+Optional: No.
+Nullable: No
+Type: ErrorCallback
+Description: Parameter specifies the callback function in case of an error.
+Code example
+
+ webinos.vehicle.get(webinos.vehicle.ClimateControlEvent.CLIMATE_ALL, dataHandler);
+ function dataHandler(data){
+        if(data.acStatus){
+                console.log("Airconditioning is on");
+                if(data.desiredTemperature < 19){
+                        console.log("This is not so good for your health");
+                                }
+        }
+ }
+ 
+requestGuidance
+Parameter sets the given POIs as the next destinations for the build-in navigation system. The method handles intermediate stops. The last POI in the array is the final destination.
+
+Signature
+
+void requestGuidance(in SuccessCallback successCallback, in ErrorCallback errorCallback, 
+              POI
+            [] destinations);
+Parameters
+
+successCallback
+Optional: No.
+Nullable: No
+Type: SuccessCallback
+Description: callback, if the POIs are succesully transferred.
+errorCallback
+Optional: No.
+Nullable: No
+Type: ErrorCallback
+Description: callback, if the address could not be transferred.
+destinations
+Optional: No.
+Nullable: No
+Type: array
+Description: in form of an POI array. The last POI in the array is the destination point. The other POIs are intermediate stops along the route.
+Code example
+
+        var destinations =new Array();
+        destination.push({name:"BMW AG", address : {street:"Petuelring", streetNumber: "130", postalCode: "80788", city: "MÜNCHEN", country: "DE"}});
+      destination.push({name:"BMW Forschung und Technik", address:{street: "Hanauer Strasse", streetNumber: "46", postalCode: "80992", city: "MÜNCHEN", country: "DE"}});
+      webinos.vehicle.requestGuidance(succesCB, null, destinations);
+        webinos.vehicle.addEventListener(webinos.vehicle.NavigationEvent.DESTINATION_REACHED, handleDestinations, false);
+      
+        function handleDestinations(event){
+          if (event.address.street == destination[0].address.street) {
+               console.log("Reached the HQ");
+          } else if (event.address.street == destination[1].address.street) {
+                console.log("Reached the research center");
+          }
+        }
+ 
+findDestination
+Queries the navigation system to retrieve POIs for a given search string.
+
+Signature
+
+void findDestination(DestinationCallback destinationCallback, in ErrorCallback errorCallback, DOMString search);
+Parameters
+
+destinationCallback
+Optional: No.
+Nullable: No
+Type: DestinationCallback
+Description: callback to handle the results to the search string.
+errorCallback
+Optional: No.
+Nullable: No
+Type: ErrorCallback
+Description: callback to handle errors.
+search
+Optional: No.
+Nullable: No
+Type: DOMString
+Description: search string for resolving a address.
+Code example
+
+        var destinations =new Array();
+      webinos.vehicle.findDestination(destinationCB, errorCB,"BMW");
+      function destinationCB(pois){
+        if(destinations.length > 0){
+        webinos.requestGuidance(successCB, errorCB, destinations);            
+        else{
+                console.log("No POI found");
+        }               
+}
+ 
+ 
+2.10. Vehicle
+
+The Vehicle interface describes the part of the Vehicle API accessible through the webinos object.
+
+        [NoInterfaceObject] interface Vehicle {
+                readonly attribute VehicleInterface vehicle;
+        };
+        webinoscore::Webinos implements Vehicle;
+2.11. DestinationCallback
+
+The interface defines the result callback for the asynchronous findDestination method.
+
+        [Callback=FunctionOnly, NoInterfaceObject]
+        interface DestinationCallback {
+                 void handleResults(in POI[] pois);
+        };
+Methods
+
+handleResults
+Function is called, when the results for a POI search are retrieved.
+
+Signature
+
+void handleResults(in 
+              POI
+            [] pois);
+Parameters
+
+pois
+Optional: No.
+Nullable: No
+Type: array
+Description: Parameter provides an array of POIs.
+2.12. ClimateControlEvent
+
+The interface defines a climate control event. The event provides information about changes to the climate control system inside the vehicle.
+
+        [NoInterfaceObject]
+        interface ClimateControlEvent : VehicleEvent{
+                const DOMString CLIMATE_ALL = "climate-all";
+                const DOMString CLIMATE_DRIVER = "climate-driver";
+                const DOMString CLIMATE_PASSENGER_FRONT = "climate-passenger-front";
+                const DOMString CLIMATE_PASSENGER_REAR_LEFT = "climate-passenger-rear-left";
+                const DOMString CLIMATE_PASSENGER_REAR_RIGHT = "climate-passenger-rear-right";
+                readonly attribute DOMString zone;
+                readonly attribute unsigned short desiredTemperature; 
+                readonly attribute boolean acStatus;
+                readonly attribute unsigned short ventLevel;
+                readonly attribute boolean ventMode;
+                void initClimateControlEvent(boolean bubbles, boolean cancelable, DOMString zone, short desiredTemperature, boolean acStatus, short ventLevel, short ventMode);
+        };
+Code example
+
+ webinos.vehicle.addEventListener("climate", climateHandler, null);
+ function climateHandler(data){
+                console.log(data.zone + " desired temperature is " + data.desiredTemperature + "° C");                 
+        }                               
+ 
+Constants
+
+DOMString CLIMATE_ALL
+Constant defines the single climate zone. This constant is used as an identifier for a ClimateControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the overall zone.
+
+DOMString CLIMATE_DRIVER
+Constant describes the climate zone of the driver. This constant is used as an identifier for a ClimateControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the driver zone.
+
+DOMString CLIMATE_PASSENGER_FRONT
+Constant defines the climate zone of the passenger seat in the front. This constant is used as an identifier for a ClimateControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the passenger zone in the front.
+
+DOMString CLIMATE_PASSENGER_REAR_LEFT
+Constant defines the climate zone of the rear set passenger seat on the left. This constant is used as an identifier for a ClimateControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the passenger zone in the rear on the left side.
+
+DOMString CLIMATE_PASSENGER_REAR_RIGHT
+Constant defines the climate zone of the rear set passenger seat on the right. This constant is used as an identifier for a ClimateControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the passenger zone in the rear on the right side.
+
+Attributes
+
+readonly DOMString zone
+Attribute defines the zone of the climate control event. The value of this attribute is defined in the constants CLIMATE_*.
+
+This attribute is readonly.
+readonly unsigned short desiredTemperature
+Attribute defines the desired temperature in degree celsius.
+
+This attribute is readonly.
+readonly boolean acStatus
+Attribute defines, if the AC switched on or not.
+
+This attribute is readonly.
+readonly unsigned short ventLevel
+Attribute defines the level of the vents. This value can be 1-9.
+
+This attribute is readonly.
+readonly boolean ventMode
+Attribute defines if the vent is used in automatic mode or not.
+
+This attribute is readonly.
+Methods
+
+initClimateControlEvent
+Method is used to set initial values of a climate control event.
+
+Signature
+
+void initClimateControlEvent(boolean bubbles, boolean cancelable, DOMString zone, short desiredTemperature, boolean acStatus, short ventLevel, short ventMode);
+Parameters
+
+bubbles
+Optional: No.
+Nullable: No
+Type: boolean
+Description: True if event bubbles.
+cancelable
+Optional: No.
+Nullable: No
+Type: boolean
+Description: True if event is cancelable.
+zone
+Optional: No.
+Nullable: No
+Type: DOMString
+Description: zone where event climate settings have been changed.
+desiredTemperature
+Optional: No.
+Nullable: No
+Type: short
+Description: desired temperature in degree celsius.
+acStatus
+Optional: No.
+Nullable: No
+Type: boolean
+Description: true if the air conditioning is running.
+ventLevel
+Optional: No.
+Nullable: No
+Type: short
+Description: level of the vent.
+ventMode
+Optional: No.
+Nullable: No
+Type: short
+Description: true, if the vent is in automatic mode.
+2.13. ControlEvent
+
+The interface defines a control event. The event signals a change for a control unit inside the vehicle (e.g. lights, wiper, etc.). The identifiers for the different control events are defined in the constants LIGHTS_* and WHIPER_*
+
+        interface ControlEvent : VehicleEvent{
+                const DOMString LIGHTS_FOG_FRONT = "lights-fog-front";
+                const DOMString LIGHTS_FOG_REAR = "lights-fog-rear";
+                const DOMString LIGHTS_SIGNAL_LEFT = "lights-signal-left";
+                const DOMString LIGHTS_SIGNAL_RIGHT = "lights-signal-right";
+                const DOMString LIGHTS_SIGNAL_WARN = "lights-signal-warn";      
+                const DOMString LIGHTS_PARKING = "lights-parking";
+                const DOMString LIGHTS_HIBEAM = "lights-hibeam";
+                const DOMString LIGHTS_HEAD = "lights-head";
+                const DOMString WHIPER_FRONT_WASH = "whiper-front-wash";
+                const DOMString WHIPER_REAR_WASH = "whiper-rear-wash";
+                const DOMString WHIPER_AUTOMATIC = "whiper-automatic";
+                const DOMString WHIPER_FRONT_ONCE = "whiper-front-once";
+                const DOMString WHIPER_REAR_ONCE = "whiper-front-once";
+                const DOMString WHIPER_FRONT_LEVEL1 = "whiper-front-level1";
+                const DOMString WHIPER_FRONT_LEVEL2 = "whiper-front-level2";
+                readonly attribute DOMString conrolId;
+                readonly attribute boolean active;
+                void initControlEvent(boolean bubbles, boolean cancelable, DOMString controlId, boolean active);
+        };
+Code example
+
+        webinos.vehicle.addEventListener("lights-hibeam", lightHandler, false);
+      function lightHandler(cEvent){
+                if(cEvent.controlId == "lights-hibeam"){
+                        if(cEvent.active == true){
+                                console.log("Hibeam turned on");
+                        }else{
+                                console.log("Hibeam turned off");
+                        }
+                }
+        }
+ 
+Constants
+
+DOMString LIGHTS_FOG_FRONT
+Constant indicates a change for the fog light in the front. This constant is used as an identifier for a ControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of fogs light in the front.
+
+DOMString LIGHTS_FOG_REAR
+Constant indicates a change for the fog light in the rear. This constant is used as an identifier for a ControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of fogs light in the rear.
+
+DOMString LIGHTS_SIGNAL_LEFT
+Constant indicates a change for left turn signal. This constant is used as an identifier for a ControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of the left signal.
+
+DOMString LIGHTS_SIGNAL_RIGHT
+Constant indicates a change for right turn signal. This constant is used as an identifier for a ControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of the right signal.
+
+DOMString LIGHTS_SIGNAL_WARN
+Constant indicates a change for warn signal. This constant is used as an identifier for a ControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of the warn signal.
+
+DOMString LIGHTS_PARKING
+Constant indicates a change for the parking lights. This constant is used as an identifier for a ControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of the parking light.
+
+DOMString LIGHTS_HIBEAM
+Constant indicates a change for the hibeam. This constant is used as an identifier for a ControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of the lights hibeam.
+
+DOMString LIGHTS_HEAD
+Constant indicates a change for the headlight. This constant is used as an identifier for a ControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of the head light.
+
+DOMString WHIPER_FRONT_WASH
+Constant indicates front window is beeing washed. This constant is used as an identifier for a ControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of the whiper front wash.
+
+DOMString WHIPER_REAR_WASH
+Constant indicates rear window is beeing washed. This constant is used as an identifier for a ControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of the whiper rear wash.
+
+DOMString WHIPER_AUTOMATIC
+Constant indicates whiper is in automatic mode. This constant is used as an identifier for a ControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of the automatic whiper mode.
+
+DOMString WHIPER_FRONT_ONCE
+Constant indicates front whiper is beeing used once. This constant is used as an identifier for a ControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of the whiper single mode in the front.
+
+DOMString WHIPER_REAR_ONCE
+Constant indicates rear whiper is beeing used once. This constant is used as an identifier for a ControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of the whiper single mode in the rear.
+
+DOMString WHIPER_FRONT_LEVEL1
+constant indicates front whiper is on level 1. This constant is used as an identifier for a ControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of the whiper on level 1 in the front.
+
+DOMString WHIPER_FRONT_LEVEL2
+constant indicates front whiper is on level 2. This constant is used as an identifier for a ControlEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of the whiper on level 2 in the front.
+
+Attributes
+
+readonly DOMString conrolId
+Attribute describes the source of the event. The value of the attribute is defined in the constants LIGHTS_* and WHIPER_*.
+
+This attribute is readonly.
+readonly boolean active
+Attribute describes the status of the control unit.
+
+This attribute is readonly.
+Methods
+
+initControlEvent
+Method sets initial values of a control event.
+
+Signature
+
+void initControlEvent(boolean bubbles, boolean cancelable, DOMString controlId, boolean active);
+Parameters
+
+bubbles
+Optional: No.
+Nullable: No
+Type: boolean
+Description: True if event bubbles.
+cancelable
+Optional: No.
+Nullable: No
+Type: boolean
+Description: True if event cancelable.
+controlId
+Optional: No.
+Nullable: No
+Type: DOMString
+Description: specifies the control unit.
+active
+Optional: No.
+Nullable: No
+Type: boolean
+Description: specifies if the unit is activated or not.
+2.14. NavigationEvent
+
+The interface defines the navigation event. The identifiers for the different navigation events are defined in the constants DESTINATTION_*.
+
+        interface NavigationEvent : VehicleEvent{
+                const DOMString DESTINATION_REACHED = "destination-reached";
+                const DOMString DESTINATION_CHANGED = "destination-changed";
+                const DOMString DESTINATION_CANCELLED = "destination-cancelled";        
+                
+                readonly attribute DOMString type;
+                readonly attribute Address address;
+
+                void initNavigationEvent(boolean bubbles, boolean cancelable, DOMString navigationEventId, Address destination);  
+        };
+Constants
+
+DOMString DESTINATION_REACHED
+Constant defines the event that the destination has been reached. This constant is used as an identifier for a NavigationEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for destination reached.
+
+DOMString DESTINATION_CHANGED
+Constant defines the event that a new destination has been set. This constant is used as an identifier for a NavigationEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for destination changed.
+
+DOMString DESTINATION_CANCELLED
+Constant defines the event that the navigation to a destination has been cancelled. This constant is used as an identifier for a NavigationEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for a cancelation of guidance to a destination.
+
+Attributes
+
+readonly DOMString type
+Attribute defines the type of the navigation event. The type can either be "destination-reached", "destination-changed" or "destination-cancelled".
+
+This attribute is readonly.
+readonly Address address
+Attribute defines for which address the event occured.
+
+This attribute is readonly.
+Methods
+
+initNavigationEvent
+Method sets initial values of a navigation event.
+
+Signature
+
+void initNavigationEvent(boolean bubbles, boolean cancelable, DOMString navigationEventId, Address destination);
+Parameters
+
+bubbles
+Optional: No.
+Nullable: No
+Type: boolean
+Description: True if event bubbles.
+cancelable
+Optional: No.
+Nullable: No
+Type: boolean
+Description: True if event cancelable.
+navigationEventId
+Optional: No.
+Nullable: No
+Type: DOMString
+Description: Sensor type.
+destination
+Optional: No.
+Nullable: No
+Type: Address
+Description: destination for which the event occured.
+2.15. ParkSensorsEvent
+
+This interface defines an event related to the built-in park sensors. The identifiers for the different events are defined in the constants PARKSENSENSORS_FRONT and PARKSENSENSORS_REAR. A listener can be registered by vehicle.addEventLister("parksensor-front",listener,false).
+
+        interface ParkSensorsEvent : VehicleEvent{
+                const DOMString PARKSENSENSORS_FRONT = "parksensors-front";
+                const DOMString PARKSENSENSORS_REAR = "parksensors-rear";
+                readonly attribute DOMString position;
+                readonly attribute unsigned short left;
+                readonly attribute unsigned short midLeft;      
+                readonly attribute unsigned short midRigth;
+                readonly attribute unsigned short rigth;
+                void initParkSensorsEvent(boolean bubbles, boolean cancelable, DOMString position, short left, short midLeft, short midRight, short right);
+        };
+Code example
+
+        webinos.vehicle.addEventListener("parksensor-front", psHandler, false);
+        webinos.vehicle.addEventListener("parksensor-rear", psHandler, false);
+        function psHandler(psEvent){
+                if(psEvent.left == 20){
+                        console.log("obstacle on the left in" + psEvent.position + " is close");
+                }
+        }
+ 
+Constants
+
+DOMString PARKSENSENSORS_FRONT
+Constant defines that the event was emitted by the park sensors in the front. This constant is used as an identifier for a ParkSensorEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of the park sensors in the front.
+
+DOMString PARKSENSENSORS_REAR
+Constant defines that the event was emitted by the park sensors in the rear. This constant is used as an identifier for a ParkSensorEvent and a non-recurring vehicle data request using the method webinos.vehicle.get() for the status of the park sensors in the rear.
+
+Attributes
+
+readonly DOMString position
+Attribute defines the position of the sensor. The value of the attribute is either PARKSENSENSORS_FRONT or PARKSENSENSORS_REAR.
+
+This attribute is readonly.
+readonly unsigned short left
+Attribute reflects the destination to an object sensed by the sensor on the left side in centimeters. Minimum distance is 20 centimeters. Maximum distance is 250 centimeters. A value of -1 indiactes that no object has been sensed.
+
+This attribute is readonly.
+readonly unsigned short midLeft
+Attribute reflects the destination to an object sensed by the sensor on the middle left side in centimeters. Minimum distance is 20 centimeters. Maximum distance is 250 centimeters. A value of -1 indiactes that no object has been sensed.
+
+This attribute is readonly.
+readonly unsigned short midRigth
+Attribute reflects the destination to an object sensed by the sensor on the middle right side in centimeters. Minimum distance is 20 centimeters. Maximum distance is 250 centimeters. A value of -1 indiactes that no object has been sensed.
+
+This attribute is readonly.
+readonly unsigned short rigth
+Attribute reflects the destination to an object sensed by the sensor on the rigth side in centimeters. Minimum distance is 20 centimeters. Maximum distance is 250 centimeters. A value of -1 indiactes that no object has been sensed.
+
+This attribute is readonly.
+Methods
+
+initParkSensorsEvent
+Method sets initial values of a park sensors event.
+
+Signature
+
+void initParkSensorsEvent(boolean bubbles, boolean cancelable, DOMString position, short left, short midLeft, short midRight, short right);
+Parameters
+
+bubbles
+Optional: No.
+Nullable: No
+Type: boolean
+Description: True if event bubbles.
+cancelable
+Optional: No.
+Nullable: No
+Type: boolean
+Description: True if event cancelable.
+position
+Optional: No.
+Nullable: No
+Type: DOMString
+Description: position of the sensors: front or rear.
+left
+Optional: No.
+Nullable: No
+Type: short
+Description: data from the left sensor.
+midLeft
+Optional: No.
+Nullable: No
+Type: short
+Description: data from the middle left sensor.
+midRight
+Optional: No.
+Nullable: No
+Type: short
+Description: data from the middle right sensor.
+right
+Optional: No.
+Nullable: No
+Type: short
+Description: data from the right sensor.
+2.16. ShiftEvent
+
+This interface defines a shift event. A listener can be registered by vehicle.addEventLister("shift",listener,false).
+
+        interface ShiftEvent : VehicleEvent{
+                const DOMString SHIFT = "shift";
+                const short GEAR_ONE = 1;
+                const short GEAR_TWO = 2;
+                const short GEAR_THREE = 3;
+                const short GEAR_FOUR = 4;              
+                const short GEAR_FIFE = 5;
+                const short GEAR_SIX = 6;
+                const short GEAR_SEVEN = 7;
+                const short GEAR_EIGHT = 8;
+                const short GEAR_REVERSE = -1;
+                const short GEAR_NEUTRAL = 0;
+                const short GEAR_PARKING = -2;          
+                readonly attribute short gear;
+                void initShiftEvent(boolean bubbles, boolean cancelable, short gear);
+        };
+Code example
+
+ // registering an Event for a Shift
+ webinos.vehicle.addEventListener("shift", shiftHandler);
+ function shiftHandler(e){
+   document.getElementById("info").innerHTML = e.gear;
+  webinos.vehicle.removeEventListener("shift", shiftHandler);
+ }                              
+ 
+Constants
+
+DOMString SHIFT
+Constant defines shift event. This constant is used as an identifier for a shift event and a non-recurring vehicle data request using the method webinos.vehicle.get() for the gear.
+
+short GEAR_ONE
+Constant defines the first gear.
+
+short GEAR_TWO
+Constant defines the second gear.
+
+short GEAR_THREE
+Constant defines the third gear.
+
+short GEAR_FOUR
+Constant defines the fourth gear.
+
+short GEAR_FIFE
+Constant defines the fifth gear.
+
+short GEAR_SIX
+Constant defines the sixth gear.
+
+short GEAR_SEVEN
+Constant defines the seventh gear.
+
+short GEAR_EIGHT
+Constant defines the eighth gear.
+
+short GEAR_REVERSE
+Constant defines the reverse gear.
+
+short GEAR_NEUTRAL
+Constant defines the neutral gear.
+
+short GEAR_PARKING
+Constant defines the parking gear.
+
+Attributes
+
+readonly short gear
+Attribute represents the current gear of the vehicle.
+
+This attribute is readonly.
+Methods
+
+initShiftEvent
+Method sets initial values a shift event.
+
+Signature
+
+void initShiftEvent(boolean bubbles, boolean cancelable, short gear);
+Parameters
+
+bubbles
+Optional: No.
+Nullable: No
+Type: boolean
+Description: True if event bubbles.
+cancelable
+Optional: No.
+Nullable: No
+Type: boolean
+Description: True if event cancelable.
+gear
+Optional: No.
+Nullable: No
+Type: short
+Description: current gear of the engine.
+2.17. TripComputerEvent
+
+The interface defines a trip computer event. A listener can be registered by vehicle.addEventLister("tripcomputer",listener,false).
+
+        interface TripComputerEvent : VehicleEvent{
+                const DOMString TRIPCOMPUTER = "tripcomputer";
+                readonly attribute float averageConsumption1;
+                readonly attribute float averageConsumption2;
+                readonly attribute float averageSpeed1;
+                readonly attribute float averageSpeed2;
+                readonly attribute float tripDistance;
+                readonly attribute float milage;
+                readonly attribute float range;
+                void initTripComputerEvent(boolean bubbles, boolean cancelable, float averageConsumption1, float averageConsumption2, float averageSpeed1, float averageSpeed2, float tripDistance, float mileage, float range);
+        };
+Code example
+
+var latestConsumption = 0;
+webinos.vehicle.addEventListener("tripcomputer", tripDataHandler, false);
+      
+function tripDataHandler(data){
+        //Calculating, if the fuel efficiency increased, since the last update
+        var gap = latestConsumption - data.averageConsumption1;
+        if(gap < 0){
+            console.log("Thumbs down. You decreased your fuel efficiency");
+        } else if (gap > 0){
+            console.log("Thumbs up. You increased your fuel efficiency");
+        } else {
+            console.log("nothing changed");
+        }
+        latestConsumption = data.averageConsumption1;
+      
+        if (data.range < 20){
+            console.log("You really need " + webinos.vehicle.fuel + "soon.");   
+        }
+}
+ 
+Constants
+
+DOMString TRIPCOMPUTER
+Constant defines a trip computer event. This constant is used as an identifier for a trip computer event and a non-recurring trip data request using the method webinos.vehicle.get() for trip computer data.
+
+Attributes
+
+readonly float averageConsumption1
+Attrubute reflects the average consumption 1 of the vehicle in l/100kilometers (resets automatically after a trip).
+
+This attribute is readonly.
+readonly float averageConsumption2
+Attrubute reflects the average consumption 2 of the vehicle in l/100kilometers (resets on driver's demand).
+
+This attribute is readonly.
+readonly float averageSpeed1
+Attrubute reflects the average speed of the vehicle in kilometers per hour (resets automatically after a trip).
+
+This attribute is readonly.
+readonly float averageSpeed2
+Attrubute reflects average speed of the vehicle in kilometers per hour (resets on driver's demand).
+
+This attribute is readonly.
+readonly float tripDistance
+Attrubute reflects trip distance in kilometers.
+
+This attribute is readonly.
+readonly float milage
+Attrubute reflects milage in kilometers.
+
+This attribute is readonly.
+readonly float range
+Attrubute reflects the range of the vehicle in kilometers.
+
+This attribute is readonly.
+Methods
+
+initTripComputerEvent
+Method sets the initial values of a trip computer event.
+
+Signature
+
+void initTripComputerEvent(boolean bubbles, boolean cancelable, float averageConsumption1, float averageConsumption2, float averageSpeed1, float averageSpeed2, float tripDistance, float mileage, float range);
+Parameters
+
+bubbles
+Optional: No.
+Nullable: No
+Type: boolean
+Description: True if event bubbles.
+cancelable
+Optional: No.
+Nullable: No
+Type: boolean
+Description: True if event cancelable.
+averageConsumption1
+Optional: No.
+Nullable: No
+Type: float
+Description: average consumption 1 of the vehicle in l/100kilometers.
+averageConsumption2
+Optional: No.
+Nullable: No
+Type: float
+Description: average consumption 2 of the vehicle in l/100kilometers.
+averageSpeed1
+Optional: No.
+Nullable: No
+Type: float
+Description: average speed 1 of the vehicle in kilometers per hour.
+averageSpeed2
+Optional: No.
+Nullable: No
+Type: float
+Description: average speed 2 of the vehicle in kilometers per hour.
+tripDistance
+Optional: No.
+Nullable: No
+Type: float
+Description: distance of the current trip in kilometers.
+mileage
+Optional: No.
+Nullable: No
+Type: float
+Description: overall driven distance in kilometers.
+range
+Optional: No.
+Nullable: No
+Type: float
+Description: range of the vehicle in kilometers.
+3. Features
+
+This is the list of URIs used to declare this API's features, for use in the widget config.xml and as identifier for service type in service discovery functionality. For each URI, the list of functions covered is provided.
+
+http://webinos.org/api/vehicle
+Identifies the light sensor type.
+
+http://webinos.org/api/vehicle.climate
+Identifies vehicle data related to climate controls.
+
+http://webinos.org/api/vehicle.navigation
+Identifies the navigation module of a vehicle.
+
+http://webinos.org/api/vehicle.parksensors
+Identifies park sensor modules of a vehicle.
+
+http://webinos.org/api/vehicle.tripcomputer
+Identifies the trip computer information of a vehicle.
+
+http://webinos.org/api/vehicle.controls
+Identifies control data (e.g. whipers and lights) of a vehicle
+
+4. Full WebIDL
+
+module vehicle{
+        interface VehicleError : Error{
+                const short ACCESS_DENIED = 1;
+                const short NOT_AVAILABLE = 2;
+                const short UNKNOWN = 0;
+        };
+        [NoInterfaceObject]
+        interface Address{
+                attribute DOMString country;
+                attribute DOMString? region;
+                attribute DOMString? county;
+                attribute DOMString city;
+                attribute DOMString street;
+                attribute DOMString streetNumber;
+                attribute DOMString? premises;
+                attribute DOMString additionalInformation;
+                attribute DOMString postalCode;
+        };
+        
+        [NoInterfaceObject]
+        interface VehicleEvent : Event{
+        
+        };
+        [NoInterfaceObject]
+        interface LatLng{
+                attribute double latitude;
+                attribute double longitude;
+        };
+        [NoInterfaceObject]
+        interface POI{
+                attribute DOMString? name;
+                attribute LatLng? position;
+                attribute Address address;
+        };
+
+        [Callback=FunctionOnly, NoInterfaceObject]
+        interface SuccessCallback{
+                void onSuccess();
+        };
+        [Callback=FunctionOnly, NoInterfaceObject]
+        interface ErrorCallback{
+                void onError(in VehicleError error);
+        };
+        
+        interface VehicleDataHandler{
+                void handleVehicleData(in VehicleEvent data);
+        
+        };
+        
+        [NoInterfaceObject]
+        interface VehicleInterface : EventTarget {
+                const DOMString FUEL_UNLEADED = "unleaded";
+                const DOMString FUEL_PREMIUM = "premium";
+                const DOMString FUEL_DIESEL = "diesel";
+                const DOMString TRANSMISSION_AUTOMATIC = "automatic";
+                const DOMString TRANSMISSION_MANUAL = "manual";         
+                readonly attribute DOMString brand;
+                readonly attribute DOMString model;
+                readonly attribute DOMString year;
+                readonly attribute DOMString fuel;
+                readonly attribute DOMString transmission;
+                void get(DOMString vehicleDataId, VehicleDataHandler handler, in ErrorCallback errorCB);
+                void requestGuidance(in SuccessCallback successCallback, in ErrorCallback errorCallback, POI[] destinations);
+                void findDestination(DestinationCallback destinationCallback, in ErrorCallback errorCallback, DOMString search);
+        };
+        
+        [NoInterfaceObject] interface Vehicle {
+                readonly attribute VehicleInterface vehicle;
+        };
+        webinoscore::Webinos implements Vehicle;
+        [Callback=FunctionOnly, NoInterfaceObject]
+        interface DestinationCallback {
+                 void handleResults(in POI[] pois);
+        };
+        [NoInterfaceObject]
+        interface ClimateControlEvent : VehicleEvent{
+                const DOMString CLIMATE_ALL = "climate-all";
+                const DOMString CLIMATE_DRIVER = "climate-driver";
+                const DOMString CLIMATE_PASSENGER_FRONT = "climate-passenger-front";
+                const DOMString CLIMATE_PASSENGER_REAR_LEFT = "climate-passenger-rear-left";
+                const DOMString CLIMATE_PASSENGER_REAR_RIGHT = "climate-passenger-rear-right";
+                readonly attribute DOMString zone;
+                readonly attribute unsigned short desiredTemperature; 
+                readonly attribute boolean acStatus;
+                readonly attribute unsigned short ventLevel;
+                readonly attribute boolean ventMode;
+                void initClimateControlEvent(boolean bubbles, boolean cancelable, DOMString zone, short desiredTemperature, boolean acStatus, short ventLevel, short ventMode);
+        };
+        interface ControlEvent : VehicleEvent{
+                const DOMString LIGHTS_FOG_FRONT = "lights-fog-front";
+                const DOMString LIGHTS_FOG_REAR = "lights-fog-rear";
+                const DOMString LIGHTS_SIGNAL_LEFT = "lights-signal-left";
+                const DOMString LIGHTS_SIGNAL_RIGHT = "lights-signal-right";
+                const DOMString LIGHTS_SIGNAL_WARN = "lights-signal-warn";      
+                const DOMString LIGHTS_PARKING = "lights-parking";
+                const DOMString LIGHTS_HIBEAM = "lights-hibeam";
+                const DOMString LIGHTS_HEAD = "lights-head";
+                const DOMString WHIPER_FRONT_WASH = "whiper-front-wash";
+                const DOMString WHIPER_REAR_WASH = "whiper-rear-wash";
+                const DOMString WHIPER_AUTOMATIC = "whiper-automatic";
+                const DOMString WHIPER_FRONT_ONCE = "whiper-front-once";
+                const DOMString WHIPER_REAR_ONCE = "whiper-front-once";
+                const DOMString WHIPER_FRONT_LEVEL1 = "whiper-front-level1";
+                const DOMString WHIPER_FRONT_LEVEL2 = "whiper-front-level2";
+                readonly attribute DOMString conrolId;
+                readonly attribute boolean active;
+                void initControlEvent(boolean bubbles, boolean cancelable, DOMString controlId, boolean active);
+        };
+        interface NavigationEvent : VehicleEvent{
+                const DOMString DESTINATION_REACHED = "destination-reached";
+                const DOMString DESTINATION_CHANGED = "destination-changed";
+                const DOMString DESTINATION_CANCELLED = "destination-cancelled";        
+                
+                readonly attribute DOMString type;
+                readonly attribute Address address;
+
+                void initNavigationEvent(boolean bubbles, boolean cancelable, DOMString navigationEventId, Address destination);  
+        };
+        interface ParkSensorsEvent : VehicleEvent{
+                const DOMString PARKSENSENSORS_FRONT = "parksensors-front";
+                const DOMString PARKSENSENSORS_REAR = "parksensors-rear";
+                readonly attribute DOMString position;
+                readonly attribute unsigned short left;
+                readonly attribute unsigned short midLeft;      
+                readonly attribute unsigned short midRigth;
+                readonly attribute unsigned short rigth;
+                void initParkSensorsEvent(boolean bubbles, boolean cancelable, DOMString position, short left, short midLeft, short midRight, short right);
+        };
+        interface ShiftEvent : VehicleEvent{
+                const DOMString SHIFT = "shift";
+                const short GEAR_ONE = 1;
+                const short GEAR_TWO = 2;
+                const short GEAR_THREE = 3;
+                const short GEAR_FOUR = 4;              
+                const short GEAR_FIFE = 5;
+                const short GEAR_SIX = 6;
+                const short GEAR_SEVEN = 7;
+                const short GEAR_EIGHT = 8;
+                const short GEAR_REVERSE = -1;
+                const short GEAR_NEUTRAL = 0;
+                const short GEAR_PARKING = -2;          
+                readonly attribute short gear;
+                void initShiftEvent(boolean bubbles, boolean cancelable, short gear);
+        };
+        interface TripComputerEvent : VehicleEvent{
+                const DOMString TRIPCOMPUTER = "tripcomputer";
+                readonly attribute float averageConsumption1;
+                readonly attribute float averageConsumption2;
+                readonly attribute float averageSpeed1;
+                readonly attribute float averageSpeed2;
+                readonly attribute float tripDistance;
+                readonly attribute float milage;
+                readonly attribute float range;
+                void initTripComputerEvent(boolean bubbles, boolean cancelable, float averageConsumption1, float averageConsumption2, float averageSpeed1, float averageSpeed2, float tripDistance, float mileage, float range);
+        };
+};

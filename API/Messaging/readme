@@ -1,0 +1,1388 @@
+Abstract
+
+WAC based Messaging interface.
+
+Table of Contents
+
+1. Introduction
+2. Interfaces
+2.1. DeviceapisMessaging
+2.2. Messaging
+2.3. Message
+2.4. MessageFilter
+2.5. MessageAttachment
+2.6. FindMessagesSuccessCallback
+2.7. UpdateMessageSuccessCallback
+2.8. OnIncomingMessage
+2.9. MessageSendCallback
+2.10. PendingOperation
+3. Type Definitions
+3.1. MessageArray
+3.2. FileArray
+4. Features
+5. Full WebIDL
+Summary of Methods
+
+Interface	Method
+DeviceapisMessaging	
+Messaging	Message createMessage(short type)
+PendingOperation sendMessage(SuccessCallback successCallback, ErrorCallback errorCallback, Message message)
+PendingOperation sendMessage(MessageSendCallback successCallback, ErrorCallback errorCallback, Message message)
+PendingOperation findMessages(FindMessagesSuccessCallback successCallback, ErrorCallback errorCallback, MessageFilter filter)
+unsigned long onSMS(OnIncomingMessage messageHandler)
+unsigned long onMMS(OnIncomingMessage messageHandler)
+unsigned long onEmail(OnIncomingMessage messageHandler)
+unsigned long onIM(OnIncomingMessage messageHandler)
+void unsubscribe(unsigned long subscriptionHandler)
+Message	PendingOperation update(UpdateMessageSuccessCallback successCallback, ErrorCallback errorCallback)
+MessageFilter	
+MessageAttachment	
+FindMessagesSuccessCallback	void onsuccess(MessageArray messages)
+UpdateMessageSuccessCallback	void onsuccess(Message message)
+OnIncomingMessage	void onevent(Message message)
+MessageSendCallback	void onsuccess()
+void onmessagesendsuccess(DOMString recipient)
+void onmessagesenderror(DeviceAPIError error, DOMString recipient)
+PendingOperation	void cancel()
+1. Introduction
+
+The messaging API provides access to the following capabilities: Sending messages through different technologies: SMS, MMS, Email and Instant Messages. Search for messages in the different folders. Subscribe for being notified upon incoming message events.
+
+This API is a read only API that does not allow message or folder management.
+
+2. Interfaces
+
+2.1. DeviceapisMessaging
+
+Defines what is instantiated in the deviceapis object
+
+  [NoInterfaceObject] interface DeviceapisMessaging {
+    readonly attribute Messaging messaging;
+  };
+  Deviceapis implements DeviceapisMessaging;
+When the messaging feature is instantiated, the messaging object is available in the deviceapis object.
+
+2.2. Messaging
+
+Messaging creation, sending and reading capabilities
+
+  [NoInterfaceObject] interface Messaging {
+
+    const short TYPE_SMS = 1;
+
+    const short TYPE_MMS = 2;
+
+    const short TYPE_EMAIL = 3;
+
+    const short TYPE_IM = 3;
+
+    const unsigned short FOLDER_INBOX = 1;
+
+    const unsigned short FOLDER_OUTBOX = 2;
+
+    const unsigned short FOLDER_DRAFTS = 3;
+
+    const unsigned short FOLDER_SENTBOX = 4;
+  
+
+    Message createMessage(in short type)
+                          raises(DeviceAPIError);
+
+
+    PendingOperation sendMessage(in SuccessCallbackSuccessCallbackSuccessCallback successCallback, 
+                                 in ErrorCallbackErrorCallbackErrorCallback errorCallback, 
+                                 in Message message)
+                                 raises(DeviceAPIError);
+ 
+
+
+    PendingOperation sendMessage(in MessageSendCallback successCallback, 
+                                 in ErrorCallbackErrorCallbackErrorCallback errorCallback, 
+                                 in Message message)
+                                 raises(DeviceAPIError);
+                                 
+
+
+    PendingOperation findMessages(in FindMessagesSuccessCallback successCallback, 
+                                  in optional ErrorCallbackErrorCallbackErrorCallback errorCallback,
+                                  in optional MessageFilter filter)
+                                  raises(DeviceAPIError);                          
+  
+
+    unsigned long onSMS(in OnIncomingMessage messageHandler)
+                        raises(DeviceAPIError);
+
+
+    unsigned long onMMS(in OnIncomingMessage messageHandler) 
+                        raises(DeviceAPIError);
+
+
+    unsigned long onEmail(in OnIncomingMessage messageHandler) 
+                          raises(DeviceAPIError);
+   
+
+    unsigned long onIM(in OnIncomingMessage messageHandler) 
+                          raises(DeviceAPIError);
+
+
+    void unsubscribe(in unsigned long subscriptionHandler)
+                     raises(DeviceAPIError);
+
+  };
+This interface allows a web application to create a message through the createMessage() method that returns an instance of the Message interface. That message could be manipulated through the functionality offered by the Message interface and sent afterwards through the sendMessage() method.
+
+Messages created through this API are not persistent in device memory until the implementation tries to send them through the send operation. When that operation has been performed, the message will be available on the relevant folder depending on the result of the operation (e.g. sent, drafts...). The only way to access the messages that have been sent is through the use of the findMessages method. The findMessages method allows developers to retrieve the content of the messages available in the device folders.
+
+This interface also offers mechanism to subscribe for being notified upon incoming message events.
+
+Code example
+
+  // Define the success callback
+ function messageSent() {
+   alert("The SMS has been sent");
+ }
+ 
+ // Define the error callback
+ function messageFailed(error) {
+   alert("The SMS could not be sent " + error.message);
+ }
+ 
+ // SMS sending example
+ var msg = deviceapis.messaging.createMessage(deviceapis.messaging.TYPE_SMS);
+ msg.body = "I will arrive in 10 minutes";
+ msg.to = ["+34666666666"];
+ 
+ // Send request
+ deviceapis.messaging.sendMessage(messageSent, messageFailed, msg);
+ 
+Constants
+
+short TYPE_SMS
+Identifier for messages of type SMS.
+
+short TYPE_MMS
+Identifier for messages of type MMS.
+
+short TYPE_EMAIL
+Identifier for messages of type Email.
+
+short TYPE_IM
+Identifier for messages of type IM.
+
+unsigned short FOLDER_INBOX
+Identifier for the message inbox.
+
+unsigned short FOLDER_OUTBOX
+Identifier for the message outbox.
+
+unsigned short FOLDER_DRAFTS
+Identifier for the message draft folder.
+
+unsigned short FOLDER_SENTBOX
+Identifier for message sent-items folder.
+
+Methods
+
+createMessage
+Create a message of a given type.
+
+Signature
+
+Message createMessage(in short type);
+Parameters
+
+type
+Optional: No.
+Nullable: No
+Type: short
+Description: The type of message that is created. The possible values are: TYPE_SMS, TYPE_MMS, TYPE_EMAIL and TYPE_IM.
+Return value
+
+A Message object of the given type or null if there is any problem during the message creation.
+Exceptions
+
+DeviceAPIError:
+TYPE_MISMATCH_ERR if the input parameter is not compatible with the expected type for that parameter.
+
+INVALID_VALUES_ERR if the input parameter contains an invalid value.
+
+Code example
+
+ var msg = deviceapis.messaging.createMessage(deviceapis.messaging.TYPE_SMS);
+ msg.body = "WAC first SMS message.";
+ 
+sendMessage
+Attempt to send the specified message.
+
+Signature
+
+PendingOperation sendMessage(in SuccessCallback successCallback, in ErrorCallback errorCallback, in Message message);
+If the message type is set to email and the user has multiple email accounts set up, the runtime SHOULD use the default e-mail account. If no account has been set up, the runtime MAY either provide respective mechanisms to create a new one or throw the given ErrorCallback back to the requesting widget.
+
+Only the parameters supported by a specific technology and that can be set up by the developer (see Message interface attribute definition) are sent as specified in the following table (the rest are ignored):
+
+Attribute	 SMS	 MMS	 Email	 IM
+to	 Yes	 Yes	 Yes	 Yes
+body	 Yes	 Yes	 Yes	 Yes
+subject	 No	 Yes	 Yes	 No
+attachments	 No	 Yes	 Yes	 No
+cc	 No	 No	 Yes	 Yes
+bcc	 No	 No	 Yes	 Yes
+priority	 No	 No	 Yes	 No
+When a message has been successfully or unsuccessfully sent, it will be stored in the relevant folder (e.g. sent folder if successfully sent). Please not that some platforms may store multiple copies of the message if multiple recipients were included.
+
+When the operation is fully completed (i.e. the implementation knows the result of the send operation to all the recipients), the onsuccess method of the successCallback will be invoked if the message is successfully sent to all the recipients.
+
+If any of the input parameters is not compatible with the expected type for that parameter a DeviceAPIError with code TYPE_MISMATCH_ERR MUST be synchronously thrown.
+
+If the operation fails for any other reason, the errorCallback will be invoked with an appropriate error code amongst the following:
+
+INVALID_VALUES_ERR: If any of the input paramters contains an invalid value. E.g. successCallback or message is null, message contains invalid values in any of its attributes... Please note that in order to allow developer ignore errors errorCallback accepts null as a valid value.
+
+NOT_SUPPORTED_ERR: If the specified messaging technology is not supported.
+
+SECURITY_ERR: If the operation is not allowed.
+
+UNKNOWN_ERR: In any other error case.
+
+If the errorCallback does not contain a valid function (e.g. null), in case of any error that should be returned in the errorCallback (see above), the implementation MUST silently fail and no further action is required (i.e. the error is not notified to the developer).
+
+Parameters
+
+successCallback
+Optional: No.
+Nullable: No
+Type: SuccessCallbackSuccessCallbackSuccessCallback
+Description: To be invoked if the message is successfully sent.
+errorCallback
+Optional: No.
+Nullable: No
+Type: ErrorCallbackErrorCallbackErrorCallback
+Description: To be invoked in case the sending request fails.
+message
+Optional: No.
+Nullable: No
+Type: Message
+Description: The message to be sent.
+Return value
+
+PendingOperation to cancel the asynchronous call
+Exceptions
+
+DeviceAPIError:
+TYPE_MISMATCH_ERR if any input parameter is not compatible with the expected type for that parameter.
+
+Code example
+
+ // Define the success callback
+ function messageSent() {
+ alert("The SMS has been sent to all the recipients");
+ }
+ 
+ // Define the error callback
+ function messageFailed(error) {
+ alert("The SMS could not be sent " + error.message);
+ }
+ 
+ // SMS sending example
+ var msg = deviceapis.messaging.createMessage(deviceapis.messaging.TYPE_SMS);
+ msg.body = "I will arrive in 10 minutes";
+ msg.to = ["+34666666666", "+34888888888"];
+ 
+ // Send request
+ deviceapis.messaging.sendMessage(messageSent, messageFailed, msg);
+ 
+sendMessage
+Attempt to send the specified message with per-recipient notification
+
+Signature
+
+PendingOperation sendMessage(in MessageSendCallback successCallback, in ErrorCallback errorCallback, in Message message);
+If the message type is set to email and the user has multiple email accounts set up, the runtime SHOULD use the default e-mail account. If no account has been set up, the runtime MAY either provide respective mechanisms to create a new one or throw the given ErrorCallback back to the requesting widget.
+
+Only the parameters supported by a specific technology and that can be set up by the developer (see Message interface attribute definition) are sent as specified in the following table (the rest are ignored):
+
+Attribute	 SMS	 MMS	 Email	 IM
+to	 Yes	 Yes	 Yes	 Yes
+body	 Yes	 Yes	 Yes	 Yes
+subject	 No	 Yes	 Yes	 No
+attachments	 No	 Yes	 Yes	 No
+cc	 No	 No	 Yes	 Yes
+bcc	 No	 No	 Yes	 Yes
+priority	 No	 No	 Yes	 No
+When a message has been successfully or unsuccessfully sent, it will be stored in the relevant folder (e.g. sent folder if successfully sent). Please not that some platforms may store multiple copies of the message if multiple recipients were included.
+
+For every individual recipient in the destination list, when the message is successfully sent to it the method onmessagesendsuccess of the successCallback argument MUST be invoked. If the message cannot be sent to that recipient, the onmessagesenderror of the successCallback argument MUST be invoked with the recipient and the error code as input parameters. The following error codes may be passed depending on the the error conditions:
+
+INVALID_VALUES_ERR: If any of the input paramters contains an invalid value. E.g. successCallback or message is null, message contains invalid values in any of its attributes... Please note that in order to allow developer ignore errors errorCallback accepts null as a valid value.
+
+NOT_SUPPORTED_ERR: If the specified messaging technology is not supported.
+
+SECURITY_ERR: If the operation is not allowed.
+
+UNKNOWN_ERR: In any other error case.
+
+When the operation is fully completed (i.e. the implementation knows the result of the send operation to all the recipients), the onsuccess method of the successCallback will be invoked if the message is successfully sent to all the recipients.
+
+In case of any error different to a TYPE_MISMATCH_ERR, the errorCallback will be invoked with an appropriate error code amongst the following:
+
+INVALID_VALUES_ERR: If any of the input paramters contains an invalid value. E.g. successCallback or message is null, message contains invalid values in any of its attributes... Please note that in order to allow developer ignore errors errorCallback accepts null as a valid value.
+
+NOT_SUPPORTED_ERR: If the specified messaging technology is not supported.
+
+SECURITY_ERR: If the operation is not allowed.
+
+UNKNOWN_ERR: In any other error case.
+
+If the errorCallback does not contain a valid function (e.g. null), in case of any error that should be returned in the errorCallback (see above), the implementation MUST silently fail and no further action is required (i.e. the error is not notified to the developer).
+
+Parameters
+
+successCallback
+Optional: No.
+Nullable: No
+Type: MessageSendCallback
+Description: Contains the methods for individual notifications.
+errorCallback
+Optional: No.
+Nullable: No
+Type: ErrorCallbackErrorCallbackErrorCallback
+Description: To be invoked in case the sending request fails.
+message
+Optional: No.
+Nullable: No
+Type: Message
+Description: The message to be sent.
+Return value
+
+PendingOperation to cancel the asynchronous call
+Exceptions
+
+DeviceAPIError:
+TYPE_MISMATCH_ERR if any input parameter is not compatible with the expected type for that parameter.
+
+Code example
+
+  // Define the send callback
+  var messageSendCallback = {
+        onsuccess: function() {
+          alert("The SMS has been sent to all the recipients");},
+        onmessagesendsuccess: function(recipient) {
+          alert("The SMS has been sent to " + recipient);},
+        onmessagesenderror: function(error, recipient) {
+          alert("The SMS has not been sent to " + recipient + 
+                " error " + error);}
+  };
+  
+  // Define the error callback
+  function messageFailed(error) {
+  alert("The SMS could not be sent " + error.message);
+  }
+  
+  // SMS sending example
+  var msg = deviceapis.messaging.createMessage(deviceapis.messaging.TYPE_SMS);
+  msg.body = "I will arrive in 10 minutes";
+  msg.to = ["+34666666666", "+34888888888"];
+  
+  // Send request
+  deviceapis.messaging.sendMessage(messageSendCallback, messageFailed, msg);
+ 
+findMessages
+Gets an array of messages from the message folders matching the selected filter.
+
+Signature
+
+PendingOperation findMessages(in FindMessagesSuccessCallback successCallback, in optional ErrorCallback errorCallback, in optional MessageFilter filter);
+If any of the input parameters is not compatible with the expected type for that parameter a DeviceAPIError with code TYPE_MISMATCH_ERR MUST be synchronously thrown.
+
+If the this feature is not supported, a DeviceAPIError with code NOT_SUPPORTED_ERR MUST be returned in the errorCallback. If this functionality is not allowed the errorCallback MUST be invoked with a DeviceAPIError with code SECURITY_ERR.
+
+If the successCallback does not contain a Function (i.e. it is null), a DeviceAPIError with code INVALID_VALUES_ERR MUST be returned.
+
+If the filter is passed and contains valid values, only those values in the message lists that matches the filter criteria as specified in the MessageFilter interface will be returned in the successCallback. If no filter is passed, it is null or undefined, or contains any invalid value, the implementation MUST return the full list of messages in the successCallback. If no messages are available in the lists or no one matches the filter criteria, the successCallback will be invoked with an empty array.
+
+If any other error occurs, while trying to retrieve the messages, the errorCallback function that was passed in the invocation MUST be called including a DeviceAPIError object with code UNKNOWN_ERR.
+
+In any of the cases in which the errorCallback should be invoked, if the developer has not passed an ErrorCallback or it is null, no action is required (i.e. the error is not notified to the developer).
+
+Parameters
+
+successCallback
+Optional: No.
+Nullable: No
+Type: FindMessagesSuccessCallback
+Description: function called when the invocation ends successfully.
+errorCallback
+Optional: Yes.
+Nullable: No
+Type: ErrorCallbackErrorCallbackErrorCallback
+Description: function called when an error occurs
+filter
+Optional: Yes.
+Nullable: No
+Type: MessageFilter
+Description: message data to be used when filtering
+Return value
+
+PendingOperation to cancel the asynchronous call
+Exceptions
+
+DeviceAPIError:
+TYPE_MISMATCH_ERR if any input parameter is not compatible with the expected type for that parameter.
+
+Code example
+
+    var msg = { type:[deviceapis.messaging.TYPE_SMS], body:"first messa%" };
+
+ deviceapis.messaging.findMessages(
+    function (messages) {
+      alert(messages.length + " message(s) found!");
+      for (var i=0; imessages.length; i++) {
+        alert(i + ". message from " + messages[i].from);
+      }
+    }, 
+   null, 
+   msg);
+ 
+onSMS
+Registers the function to be notified on incoming new SMSs
+
+Signature
+
+unsigned long onSMS(in OnIncomingMessage messageHandler);
+When this method is invoked, the implementation MUST register the function passed in the messageHandler argument as the handler for being notified whenever an incoming SMS arrives to the device. That function will be invoked every time an incoming SMS arrives, unless the unsubscribe method with the handler identifier is invoked in order to cancel the subscription.
+
+If the subscription is successfully created, an identifier for the handler is created and returned so that it is possible to cancel the subscription. If the subscription cannot be created, a DeviceAPIError is synchronously thrown with an error code that describes the reason for the error.If any of the input parameters is not compatible with the expected type for that parameter a DeviceAPIError with code TYPE_MISMATCH_ERR MUST be synchronously thrown.
+
+Parameters
+
+messageHandler
+Optional: No.
+Nullable: No
+Type: OnIncomingMessage
+Description: The function to be invoked on incoming SMSs
+Return value
+
+Subscription identifier
+Exceptions
+
+DeviceAPIError:
+TYPE_MISMATCH_ERR if any input parameter is not compatible with the expected type for that parameter.
+
+INVALID_VALUES_ERR if the messageHandler is null or undefined.
+
+NOT_SUPPORTED_ERR if this feature is not supported.
+
+SECURITY_ERR if this operation is not allowed.
+
+Code example
+
+  // function to receive new SMS notifications
+  function incomingSMS(message)
+  {
+    alert("New incoming SMS from " + message.from);
+ 
+    // The subscription is cancelled to prevent further notifications
+    if (mySMSListener != null)
+      deviceapis.messaging.unsubscribe(mySMSListener);
+  }
+ 
+onMMS
+Registers the function to be notified on incoming new MMSs
+
+Signature
+
+unsigned long onMMS(in OnIncomingMessage messageHandler);
+When this method is invoked, the implementation MUST register the function passed in the messageHandler argument as the handler for being notified whenever an incoming MMS arrives to the device. That function will be invoked every time an incoming MMS arrives, unless the unsubscribe method with the handler identifier is invoked in order to cancel the subscription.
+
+If the subscription is successfully created, an identifier for the handler is created and returned so that it is possible to cancel the subscription. If the subscription cannot be created, a DeviceAPIError is synchronously thrown with an error code that describes the reason for the error.
+
+Parameters
+
+messageHandler
+Optional: No.
+Nullable: No
+Type: OnIncomingMessage
+Description: The function to be invoked on incoming MMSs
+Return value
+
+Subscription identifier
+Exceptions
+
+DeviceAPIError:
+TYPE_MISMATCH_ERR if any input parameter is not compatible with the expected type for that parameter.
+
+INVALID_VALUES_ERR if the messageHandler is null or undefined.
+
+NOT_SUPPORTED_ERR if this feature is not supported.
+
+SECURITY_ERR if this operation is not allowed.
+
+Code example
+
+ // function to receive new MMS notifications
+ function incomingMMS(message)
+ {
+   alert("New incoming MMS from " + message.from);
+
+   // The subscription is cancelled to prevent further notifications
+   if (myMMSListener != null)
+     deviceapis.messaging.unsubscribe(myMMSListener);
+ }
+ 
+onEmail
+Registers the function to be notified on incoming new Email
+
+Signature
+
+unsigned long onEmail(in OnIncomingMessage messageHandler);
+When this method is invoked, the implementation MUST register the function passed in the messageHandler argument as the handler for being notified whenever an incoming Email arrives to the device. That function will be invoked every time an incoming Email arrives, unless the unsubscribe method with the handler identifier is invoked in order to cancel the subscription.
+
+If the subscription is successfully created, an identifier for the handler is created and returned so that it is possible to cancel the subscription. If the subscription cannot be created, a DeviceAPIError is synchronously thrown with an error code that describes the reason for the error.
+
+Parameters
+
+messageHandler
+Optional: No.
+Nullable: No
+Type: OnIncomingMessage
+Description: he function to be invoked on incoming emails
+Return value
+
+Subscription identifier
+Exceptions
+
+DeviceAPIError:
+TYPE_MISMATCH_ERR if any input parameter is not compatible with the expected type for that parameter.
+
+INVALID_VALUES_ERR if the messageHandler is null or undefined.
+
+NOT_SUPPORTED_ERR if this feature is not supported.
+
+SECURITY_ERR if this operation is not allowed.
+
+Code example
+
+ // function to receive new Email notifications
+  function incomingEmail(message)
+  {
+    alert("New incoming Email from " + message.from);
+ 
+    // The subscription is cancelled to prevent further notifications
+    if (myEmailListener != null)
+      deviceapis.messaging.unsubscribe(myEmailListener);
+  }
+ 
+  // Register listener for new Email events
+  var myEmailListener = null;
+  myEmailListener = deviceapis.messaging.onEmail(incomingEmail);    
+ 
+onIM
+Registers the function to be notified on incoming new Instant Message
+
+Signature
+
+unsigned long onIM(in OnIncomingMessage messageHandler);
+When this method is invoked, the implementation MUST register the function passed in the messageHandler argument as the handler for being notified whenever an incoming instant message arrives to the device. That function will be invoked every time an incoming Instant Message arrives, unless the unsubscribe method with the handler identifier is invoked in order to cancel the subscription.
+
+If the subscription is successfully created, an identifier for the handler is created and returned so that it is possible to cancel the subscription. If the subscription cannot be created, a DeviceAPIError is synchronously thrown with an error code that describes the reason for the error.
+
+Parameters
+
+messageHandler
+Optional: No.
+Nullable: No
+Type: OnIncomingMessage
+Description: he function to be invoked on incoming instant message
+Return value
+
+Subscription identifier
+Exceptions
+
+DeviceAPIError:
+TYPE_MISMATCH_ERR if any input parameter is not compatible with the expected type for that parameter.
+
+INVALID_VALUES_ERR if the messageHandler is null or undefined.
+
+NOT_SUPPORTED_ERR if this feature is not supported.
+
+SECURITY_ERR if this operation is not allowed.
+
+Code example
+
+ // function to receive new Instant Messaging notifications
+  function incomingIM(message)
+  {
+    alert("New incoming Instant Message from " + message.from);
+ 
+    // The subscription is cancelled to prevent further notifications
+    if (myIMListener != null)
+      deviceapis.messaging.unsubscribe(myIMistener);
+  }
+ 
+  // Register listener for new Instant Messaging events
+  var myIMistener = null;
+  myIMistener = deviceapis.messaging.onIM(incomingIM);    
+ 
+unsubscribe
+Cancels a messaging subscription
+
+Signature
+
+void unsubscribe(in unsigned long subscriptionHandler);
+If the subscriptionHandler argument is valid and corresponds to a subscription already in place the subscription process MUST immediately stop and no further message notifications MUST be invoked. If the subscriptionHandler argument does not correspond to a valid subscription, the method should return without any further action.
+
+Parameters
+
+subscriptionHandler
+Optional: No.
+Nullable: No
+Type: unsigned long
+Description: identifier of the subscription returned by the onSMS(), onMMS(), onEmail() or onIM() methods.
+Return value
+
+void
+Exceptions
+
+DeviceAPIError:
+TYPE_MISMATCH_ERR if any input parameter is not compatible with the expected type for that parameter.
+
+2.3. Message
+
+Defines the content and attributes of a message
+
+    [NoInterfaceObject] interface Message {
+
+
+    readonly attribute DOMString id;
+
+
+    attribute short type;
+    
+
+    attribute short folder;
+    
+
+    readonly attribute Date timestamp;
+    
+
+    readonly attribute DOMString from;
+
+
+    attribute StringArray to;
+    
+
+    attribute StringArray cc;
+    
+
+    attribute StringArray bcc;
+
+
+    attribute DOMString body;
+
+
+    attribute boolean isRead;
+
+
+    attribute boolean priority;
+
+
+    attribute DOMString subject;
+
+
+    attribute FileArray attachments;
+
+
+
+    
+    PendingOperation update(in UpdateMessageSuccessCallback successCallback, 
+                            in optional ErrorCallbackErrorCallbackErrorCallback errorCallback)
+                            raises(DeviceAPIError);
+  };
+This interface allows a web application to define the set of properties linked to a message previously created through the createMessage() method in the Messaging Interface.
+
+Additionally, it also allows an application to retrieve the content of a message through the findMessages, onSMS, onMMS and onEmail methods. In those cases, the implementation MAY return in some situations only part of the body because of its size. In those situations the implementation MUST allow the developer to retrieve the remaining part of the message through the use of the sync method member of the Synchronisable interface implemented by Message.
+
+Additionally, for the same reason, the implementation MAY decide to provide only the attachment information but not the attachment content. This is achieved by returning in the attachments attribute not a sequence of Files but a sequence of MessageAttachments (that implement the Synchronisable interface).
+
+If the developer attempts to access an attribute not supported by the messaging technology (see attribute description or summary table in the sendMessage mehtod description), the implementation MUST ignore this attempt.
+
+Code example
+
+ var msg = deviceapis.messaging.createMessage(deviceapis.messaging.TYPE_SMS);
+ msg.body = "WAC first SMS message.";
+ msg.to = ["+34666666666"];
+ 
+Attributes
+
+readonly DOMString id
+Message unique identifier.
+
+A unique indicator for identifying a message.
+
+This property is a locally unique and persistent id, assigned by the device or the web runtime environment. For new messages created using Messaging.createMessage(), the id is assigned on the first occasion that the message is processed by the underlying platform such as a call to send(). This property is unique across device power cycles.
+
+This attribute is readonly.
+short type
+The type of the given message.
+
+short folder
+The folder for the given message.
+
+For messages created through the createMessage method this property is undefined.
+
+readonly Date timestamp
+The timestamp of a message.
+
+This property is set up by the device or the web runtime environment.
+
+This attribute is readonly.
+readonly DOMString from
+The source address of a message.
+
+This property is set up by the device or the web runtime environment. This property should only be taken into account for Email.
+
+This attribute is readonly.
+StringArray to
+The destination of a message.
+
+StringArray cc
+The Cc address of a message.
+
+StringArray bcc
+The Bcc address of a message.
+
+DOMString body
+The body of a message.
+
+boolean isRead
+The flag "read" for this Message.
+
+True if the message has been read and false otherwise.
+
+boolean priority
+The priority of a message.
+
+True means high priority and false normal or low priority. This property should only be taken into account for Email.
+
+DOMString subject
+The subject of a message.
+
+This property should only be taken into account for MMS and Email.
+
+FileArray attachments
+The list of message attachments.
+
+This property should only be taken into account for Email and MMS. If the message has not been created by the developer but returned through the findMessage, onMMS or onEmail methods, the attachments will be stored in the "attachments" file system root location, that is only accessible through this API.
+
+Methods
+
+update
+Updates a message retrieved with the findMessages method
+
+Signature
+
+PendingOperation update(in UpdateMessageSuccessCallback successCallback, in optional ErrorCallback errorCallback);
+This method is meant to transfer all changes made to the given Message object before (i.e. changed attributes) to the underlying system (e.g. native messaging database and LDAP). If any changes cannot be transferred to the system, they can be ignored by the implementation.
+
+This method does not have effect on messages created through the createMessage method as they are not persistenly stored until the send action is invoked.
+
+For messages in the inbox (deviceapis.messaging.FOLDER_INBOX), outbox (deviceapis.messaging.FOLDER_OUTBOX) and sentbox (deviceapis.messaging.FOLDER_SENTBOX) the implementation MUST only change the isRead attribute of the Message object. For messages within the draft folder (deviceapis.messaging.FOLDER_DRAFTS) the implementation MAY update other attributes as well. However, this is up to the actual implementation and relies on the underlying system.
+
+The implementation has to make sure that an updated Message object is provided in the success callback, which represents the current status of the message. The developer is expected to use this updated message for comparison with the former object to check which fields have or have not been transferred by the implementation.
+
+If any of the input parameters is not compatible with the expected type for that parameter a DeviceAPIError with code TYPE_MISMATCH_ERR MUST be synchronously thrown.
+
+If this feature is not supported, a DeviceAPIError with code NOT_SUPPORTED_ERR MUST be returned in the errorCallback. If this functionality is not allowed the errorCallback MUST be invoked with a DeviceAPIError with code SECURITY_ERR.
+
+If the successCallback contains an invalid value (e.g. null or undefined), a DeviceAPIError with code INVALID_VALUES_ERR MUST be returned.
+
+If any other error occurs, while trying to update the messages, the errorCallback function that was passed in the invocation MUST be called including a DeviceAPIError object with code UNKNOWN_ERR.
+
+If the errorCallback does not contain a valid function (e.g. null), in case of any error that should be returned in the errorCallback (see above), the implementation MUST silently fail and no further action is required (i.e. the error is not notified to the developer).
+
+Parameters
+
+successCallback
+Optional: No.
+Nullable: No
+Type: UpdateMessageSuccessCallback
+Description: Function to call on successful update
+errorCallback
+Optional: Yes.
+Nullable: No
+Type: ErrorCallbackErrorCallbackErrorCallback
+Description: Function to call on unsuccessful update
+Return value
+
+PendingOperation to cancel the asynchronous call
+Exceptions
+
+DeviceAPIError:
+TYPE_MISMATCH_ERR if any input parameter is not compatible with the expected type for that parameter.
+
+2.4. MessageFilter
+
+Filter to restrict the items returned by the findMessages method
+
+  [Callback, NoInterfaceObject] interface MessageFilter {
+
+    attribute DOMString id;
+
+
+    attribute ShortArray type;
+  
+
+    attribute ShortArray folder;
+
+
+    attribute Date startTimestamp;
+
+
+    attribute Date endTimestamp;
+    
+
+    attribute DOMString from;
+
+
+    attribute StringArray to;
+    
+
+    attribute StringArray cc;
+    
+
+    attribute StringArray bcc;
+
+
+    attribute DOMString body;
+
+
+    attribute boolean isRead;
+
+
+    attribute boolean messagePriority;
+
+
+    attribute DOMString subject;
+  };
+When used this filter in the findMessages operation, the result-set of the search MUST only contain the Message entries that match the filter values.
+
+An entry matches the filter, if the attributes of the entry matches all the attributes of the filter with values different to undefined or null. I.e. the search is performed in a similar manner to a SQL "AND" operation.
+
+An attribute of the Message entry matches the filter value according to the following rules:
+
+For filter attributes of type DOMString an entry matches this value if its corresponding attribute is exactly the same than the filter one unless the filter contains U+0025 'PERCENT SIGN' wildcard character(s). If wildcards are used, the behavior is similar to the LIKE condition in SQL ('%' matches any string of any length - including zero length). In order to specify that a 'PERCENT SIGN' character is to be considered literally instead of interpreting it as a wildcard, developers may escape it with the backslash character.
+
+For filter attributes of type StringArray the same rules as for filter attributes of type DOMString apply for each of the fields within the given Array separately. The search for all included fields is performed similar to a SQL "AND" operation in the end without taking into account the (possible) difference in ordering between Message fields as well as MessageFilter fields.
+
+For filter attributes of an array of WebIDL numeric type (type), an entry matches it only if the corresponding entry attribute has exactly the same value as any of the array elements.
+
+For filter attributes of any WebIDL boolean type (isRead, messagePriority) an entry matches it only if the corresponding entry attribute has exactly the same state (i.e. true or false).
+
+For message attributes of type Date (i.e. timestamp), a couple of filter attributes are included (initial and end), in order to allow looking for messages between two dates. If both initial and end dates are different to null, a message matches the filter if its corresponding attribute is between initial and end dates (including them). If only the initial date contains a value different to null, a message matches the filter if its corresponding attribute is later than or equal to the initial one. If only the end date contains a value different to null, a message matches the filter if its corresponding attribute is earlier than or equal to the end date.
+
+Attributes
+
+DOMString id
+Used for filtering the Message id attribute.
+
+Messages which id corresponds with this attribute (either exactly or with the specified wildcards) match this filtering criteria.
+
+ShortArray type
+Used for filtering the Message type attribute.
+
+Messages with type equals to one of the values in this array match the filtering criteria.
+
+ShortArray folder
+Used for filtering the Message folder attribute.
+
+Messages with folder equals to one of the values in this array match the filtering criteria.
+
+Date startTimestamp
+Used for filtering the Message timestamp attribute.
+
+Messages with date later than or equal to this attribute match the filtering criteria.
+
+Date endTimestamp
+Used for filtering the Message timestamp attribute.
+
+Messages with date earlier than or equal to this attribute match the filtering criteria.
+
+DOMString from
+Used for filtering the Message from attribute.
+
+Messages which from corresponds with this attribute (either exactly or with the specified wildcards) match this filtering criteria.
+
+StringArray to
+Used for filtering the Message to attribute.
+
+Messages which elements in the to array that correspond to all the elements of this attribute (either exactly or with the specified wildcards) match this filtering criteria.
+
+StringArray cc
+Used for filtering the Message cc attribute.
+
+Messages which elements in the cc array that correspond to all the elements of this attribute (either exactly or with the specified wildcards) match this filtering criteria.
+
+StringArray bcc
+Used for filtering the Message bcc attribute.
+
+Messages which elements in the bcc array that correspond to all the elements of this attribute (either exactly or with the specified wildcards) match this filtering criteria.
+
+DOMString body
+Used for filtering the Message body attribute.
+
+Messages which body corresponds with this attribute (either exactly or with the specified wildcards) match this filtering criteria.
+
+boolean isRead
+Used for filtering the Message isRead attribute.
+
+Messages which isRead corresponds exactly with this attribute match this filtering criteria.
+
+boolean messagePriority
+Used for filtering the Message messagePriority attribute.
+
+Messages which messagePriority corresponds exactly with this attribute match this filtering criteria.
+
+DOMString subject
+Used for filtering the Message subject attribute.
+
+Messages which subject corresponds with this attribute (either exactly or with the specified wildcards) match this filtering criteria.
+
+2.5. MessageAttachment
+
+Describes a message attachement
+
+    interface MessageAttachment : File {
+
+    readonly attribute DOMString MIMEType; 
+  };
+This attribute extends the File interface (from W3C File reader (http://dev.w3.org/2006/webapi/FileAPI/#file)) by concurrently implementing the synchronizable interface. It allows attachments to be downloaded only if the user requests them by the use of the sync method specified in the Synchronizable interface.
+
+Attributes
+
+readonly DOMString MIMEType
+Describes the mime type of the attachment, e.g. "text/html".
+
+This attribute is readonly.
+2.6. FindMessagesSuccessCallback
+
+findMessages specific success callback.
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface FindMessagesSuccessCallback {
+
+    void onsuccess(in MessageArray messages);
+  };
+This callback interface specifies a success callback with a function taking a list of messages as input argument. It is used in the findMessages asynchronous operation.
+
+Methods
+
+onsuccess
+Method invoked when the asynchronous call completes successfully
+
+Signature
+
+void onsuccess(in MessageArray messages);
+Parameters
+
+messages
+Optional: No.
+Nullable: No
+Type: MessageArray
+Description: The list of messages that correspond to the find criteria
+Return value
+
+void
+2.7. UpdateMessageSuccessCallback
+
+update specific success callback.
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface UpdateMessageSuccessCallback {
+
+    void onsuccess(in Message message);
+  };
+This callback interface specifies a success callback with a function that will provide a message object that is meant to represent the actual status of a message after an update has been triggered. It is used in the update asynchronous operation on the Message interface.
+
+Methods
+
+onsuccess
+Method invoked when the asynchronous call completes successfully
+
+Signature
+
+void onsuccess(in Message message);
+Parameters
+
+message
+Optional: No.
+Nullable: No
+Type: Message
+Description: The new message representing the actual updated status
+Return value
+
+void
+2.8. OnIncomingMessage
+
+Interface for specifying the method called on new incoming message events.
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface OnIncomingMessage {
+
+     void onevent (in Message message);
+  };
+This interface specifies a function that will provide a message object that represents the received message. It is used in the onSMS(), onMMS(), onEmail() method invocation.
+
+Methods
+
+onevent
+Method invoked when an incoming message is received
+
+Signature
+
+void onevent(in Message message);
+Parameters
+
+message
+Optional: No.
+Nullable: No
+Type: Message
+Description: The message received
+Return value
+
+void
+2.9. MessageSendCallback
+
+Interface for specifying the methods to be called for message send results for each recipient.
+
+  [Callback, NoInterfaceObject] interface MessageSendCallback {
+
+     void onsuccess();
+
+
+     void onmessagesendsuccess(in DOMString recipient);
+
+
+     void onmessagesenderror(in DeviceAPIError error, in DOMString recipient);
+  };
+This interface specifies a set of functions that will be invoked every time the result of the send operation to a recipient is obtained or when the message is successfully sent to all the recipients.
+
+Methods
+
+onsuccess
+Method invoked when the message is successfully sent to all the recipients
+
+Signature
+
+void onsuccess();
+Return value
+
+void
+onmessagesendsuccess
+Method invoked when the message is successfully sent to a recipient
+
+Signature
+
+void onmessagesendsuccess(in DOMString recipient);
+Parameters
+
+recipient
+Optional: No.
+Nullable: No
+Type: DOMString
+Description: The recipient which the message has been sent to
+Return value
+
+void
+onmessagesenderror
+Method invoked when the message is unsuccessfully sent to a recipient
+
+Signature
+
+void onmessagesenderror(in DeviceAPIError error, in DOMString recipient);
+Parameters
+
+error
+Optional: No.
+Nullable: No
+Type: DeviceAPIError
+Description: The error code that identifies the reason of the failure
+recipient
+Optional: No.
+Nullable: No
+Type: DOMString
+Description: The recipient which the message has been sent to
+Return value
+
+void
+2.10. PendingOperation
+
+The PendingOperation interface
+
+     [NoInterfaceObject] interface PendingOperation {
+
+
+        void cancel ();
+     };
+The PendingOperation interface describes operation of cancellable aynchronous methods. Cancellable asynchronous methods return PendingOperation objects exporting methods for cancelling the operation.
+
+Methods
+
+cancel
+Cancel method for cancelling asynchronous operation
+
+Signature
+
+void cancel();
+Cancel ongoing asynchronous method call. Upon calling this method the runtime must immediately stop the pending operation and return.
+
+3. Type Definitions
+
+3.1. MessageArray
+
+Sequence of Message objects
+
+  typedef sequence<Message> MessageArray;
+3.2. FileArray
+
+Array of files
+
+   typedef File[]  FileArray;
+4. Features
+
+This is the list of URIs used to declare this API's features, for use in the widget config.xml and as identifier for service type in service discovery functionality. For each URI, the list of functions covered is provided.
+
+http://webinos.org/api/messaging
+Access to the full Messaging module except the methods Messaging.sendMessage and Messaging.find and the attribute Message.attachments
+
+http://webinos.org/api/messaging.send
+Access to the Messaging.sendMessage() method
+
+http://webinos.org/api/messaging.find
+Access to the Messaging.findMessages method
+
+http://webinos.org/api/messaging.subscribe
+Access to the Messaging.onSMS, Messaging.onMMS, Messaging.onEmail, Messaging.onIM methods
+
+http://webinos.org/api/messaging.attach
+Access to the Message.attachments attribute.
+
+5. Full WebIDL
+
+module messaging {
+
+
+  typedef sequence<Message> MessageArray;
+
+
+   typedef File[]  FileArray;
+
+
+
+
+  [NoInterfaceObject] interface DeviceapisMessaging {
+    readonly attribute Messaging messaging;
+  };
+  Deviceapis implements DeviceapisMessaging;
+  
+
+   
+  [NoInterfaceObject] interface Messaging {
+
+    const short TYPE_SMS = 1;
+
+    const short TYPE_MMS = 2;
+
+    const short TYPE_EMAIL = 3;
+
+    const short TYPE_IM = 3;
+
+    const unsigned short FOLDER_INBOX = 1;
+
+    const unsigned short FOLDER_OUTBOX = 2;
+
+    const unsigned short FOLDER_DRAFTS = 3;
+
+    const unsigned short FOLDER_SENTBOX = 4;
+  
+
+    Message createMessage(in short type)
+                          raises(DeviceAPIError);
+
+
+    PendingOperation sendMessage(in SuccessCallbackSuccessCallbackSuccessCallback successCallback, 
+                                 in ErrorCallbackErrorCallbackErrorCallback errorCallback, 
+                                 in Message message)
+                                 raises(DeviceAPIError);
+ 
+
+
+    PendingOperation sendMessage(in MessageSendCallback successCallback, 
+                                 in ErrorCallbackErrorCallbackErrorCallback errorCallback, 
+                                 in Message message)
+                                 raises(DeviceAPIError);
+                                 
+
+
+    PendingOperation findMessages(in FindMessagesSuccessCallback successCallback, 
+                                  in optional ErrorCallbackErrorCallbackErrorCallback errorCallback,
+                                  in optional MessageFilter filter)
+                                  raises(DeviceAPIError);                          
+  
+
+    unsigned long onSMS(in OnIncomingMessage messageHandler)
+                        raises(DeviceAPIError);
+
+
+    unsigned long onMMS(in OnIncomingMessage messageHandler) 
+                        raises(DeviceAPIError);
+
+
+    unsigned long onEmail(in OnIncomingMessage messageHandler) 
+                          raises(DeviceAPIError);
+   
+
+    unsigned long onIM(in OnIncomingMessage messageHandler) 
+                          raises(DeviceAPIError);
+
+
+    void unsubscribe(in unsigned long subscriptionHandler)
+                     raises(DeviceAPIError);
+
+  };
+
+
+    [NoInterfaceObject] interface Message {
+
+
+    readonly attribute DOMString id;
+
+
+    attribute short type;
+    
+
+    attribute short folder;
+    
+
+    readonly attribute Date timestamp;
+    
+
+    readonly attribute DOMString from;
+
+
+    attribute StringArray to;
+    
+
+    attribute StringArray cc;
+    
+
+    attribute StringArray bcc;
+
+
+    attribute DOMString body;
+
+
+    attribute boolean isRead;
+
+
+    attribute boolean priority;
+
+
+    attribute DOMString subject;
+
+
+    attribute FileArray attachments;
+
+
+
+    
+    PendingOperation update(in UpdateMessageSuccessCallback successCallback, 
+                            in optional ErrorCallbackErrorCallbackErrorCallback errorCallback)
+                            raises(DeviceAPIError);
+  };
+  Message implements Synchronisable;
+
+
+  [Callback, NoInterfaceObject] interface MessageFilter {
+
+    attribute DOMString id;
+
+
+    attribute ShortArray type;
+  
+
+    attribute ShortArray folder;
+
+
+    attribute Date startTimestamp;
+
+
+    attribute Date endTimestamp;
+    
+
+    attribute DOMString from;
+
+
+    attribute StringArray to;
+    
+
+    attribute StringArray cc;
+    
+
+    attribute StringArray bcc;
+
+
+    attribute DOMString body;
+
+
+    attribute boolean isRead;
+
+
+    attribute boolean messagePriority;
+
+
+    attribute DOMString subject;
+  };
+  
+
+  
+    interface MessageAttachment : File {
+
+    readonly attribute DOMString MIMEType; 
+  };
+  
+  
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface FindMessagesSuccessCallback {
+
+    void onsuccess(in MessageArray messages);
+  };
+  
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface UpdateMessageSuccessCallback {
+
+    void onsuccess(in Message message);
+  };
+
+
+  [Callback=FunctionOnly, NoInterfaceObject] interface OnIncomingMessage {
+
+     void onevent (in Message message);
+  };
+
+
+  [Callback, NoInterfaceObject] interface MessageSendCallback {
+
+     void onsuccess();
+
+
+     void onmessagesendsuccess(in DOMString recipient);
+
+
+     void onmessagesenderror(in DeviceAPIError error, in DOMString recipient);
+  };
+  
+
+     [NoInterfaceObject] interface PendingOperation {
+
+
+        void cancel ();
+     };
+};

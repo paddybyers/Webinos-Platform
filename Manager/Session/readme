@@ -1,0 +1,3 @@
+The Session manager shall create TLS sessions between PZP and PZH using the pre-shared certificates.
+
+We will use the standard node.js libraries to establish TLS sessions and get access to certificate stores.

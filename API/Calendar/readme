@@ -1,0 +1,707 @@
+Abstract
+
+W3C based Calendar interface.
+
+Table of Contents
+
+1. Introduction
+2. Interfaces
+2.1. ServiceCalendar
+2.2. Calendar
+2.3. CalendarEvent
+2.4. CalendarRepeatRule
+2.5. CalendarFindOptions
+2.6. CalendarEventFilter
+2.7. CalendarError
+3. Features
+4. Full WebIDL
+Summary of Methods
+
+Interface	Method
+ServiceCalendar	
+Calendar	void findEvents(CalendarEventSuccessCB successCB, CalendarErrorCB errorCB, CalendarFindOptions options)
+CalendarEvent	
+CalendarRepeatRule	
+CalendarFindOptions	
+CalendarEventFilter	
+CalendarError	
+1. Introduction
+
+This specification provides a wrapper that mandates the use of the W3C Calendar API (W3C Working draft 14th April).
+
+The Calendar API defines a high-level interface to access Calendar information such as events, reminders, alarms and other calendar information.
+
+The API itself is designed to be agnostic of any underlying calendaring service sources.
+
+Note that while the W3C version, on which this specification is based on, provides only the ServiceCalendar to retrieve calendars, in webinos calendars can also be retrieved using the findServices method of the Service Discovery API.
+
+2. Interfaces
+
+2.1. ServiceCalendar
+
+The ServiceCalendar interface is exposed on the Navigator interface [NAVIGATOR].
+
+        [NoInterfaceObject]
+        interface ServiceCalendar {
+
+            readonly attribute Calendar calendar;
+        };
+Attributes
+
+readonly Calendar calendar
+The root node from which the calendar functionality can be accessed.
+
+No exceptions.
+
+This attribute is readonly.
+2.2. Calendar
+
+The The Calendar interface provides a method to retrieve calendaring information from a user's calendar.
+
+        [NoInterfaceObject]
+        interface Calendar {       
+
+            caller void findEvents (in CalendarEventSuccessCB successCB, in optional CalendarErrorCB errorCB, in optional CalendarFindOptions options);
+        };
+Methods
+
+findEvents
+Find calendar event items in the calendar based on an CalendarEventFilter object.
+
+Signature
+
+caller void findEvents(in CalendarEventSuccessCB successCB, in optional CalendarErrorCB errorCB, in optional CalendarFindOptions options);
+This method takes between one and three arguments. When called, it immediately returns, and then asynchronously start a find calendar event items process defined as follows:
+
+If there are any tasks from the device task source in one of the task queues (i.e. an existing findEvents() operation is still pending a response), and the current method was invoked with a non-null errorCB argument, dispatch an error event with a PENDING_OPERATION_ERROR code value.
+
+Search for calendar event items in the calendar according to the calendar item search processing rules.
+
+If the attempt was successful, dispatch a success event. If the attempt fails, and the method was invoked with a non-null errorCB argument, this method must dispatch an error event with the code attribute set according to the type of failure that has occurred.
+
+Parameters
+
+successCB
+Optional: No.
+Nullable: No
+Type: CalendarEventSuccessCB
+Description: Function to call when the asynchronous operation completes successfully.
+errorCB
+Optional: Yes.
+Nullable: No
+Type: CalendarErrorCB
+Description: Function to call when the asynchronous operation fails.
+options
+Optional: Yes.
+Nullable: No
+Type: CalendarFindOptions
+Description: The options to apply to the output of this method.
+Return value
+
+caller void
+2.3. CalendarEvent
+
+The CalendarEvent interface captures a calendar event object.
+
+        [NoInterfaceObject]
+        interface CalendarEvent {
+
+            readonly attribute DOMString          id;
+
+             attribute DOMString          description;
+
+             attribute DOMString?         location;
+
+             attribute DOMString?         summary;
+
+             attribute DOMString          start;
+
+             attribute DOMString?         end;
+
+             attribute DOMString?         status;
+
+             attribute DOMString?         transparency;
+
+             attribute CalendarRepeatRule? recurrence;
+
+             attribute DOMString?         reminder;
+        };
+Attributes
+
+readonly DOMString id
+A globally unique identifier for the given CalendarEvent object. Each CalendarEvent referenced from Calendar must include a non-empty id value.
+
+An implementation must maintain this globally unique resource identifier when a calendar event is added to, or present within, a Calendar.
+
+An implementation may use an IANA registered identifier format. The value can also be a non-standard format.
+
+No exceptions.
+
+This attribute is readonly.
+DOMString description
+A description of the event.
+
+No exceptions.
+
+Code example
+
+ {description: "Meeting with Joe's team"}
+ 
+DOMString? location
+A plain text description of the location of the event.
+
+No exceptions.
+
+Code example
+
+ {location: 'Conf call #+4402000000001'}
+ 
+DOMString? summary
+A summary of the event.
+
+No exceptions.
+
+Code example
+
+ {summary: "Agenda: * Introductions* AoB"}
+ 
+DOMString start
+The start date and time of the event as a valid date or time string.
+
+No exceptions.
+
+Code example
+
+ {start: '2011-03-24T09:00-08:00'} // Event starts on March 24, 2011 @ 5pm (UTC)
+ 
+DOMString? end
+The end date and time of the event as a valid date or time string.
+
+No exceptions.
+
+Code example
+
+ {end: '2011-03-24T10:00:00-08:00'} // Event ends on March 24, 2011 @ 6pm (UTC)
+ 
+DOMString? status
+An indication of the user's status of the event.
+
+This parameter may be set to one of the following constants:
+
+No exceptions.
+
+Code example
+
+ {status: 'pending'} // Event is awaiting user action
+ 
+DOMString? transparency
+An indication of the display status to set for the event.
+
+This parameter may be set to one of the following constants:
+
+'transparent', 'opaque'.
+
+No exceptions.
+
+Code example
+
+ {freebusy: 'transparent'} // Mark event as transparent in Calendar
+ 
+CalendarRepeatRule? recurrence
+The recurrence or repetition rule for this event
+
+No exceptions.
+
+Code example
+
+ {recurrence: {frequency: 'daily'}}     // Event occurs every day and never expires
+ 
+Code example
+
+ {recurrence: {frequency: 'weekly',     // Event occurs weekly...
+  daysInWeek: [2, 4],      // ...every Tuesday and Thursday
+  expires: '2011-06-11T12:00:00-04:00'}} // Event expires on or before June 11, 2011 @ 4pm (UTC)
+ 
+Code example
+
+ {recurrence: {frequency: 'weekly',     // Event occurs weekly...on every Wednesday
+                           // (if we say the 'start' attribute is March 24, 2011 @ 2pm (Wednesday) as  
+                           // shown above and no daysInWeek attribute is provided)
+  expires: '2011-06-11T11:00:00-05:00'}} // Event expires on or before June 11, 2011 @ 4pm (UTC)
+ 
+Code example
+
+ {recurrence: {frequency: 'monthly',    // Event occurs monthly...
+  daysInMonth: [-5],       // ...5 days before the end of each month 
+ 
+Code example
+
+ {recurrence: {frequency: 'monthly',    // Event occurs monthly...on the 24th day of every month
+                          // (if we say the 'start' attribute is March 24, 2011 @ 2pm as  
+                           // shown above and no daysInMonth attribute is provided)
+  expires: '2011-06-11T20:00:00+04:00'}} // Event expires on or before June 11, 2011 @ 4pm (UTC)
+ 
+Code example
+
+ {recurrence: {frequency: 'yearly',     // Event occurs yearly...on the 24th day of every March
+                           // (if we say the 'start' attribute is March 24, 2011 @ 2pm as  
+                           // shown above and no daysInMonth attribute is provided)
+  expires: '2011-06-11T16:00:00+00:00'}} // Event expires on or before June 11, 2011 @ 4pm (UTC)
+ 
+Code example
+
+ {recurrence: {frequency: 'yearly',     // Event occurs yearly...
+   daysInMonth: [24],       // ...every 24th day... 
+  monthsInYear: [3, 6],    // ...in every March and June
+  expires: '2011-06-11T16:00:00Z'}} // Event expires on or before June 11, 2011 @ 4pm (UTC)
+ 
+Code example
+
+ {recurrence: {frequency: 'yearly',     // Event occurs yearly...
+  daysInYear: [168],       // ...every 168th day of each year 
+  expires: '2011-06-11T21:45:00+05:45'}} // Event expires on or before June 11, 2011 @ 4pm (UTC)
+ 
+DOMString? reminder
+A reminder for the event.
+
+This attribute can be specified as a positive valid date or time string, denoting a one-time reminder or as a negative value in milliseconds denoting a relative relationship to the start time of the calendar event.
+
+A relative reminder is recommended for setting a reminder for recurrent events.
+
+No exceptions.
+
+Code example
+
+ {reminder: '2011-03-24T13:00:00+00:00'}  // Remind ONCE on March 24, 2011 @ 1pm (UTC)
+ 
+Code example
+
+ {reminder: '-3600000'}       // Remind 1 hour before every occurrence of this event
+ 
+2.4. CalendarRepeatRule
+
+The CalendarRepeatRule interface captures the recurrence of a calendar event item.
+
+        [NoInterfaceObject]
+        interface CalendarRepeatRule {
+
+            attribute DOMString?      frequency;
+
+            attribute unsigned short? interval;
+
+            attribute DOMString?      expires;
+
+            attribute DOMString[]     exceptionDates;
+
+            attribute short[]         daysInWeek;
+
+            attribute short[]         daysInMonth;
+
+            attribute short[]         daysInYear;
+
+            attribute short[]         weeksInMonth;
+
+            attribute short[]         monthsInYear;
+        };
+Attributes
+
+DOMString? frequency
+The frequency of the CalendarRepeatRule.
+
+This parameter must be set to one of the following constants: 'daily', 'weekly', 'monthly', 'yearly'.
+
+Additional values must be ignored for this attribute.
+
+No exceptions.
+
+Code example
+
+ {frequency: 'monthly'}  // Event repeats on a monthly basis
+ 
+unsigned short? interval
+A positive integer defining how often the recurrence rule must repeat.
+
+For interval N, recurrence rule repeats every Nth frequency. Default interval value is 1, that is every day for a daily, every week for a weekly, every month for a monthly and every year for a yearly.
+
+If this parameter is set to null the event item does not have any fixed interval and the event interal should be derived from the other CalendarRepeatRule attributes.
+
+No exceptions.
+
+Code example
+
+ {interval: 1}
+ 
+DOMString? expires
+The date and time to which the CalendarRepeatRule applies as a valid date or time string.
+
+If this parameter is set to null the event item does not have any fixed expiry date and the event is scheduled to continue indefintely.
+
+No exceptions.
+
+Code example
+
+ {expires: '2011-08-01T01:00:00+01:00'} // Event repeats until August 1, 2011 @ 12am (UTC)
+ 
+DOMString [] exceptionDates
+One or more dates and times to which the CalendarRepeatRule does not apply as valid date or time string strings.
+
+If this parameter is set to null the event item does not have any exception dates and/or times.
+
+No exceptions.
+
+Code example
+
+ {exceptionDates: ['2011-12-22', '2011-12-29']} // Event does not occur on December 22, 2011 and December 29, 2011
+ 
+short [] daysInWeek
+The day or days of the week for which the CalendarRepeatRule applies. If this attribute is set to null then the day of the CalendarEvent.start value is used to derive the recurrent dates.
+
+NOTE: This property only applies to weekly occurrences. If CalendarRepeatRule.frequency is not set to 'weekly' this property must be ignored.
+
+The possible values are: 0 (Sunday)
+
+1 (Monday)
+
+2 (Tuesday)
+
+3 (Wednesday)
+
+4 (Thursday)
+
+5 (Friday)
+
+6 (Saturday)
+
+No exceptions.
+
+Code example
+
+ {daysInWeek: [0, 6]} // A weekly event repeats every Sunday and Saturday
+ 
+short [] daysInMonth
+The day or days of the month for which the CalendarRepeatRule applies. If this attribute is set to null then the day of the month of the CalendarEvent.start value is used to derive the recurrent dates.
+
+NOTE: This property only applies to monthly occurrences. If CalendarRepeatRule.frequency is not set to 'monthly' this property must be ignored.
+
+The possible values are:
+
+[1..31] (number of days from the first day of the month) [0..-30] (number of days before the last day of the month)
+
+No exceptions.
+
+Code example
+
+ {daysInMonth: [4, -10]} // A monthly event repeats on the 4th and 10th to last day of each month.
+ 
+short [] daysInYear
+The day or days of the month for which the CalendarRepeatRule applies. If this attribute is set to null then the day of the year of the CalendarEvent.start value is used to derive the recurrent dates.
+
+NOTE: This property only applies to yearly occurrences. If CalendarRepeatRule.frequency is not set to 'yearly' this property must be ignored.
+
+The possible values are:
+
+[1..365] (number of days from the first day of the year) [0..-364] (number of days before the last day of the year)
+
+No exceptions.
+
+Code example
+
+ {daysInYear: [262, -102]} // A yearly event repeats on day 262 and 102 days before the last day of each year.
+ 
+short [] weeksInMonth
+The week or weeks of the month for which the CalendarRepeatRule applies. If this attribute is set to null then the week of the month of the CalendarEvent.start value is used to derive the recurrent dates.
+
+NOTE: This property only applies to monthly occurrences. If CalendarRepeatRule.frequency is not set to 'monthly' this property must be ignored. The possible values are:
+
+[1..4] (number of weeks from the first week of the month) [0..-3] (number of weeks before the last week of the month)
+
+No exceptions.
+
+Code example
+
+ {weeksInMonth: [1, -1]} // A monthly event repeats on the first and last week of each month.
+ 
+short [] monthsInYear
+The month or months of the year for which the CalendarRepeatRule applies. If this attribute is set to null then the month of the year of the CalendarEvent.start value is used to derive the recurrent dates.
+
+NOTE: This property only applies to yearly occurrences. If CalendarRepeatRule.frequency is not set to 'yearly' this property must be ignored.
+
+The possible values are:
+
+1 (January)
+
+2 (February)
+
+3 (March)
+
+4 (April)
+
+5 (May)
+
+6 (June)
+
+7 (July)
+
+8 (August)
+
+9 (September)
+
+10 (October)
+
+11 (November)
+
+12 (December)
+
+No exceptions.
+
+Code example
+
+ {monthsInYear: [4, 10]} // A yearly event repeats in April and October each year.
+ 
+2.5. CalendarFindOptions
+
+The CalendarFindOptions interface describes the options that can be applied to calendar searching.
+
+        [NoInterfaceObject]
+        interface CalendarFindOptions {
+
+            attribute CalendarEventFilter? filter;
+
+            attribute boolean?            multiple;
+        };
+Attributes
+
+CalendarEventFilter? filter
+A search filter with which to search and initially filter the Calendar database.
+
+No exceptions.
+
+boolean? multiple
+A boolean value to indicate whether multiple Calendar objects are returnable as part of the associated Calendar findEvents() operation.
+
+By default this option is set to true.
+
+No exceptions.
+
+2.6. CalendarEventFilter
+
+The CalendarEventFilter interface captures the searchable parameters for finding calendar event items.
+
+        [NoInterfaceObject]
+        interface CalendarEventFilter : CalendarEvent {
+
+            attribute DOMString startBefore;
+
+            attribute DOMString startAfter;
+
+            attribute DOMString endBefore;
+
+            attribute DOMString endAfter;
+        };
+Attributes
+
+DOMString startBefore
+Search for Calendar Events that start before the time provided as a valid date or time string..
+
+No exceptions.
+
+DOMString startAfter
+Search for Calendar Events that start after the time provided as a valid date or time string..
+
+No exceptions.
+
+DOMString endBefore
+Search for Calendar Events that end before the time provided as a valid date or time string..
+
+No exceptions.
+
+DOMString endAfter
+Search for Calendar Events that end after the time provided as a valid date or time string..
+
+No exceptions.
+
+2.9. CalendarError
+
+he CalendarError interface encapsulates all errors in the manipulation of CalendarEvent objects in the Calendar API.
+
+        [NoInterfaceObject]
+        interface CalendarError {
+
+            const unsigned short UNKNOWN_ERROR = 0;
+
+            const unsigned short INVALID_ARGUMENT_ERROR = 1;
+
+            const unsigned short TIMEOUT_ERROR = 2;
+
+            const unsigned short PENDING_OPERATION_ERROR = 3;
+
+            const unsigned short IO_ERROR = 4;
+
+            const unsigned short NOT_SUPPORTED_ERROR = 5;
+
+            const unsigned short PERMISSION_DENIED_ERROR = 20;
+
+            readonly attribute unsigned short code;
+        };
+Constants
+
+unsigned short UNKNOWN_ERROR
+An unknown error occurred.
+
+unsigned short INVALID_ARGUMENT_ERROR
+An invalid parameter was provided when the requested method was invoked.
+
+unsigned short TIMEOUT_ERROR
+The requested method timed out before it could be completed.
+
+unsigned short PENDING_OPERATION_ERROR
+If the user agent is currently waiting for a callback on a current findEvents() operation, as defined in this specification.
+
+unsigned short IO_ERROR
+An error occurred in communication with the underlying implementation that meant the requested method could not complete.
+
+unsigned short NOT_SUPPORTED_ERROR
+The requested method is not supported by the current implementation.
+
+unsigned short PERMISSION_DENIED_ERROR
+Access to the requested method was denied at the implementation or by the user.
+
+Attributes
+
+readonly unsigned short code
+An error code assigned by an implementation when an error has occurred in Calendar API processing.
+
+No exceptions.
+
+This attribute is readonly.
+3. Features
+
+This is the list of URIs used to declare this API's features, for use in the widget config.xml and as identifier for service type in service discovery functionality. For each URI, the list of functions covered is provided.
+
+http://www.w3.org/ns/api-perms/calendar.read
+Read access to the calendar book.
+
+4. Full WebIDL
+
+module CalendarWrapper {
+
+
+        [NoInterfaceObject]
+        interface ServiceCalendar {
+
+            readonly attribute Calendar calendar;
+        };
+                
+
+        [NoInterfaceObject]
+        interface Calendar {       
+
+            caller void findEvents (in CalendarEventSuccessCB successCB, in optional CalendarErrorCB errorCB, in optional CalendarFindOptions options);
+        };
+
+
+        [NoInterfaceObject]
+        interface CalendarEvent {
+
+            readonly attribute DOMString          id;
+
+             attribute DOMString          description;
+
+             attribute DOMString?         location;
+
+             attribute DOMString?         summary;
+
+             attribute DOMString          start;
+
+             attribute DOMString?         end;
+
+             attribute DOMString?         status;
+
+             attribute DOMString?         transparency;
+
+             attribute CalendarRepeatRule? recurrence;
+
+             attribute DOMString?         reminder;
+        };
+
+
+        [NoInterfaceObject]
+        interface CalendarRepeatRule {
+
+            attribute DOMString?      frequency;
+
+            attribute unsigned short? interval;
+
+            attribute DOMString?      expires;
+
+            attribute DOMString[]     exceptionDates;
+
+            attribute short[]         daysInWeek;
+
+            attribute short[]         daysInMonth;
+
+            attribute short[]         daysInYear;
+
+            attribute short[]         weeksInMonth;
+
+            attribute short[]         monthsInYear;
+        };
+
+
+        [NoInterfaceObject]
+        interface CalendarFindOptions {
+
+            attribute CalendarEventFilter? filter;
+
+            attribute boolean?            multiple;
+        };
+
+
+        [NoInterfaceObject]
+        interface CalendarEventFilter : CalendarEvent {
+
+            attribute DOMString startBefore;
+
+            attribute DOMString startAfter;
+
+            attribute DOMString endBefore;
+
+            attribute DOMString endAfter;
+        };
+        
+        
+        [Callback=FunctionOnly, NoInterfaceObject]
+        interface CalendarEventSuccessCB {        
+
+            void onSuccess (in sequence<CalendarEvent> eventObjs);
+        };
+        
+        [Callback=FunctionOnly, NoInterfaceObject]
+        interface CalendarErrorCB {
+
+            void onError (in CalendarError error);
+        };
+        
+
+      
+        [NoInterfaceObject]
+        interface CalendarError {
+
+            const unsigned short UNKNOWN_ERROR = 0;
+
+            const unsigned short INVALID_ARGUMENT_ERROR = 1;
+
+            const unsigned short TIMEOUT_ERROR = 2;
+
+            const unsigned short PENDING_OPERATION_ERROR = 3;
+
+            const unsigned short IO_ERROR = 4;
+
+            const unsigned short NOT_SUPPORTED_ERROR = 5;
+
+            const unsigned short PERMISSION_DENIED_ERROR = 20;
+
+            readonly attribute unsigned short code;
+        };
+            
+};

@@ -1,0 +1,95 @@
+Abstract
+
+This document describes the functionality that Webinos devices should implement for capturing media.
+
+Table of Contents
+
+1 - Introduction
+2 - API
+3 - Security
+4 - WebIDL
+References
+1 - Introduction
+
+This section is INFORMATIVE.
+
+Webinos is fully committed to the use of Open Standards whenever available. The access to capture media capability is done through the W3C Media Capture API [MEDIACAPTURE].
+
+2 - API
+
+This section is NORMATIVE.
+
+Webinos implementations MUST support W3C Media Capture API specification [MEDIACAPTURE].
+
+In order to use this API, access to it must be declared in the widget configuration document (i.e. config.xml). This declaration is done through the feature http://www.w3.org/ns/api-perms/mediacapture.
+
+3 - Security
+
+This section is NORMATIVE.
+
+The implementation MUST NOT enable access to this API by default, but only if the declaration is present in the widget configuration document through the appropriate feature tag.
+
+Please note that Webinos Security Framework, depending on its configuration and in the widget level of trust, MAY deny access to this API even if it is declared in the configuration document.
+
+4 - WebIDL
+
+This section is INFORMATIVE.
+
+For completeness, this specification includes a copy of the WebIDL declaration included in the W3C Media Capture API specification [MEDIACAPTURE]. The referred specification includes all the details needed to create a conformant implementation.
+
+DeviceCapture Interface
+[NoInterfaceObject]
+interface DeviceCapture {
+    readonly attribute Capture capture;
+};
+Device implements DeviceCapture;
+Capture Interface
+[Supplemental, NoInterfaceObject]
+interface Capture {
+    readonly attribute MediaFileData[] supportedImageFormats;
+    readonly attribute MediaFileData[] supportedVideoFormats;
+    readonly attribute MediaFileData[] supportedAudioFormats;
+    PendingOperation captureImage (in CaptureCB successCB, in optional CaptureErrorCB errorCB, in optional CaptureImageOptions options);
+    PendingOperation captureVideo (in CaptureCB successCB, in optional CaptureErrorCB errorCB, in optional CaptureVideoOptions options);
+    PendingOperation captureAudio (in CaptureCB successCB, in optional CaptureErrorCB errorCB, in optional CaptureAudioOptions options);
+};
+CaptureCB Interface
+[Callback=FunctionOnly, NoInterfaceObject]
+interface CaptureCB {
+    void onSuccess (in FileList capturedMedia);
+};
+CaptureErrorCB Interface
+[Callback=FunctionOnly, NoInterfaceObject]
+interface CaptureErrorCB {
+    void onError (in CaptureError error);
+};
+CaptureError Interface
+[NoInterfaceObject]
+interface CaptureError {
+    const unsigned short CAPTURE_INTERNAL_ERR = 0;
+    const unsigned short CAPTURE_APPLICATION_BUSY = 1;
+    const unsigned short CAPTURE_INVALID_ARGUMENT = 2;
+    const unsigned short CAPTURE_NO_MEDIA_FILES = 3;
+    readonly attribute unsigned short code;
+};
+CaptureImageOptions Interface
+[NoInterfaceObject]
+interface CaptureImageOptions {
+    attribute unsigned long limit;
+};
+CaptureVideoOptions Interface
+[NoInterfaceObject]
+interface CaptureVideoOptions {
+    attribute unsigned long limit;
+    attribute float duration;
+};
+CaptureAudioOptions Interface
+[NoInterfaceObject]
+interface CaptureAudioOptions {
+    attribute unsigned long limit;
+};
+PendingOperation Interface
+[NoInterfaceObject]
+interface PendingOperation {
+    void cancel ();
+};

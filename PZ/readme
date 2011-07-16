@@ -1,0 +1,14 @@
+A webkit codebase is preferred with implementations on several platforms
+
+Either QT or Chromium are suggested for PC, as they have Windows, Mac and Linux variants.
+
+The linux variant should be well suited to both STB an in car devices with minimal porting
+
+V8 is the preferred JavaScript engine, being pre-integrated to Chromium and an option for QT
+
+Android is more difficult. Android will require a different WRT strategy using the inbuilt webview component and NPAPI and JNIRegisterNativeMethod for plugins
+
+Binding to the PZP should be done if possible through standard plugin architectures. Worst case is we have to hack into the JavaScript engine directly.
+
+Todo
+Identify the specific C interface that needs to be implmented across the NPAPI plugin. What is the precise interface between PZP and WRT

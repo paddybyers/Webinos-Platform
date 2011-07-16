@@ -1,0 +1,8 @@
+The Policy manager must
+
+provide a mediation interface, so that all components may defer decision to the access logic
+interpret the set of policy rules active on the PZP
+implement real-time PEP logic and enforce the constraints
+The policy manger must present a JavaScript interface that can be used by the node.js logic
+
+The implementation of PEP enforcement and logic can be in either C or JavaScript

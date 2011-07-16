@@ -1,0 +1,15 @@
+The API manager must
+
+host all available APIs that can be accessed either locally (WRT) or remotely (other PZPs)
+must efficiently process teh local API and return resuls
+must be able to process JSON RPC commands coming from the messaging manager and route them the the correct API
+must be able to process Javascript commands issues locally, mapping them to the correct API
+Most API will be implemented as native C/C++ code on the specific platform (be non -portable)
+
+(we may add other implementation later - eg. Perl, Ruby etc)
+
+C API headers should use the V8 conventions for Javscript types and map these to native C data types.
+
+The V8 mappings should map directly via the NPAPI bridge
+
+The JSON RPC message handler should also have a deterministic mapping to the V8 typed C APIs

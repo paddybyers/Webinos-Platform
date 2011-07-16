@@ -1,0 +1,350 @@
+Abstract
+
+The application execution API (AppLauncher) allows activation of webinos applications installed locally on the device. Functionality defined in this version of the specification refers to webinos Phase 1 scope.
+
+Table of Contents
+
+1. Introduction
+2. Interfaces
+2.1. AppLauncherManager
+2.2. SuccessCallback
+2.3. ErrorCallback
+2.4. LauncherAPIError
+2.5. PendingOperation
+2.6. WebinosLauncher
+3. Type Definitions
+3.1. ObjectArray
+3.2. applicationID
+4. Exceptions
+4.1. AppLauncherException
+5. Features
+6. Full WebIDL
+Summary of Methods
+
+Interface	Method
+AppLauncherManager	PendingOperation launchApplication(SuccessCallback successCallback, ErrorCallback errorCallback, applicationID appID, ObjectArray params)
+boolean AppInstalled(applicationID appID)
+SuccessCallback	void onSuccess()
+ErrorCallback	void onError(LaucherAPIError error)
+LauncherAPIError	
+PendingOperation	void cancel()
+WebinosLauncher	
+1. Introduction
+
+The application execution API allows activation of webinos applications installed locally on the device. The API is modelled after BONDI v1.1 AppLauncher API.
+
+Operation of the API is guided by application execution policies, which can be modified by user. The policies control the following aspects of API operation: 
+- Enable/disable of activation of native applications 
+- Enable/disable of activation of webinos installable applications 
+- Enable/disable of notifications to users when a webinos application attempts to activate another application 
+- Enable/disable of application ability to discover installed applications 
+- Enable/disable of logging of operations performed using the API 
+The application execution API provides mechanisms for webinos applications to check if specific webinos application is installed in the device.
+
+2. Interfaces
+
+2.1. AppLauncherManager
+
+NOTE: 
+- applicationID type will be defined in webinoscore module. Each application will have a unique ID coming from its manifest file. applicationID is a string composed of ID from the app certificate and identifiers assigned by the maker of the app. For the purposes of phase 1 AppLauncher API, we can assume the ID is a string that will be known to the application that starts another application and is known to the runtime based on manifests of installed apps. 
+  [NoInterfaceObject] interface AppLauncherManager {
+
+
+    PendingOperation launchApplication(in SuccessCallback successCallback,
+                                       in ErrorCallback errorCallback,
+                                       in applicationID appID,
+                                       in optional ObjectArray params)
+                       raises( AppLauncherException);
+
+
+       
+    boolean AppInstalled(in applicationID appID)
+            raises( AppLauncherException);
+    };
+This is the main interface for the AppLauncher API.
+
+Code example
+
+        // Define the launchApplication success callback.
+        function launchedCallback(response)   {
+               alert("Webinos application launched successfully");
+        }
+
+
+        // Define the error callback
+        function errorCallback(response) {
+                        alert( "The following error: " +  response.code + ", occurred");
+        }
+
+
+        // Activate webinos application, if the application is installed in the device.
+        var appinstalled = webinos.AppLauncher.AppInstalled( appID);
+
+        if ( appinstalled)  {
+            webinos.AppLauncher.launchApplication(launchedCallback, errorCallback, appID, null);
+        }                      
+ 
+Methods
+
+launchApplication
+Starts a webinos applicaiton identified by appID. The method is asynchronous. If the app was started successfuly, successCallback is invoked. In case of error, errorCallback is called.
+
+Signature
+
+PendingOperation launchApplication(in SuccessCallback successCallback, in ErrorCallback errorCallback, in applicationID appID, in optional ObjectArray params);
+Parameters
+
+successCallback
+Optional: No.
+Nullable: No
+Type: SuccessCallback
+Description: Callback invoked when a requested webinos app was activated successfully.
+errorCallback
+Optional: No.
+Nullable: No
+Type: ErrorCallback
+Description: Callback invoked if activation of webinos app was not successful.
+appID
+Optional: No.
+Nullable: No
+Type: applicationID
+Description: Identifies webinos application that needs to be activated.
+params
+Optional: Yes.
+Nullable: No
+Type: ObjectArray
+Description: Optional set of parameters for starting the application.
+Return value
+
+A pending operation object
+Exceptions
+
+AppLauncherException:
+Thrown when activation of the application was not successful.
+
+AppInstalled
+Reports if a specific webinos application is installed in the device. The method is synchronous.
+
+Signature
+
+boolean AppInstalled(in applicationID appID);
+Parameters
+
+appID
+Optional: No.
+Nullable: No
+Type: applicationID
+Description: Identifies webinos application presence of which needs to be tested.
+Return value
+
+True if the application is installed, false if the application is not installed.
+Exceptions
+
+AppLauncherException:
+Thrown when activation of the application was not successful.
+
+2.2. SuccessCallback
+
+This interface defines the callback for a asynchronous launchApplication method.
+
+    [Callback=FunctionOnly, NoInterfaceObject]
+    interface SuccessCallback{
+      void onSuccess();
+    };
+Methods
+
+onSuccess
+This method is called if function app was launched successfully.
+
+Signature
+
+void onSuccess();
+2.3. ErrorCallback
+
+This interface defines the callback for a failed activation of asynchronous launchApplication method.
+
+    [Callback=FunctionOnly, NoInterfaceObject]
+    interface ErrorCallback{
+      void onError(in LaucherAPIError error);
+    };
+Methods
+
+onError
+This method is called if asychronous launchApplication method fails.
+
+Signature
+
+void onError(in LaucherAPIError error);
+Parameters
+
+error
+Optional: No.
+Nullable: No
+Type: LaucherAPIError
+Description: contains information about the error
+2.4. LauncherAPIError
+
+API-specific error handling interface
+
+    [NoInterfaceObject] interface LauncherAPIError {
+    
+        readonly attribute unsigned short code;
+        
+        readonly attribute DOMString message;
+        
+        const unsigned short      UNKNOWN_ERR                    = 0;
+        const unsigned short      NOT_SUPPORTED_ERR              = 9;
+        const unsigned short      TYPE_MISMATCH_ERR              = 17;
+        const unsigned short      SECURITY_ERR                   = 18;
+        const unsigned short      NETWORK_ERR                    = 19;
+        const unsigned short      INVALID_APP_ID                 = 100; 
+        const unsigned short      APP_NOT_FOUND                  = 101; 
+        const unsigned short      NO_RESOURCES                   = 102; 
+        const unsigned short      ALREADY_STARTED                = 103; 
+        const unsigned short      POLICY_NOT_ALLOWED             = 104; 
+    };
+The LaucnherAPIError interface describes error interface for the Launcher API.
+
+2.5. PendingOperation
+
+The PendingOperation interface
+
+     [NoInterfaceObject] interface PendingOperation {
+
+        void cancel ();
+     };
+The PendingOperation interface describes operation of cancellable aynchronous methods. Cancellable asynchronous methods return PendingOperation objects exporting methods for cancelling the operation.
+
+Methods
+
+cancel
+Cancel method for cancelling asynchronous operation
+
+Signature
+
+void cancel();
+Cancel ongoing asynchronous method call. Upon calling this method the runtime must immediately stop the pending operation and return.
+
+2.6. WebinosLauncher
+
+The WebinosLauncher interface describes the part of the App Execution API accessible through the webinos object.
+
+        [NoInterfaceObject] interface WebinosLauncher {
+                readonly attribute AppLauncherManager launcher;
+        };
+        webinoscore::Webinos implements WebinosLauncher;
+Attributes
+
+readonly AppLauncherManager launcher
+webinos.launcher object.
+
+This attribute is readonly.
+3. Type Definitions
+
+3.1. ObjectArray
+
+Array of DOMStrings.
+
+  typedef sequence<object> ObjectArray;
+3.2. applicationID
+
+Application ID for identifying installed webinos applications. NOTE: This definition could be moved to webinos core module in the future.
+
+  typedef DOMString applicationID;
+4. Exceptions
+
+4.1. AppLauncherException
+
+Exception definition for AppLauncher module. Error codes are defined in LauncherAPIError interface.
+
+  exception AppLauncherException {
+
+    unsigned short code;        
+    DOMString message;
+  };
+5. Features
+
+This is the list of URIs used to declare this API's features, for use in the widget config.xml and as identifier for service type in service discovery functionality. For each URI, the list of functions covered is provided.
+
+http://webinos.org/api/applauncher.launch
+Start webinos application - allows to invoke webinos application identified by a unique identifier.
+
+http://webinos.org/api/applauncher.check
+Check if application is installed - allow to test of an application identified by a specific application ID is installed on the device.
+
+6. Full WebIDL
+
+module AppLauncher {
+
+  typedef sequence<object> ObjectArray;
+
+  typedef DOMString applicationID;
+
+  exception AppLauncherException {
+
+    unsigned short code;        
+    DOMString message;
+  };
+  
+  
+  
+  
+  [NoInterfaceObject] interface AppLauncherManager {
+
+
+    PendingOperation launchApplication(in SuccessCallback successCallback,
+                                       in ErrorCallback errorCallback,
+                                       in applicationID appID,
+                                       in optional ObjectArray params)
+                       raises( AppLauncherException);
+
+
+       
+    boolean AppInstalled(in applicationID appID)
+            raises( AppLauncherException);
+    };
+    
+
+    [Callback=FunctionOnly, NoInterfaceObject]
+    interface SuccessCallback{
+      void onSuccess();
+    };
+    
+    
+    [Callback=FunctionOnly, NoInterfaceObject]
+    interface ErrorCallback{
+      void onError(in LaucherAPIError error);
+    };
+
+    
+    [NoInterfaceObject] interface LauncherAPIError {
+    
+        readonly attribute unsigned short code;
+        
+        readonly attribute DOMString message;
+        
+        const unsigned short      UNKNOWN_ERR                    = 0;
+        const unsigned short      NOT_SUPPORTED_ERR              = 9;
+        const unsigned short      TYPE_MISMATCH_ERR              = 17;
+        const unsigned short      SECURITY_ERR                   = 18;
+        const unsigned short      NETWORK_ERR                    = 19;
+        const unsigned short      INVALID_APP_ID                 = 100; 
+        const unsigned short      APP_NOT_FOUND                  = 101; 
+        const unsigned short      NO_RESOURCES                   = 102; 
+        const unsigned short      ALREADY_STARTED                = 103; 
+        const unsigned short      POLICY_NOT_ALLOWED             = 104; 
+    };
+    
+     [NoInterfaceObject] interface PendingOperation {
+
+        void cancel ();
+     };
+
+        [NoInterfaceObject] interface WebinosLauncher {
+                readonly attribute AppLauncherManager launcher;
+        };
+
+
+        webinoscore::Webinos implements WebinosLauncher;
+
+};

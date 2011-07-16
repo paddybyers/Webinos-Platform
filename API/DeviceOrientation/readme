@@ -1,0 +1,84 @@
+Abstract
+
+This document describes the functionality that Webinos devices should implement for retrieving information about the device orientation and motion.
+
+Table of Contents
+
+1 - Introduction
+2 - API
+3 - Security
+4 - WebIDL
+References
+1 - Introduction
+
+This section is INFORMATIVE.
+
+Webinos is fully committed to the use of Open Standards whenever available. The access to device orientation information is done through the W3C DeviceOrientation event specification.[DEVICEORIENTATION].
+
+2 - API
+
+This section is NORMATIVE.
+
+Webinos implementations MUST support W3C DeviceOrientation Event Specification [DEVICEORIENTATION].
+
+In order to use this API, access to it must be declared in the widget configuration document (i.e. config.xml). This declaration is done through the feature http://www.w3.org/ns/api-perms/deviceorientation.
+
+Access to this functionality is achieved (as specified by W3C) through two new event types available in the Window object: deviceorientation and devicemotion.
+
+3 - Security
+
+This section is NORMATIVE.
+
+The implementation MUST NOT enable access to this API by default, but only if the declaration is present in the widget configuration document through the appropriate feature tag.
+
+Please note that Webinos Security Framework, depending on its configuration and in the widget level of trust, MAY deny access to this API even if it is declared in the configuration document.
+
+4 - WebIDL
+
+This section is INFORMATIVE.
+
+For completeness, this specification includes a copy of the WebIDL declaration included in the W3C DeviceOrientation Event specification [DEVICEORIENTATION]. The referred specification includes all the details needed to create a conformant implementation.
+
+DeviceOrientation Interface
+interface DeviceOrientationEvent : Event {
+    readonly attribute double? alpha;
+    readonly attribute double? beta;
+    readonly attribute double? gamma;
+    readonly attribute boolean absolute;
+    void initDeviceOrientationEvent(in DOMString type,
+                                    in boolean bubbles,
+                                    in boolean cancelable,
+                                    in double? alpha,
+                                    in double? beta,
+                                    in double? gamma,
+                                    in boolean absolute);
+    };
+
+Acceleration Interface
+    [Callback, NoInterfaceObject]
+    interface Acceleration {
+    readonly attribute double? x;
+    readonly attribute double? y;
+    readonly attribute double? z;
+    };
+RotationRate Interface
+[Callback, NoInterfaceObject]
+    interface RotationRate {
+    readonly attribute double? alpha;
+    readonly attribute double? beta;
+    readonly attribute double? gamma;
+    };
+DeviceMotionEvent Interface
+interface DeviceMotionEvent : Event {
+    readonly attribute Acceleration? acceleration;
+    readonly attribute Acceleration? accelerationIncludingGravity;
+    readonly attribute RotationRate? rotationRate;
+    readonly attribute double? interval;
+    void initAccelerometerEvent(in DOMString type,
+                                in boolean bubbles,
+                                in boolean cancelable,
+                                in Acceleration? acceleration,
+                                in Acceleration? accelerationIncludingGravity,
+                                in RotationRate? rotationRate,
+                                in double? interval);
+    };

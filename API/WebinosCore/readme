@@ -1,0 +1,65 @@
+Abstract
+
+Webinos core interfaces
+
+Table of Contents
+
+1. Introduction
+2. Interfaces
+2.1. WebinosObject
+2.2. Webinos
+3. Features
+4. Full WebIDL
+Summary of Methods
+
+Interface	Method
+WebinosObject	
+Webinos	
+1. Introduction
+
+This specification defines the common interface from which all Webinos APIs are can be accessed as well as several interfaces that are commonly reused. 
+This version of the specification defines: 
+- The core Webinos interface. In this version this interface is part of the window global object but this has to be discussed. W3C DAP hangs the APIs on Device on Navigator. 
+It is to be considered if more common interfaces should be included in this specification, for example: 
+- A common PendingOperation interface 
+- Methods to retrieve lists of available and activated feature 
+- Generic error interface 
+- Generic success callback 
+- Generic error callback 
+- Common array types 
+2. Interfaces
+
+2.1. WebinosObject
+
+Webinos object
+
+  interface WebinosObject {
+    readonly attribute Webinos webinos;
+  };
+  Window implements WebinosObject;
+Defines that the webinos interface is part of the window global object.
+
+2.2. Webinos
+
+Webinos interface
+
+  interface Webinos { 
+  };
+The is the Webinos root interface and is initially defined as an empty interface on which the various Webinos APIs that are defined elsewhere graft themselves. A user agent supporting the Webinos interface must do so according to the following WebIDL [WEBIDL] definition.
+
+3. Features
+
+4. Full WebIDL
+
+module webinoscore {
+
+
+  interface WebinosObject {
+    readonly attribute Webinos webinos;
+  };
+
+  Window implements WebinosObject;
+
+  interface Webinos { 
+  };   
+};
