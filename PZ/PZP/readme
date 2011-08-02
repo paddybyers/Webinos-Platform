@@ -2,3 +2,6 @@ PZP
 The PZP manages the connection to the PZH
 The PZP acts in place of the PZP when the PZH is not visible
 The PZP hosts all of the capability listed below.
+
+1. openssl genrsa -out client-key.pem 1024
+2. cp ../PZP/server-cert.pem client-cert.pem	
