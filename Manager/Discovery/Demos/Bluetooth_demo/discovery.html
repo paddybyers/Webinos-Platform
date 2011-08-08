@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en-US">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Webinos Local Discovery Prototype</title>
+		
+		<link rel="stylesheet" href="ClientStyle.css" type="text/css" media="screen" />
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>   
+		<script type="text/javascript" src="LocalDiscoveryManager.js"></script>		
+		<script src="http://localhost:8000/socket.io/socket.io.js"></script>
+		
+	</head>
+	<body>
+	    <h1>Webinos Local Discovery Prototype</h1>
+		    <p>Please select a Bluetooth service in the list below:</p>
+				<select id='servicelist'>
+				<option>None selected</option>
+				<OPTION VALUE="0x1106"          >OBEXFileTransfer
+				<OPTION VALUE="0x1107"          >IrMcSyncCommandService
+				<OPTION VALUE="0x1108"          >HeadsetService
+				<OPTION VALUE="0x1109"          >CordlessService
+				<OPTION VALUE="0x110A"          >AudioSourceService
+
+				<!-- For more service types: http://msdn.microsoft.com/en-us/library/cc510473.aspx-->
+				</select>
+				
+	        
+	        <script type="text/javascript" src="DiscoveryClient.js"></script>
+	        
+			<BR>
+	    		<INPUT TYPE="submit" onclick="connect()" VALUE="Find Service"> 
+		
+		<p>The following Bluetooth devices were found with required services - please give a few seconds:</p>
+
+		<pre id="bluetooth"></pre>
+			
+								
+	    <hr />
+		<a
+		href="mailto:ziran.sun@samsung.com">ziran.sun@samsung.com</a>
+	</body>
+	
+	<script type="text/javascript">
+		function connect()
+		{
+			var client = new Client();
+			return client.connect();
+		}
+	</script>
+</html>
+
+

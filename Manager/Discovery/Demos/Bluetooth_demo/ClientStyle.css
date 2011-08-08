@@ -1,0 +1,97 @@
+body
+{
+	background-color: #f2f2f2;
+}
+
+#messages
+{
+	width: 700px;;
+	height: 400px;
+	overflow: auto;
+	
+	padding-top: 16px;
+	padding-bottom: 16px;
+	margin: 0px;
+	
+	background-color: #d2d2d2;
+	color: #000000;
+	border: 0px solid black;
+	
+	-moz-box-shadow: 1px 1px 8px #000;
+	-webkit-box-shadow: 1px 1px 8px #000;
+	box-shadow: 1px 1px 8px #000;
+	
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+}
+
+
+.msg_odd
+{
+	background-color: #e2e2e2;
+	text-align: left;
+	width: 94%;
+	padding: 8px;
+	margin: auto;
+	overflow: auto;
+}
+
+.msg_even
+{
+	background-color: #efefef;
+	text-align: left;
+	width: 94%;
+	padding: 8px;
+	margin: auto;
+	overflow: auto;
+}
+
+
+#chatentry
+{
+	width: 676px;
+	background-color: #d2d2d2;
+	color: #000000;
+	border: 0px solid black;
+	margin-top: 10px;
+	padding-top: 8px;
+	padding-left: 12px;
+	padding-right: 12px;
+	
+	height: 32px;
+	
+	-moz-box-shadow: 3px 3px 3px #000;
+	-webkit-box-shadow: 1px 1px 8px #000;
+	box-shadow: 3px 3px 3px #000;
+	
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+}
+
+#chatentry form
+{
+	float: left;
+}
+
+#userinput
+{
+	width: 400px;
+}
+
+#footer
+{
+	font-size: 10px;
+	width: 40%;
+	text-align: center;
+}
+
+a
+{
+	text-decoration: none;
+}
+
+a, a:visited { color: #404040; }
+
+a:hover { color: #1358a5; }
