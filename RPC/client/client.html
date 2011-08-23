@@ -1,0 +1,149 @@
+<html>
+<head>
+<title>Simple chat o' rama</title>
+</head>
+<body>
+	<div>
+		<p>
+			<button id="findService">Find Service</button>
+			<button id="cls">Clear</button>
+			<button id="getFileContent">Get File Content</button>
+		    <button id="fileSaver">Save with FileSaver</button>
+		    <button id="fileWriter">Save with FileWriter</button>
+		</p>
+		<p>
+			<label for="messageText">File Name</label> <input type="text"
+				id="messageText" />
+				<br>
+			<label for="fileContent">File Content</label> 
+			<br><textarea rows='8' size = 500
+				id="fileContent">
+				</textarea>
+		</p>
+	</div>
+	<div>
+		<ul id="messages">
+		</ul>
+	</div>
+
+	<script type="text/javascript" src="/client/webinos.js"></script>
+
+	<script type="text/javascript"
+		src="http://code.jquery.com/jquery-1.5.2.js"></script>
+
+	<script type="text/javascript">
+            $(document).ready(function() {
+                   
+            		var reader = null;
+            	    var fileSaver = null;
+            	    var fileWriter = null;
+            	    
+                    $('#findService').bind('click', function() {
+                	    webinos.ServiceDiscovery.findServices("FileReader", {onFound: function (service) {
+                	    	reader = service;
+                	    }});
+                	    webinos.ServiceDiscovery.findServices("FileSaver", {onFound: function (service) {
+                	    	fileSaver = service;
+                	    }});
+                	    webinos.ServiceDiscovery.findServices("FileWriter", {onFound: function (service) {
+                	    	fileWriter = service;
+                	    }});
+                    });
+                    
+                    $('#cls').bind('click', function() {
+                    	document.getElementById("messages").innerHTML = "";
+                    	document.getElementById("fileContent").value = "";
+                    }); 
+                    
+                    $('#getFileContent').bind('click', function() {
+                       reader.bind(function () {
+                       //var reader = new webinos.WebinosFileReader();
+                       		reader.readAsText($('#messageText').val());
+                       		reader.onload = function (result) {
+                       			reader.unbind();
+            	    			//$('#messages').append('<li>Result: ' + result + '</li>');
+                       			document.getElementById("fileContent").value = result;
+            	    		};
+                       		reader.onerror = function (error) {
+                       			reader.unbind();
+               	    			$('#messages').append('<li>Result: Error: ' +  error + '</li>');
+            	    		};
+            	    	
+                       });
+            	    	
+            	    	$('#messages').append('<li> Requesting file Read</li>');
+                    }); 
+                    
+                    
+                    $('#fileSaver').bind('click', function() {
+                       fileSaver.bind(function () {
+                    	   
+                    	   webinos.ServiceDiscovery.findServices("BlobBuilder", {onFound: function (service) {
+                    	   
+                    	   var fileName = $('#messageText').val();
+                    	   
+                    	   service.append(document.getElementById("fileContent").value);
+                    	   var tmp = fileSaver.saveAs(service.getBlob(),fileName);
+                    	   service.append(" Arbritrary appendix to given text.");
+                    	   var tmp2 = fileSaver.saveAs(service.getBlob(),fileName + "2");
+                    	   
+                    	   tmp.onwriteend = function () {
+                    		   $('#messages').append('<li> Writing done.</li>'); 
+                    	   };
+                    	   
+                    	   tmp2.onwriteend = function () {
+                    		   $('#messages').append('<li> Writing done 2.</li>'); 
+                    	   };
+                    	   
+                    	   tmp.onwritestart = function () {
+                    		   $('#messages').append('<li> Writing started.</li>');
+                    	   };
+                    	   
+                    	   tmp.onerror = function () {
+                    		   $('#messages').append('<li> Writing error.</li>');
+                    	   };
+                    	   
+                    	   $('#messages').append('<li> FileSaver Access (INIT, WRITING, DONE, readyState): '
+                    			   + tmp.INIT + ' '
+                    			   + tmp.WRITING + ' '
+                    			   + tmp.DONE + ' '
+                    			   + tmp.readyState + ' '
+                    			   + '</li>'); 
+                    	   }});
+                       });
+                    });
+                    
+                    $('#fileWriter').bind('click', function() {
+                    	fileWriter.bind(function () {
+                     	   
+                      	    webinos.ServiceDiscovery.findServices("BlobBuilder", {onFound: function (service) {
+                    	    
+                      	      var fileName = $('#messageText').val();
+                        	   
+                      	    service.append(document.getElementById("fileContent").value);
+                        	   var tmp = fileWriter.writeAs(fileName);
+                        	   
+                        	   tmp.onwriteend = function () {
+                        		   $('#messages').append('<li> Writing done.</li>'); 
+                        	   };
+                        	   
+                        	   tmp.onwritestart = function () {
+                        		   $('#messages').append('<li> Writing started.</li>');
+                        	   };
+                        	   
+                        	   tmp.onwrite = function () {
+                        		   $('#messages').append('<li> Writing...</li>');
+                        	   };
+                        	   
+                        	   tmp.onerror = function () {
+                        		   $('#messages').append('<li> Writing error.</li>');
+                        	   };
+                        	   
+                        	   tmp.write(service.getBlob());
+                    	    }});
+                        });
+                     }); 
+            });
+        </script>
+</body>
+</html>
