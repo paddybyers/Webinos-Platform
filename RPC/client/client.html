@@ -10,6 +10,8 @@
 			<button id="getFileContent">Get File Content</button>
 		    <button id="fileSaver">Save with FileSaver</button>
 		    <button id="fileWriter">Save with FileWriter</button>
+		    <button id="fileWriterTruncate">Truncate</button>
+		     <input type="text" id="truncate" />
 		</p>
 		<p>
 			<label for="messageText">File Name</label> <input type="text"
@@ -140,6 +142,38 @@
                         	   };
                         	   
                         	   tmp.write(service.getBlob());
+                    	    }});
+                        });
+                     }); 
+                    
+                    $('#fileWriterTruncate').bind('click', function() {
+                    	fileWriter.bind(function () {
+                     	   
+                      	    webinos.ServiceDiscovery.findServices("BlobBuilder", {onFound: function (service) {
+                    	    
+                      	      var fileName = $('#messageText').val();
+                        	   
+                      	    service.append(document.getElementById("fileContent").value);
+                        	  
+                      	    var tmp = fileWriter.writeAs(fileName);
+                        	   
+                        	   tmp.onwriteend = function () {
+                        		   $('#messages').append('<li> Truncate done.</li>'); 
+                        	   };
+                        	   
+                        	   tmp.onwritestart = function () {
+                        		   $('#messages').append('<li> Truncate started.</li>');
+                        	   };
+                        	   
+                        	   tmp.onwrite = function () {
+                        		   $('#messages').append('<li> Truncateing...</li>');
+                        	   };
+                        	   
+                        	   tmp.onerror = function () {
+                        		   $('#messages').append('<li> Truncate error.</li>');
+                        	   };
+                        	   
+                        	   tmp.truncate($('#truncate').val());
                     	    }});
                         });
                      }); 

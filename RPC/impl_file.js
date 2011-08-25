@@ -145,24 +145,73 @@ exports.createFile = createFile;
     
 	WebinosFileWriter.prototype =  WebinosFileSaver.prototype;
 	
+	WebinosFileWriter.prototype.length = 0;
+	WebinosFileWriter.prototype.position = 0;
+	
+	WebinosFileWriter.prototype.seek = 0;
+	
 	WebinosFileWriter.prototype.write = function (blob) {
 		if (typeof this.onwriteend !== 'undefined' && this.onwriteend != null){
 			this.onwritestart();
 			this.readyState = this.WRITING;
 		}
+		
 		var log = fs.createWriteStream(this.fileName, {'flags': 'a'});
+		
 		if (typeof this.onwriteend !== 'undefined' && this.onwriteend != null){
 			this.onwrite();
 			this.readyState = this.WRITING;
 		}
 		// use {'flags': 'a'} to append and {'flags': 'w'} to erase and write a new file
+		
+		//TODO: start writing not at the end of file but at this.seek
 		log.write(blob.__dataAsString);
 		log.end();
+		
 		if (typeof this.onwriteend !== 'undefined' && this.onwriteend != null){
 			this.onwriteend();
 			this.readyState = this.DONE;
 		}
 	}
+	
+	WebinosFileWriter.prototype.seek = function (offset) {
+		
+		if (this.readyState == this.WRITING){
+			throw ("INVALID_STATE_ERR");
+		}
+		
+		if (offset > this.length){
+			this.seek = this.length;
+		}
+		else{
+			if (offset < 0){
+				offset = offset + this.length;
+				if (offset < 0) this.seek = 0;
+				else this.seek = offset;
+			}
+		}
+	}
+	
+	WebinosFileWriter.prototype.truncate = function (length) {
+		this.readyState = this.WRITING;
+		if (typeof this.onwritestard !== 'undefined' && this.onwritestard != null){
+			this.onwritestard();
+		}
+		
+		fs.open(this.fileName, 'r+', '0666', function (err, fd) {
+			if (typeof fd !== 'undefined'){
+				//async not working in windows build
+				//fs.truncate(fd, length, function () {
+					fs.truncateSync(fd, length);
+					if (typeof this.onwriteend !== 'undefined' && this.onwriteend != null){
+						this.onwriteend();
+					}
+					this.readyState = this.DONE;
+				//})
+			}
+		});
+	}
+	
     
     
 	function createFileReader () {

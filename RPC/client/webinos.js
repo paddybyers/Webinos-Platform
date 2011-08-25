@@ -355,7 +355,7 @@
 	WebinosFileWriterRetriever.prototype = WebinosService.prototype;
 		
 	WebinosFileWriterRetriever.prototype.writeAs = function (filename) {
-		var fileWriter = new WebinosFileSaver();
+		var fileWriter = new WebinosFileWriter();
 		
 		fileWriter.fileName =filename;
 	
@@ -369,15 +369,18 @@
 			
 			
 			if (fileWriter.onwriteend != null && myObject.method === 'FileWriter.onwriteend'){
+				fileWriter.readyState = fileWriter.DONE;
 				fileWriter.onwriteend();
 				return;
 			}
 			if (fileWriter.onwritestart != null && myObject.method === 'FileWriter.onwritestart'){
 				fileWriter.onwritestart();
+				fileWriter.readyState = fileWriter.WRITING;
 				return;
 			}
 			if (fileWriter.onerror != null && myObject.method === 'FileWriter.onerror'){
 				fileWriter.onerror(myObject.param[0]);
+				fileWriter.readyState = fileWriter.DONE;
 				return;
 			}
 			if (fileWriter.onwrite != null && myObject.method === 'FileWriter.onwrite'){
@@ -390,6 +393,7 @@
 			}
 			if (fileWriter.onabort != null && myObject.method === 'FileWriter.onabort'){
 				fileWriter.onabort();
+				fileWriter.readyState = fileWriter.DONE;
 				return;
 			}
 		});
@@ -402,20 +406,33 @@
 	
 	WebinosFileWriter.prototype = WebinosFileSaver.prototype;
 	
-	WebinosFileWriter.prototype.position = null;
-	WebinosFileWriter.prototype.length = null;
+	WebinosFileWriter.prototype.seek = 0;
+	
+	WebinosFileWriter.prototype.position = 0;
+	WebinosFileWriter.prototype.length = 0;
 	WebinosFileWriter.prototype.write = function (blob) {
+		if (this.readyState == this.WRITING) throw ("INVALID_STATE_ERR");
+		
 		arguments[1] = this.fileName;
 		var rpc = webinos.rpc.createRPC("FileWriter", "write", arguments);
 		rpc.objectRef = this.objectRef;
 		webinos.rpc.executeRPC(rpc);
 	}
 	WebinosFileWriter.prototype.seek = function (offset) {
-	
+		if (this.readyState == this.WRITING) throw ("INVALID_STATE_ERR");
 	}
     
 	WebinosFileWriter.prototype.truncate = function (size) {
+		if (this.readyState == this.WRITING
+				|| typeof size === 'undefined'
+				) throw ("INVALID_STATE_ERR");
 		
+		this.readyState = this.WRITING;
+		
+		arguments[1] = this.fileName;
+		var rpc = webinos.rpc.createRPC("FileWriter", "truncate", arguments);
+		rpc.objectRef = this.objectRef;
+		webinos.rpc.executeRPC(rpc);
 	}
 	
 }());

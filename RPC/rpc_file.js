@@ -25,11 +25,30 @@ function getRPCHandler () {
 	 */
 	handler.FileWriter = function (rpcObject, connectedClient) {
 		if ( rpcObject.method == 'write')writeBlob(rpcObject, connectedClient);
+		if ( rpcObject.method == 'truncate')truncate(rpcObject, connectedClient);
 	}
 	
 	return handler;
 }
 
+function truncate (rpc, client){
+	var writer = new w3cfile.createFileWriter();
+	var length = rpc.params[0];
+	var name = rpc.params[1];
+	
+	var tmp = writer.writeAs(name);
+	
+	tmp.onwriteend = function () {
+		var res = {};
+		res.method = "FileWriter.onwriteend";
+		res.params = [];
+		res.objectRef = rpc.objectRef;
+		client.write(JSON.stringify(res));
+	}
+	
+	tmp.truncate(length);
+
+}
 
 function saveBlob (rpc, client) {
 	var saver = new w3cfile.createFileSaver();

@@ -43,8 +43,6 @@ function getAsText(readFile) {
 	reader.onerror = errorHandler;
 
 	reader.readAsText(file, "UTF-16");
-
-
 }
 
 function updateProgress(evt) {
