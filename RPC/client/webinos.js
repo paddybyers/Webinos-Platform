@@ -9,7 +9,7 @@
 	
 	webinos.rpc.awaitingResponse = {};
 	
-	webinos.rpc.objectRef = {};
+	webinos.rpc.objects = {};
 	
 	webinos.rpc.registeredServices = 0;
 	
@@ -17,32 +17,33 @@
 	 * Executes the givin RPC Request and registers an optional callback that
 	 * is invoked if an RPC responce with same id was received
 	 */
-	webinos.rpc.executeRPC = function (rpc, callback) {
-		
+	webinos.rpc.executeRPC = function (rpc, callback, error) {
+	    if (typeof callback === 'function' && typeof rpc.id !== 'undefined' && rpc.id != null){
+			cb = {};
+			cb.onResult = callback;
+			if (typeof error === 'funtion') cb.onError = error;
+			webinos.rpc.awaitingResponse[rpc.id] = cb;
+		}
+	    
 	    webinos.rpc.channel.send(JSON.stringify(rpc));
-		
-		if (typeof callback !== 'undefined' && typeof rpc.id !== 'undefined' && rpc.id != null)
-			webinos.rpc.awaitingResponse[rpc.id] = callback;
 	}
 	
 	/**
 	 * 
 	 * 
 	 */
-	webinos.rpc.registerObjectRef = function (ref, callback) {
-		
+	webinos.rpc.registerObject = function (ref, callback) {
 		if (typeof callback !== 'undefined' && typeof ref !== 'undefined' && ref != null)
-			webinos.rpc.objectRef[ref] = callback;
+			webinos.rpc.objects[ref] = callback;
 	}
 	
 	/**
 	 * 
 	 * 
 	 */
-	webinos.rpc.unregisterObjectRef = function (ref) {
-		
+	webinos.rpc.unregisterObject = function (ref) {
 		if (typeof ref !== 'undefined' && ref != null)
-			webinos.rpc.objectRef[ref] = null;
+			delete webinos.rpc.objects[ref];
 	}
 	
 	/**
@@ -68,6 +69,7 @@
 		else rpc.params = params;
 		
 		if (typeof id !== 'undefined') rpc.id = id;
+		else rpc.id = Math.floor(Math.random()*101);
 		
 		return rpc;
 	}
@@ -90,21 +92,77 @@
 		var self = this;
 		webinos.rpc.channel.onmessage = function(ev) {
 			var myObject = JSON.parse(ev.data);
-			
 			logObj(myObject, "rpc");
 			
 			//received message is RPC request
-			if (typeof myObject.method !== 'undefined'){
-				if (typeof myObject.objectRef !== 'undefined'){
-					webinos.rpc.objectRef[myObject.objectRef](ev.data);
+			if (typeof myObject.method !== 'undefined' && myObject.method != null) {
+				if (typeof myObject.service !== 'undefined'){
+					if (typeof webinos.rpc.objects[myObject.service] === 'object') {
+						id = myObject.id;
+						
+						if (typeof webinos.rpc.objects[myObject.fromObjectRef] !== 'undefined' && myObject.fromObjectRef != null) {
+							webinos.rpc.objects[myObject.service][myObject.method](
+								myObject.params, 
+								function (result) {
+									var res = {};
+									rpc.jsonrpc = "2.0";
+									res.result = result;
+									res.error = null;
+									res.id = id;
+									webinos.rpc.channel.send(JSON.stringify(res));
+								},
+								function (error) {
+									var res = {};
+									rpc.jsonrpc = "2.0";
+									res.error = error;
+									res.result = null;
+									res.id = id;
+									webinos.rpc.channel.send(JSON.stringify(res));
+								}, 
+								myObject.fromObjectRef
+							);
+						}
+						else{
+							webinos.rpc.objects[myObject.service][myObject.method](
+								myObject.params, 
+								function (result) {
+									var res = {};
+									rpc.jsonrpc = "2.0";
+									res.result = result;
+									res.error = null;
+									res.id = id;
+									webinos.rpc.channel.send(JSON.stringify(res));
+								},
+								function (error) {
+									var res = {};
+									rpc.jsonrpc = "2.0";
+									res.error = error;
+									res.result = null;
+									res.id = id;
+									webinos.rpc.channel.send(JSON.stringify(res));
+								}
+							);
+						}
+					}
 				}
 			}
-			//received message is RPC response
+			//received no method is provided rpc message should be RPC response
 			else{
+				//if no id is provided we cannot invoke a callback
 				if (typeof myObject.id === 'undefined' || myObject.id == null) return;
+				
+				//invoking linked error / success callback
 				if (webinos.rpc.awaitingResponse[myObject.id] !== 'undefined'){
 					if (webinos.rpc.awaitingResponse[myObject.id] != null){
-						webinos.rpc.awaitingResponse[myObject.id](ev);
+						
+						if (webinos.rpc.awaitingResponse[myObject.id].onResult !== 'undefined' && myObject.error == null){
+							webinos.rpc.awaitingResponse[myObject.id].onResult(myObject.result);
+						}
+						
+						if (webinos.rpc.awaitingResponse[myObject.id].onError !== 'undefined' && myObject.error != null){
+							webinos.rpc.awaitingResponse[myObject.id].onError(myObject.error);
+						}
+						
 						webinos.rpc.awaitingResponse[myObject.id] == null;
 					}
 				}
@@ -229,18 +287,42 @@
 		return tmp;
 	};
 	
-	BlobBuilder.prototype.append = function (text, endings){
+	//TODO deal with endings
+	//TODO add support for ArrayBuffer as input argument
+	BlobBuilder.prototype.append = function (dataToAppend, endings){
 		// throws "FileException";
-		this.__dataAsString += text;
-	};
-	/*
-	BlobBuilder.prototype.append = function (blob) {
+		
+		if (typeof dataToAppend === 'string'){
+			this.__dataAsString += dataToAppend;
+		}
+		else{
+			if (typeof dataToAppend === 'Object' && dataToAppend != null) {
+					if (typeof dataToAppend.__dataAsString !== 'undefined'){
+						this.__dataAsString += dataToAppend.__dataAsString;
+					}
+			}
+		}
+		
+		if (typeof endings !== 'undefined'){
+			if (endings === 'native'){
+				try {
+					//TODO here the remote OS should be checked
+					if (navigator.appVersion.indexOf("Win")!=-1){
+						this.__dataAsString = 
+							this.__dataAsString.replace(/\n/g,'\r\n');
+					}
+					else {
+						this.__dataAsString = 
+							this.__dataAsString.replace(/\r\n/g,'\n');
+					}
+				}
+				catch (err) {
+					console.log(err);
+				}
+			}
+		}
 		
 	};
-	
-	BlobBuilder.prototype.append = function (arryBuffer) {
-		
-	};*/
 	
 	///////////////////// FILEREADER INTERFACE ///////////////////////////////
 	var WebinosFileReader;
@@ -257,16 +339,41 @@
 		var rpc = webinos.rpc.createRPC("FileReader", "readFileAsString", arguments, Math.floor(Math.random()*101));
 
 		webinos.rpc.executeRPC(rpc, function (result){
-			if (result.data === 'undefined') return;
-			var myObject = JSON.parse(result.data);
-			if (self.onload !== 'undefined' && myObject.error == null){
-				self.onload(myObject.result);
-			}
-			if (self.onerror !== 'undefined' && myObject.error != null){
-				self.onerror(myObject.error);
-			}
-		});
+			self.onload(result);
+		}, function (error){
+			self.onerror(error);
+		}
+		);
 	};
+	
+	WebinosFileReader.prototype.readAsDataURL = function () {
+		
+	};
+	
+	WebinosFileReader.prototype.readAsBinaryString = function (fileBlob, encoding) {
+		this.result = null;
+		this.readyState = this.EMPTY;
+		
+		//any errors
+		
+		this.readyState = this.LOADING;
+	};
+	
+	WebinosFileReader.prototype.abort = function (file) {
+		
+		
+	};
+	
+	  // states
+	WebinosFileReader.prototype.EMPTY = 0;
+	WebinosFileReader.prototype.LOADING = 1;
+	WebinosFileReader.prototype.DONE = 2;
+	  
+	WebinosFileReader.prototype.readyState = 0;
+
+	WebinosFileReader.prototype.result = null;
+	  
+	WebinosFileReader.prototype.error = null;
 	
 	///////////////////// FILESAVER INTERFACE ///////////////////////////////
 	
@@ -282,43 +389,46 @@
 		
 		var fileSaver = new WebinosFileSaver();
 		
-		var rpc = webinos.rpc.createRPC("FileSaver", "saveAs", arguments);
-		rpc.objectRef = fileSaver.objectRef;
-		
-		webinos.rpc.registerObjectRef(fileSaver.objectRef , function (result){
-		
-			if (result.data === 'undefined') return;
-			
-			var myObject = JSON.parse(result);
-			
-			logObj(myObject, "FileSaver Response");
-			
-			if (fileSaver.onwriteend != null && myObject.method === 'FileSaver.onwriteend'){
-				console.log("filesaver onwriteend");
+		callback = {};
+		callback.onwriteend = function (params, successCallback, errorCallback, objectRef) {
+			if (fileSaver.onwriteend != null){
+				fileSaver.readyState = fileWriter.DONE;
 				fileSaver.onwriteend();
-				return;
 			}
-			if (fileSaver.onwritestart != null && myObject.method === 'FileSaver.onwritestart'){
+		}
+		callback.onwritestart = function (params, successCallback, errorCallback, objectRef) {
+			if (fileSaver.onwritestart != null){
 				fileSaver.onwritestart();
-				return;
+				fileSaver.readyState = fileWriter.WRITING;
 			}
-			if (fileSaver.onerror != null && myObject.method === 'FileSaver.onerror'){
-				fileSaver.onerror(myObject.param[0]);
-				return;
+		}
+		callback.onerror = function (params, successCallback, errorCallback, objectRef) {
+			if (fileSaver.onerror != null){
+				fileSaver.onerror(params[0]);
+				fileSaver.readyState = fileWriter.DONE;
 			}
-			if (fileSaver.onwrite != null && myObject.method === 'FileSaver.onwrite'){
+		}
+		callback.onwrite = function (params, successCallback, errorCallback, objectRef) {
+			if (fileSaver.onwrite != null){
 				fileSaver.onwrite();
-				return;
 			}
-			if (fileSaver.onprogress != null && myObject.method === 'FileSaver.onprogress'){
+		}
+		callback.onprogress = function (params, successCallback, errorCallback, objectRef) {
+			if (fileSaver.onprogress != null){
 				fileSaver.onprogress();
-				return;
 			}
-			if (fileSaver.onabort != null && myObject.method === 'FileSaver.onabort'){
+		}
+		callback.onabort = function (params, successCallback, errorCallback, objectRef) {
+			if (fileSaver.onabort != null){
 				fileSaver.onabort();
-				return;
+				fileSaver.readyState = fileWriter.DONE;
 			}
-		});
+		}
+		webinos.rpc.registerObject(fileSaver.objectRef , callback);
+		
+		var rpc = webinos.rpc.createRPC("FileSaver", "saveAs", arguments);
+		rpc.fromObjectRef = fileSaver.objectRef;
+				
 		webinos.rpc.executeRPC(rpc);
 
 		return fileSaver;
@@ -358,45 +468,44 @@
 		var fileWriter = new WebinosFileWriter();
 		
 		fileWriter.fileName =filename;
-	
-		webinos.rpc.registerObjectRef(fileWriter.objectRef , function (result){
 		
-			if (result.data === 'undefined') return;
-			
-			var myObject = JSON.parse(result);
-			
-			logObj(myObject, "myobject");
-			
-			
-			if (fileWriter.onwriteend != null && myObject.method === 'FileWriter.onwriteend'){
+		callback = {};
+		callback.onwriteend = function (params, successCallback, errorCallback, objectRef) {
+			if (fileWriter.onwriteend != null){
 				fileWriter.readyState = fileWriter.DONE;
 				fileWriter.onwriteend();
-				return;
 			}
-			if (fileWriter.onwritestart != null && myObject.method === 'FileWriter.onwritestart'){
+		}
+		callback.onwritestart = function (params, successCallback, errorCallback, objectRef) {
+			if (fileWriter.onwritestart != null){
 				fileWriter.onwritestart();
 				fileWriter.readyState = fileWriter.WRITING;
-				return;
 			}
-			if (fileWriter.onerror != null && myObject.method === 'FileWriter.onerror'){
-				fileWriter.onerror(myObject.param[0]);
+		}
+		callback.onerror = function (params, successCallback, errorCallback, objectRef) {
+			if (fileWriter.onerror != null){
+				fileWriter.onerror(params[0]);
 				fileWriter.readyState = fileWriter.DONE;
-				return;
 			}
-			if (fileWriter.onwrite != null && myObject.method === 'FileWriter.onwrite'){
+		}
+		callback.onwrite = function (params, successCallback, errorCallback, objectRef) {
+			if (fileWriter.onwrite != null){
 				fileWriter.onwrite();
-				return;
 			}
-			if (fileWriter.onprogress != null && myObject.method === 'FileWriter.onprogress'){
+		}
+		callback.onprogress = function (params, successCallback, errorCallback, objectRef) {
+			if (fileWriter.onprogress != null){
 				fileWriter.onprogress();
-				return;
 			}
-			if (fileWriter.onabort != null && myObject.method === 'FileWriter.onabort'){
+		}
+		callback.onabort = function (params, successCallback, errorCallback, objectRef) {
+			if (fileWriter.onabort != null){
 				fileWriter.onabort();
 				fileWriter.readyState = fileWriter.DONE;
-				return;
 			}
-		});
+		}
+		webinos.rpc.registerObject(fileWriter.objectRef , callback);
+		
 		return fileWriter;
 	};
 	
@@ -415,7 +524,7 @@
 		
 		arguments[1] = this.fileName;
 		var rpc = webinos.rpc.createRPC("FileWriter", "write", arguments);
-		rpc.objectRef = this.objectRef;
+		rpc.fromObjectRef = this.objectRef;
 		webinos.rpc.executeRPC(rpc);
 	}
 	WebinosFileWriter.prototype.seek = function (offset) {
@@ -431,7 +540,7 @@
 		
 		arguments[1] = this.fileName;
 		var rpc = webinos.rpc.createRPC("FileWriter", "truncate", arguments);
-		rpc.objectRef = this.objectRef;
+		rpc.fromObjectRef = this.objectRef;
 		webinos.rpc.executeRPC(rpc);
 	}
 	

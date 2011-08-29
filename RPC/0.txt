@@ -1,2 +1,1 @@
-this is some file content to read
-hihi
+this is some file content

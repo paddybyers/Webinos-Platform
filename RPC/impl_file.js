@@ -194,19 +194,20 @@ exports.createFile = createFile;
 	
 	WebinosFileWriter.prototype.truncate = function (length) {
 		this.readyState = this.WRITING;
-		if (typeof this.onwritestard !== 'undefined' && this.onwritestard != null){
-			this.onwritestard();
-		}
-		
+		this.onwritestart();
+		var self = this;
 		fs.open(this.fileName, 'r+', '0666', function (err, fd) {
 			if (typeof fd !== 'undefined'){
+				
+				self.onwrite();
+				self.readyState = self.WRITING;
+				
 				//async not working in windows build
 				//fs.truncate(fd, length, function () {
 					fs.truncateSync(fd, length);
-					if (typeof this.onwriteend !== 'undefined' && this.onwriteend != null){
-						this.onwriteend();
-					}
-					this.readyState = this.DONE;
+					fs.close(fd);
+					self.onwriteend();
+					self.readyState = self.DONE;
 				//})
 			}
 		});
