@@ -1,3 +1,6 @@
+//This RPC implementation should be compliant to JSON RPC 2.0
+//as specified @ http://groups.google.com/group/json-rpc/web/json-rpc-2-0
+
 (function() {
 	
 
@@ -33,28 +36,34 @@ webinos.rpc.handleMessage = function (message){
 	
 	//received message is RPC request
 	if (typeof myObject.method !== 'undefined' && myObject.method != null) {
-		if (typeof myObject.service !== 'undefined'){
-			console.log("Got message: " + myObject.method + " " + myObject.params[0] );
+		var idx = myObject.method.lastIndexOf('.');
+		var method = myObject.method.substring(idx+1);
+		var service = myObject.method.substring(0,idx);
+		//TODO send back error if service and method is not webinos style
 		
-			if (typeof webinos.rpc.objects[myObject.service] === 'object'){
+		if (typeof service !== 'undefined'){
+			console.log("Got message to invoke " + method + " on " + service + " with params: " + myObject.params[0] );
+		
+			if (typeof webinos.rpc.objects[service] === 'object'){
 				id = myObject.id;
 				
 				if (typeof myObject.fromObjectRef !== 'undefined' && myObject.fromObjectRef != null) {
-					webinos.rpc.objects[myObject.service][myObject.method](
+					webinos.rpc.objects[service][method](
 						myObject.params, 
 						function (result) {
 							var res = {};
 							rpc.jsonrpc = "2.0";
 							res.result = result;
-							res.error = null;
 							res.id = id;
 							webinos.rpc.executeRPC(res);
 						},
 						function (error){
 							var res = {};
 							rpc.jsonrpc = "2.0";
-							res.error = error;
-							res.result = null;
+							res.error = {};
+							res.error.data = error;
+							res.error.code = 32000;  //webinos specific error code representing that an API specific error occured
+							res.error.message = "Method Invocation returned with error";
 							res.id = id;
 							webinos.rpc.executeRPC(res);
 						}, 
@@ -62,19 +71,22 @@ webinos.rpc.handleMessage = function (message){
 					);
 				}
 				else {
-					webinos.rpc.objects[myObject.service][myObject.method](
+					webinos.rpc.objects[service][method](
 						myObject.params, 
 						function (result) {
 							var res = {};
+							res.jsonrpc = "2.0";
 							res.result = result;
-							res.error = null;
 							res.id = id;
 							webinos.rpc.executeRPC(res);
 						},
 						function (error){
 							var res = {};
-							res.error = error;
-							res.result = null;
+							res.jsonrpc = "2.0";
+							res.error = {};
+							res.error.data = error;
+							res.error.code = 32000;
+							res.error.message = "Method Invocation returned with error";
 							res.id = id;
 							webinos.rpc.executeRPC(res);
 						}
@@ -88,15 +100,17 @@ webinos.rpc.handleMessage = function (message){
 		if (typeof myObject.id === 'undefined' || myObject.id == null) return;
 			
 		//invoking linked error / success callback
-		if (webinos.rpc.awaitingResponse[myObject.id] !== 'undefined'){
+		if (typeof webinos.rpc.awaitingResponse[myObject.id] !== 'undefined'){
 			if (webinos.rpc.awaitingResponse[myObject.id] != null){
 				
-				if (webinos.rpc.awaitingResponse[myObject.id].onResult !== 'undefined' && myObject.error == null){
+				if (typeof webinos.rpc.awaitingResponse[myObject.id].onResult !== 'undefined' && typeof myObject.result !== 'undefined'){
 					webinos.rpc.awaitingResponse[myObject.id].onResult(myObject.result);
 				}
 					
-				if (webinos.rpc.awaitingResponse[myObject.id].onError !== 'undefined' && myObject.error != null){
-					webinos.rpc.awaitingResponse[myObject.id].onError(myObject.error);
+				if (typeof webinos.rpc.awaitingResponse[myObject.id].onError !== 'undefined' && typeof myObject.error !== 'undefined'){
+					if (typeof myObject.error.data !== 'undefined')
+						webinos.rpc.awaitingResponse[myObject.id].onError(myObject.error.data);
+					else webinos.rpc.awaitingResponse[myObject.id].onError();
 				}
 					
 				webinos.rpc.awaitingResponse[myObject.id] == null;
@@ -137,8 +151,8 @@ webinos.rpc.createRPC = function (service, method, params, id) {
 	
 	var rpc = {};
 	rpc.jsonrpc = "2.0";
-	rpc.service = service;
-	rpc.method = method;
+	//rpc.service = service;
+	rpc.method = service + "." + method;
 	
 	if (typeof params === 'undefined') rpc.params = [];
 	else rpc.params = params;

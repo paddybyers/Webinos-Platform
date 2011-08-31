@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>Simple chat o' rama</title>
+<title>webinos rpc</title>
 </head>
 <body>
 	<div>
@@ -79,6 +79,7 @@
                        			reader.unbind();
             	    			//$('#messages').append('<li>Result: ' + result + '</li>');
                        			document.getElementById("fileContent").value = result;
+                       			$('#messages').append('<li>Got Reader Result (see box)</li>');
             	    		};
                        		reader.onerror = function (error) {
                        			reader.unbind();
@@ -101,25 +102,29 @@
                     	   service.append(document.getElementById("fileContent").value);
                     	   var tmp = fileSaver.saveAs(service.getBlob(),fileName);
                     	   service.append(" Arbritrary appendix to given text.");
-                    	   var tmp2 = fileSaver.saveAs(service.getBlob(),fileName + "2");
+                    	   //var tmp2 = fileSaver.saveAs(service.getBlob(),fileName + "2");
                     	   
                     	   tmp.onwriteend = function () {
                     		   $('#messages').append('<li> Writing done.</li>'); 
                     	   };
-                    	   
+                    	   /*
                     	   tmp2.onwriteend = function () {
                     		   $('#messages').append('<li> Writing done 2.</li>'); 
-                    	   };
+                    	   };*/
                     	   
                     	   tmp.onwritestart = function () {
-                    		   $('#messages').append('<li> Writing started.</li>');
+                    		   $('#messages').append('<li> Write started.</li>');
+                    	   };
+                    	   
+                    	   tmp.onwrite = function () {
+                    		   $('#messages').append('<li> Writing...</li>');
                     	   };
                     	   
                     	   tmp.onerror = function () {
                     		   $('#messages').append('<li> Writing error.</li>');
                     	   };
                     	   
-                    	   $('#messages').append('<li> FileSaver Access (INIT, WRITING, DONE, readyState): '
+                    	   $('#messages').append('<li> Accessing FileSaver Constants (INIT, WRITING, DONE, readyState): '
                     			   + tmp.INIT + ' '
                     			   + tmp.WRITING + ' '
                     			   + tmp.DONE + ' '
@@ -155,6 +160,13 @@
                         		   $('#messages').append('<li> Writing error.</li>');
                         	   };
                         	   
+                        	   $('#messages').append('<li> Accessing FileWriter Constants (INIT, WRITING, DONE, readyState): '
+                        			   + tmp.INIT + ' '
+                        			   + tmp.WRITING + ' '
+                        			   + tmp.DONE + ' '
+                        			   + tmp.readyState + ' '
+                        			   + '</li>'); 
+                         	   
                         	   tmp.write(service.getBlob());
                     	    }});
                         });
@@ -183,8 +195,8 @@
                         		   $('#messages').append('<li> Truncateing...</li>');
                         	   };
                         	   
-                        	   tmp.onerror = function () {
-                        		   $('#messages').append('<li> Truncate error.</li>');
+                        	   tmp.onerror = function (error) {
+                        		   $('#messages').append('<li> Truncate error: ' + error.target.error.name + '</li>');
                         	   };
                         	   
                         	   tmp.truncate($('#truncate').val());

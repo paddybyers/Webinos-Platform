@@ -114,7 +114,7 @@
 	
 	WebinosService.prototype.unbind = function() {
 		webinos.ServiceDiscovery.registeredServices--;
-		if (write != null && webinos.ServiceDiscovery.registeredServices > 0) {
+		if (channel != null && webinos.ServiceDiscovery.registeredServices > 0) {
 			channel.close();
 			channel = null;
 		}
@@ -309,7 +309,7 @@
 		rpc.fromObjectRef = fileSaver.objectRef;
 				
 		webinos.rpc.executeRPC(rpc);
-
+		
 		return fileSaver;
 	};
 	

@@ -29,7 +29,7 @@ function truncate (params, successCB, errorCB, objectRef){
 		webinos.rpc.executeRPC(json);
 	}
 	
-	if (tmp.readyState = tmp.DONE){
+	if (tmp.readyState == tmp.DONE){
 		var json = webinos.rpc.createRPC(objectRef, "onwriteend");
 		webinos.rpc.executeRPC(json);
 		
@@ -45,7 +45,11 @@ function saveBlob (params, successCB, errorCB, objectRef){
 	var name = params[1];
 	
 	console.log("Should save: " + blob.__dataAsString + " to: " + name);
-	var tmp = saver.saveAs(blob,name);
+	
+	var json = webinos.rpc.createRPC(objectRef, "onwritestart");
+	webinos.rpc.executeRPC(json);
+	
+	tmp = saver.saveAs(blob,name);
 	
 	tmp.onwritestart = function () {
 		var json = webinos.rpc.createRPC(objectRef, "onwritestart");
@@ -53,6 +57,8 @@ function saveBlob (params, successCB, errorCB, objectRef){
 	}
 	
 	tmp.onwriteend = function () {
+		console.log("saveBlob onwriteend");
+		
 		var json = webinos.rpc.createRPC(objectRef, "onwriteend");
 		webinos.rpc.executeRPC(json);
 	}
@@ -67,12 +73,16 @@ function saveBlob (params, successCB, errorCB, objectRef){
 		webinos.rpc.executeRPC(json);
 	}
 	
-	if (tmp.readyState = tmp.DONE){
+	if (tmp.readyState == tmp.WRITING){
+		var json = webinos.rpc.createRPC(objectRef, "onwrite");
+		webinos.rpc.executeRPC(json);
+	}
+	if (tmp.readyState == tmp.DONE){
 		var json = webinos.rpc.createRPC(objectRef, "onwriteend");
 		webinos.rpc.executeRPC(json);
-		
 	}
 }
+
 
 function writeBlob(params, successCB, errorCB, objectRef) {
 	var writer = new w3cfile.createFileWriter();

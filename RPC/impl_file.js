@@ -72,27 +72,25 @@ exports.createFile = createFile;
 		
 		var inner = new WebinosFileSaver();
 		
-		if (typeof this.onwritestart !== 'undefined' && this.onwritestart != null){
+		if (typeof inner.onwritestart !== 'undefined' && inner.onwritestart != null){
 			inner.onwritestart();
 		}
 		inner.readyState = inner.WRITING;
 		fs.writeFile(name, blob.__dataAsString, function(err) {
-		    if(err) {
+			inner.readyState = inner.DONE;
+			if(err) {
 		    	console.log(err);
-				if (typeof this.onerror !== 'undefined' && this.onerror != null){
+				if (typeof inner.onerror !== 'undefined' && inner.onerror != null){
 					inner.onerror();
 				}
-				inner.readyState = inner.INIT;
 				inner.error = err;
 		    } else {
-		    	console.log("The file was saved!");
-				if (typeof this.onwriteend !== 'undefined' && this.onwriteend != null){
+				if (typeof inner.onwriteend !== 'undefined' && inner.onwriteend != null){
 					inner.onwriteend();
-					inner.readyState = inner.DONE;
 				}
 		    }
 		}); 
-		
+
 		return inner;
 	}
 	
@@ -193,9 +191,27 @@ exports.createFile = createFile;
 	}
 	
 	WebinosFileWriter.prototype.truncate = function (length) {
+		length = parseInt(length);
+
+		if (isNaN(length)){
+			console.log("Truncate Error: Input argument is not a number: " + length + " is " + typeof length);
+			
+			error = {};
+			error.target = { };
+			error.target.error = { };
+			error.target.error.name = "INVALID_ARGUMENT_ERR";
+			error.target.error.code = 1;
+			
+			this.onerror(error);
+			return;
+		}
+		
+		console.log("Starting Truncate");
+		
 		this.readyState = this.WRITING;
 		this.onwritestart();
 		var self = this;
+		
 		fs.open(this.fileName, 'r+', '0666', function (err, fd) {
 			if (typeof fd !== 'undefined'){
 				
@@ -209,6 +225,16 @@ exports.createFile = createFile;
 					self.onwriteend();
 					self.readyState = self.DONE;
 				//})
+			}
+			else{
+				console.log("Truncate Error: " + err.message);
+				error = {};
+				error.target = { };
+				error.target.error = { };
+				error.target.error.name = "NOT_FOUND_ERR";
+				error.target.error.code = 8;
+				
+				self.onerror(error);
 			}
 		});
 	}
