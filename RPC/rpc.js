@@ -1,0 +1,193 @@
+(function() {
+	
+
+write = null;
+
+webinos = {};
+webinos.rpc = {};
+webinos.rpc.awaitingResponse = {};
+webinos.rpc.objects = {};
+
+function logObj(obj, name){
+	for (var myKey in obj){
+		console.log(name + "["+myKey +"] = "+obj[myKey]);
+		if (typeof obj[myKey] == 'object') logObj(obj[myKey], name + "." + myKey);
+	}
+}
+
+/**
+ * Sets the writer that should be used to write the stringified JSON RPC request.
+ */
+webinos.rpc.setWriter = function (writer){
+	write = writer;
+}
+
+/**
+ * Handles a new JSON RPC message (as string)
+ */
+webinos.rpc.handleMessage = function (message){
+	console.log("New websocket packet");
+	
+	var myObject = JSON.parse(message);
+	logObj(myObject, "rpc");
+	
+	//received message is RPC request
+	if (typeof myObject.method !== 'undefined' && myObject.method != null) {
+		if (typeof myObject.service !== 'undefined'){
+			console.log("Got message: " + myObject.method + " " + myObject.params[0] );
+		
+			if (typeof webinos.rpc.objects[myObject.service] === 'object'){
+				id = myObject.id;
+				
+				if (typeof myObject.fromObjectRef !== 'undefined' && myObject.fromObjectRef != null) {
+					webinos.rpc.objects[myObject.service][myObject.method](
+						myObject.params, 
+						function (result) {
+							var res = {};
+							rpc.jsonrpc = "2.0";
+							res.result = result;
+							res.error = null;
+							res.id = id;
+							webinos.rpc.executeRPC(res);
+						},
+						function (error){
+							var res = {};
+							rpc.jsonrpc = "2.0";
+							res.error = error;
+							res.result = null;
+							res.id = id;
+							webinos.rpc.executeRPC(res);
+						}, 
+						myObject.fromObjectRef
+					);
+				}
+				else {
+					webinos.rpc.objects[myObject.service][myObject.method](
+						myObject.params, 
+						function (result) {
+							var res = {};
+							res.result = result;
+							res.error = null;
+							res.id = id;
+							webinos.rpc.executeRPC(res);
+						},
+						function (error){
+							var res = {};
+							res.error = error;
+							res.result = null;
+							res.id = id;
+							webinos.rpc.executeRPC(res);
+						}
+					);
+				}
+			}
+		}
+	}
+	else {
+		//if no id is provided we cannot invoke a callback
+		if (typeof myObject.id === 'undefined' || myObject.id == null) return;
+			
+		//invoking linked error / success callback
+		if (webinos.rpc.awaitingResponse[myObject.id] !== 'undefined'){
+			if (webinos.rpc.awaitingResponse[myObject.id] != null){
+				
+				if (webinos.rpc.awaitingResponse[myObject.id].onResult !== 'undefined' && myObject.error == null){
+					webinos.rpc.awaitingResponse[myObject.id].onResult(myObject.result);
+				}
+					
+				if (webinos.rpc.awaitingResponse[myObject.id].onError !== 'undefined' && myObject.error != null){
+					webinos.rpc.awaitingResponse[myObject.id].onError(myObject.error);
+				}
+					
+				webinos.rpc.awaitingResponse[myObject.id] == null;
+			}
+		}
+	}
+	
+}
+
+/**
+ * Executes the givin RPC Request and registers an optional callback that
+ * is invoked if an RPC responce with same id was received
+ */
+webinos.rpc.executeRPC = function (rpc, callback, errorCB) {
+    if (typeof callback === 'function' && typeof rpc.id !== 'undefined' && rpc.id != null){
+		var cb = {};
+		cb.onResult = callback;
+		if (typeof errorCB === 'function') cb.onError = errorCB;
+		webinos.rpc.awaitingResponse[rpc.id] = cb;
+	}
+    
+    write(JSON.stringify(rpc));
+}
+
+/**
+ * Creates a JSON RPC 2.0 compliant object
+ * @param service The service Identifier (e.g., the file reader or the
+ * 	      camera service) as string or an object reference as number
+ * @param method The method that should be invoked on the service
+ * @param an optional array of parameters to be used
+ * @param an optional ID that can be used to map incomming RPC responses
+ * 		  to requests
+ */
+webinos.rpc.createRPC = function (service, method, params, id) {
+	
+	if (typeof service === 'undefined') throw "Service is undefined";
+	if (typeof method === 'undefined') throw "Method is undefined";
+	
+	var rpc = {};
+	rpc.jsonrpc = "2.0";
+	rpc.service = service;
+	rpc.method = method;
+	
+	if (typeof params === 'undefined') rpc.params = [];
+	else rpc.params = params;
+	
+	if (typeof id !== 'undefined') rpc.id = id;
+	else rpc.id = Math.floor(Math.random()*101);
+	
+	return rpc;
+}
+
+
+/**
+ * Registers an object as RPC request receiver.
+ * @param ref reference that is used to select this object as receiver
+ * @param callback the callback object the contains the methods available via RPC
+ */
+webinos.rpc.registerObject = function (ref, callback) {
+	if (typeof callback !== 'undefined' && typeof ref !== 'undefined' && ref != null){
+		console.log("Adding handler: " + ref);	
+		webinos.rpc.objects[ref] = callback;
+	}
+}
+
+/**
+ * 
+ * 
+ */
+webinos.rpc.unregisterObject = function (ref) {
+	if (typeof ref !== 'undefined' && ref != null){
+		console.log("Adding handler: " + ref);	
+		delete webinos.rpc.objects[ref];
+	}
+}
+
+/**
+ * Export definitions for node.js
+ */
+if (typeof exports !== 'undefined'){
+	exports.setWriter = webinos.rpc.setWriter;
+	exports.handleMessage = webinos.rpc.handleMessage;
+	exports.executeRPC = webinos.rpc.executeRPC;
+	exports.createRPC = webinos.rpc.createRPC;
+	exports.registerObject = webinos.rpc.registerObject;
+	exports.unregisterObject = webinos.rpc.unregisterObject ;
+
+	//add your RPC Implementations here!
+	require('./rpc_file.js');
+
+}
+
+
+}());

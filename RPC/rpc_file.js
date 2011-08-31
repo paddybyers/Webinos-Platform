@@ -115,6 +115,7 @@ function getTextFile(params, successCB, errorCB) {
 		file = new w3cfile.createFile(params[0]);
 	}
 	catch (e) {
+		console.log('file error');
 		errorCB(["NOT_READABLE_ERR"]);
 		return;
 	}
@@ -124,10 +125,11 @@ function getTextFile(params, successCB, errorCB) {
 	reader.onload = function (evt) {  
 		var fileString = evt.target.result;
 		successCB([fileString+""]);
-		console.log('write result');
+		console.log('file loaded');
 	};
 	
 	reader.onerror = function (evt) {  
+		console.log('file error');
 		errorCB([error.target.error.name]);
 	};
 

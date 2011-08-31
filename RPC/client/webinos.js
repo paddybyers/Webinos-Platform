@@ -48,7 +48,7 @@
 	function logObj(obj, name){
 		for (var myKey in obj){
 			console.log(name + "["+myKey +"] = "+obj[myKey]);
-			if (typeof obj[myKey] == 'object') logObj(obj[myKey], myKey);
+			if (typeof obj[myKey] == 'object') logObj(obj[myKey], name + "." + myKey);
 		}
 	}
 
@@ -214,11 +214,14 @@
 		
 		var rpc = webinos.rpc.createRPC("FileReader", "readFileAsString", arguments, Math.floor(Math.random()*101));
 
-		webinos.rpc.executeRPC(rpc, function (result){
-			self.onload(result);
-		}, function (error){
-			self.onerror(error);
-		}
+		webinos.rpc.executeRPC(
+				rpc, 
+				function (result){
+					self.onload(result);
+				},
+				function (error){
+					self.onerror(error);
+				}
 		);
 	};
 	
