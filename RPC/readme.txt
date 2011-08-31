@@ -1,2 +1,2 @@
-Start: node fileprovider.js
+Start: node websocketserver.js
 Client @ localhost/client/client.html

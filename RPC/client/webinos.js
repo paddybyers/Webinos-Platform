@@ -1,80 +1,18 @@
 (function() {
 
-	webinos = {}; 
 	
-	///////////////////// WEBINOS INTERNAL RPC HELPER ///////////////////////////////
-	webinos.rpc = {};
-	
-	webinos.rpc.channel = null;
-	
-	webinos.rpc.awaitingResponse = {};
-	
-	webinos.rpc.objects = {};
-	
-	webinos.rpc.registeredServices = 0;
-	
-	/**
-	 * Executes the givin RPC Request and registers an optional callback that
-	 * is invoked if an RPC responce with same id was received
-	 */
-	webinos.rpc.executeRPC = function (rpc, callback, error) {
-	    if (typeof callback === 'function' && typeof rpc.id !== 'undefined' && rpc.id != null){
-			cb = {};
-			cb.onResult = callback;
-			if (typeof error === 'funtion') cb.onError = error;
-			webinos.rpc.awaitingResponse[rpc.id] = cb;
+	channel = null;
+	function write(text){
+		if (channel != null){
+			channel.send(text);
 		}
-	    
-	    webinos.rpc.channel.send(JSON.stringify(rpc));
+		else{
+			var toSend = text;
+			createCommChannel(function (){
+				channel.send(toSend);
+			})
+		}
 	}
-	
-	/**
-	 * 
-	 * 
-	 */
-	webinos.rpc.registerObject = function (ref, callback) {
-		if (typeof callback !== 'undefined' && typeof ref !== 'undefined' && ref != null)
-			webinos.rpc.objects[ref] = callback;
-	}
-	
-	/**
-	 * 
-	 * 
-	 */
-	webinos.rpc.unregisterObject = function (ref) {
-		if (typeof ref !== 'undefined' && ref != null)
-			delete webinos.rpc.objects[ref];
-	}
-	
-	/**
-	 * Creates a JSON RPC 2.0 compliant object
-	 * @param service The service Identifier (e.g., the file reader or the
-	 * 	      camera service)
-	 * @param method The method that should be invoked on the service
-	 * @param an optional array of parameters to be used
-	 * @param an optional ID that can be used to map incomming RPC responses
-	 * 		  to requests
-	 */
-	webinos.rpc.createRPC = function (service, method, params, id) {
-		
-		if (typeof service === 'undefined') throw "Service is undefined";
-		if (typeof method === 'undefined') throw "Method is undefined";
-		
-		var rpc = {};
-		rpc.jsonrpc = "2.0";
-		rpc.service = service;
-		rpc.method = method;
-		
-		if (typeof params === 'undefined') rpc.params = [];
-		else rpc.params = params;
-		
-		if (typeof id !== 'undefined') rpc.id = id;
-		else rpc.id = Math.floor(Math.random()*101);
-		
-		return rpc;
-	}
-	
-	///////////////////// WEBINOS INTERNAL COMMUNICATION INTERFACE ///////////////////////////////
 	
 	/**
 	 * Creates the socket communication channel
@@ -82,93 +20,30 @@
 	 * for now this channel is used for sending RPC, later the webinos
 	 * messaging/eventing system will be used
 	 */
-	webinos.rpc.createCommChannel = function (success){
-		webinos.rpc.channel  = new WebSocket('ws://127.0.0.1:8080');
-		var opened = success;
-		webinos.rpc.channel.onopen = function() {
-			opened();
+	function createCommChannel (successCB){
+		channel  = new WebSocket('ws://127.0.0.1:8080');
+		
+		channel.onopen = function() {
+			webinos.rpc.setWriter(write);
+			if (typeof successCB === 'function') successCB();
 		};
-
-		var self = this;
-		webinos.rpc.channel.onmessage = function(ev) {
-			var myObject = JSON.parse(ev.data);
-			logObj(myObject, "rpc");
-			
-			//received message is RPC request
-			if (typeof myObject.method !== 'undefined' && myObject.method != null) {
-				if (typeof myObject.service !== 'undefined'){
-					if (typeof webinos.rpc.objects[myObject.service] === 'object') {
-						id = myObject.id;
-						
-						if (typeof webinos.rpc.objects[myObject.fromObjectRef] !== 'undefined' && myObject.fromObjectRef != null) {
-							webinos.rpc.objects[myObject.service][myObject.method](
-								myObject.params, 
-								function (result) {
-									var res = {};
-									rpc.jsonrpc = "2.0";
-									res.result = result;
-									res.error = null;
-									res.id = id;
-									webinos.rpc.channel.send(JSON.stringify(res));
-								},
-								function (error) {
-									var res = {};
-									rpc.jsonrpc = "2.0";
-									res.error = error;
-									res.result = null;
-									res.id = id;
-									webinos.rpc.channel.send(JSON.stringify(res));
-								}, 
-								myObject.fromObjectRef
-							);
-						}
-						else{
-							webinos.rpc.objects[myObject.service][myObject.method](
-								myObject.params, 
-								function (result) {
-									var res = {};
-									rpc.jsonrpc = "2.0";
-									res.result = result;
-									res.error = null;
-									res.id = id;
-									webinos.rpc.channel.send(JSON.stringify(res));
-								},
-								function (error) {
-									var res = {};
-									rpc.jsonrpc = "2.0";
-									res.error = error;
-									res.result = null;
-									res.id = id;
-									webinos.rpc.channel.send(JSON.stringify(res));
-								}
-							);
-						}
-					}
-				}
-			}
-			//received no method is provided rpc message should be RPC response
-			else{
-				//if no id is provided we cannot invoke a callback
-				if (typeof myObject.id === 'undefined' || myObject.id == null) return;
-				
-				//invoking linked error / success callback
-				if (webinos.rpc.awaitingResponse[myObject.id] !== 'undefined'){
-					if (webinos.rpc.awaitingResponse[myObject.id] != null){
-						
-						if (webinos.rpc.awaitingResponse[myObject.id].onResult !== 'undefined' && myObject.error == null){
-							webinos.rpc.awaitingResponse[myObject.id].onResult(myObject.result);
-						}
-						
-						if (webinos.rpc.awaitingResponse[myObject.id].onError !== 'undefined' && myObject.error != null){
-							webinos.rpc.awaitingResponse[myObject.id].onError(myObject.error);
-						}
-						
-						webinos.rpc.awaitingResponse[myObject.id] == null;
-					}
-				}
-			}
+		channel.onmessage = function(ev) {
+			webinos.rpc.handleMessage(ev.data);
 		};
 	}
+	createCommChannel ();
+	
+	
+	
+	
+	if (typeof webinos === 'undefined') webinos = {}; 
+	
+	
+	
+
+	
+	///////////////////// WEBINOS INTERNAL COMMUNICATION INTERFACE ///////////////////////////////
+
 	
 	function logObj(obj, name){
 		for (var myKey in obj){
@@ -180,6 +55,7 @@
 	///////////////////// WEBINOS DISCOVERY INTERFACE ///////////////////////////////
 	
 	webinos.ServiceDiscovery = {};
+	webinos.ServiceDiscovery.registeredServices = 0;
 	
 	webinos.ServiceDiscovery.findServices = function (type, callback) {
 		if (type == "FileReader"){
@@ -188,27 +64,27 @@
 			//discovery service
 			tmp.origin = 'ws://127.0.0.1:8080';
 			callback.onFound(tmp);
-			webinos.rpc.registeredServices++;
+			webinos.ServiceDiscovery.registeredServices++;
 			return;
 		}
 		if (type == "FileSaver"){
 			var tmp = new WebinosFileSaverRetriever();
 			tmp.origin = 'ws://127.0.0.1:8080';
-			webinos.rpc.registeredServices++;
+			webinos.ServiceDiscovery.registeredServices++;
 			callback.onFound(tmp);
 			return;
 		}
 		if (type == "FileWriter"){
 			var tmp = new WebinosFileWriterRetriever();
 			tmp.origin = 'ws://127.0.0.1:8080';
-			webinos.rpc.registeredServices++;
+			webinos.ServiceDiscovery.registeredServices++;
 			callback.onFound(tmp);
 			return;
 		}
 		if (type == "BlobBuilder"){
 			var tmp = new BlobBuilder();
 			tmp.origin = 'ws://127.0.0.1:8080';
-			webinos.rpc.registeredServices++;
+			webinos.ServiceDiscovery.registeredServices++;
 			callback.onFound(tmp);
 			return;
 		}
@@ -224,9 +100,9 @@
 	
 	
 	WebinosService.prototype.bind = function(success) {
-		if (webinos.rpc.channel == null){ 
+		if (channel == null){ 
 			var x = success;
-			webinos.rpc.createCommChannel(function () {
+			createCommChannel(function () {
 				x();
 			});
 			
@@ -237,10 +113,10 @@
 	};
 	
 	WebinosService.prototype.unbind = function() {
-		webinos.rpc.registeredServices--;
-		if (webinos.rpc.channel != null && webinos.rpc.registeredServices > 0) {
-			webinos.rpc.channel.close();
-			webinos.rpc.channel = null;
+		webinos.ServiceDiscovery.registeredServices--;
+		if (write != null && webinos.ServiceDiscovery.registeredServices > 0) {
+			channel.close();
+			channel = null;
 		}
 	}
 

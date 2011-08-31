@@ -1,27 +1,6 @@
 var w3cfile = require('./impl_file.js');
-var rpc = require('./websocketserver.js');
-//exports.getRPCHandler = getRPCHandler;
-
-/*
-function getRPCHandler () {
-	var handler = {};
-
-	handler.FileReader = {};
-	handler.FileReader.readFileAsString = getTextFile;
-
-
-	handler.FileSaver = {};
-	handler.FileSaver.saveAs = saveBlob;
-	
-
-	handler.FileWriter = {};
-	handler.FileWriter.write = writeBlob;
-	handler.FileWriter.truncate = truncate;
-	
-	return handler;
-}*/
-
-
+if (typeof webinos === 'undefined') var webinos = {};
+webinos.rpc = require('./rpc.js');
 
 function truncate (params, successCB, errorCB, objectRef){
 	var writer = new w3cfile.createFileWriter();
@@ -31,28 +10,28 @@ function truncate (params, successCB, errorCB, objectRef){
 	var tmp = writer.writeAs(name);
 	
 	tmp.onwritestart = function () {
-		var json = rpc.createRPC(objectRef, "onwritestart");
-		rpc.executeRPC(json);
+		var json = webinos.rpc.createRPC(objectRef, "onwritestart");
+		webinos.rpc.executeRPC(json);
 	}
 	
 	tmp.onwriteend = function () {
-		var json = rpc.createRPC(objectRef, "onwriteend");
-		rpc.executeRPC(json);
+		var json = webinos.rpc.createRPC(objectRef, "onwriteend");
+		webinos.rpc.executeRPC(json);
 	}
 	
 	tmp.onwrite = function () {
-		var json = rpc.createRPC(objectRef, "onwrite");
-		rpc.executeRPC(json);
+		var json = webinos.rpc.createRPC(objectRef, "onwrite");
+		webinos.rpc.executeRPC(json);
 	}
 	
 	tmp.onerror = function (e) {
-		var json = rpc.createRPC(objectRef, "onerror", arguments);
-		rpc.executeRPC(json);
+		var json = webinos.rpc.createRPC(objectRef, "onerror", arguments);
+		webinos.rpc.executeRPC(json);
 	}
 	
 	if (tmp.readyState = tmp.DONE){
-		var json = rpc.createRPC(objectRef, "onwriteend");
-		rpc.executeRPC(json);
+		var json = webinos.rpc.createRPC(objectRef, "onwriteend");
+		webinos.rpc.executeRPC(json);
 		
 	}
 	
@@ -69,28 +48,28 @@ function saveBlob (params, successCB, errorCB, objectRef){
 	var tmp = saver.saveAs(blob,name);
 	
 	tmp.onwritestart = function () {
-		var json = rpc.createRPC(objectRef, "onwritestart");
-		rpc.executeRPC(json);
+		var json = webinos.rpc.createRPC(objectRef, "onwritestart");
+		webinos.rpc.executeRPC(json);
 	}
 	
 	tmp.onwriteend = function () {
-		var json = rpc.createRPC(objectRef, "onwriteend");
-		rpc.executeRPC(json);
+		var json = webinos.rpc.createRPC(objectRef, "onwriteend");
+		webinos.rpc.executeRPC(json);
 	}
 	
 	tmp.onwrite = function () {
-		var json = rpc.createRPC(objectRef, "onwrite");
-		rpc.executeRPC(json);
+		var json = webinos.rpc.createRPC(objectRef, "onwrite");
+		webinos.rpc.executeRPC(json);
 	}
 	
 	tmp.onerror = function (e) {
-		var json = rpc.createRPC(objectRef, "onerror", arguments);
-		rpc.executeRPC(json);
+		var json = webinos.rpc.createRPC(objectRef, "onerror", arguments);
+		webinos.rpc.executeRPC(json);
 	}
 	
 	if (tmp.readyState = tmp.DONE){
-		var json = rpc.createRPC(objectRef, "onwriteend");
-		rpc.executeRPC(json);
+		var json = webinos.rpc.createRPC(objectRef, "onwriteend");
+		webinos.rpc.executeRPC(json);
 		
 	}
 }
@@ -104,23 +83,23 @@ function writeBlob(params, successCB, errorCB, objectRef) {
 	var tmp = writer.writeAs(name);
 	
 	tmp.onwritestart = function () {
-		var json = rpc.createRPC(objectRef, "onwritestart");
-		rpc.executeRPC(json);
+		var json = webinos.rpc.createRPC(objectRef, "onwritestart");
+		webinos.rpc.executeRPC(json);
 	}
 	
 	tmp.onwrite = function () {
-		var json = rpc.createRPC(objectRef, "onwrite");
-		rpc.executeRPC(json);
+		var json = webinos.rpc.createRPC(objectRef, "onwrite");
+		webinos.rpc.executeRPC(json);
 	}
 	
 	tmp.onwriteend = function () {
-		var json = rpc.createRPC(objectRef, "onwriteend");
-		rpc.executeRPC(json);
+		var json = webinos.rpc.createRPC(objectRef, "onwriteend");
+		webinos.rpc.executeRPC(json);
 	}
 	
 	tmp.onerror = function (e) {
-		var json = rpc.createRPC(objectRef, "onerror", arguments);
-		rpc.executeRPC(json);
+		var json = webinos.rpc.createRPC(objectRef, "onerror", arguments);
+		webinos.rpc.executeRPC(json);
 	}
 	
 	tmp.write(blob);
@@ -158,13 +137,13 @@ function getTextFile(params, successCB, errorCB) {
 
 fileReader = {};
 fileReader.readFileAsString = getTextFile;
-rpc.registerObject("FileReader", fileReader);
+webinos.rpc.registerObject("FileReader", fileReader);
 
 fileSaver = {};
 fileSaver.saveAs = saveBlob;
-rpc.registerObject("FileSaver", fileSaver);
+webinos.rpc.registerObject("FileSaver", fileSaver);
 
 fileWriter = {};
 fileWriter.write = writeBlob;
 fileWriter.truncate = truncate;
-rpc.registerObject("FileWriter", fileWriter);
+webinos.rpc.registerObject("FileWriter", fileWriter);
