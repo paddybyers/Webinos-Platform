@@ -51,6 +51,7 @@ webinos.rpc.handleMessage = function (message){
 					webinos.rpc.objects[service][method](
 						myObject.params, 
 						function (result) {
+							if (typeof id === 'undefined') return;
 							var res = {};
 							rpc.jsonrpc = "2.0";
 							res.result = result;
@@ -58,6 +59,7 @@ webinos.rpc.handleMessage = function (message){
 							webinos.rpc.executeRPC(res);
 						},
 						function (error){
+							if (typeof id === 'undefined') return;
 							var res = {};
 							rpc.jsonrpc = "2.0";
 							res.error = {};
@@ -74,6 +76,7 @@ webinos.rpc.handleMessage = function (message){
 					webinos.rpc.objects[service][method](
 						myObject.params, 
 						function (result) {
+							if (typeof id === 'undefined') return;
 							var res = {};
 							res.jsonrpc = "2.0";
 							res.result = result;
@@ -81,6 +84,7 @@ webinos.rpc.handleMessage = function (message){
 							webinos.rpc.executeRPC(res);
 						},
 						function (error){
+							if (typeof id === 'undefined') return;
 							var res = {};
 							res.jsonrpc = "2.0";
 							res.error = {};
@@ -121,15 +125,16 @@ webinos.rpc.handleMessage = function (message){
 }
 
 /**
- * Executes the givin RPC Request and registers an optional callback that
- * is invoked if an RPC responce with same id was received
+ * Executes the given RPC Request and registers an optional callback that
+ * is invoked if an RPC response with same id was received
  */
 webinos.rpc.executeRPC = function (rpc, callback, errorCB) {
-    if (typeof callback === 'function' && typeof rpc.id !== 'undefined' && rpc.id != null){
+    if (typeof callback === 'function'){
+    	rpc.id = Math.floor(Math.random()*101);
 		var cb = {};
 		cb.onResult = callback;
 		if (typeof errorCB === 'function') cb.onError = errorCB;
-		webinos.rpc.awaitingResponse[rpc.id] = cb;
+		if (typeof rpc.id !== 'undefined') webinos.rpc.awaitingResponse[rpc.id] = cb;
 	}
     
     write(JSON.stringify(rpc));
@@ -144,7 +149,7 @@ webinos.rpc.executeRPC = function (rpc, callback, errorCB) {
  * @param an optional ID that can be used to map incomming RPC responses
  * 		  to requests
  */
-webinos.rpc.createRPC = function (service, method, params, id) {
+webinos.rpc.createRPC = function (service, method, params) {
 	
 	if (typeof service === 'undefined') throw "Service is undefined";
 	if (typeof method === 'undefined') throw "Method is undefined";
@@ -157,8 +162,8 @@ webinos.rpc.createRPC = function (service, method, params, id) {
 	if (typeof params === 'undefined') rpc.params = [];
 	else rpc.params = params;
 	
-	if (typeof id !== 'undefined') rpc.id = id;
-	else rpc.id = Math.floor(Math.random()*101);
+	//if (typeof id !== 'undefined') rpc.id = id;
+	//else rpc.id = Math.floor(Math.random()*101);
 	
 	return rpc;
 }

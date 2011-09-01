@@ -212,7 +212,7 @@
 	WebinosFileReader.prototype.readAsText = function(blob, encoding) {
 		var self = this;
 		
-		var rpc = webinos.rpc.createRPC("FileReader", "readFileAsString", arguments, Math.floor(Math.random()*101));
+		var rpc = webinos.rpc.createRPC("FileReader", "readFileAsString", arguments);
 
 		webinos.rpc.executeRPC(
 				rpc, 
