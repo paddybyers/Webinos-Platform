@@ -1,0 +1,11 @@
+country=UK
+state=Middlesex
+city=Staines
+organization=Webinos
+organizationUnit=WP4
+common=PC
+email=internal@webinos.org
+days=180
+keyName=client-key.pem
+certName=client-cert.pem
+caName=server-cert.pem

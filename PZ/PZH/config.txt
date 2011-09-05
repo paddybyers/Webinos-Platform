@@ -1,0 +1,10 @@
+country=UK
+state=Middlesex
+city=Staines
+organization=Webinos
+organizationUnit=WP4
+common=pzh://dev.webinos.org
+email=internal@webinos.org
+days=180
+keyName=server-key.pem
+certName=server-cert.pem
