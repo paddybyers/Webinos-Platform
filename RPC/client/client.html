@@ -6,6 +6,7 @@
 	<div>
 		<p>
 			<button id="findService">Find Service</button>
+			<button id="get42">get42</button>
 			<button id="cls">Clear</button>
 			<button id="getFileContent">Get File Content</button>
 		    <button id="fileSaver">Save with FileSaver</button>
@@ -29,7 +30,7 @@
 	</div>
 	<script type="text/javascript" src="/rpc.js"></script>
 	<script type="text/javascript" src="/client/webinos.js"></script>
-	
+	<script type="text/javascript" src="/client/get42.js"></script>
 <!-- 	 <script type="text/javascript" src="/client/webinos.fs.js"></script>
  -->	
 	<script type="text/javascript"
@@ -53,7 +54,7 @@
             		var reader = null;
             	    var fileSaver = null;
             	    var fileWriter = null;
-            	    
+            	    var test = null;
                     $('#findService').bind('click', function() {
                 	    webinos.ServiceDiscovery.findServices("FileReader", {onFound: function (service) {
                 	    	reader = service;
@@ -64,7 +65,17 @@
                 	    webinos.ServiceDiscovery.findServices("FileWriter", {onFound: function (service) {
                 	    	fileWriter = service;
                 	    }});
+                	    webinos.ServiceDiscovery.findServices("Test", {onFound: function (service) {
+                	    	test = service;
+                	    }});
+                	   
                     });
+                    
+                    $('#get42').bind('click', function() {
+                    	test.get42(function (result){
+                    		alert(result);
+                    	});
+                    }); 
                     
                     $('#cls').bind('click', function() {
                     	document.getElementById("messages").innerHTML = "";

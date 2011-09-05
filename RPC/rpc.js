@@ -146,8 +146,6 @@ webinos.rpc.executeRPC = function (rpc, callback, errorCB) {
  * 	      camera service) as string or an object reference as number
  * @param method The method that should be invoked on the service
  * @param an optional array of parameters to be used
- * @param an optional ID that can be used to map incomming RPC responses
- * 		  to requests
  */
 webinos.rpc.createRPC = function (service, method, params) {
 	
@@ -205,7 +203,7 @@ if (typeof exports !== 'undefined'){
 
 	//add your RPC Implementations here!
 	require('./rpc_file.js');
-
+	require('./rpc_test.js');
 }
 
 
