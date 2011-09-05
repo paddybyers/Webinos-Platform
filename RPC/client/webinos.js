@@ -89,6 +89,14 @@
 			return;
 		}
 		
+		if (type == "Test"){
+			var tmp = new TestModule();
+			tmp.origin = 'ws://127.0.0.1:8080';
+			webinos.ServiceDiscovery.registeredServices++;
+			callback.onFound(tmp);
+			return;
+		}
+		
 	}
 	
 	///////////////////// WEBINOS SERVICE INTERFACE ///////////////////////////////
