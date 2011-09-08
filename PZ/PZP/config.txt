@@ -7,5 +7,6 @@ common=PC
 email=internal@webinos.org
 days=180
 keyName=client-key.pem
+keySize=1024
 certName=client-cert.pem
 caName=server-cert.pem
