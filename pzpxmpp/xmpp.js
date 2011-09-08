@@ -110,7 +110,7 @@ Connection.prototype.updatePresence = function() {
 	
 	var ver = hashlib.sha1(s);
 	
-	this.featureMap[ver] = this.features.clone();
+	this.featureMap[ver] = this.features.slice(0);
 	
     this.sendPresence(ver);
 }
@@ -192,14 +192,13 @@ Connection.prototype.onDiscoInfo = function(stanza) {
 		currentFeatures = this.featureMap[ver];
 	} else {
 		// return current features
-		currentFeatures = this.features.clone();
+		currentFeatures = this.features.slice(0);
 	}
 
 	var resultQuery = new ltx.Element('query', {'xmlns': query.attrs.xmlsns});
 	resultQuery.c('identity', {'category': 'client', 'type': 'webinos'});
 	
 	for (var i in currentFeatures) {
-		if (typeof currentFeatures[i] == 'function') break;
 		resultQuery.c('feature', {'var': currentFeatures[i]});
 	}
 	
@@ -227,13 +226,13 @@ Connection.prototype.onPresenceDisco = function (stanza) {
 	var discoveredFeatures = new Array;
 	
 	for (var i in featureNodes) {
-		if (typeof featureNodes[i] == 'function') break;
 		var feature = featureNodes[i].attrs.var;
 		discoveredFeatures.push(feature);
 	} 
 
     console.log(from + ' now shares services: ' + discoveredFeatures.join(" & ") );
 
+	//TODO do something with discovered service. Probably call listeners that have previously been installed
 /*
     // Traverse all possible services
     var inCurrent = [];
@@ -336,14 +335,4 @@ Connection.prototype.getUniqueId = function (suffix) {
     } else {
         return ++this._uniqueId + "";
     }
-}
-
-Array.prototype.clone = function() {
-  var newObj = (this instanceof Array) ? [] : {};
-  for (i in this) {
-    if (i == 'clone') continue;
-    if (this[i] && typeof this[i] == "object") {
-      newObj[i] = this[i].clone();
-    } else newObj[i] = this[i]
-  } return newObj;
 }
