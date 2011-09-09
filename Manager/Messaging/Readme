@@ -1,0 +1,7 @@
+To run test -
+
+node ./serverhdl.js
+
+google-chrome ./msgtest.html
+
+
