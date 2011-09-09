@@ -1,3 +1,7 @@
 var session = require('../../Manager/Session/session.js');
 
-session.startTLSServer();
+var servername = 'localhost';
+if (arguments.length > 0)
+    servername = arguments[0];
+
+session.startTLSServer(servername);

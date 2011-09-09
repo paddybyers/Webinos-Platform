@@ -1,5 +1,5 @@
 /*
-*
+* Below code calls X509 functions to create self generated certificate and server signed certificate. 
 * 
 */
 
@@ -30,6 +30,7 @@ using namespace v8;
 
 static Persistent<String> errno_symbol;
 static Persistent<String> mac_symbol;
+
 RSA *rsa; 
 char mac[32];
 
@@ -62,16 +63,16 @@ void KeyGenerator::Init(Handle<Object> target)
 	HandleScope scope; 
 	errno_symbol = NODE_PSYMBOL("errno"); 
 	mac_symbol = NODE_PSYMBOL("mac"); 
-	KeyGenerator::Initialize(target);
+    KeyGenerator::Initialize(target);
 }
  
 void KeyGenerator::Initialize(Handle<Object> target) 
 {
-   HandleScope scope;
-   NODE_SET_METHOD(target, "genrsa", GenRsa);
-   NODE_SET_METHOD(target, "gencert", GenCert);
-   NODE_SET_METHOD(target, "genclientcert", GenClientCert);
-   NODE_SET_METHOD(target, "getdeviceid", GetDeviceId);        
+    HandleScope scope;
+    NODE_SET_METHOD(target, "genrsa", GenRsa);
+    NODE_SET_METHOD(target, "gencert", GenCert);
+    NODE_SET_METHOD(target, "genclientcert", GenClientCert);
+	NODE_SET_METHOD(target, "getdeviceid", GetDeviceId);    
 }
  
 Handle<Value> KeyGenerator::GetDeviceId(const Arguments& args)
@@ -83,7 +84,7 @@ Handle<Value> KeyGenerator::GetDeviceId(const Arguments& args)
 	return scope.Close(info);
  }
  
- /*
+/*
  * This functions generates RSA private key.
  * Input Parameters
  *	bits: 
@@ -143,9 +144,8 @@ Handle<Value> KeyGenerator::GenCert(const Arguments& args)
 	String::Utf8Value commonname(args[5]->ToString());
 	String::Utf8Value email(args[6]->ToString());
 	int days(args[7]->Uint32Value());
-	String::Utf8Value deviceid(args[8]->ToString());
-	String::Utf8Value outfile(args[9]->ToString());
-    
+	String::Utf8Value outfile(args[8]->ToString());
+
 	if((x509 = X509_new()) == NULL)
 		return ThrowException(Exception::TypeError(String::New("Mem alloc error")));
 
@@ -176,21 +176,12 @@ Handle<Value> KeyGenerator::GenCert(const Arguments& args)
 	// We get information from user about common name we append information of common name with device id
 	// Result of below concatenation will be for example: PC:Deviceid@macaddress
 	Handle<String> name1 = String::NewSymbol(*commonname);       
-	if(strcmp(*deviceid,"null") == 0)
-	{
-		get_mac_addr();
-		Local<String> str = String::Concat(name1, String::New(":Deviceid@"));
-		Local<String> str1 = String::Concat(str->ToString(), String::NewSymbol(mac));  
-		String::Utf8Value str2(str1->ToString());
-		X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (const unsigned char*)*str2, -1, -1, 0); 
-	} 
-	else
-	{
-		Local<String> str= String::Concat(name1, String::NewSymbol(*deviceid)); 
-		String::Utf8Value str1(str->ToString());
-		X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (const unsigned char*)*str1, -1, -1, 0); 
-	}
-  
+	get_mac_addr();
+	Local<String> str = String::Concat(name1, String::New(":Deviceid@"));
+	Local<String> str1 = String::Concat(str->ToString(), String::NewSymbol(mac));  
+	String::Utf8Value str2(str1->ToString());
+	X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (const unsigned char*)*str2, -1, -1, 0); 
+	  
 	X509_NAME_add_entry_by_txt(name, "emailAddress", MBSTRING_ASC, (const unsigned char*)*email, -1, -1, 0); 
 	if(!X509_set_issuer_name(x509, name))
 	 	return ThrowException(Exception::TypeError(String::New("Error setting issuer name")));
@@ -282,7 +273,7 @@ Handle<Value> KeyGenerator::GenClientCert(const Arguments& args)
 	BN_pseudo_rand(rand, 64, 0 , 0);
 	BN_to_ASN1_INTEGER(rand, sno);
 
-  // TODO:To decide if this should this be random or in seq order	
+    // Serial Number
 	if(!X509_set_serialNumber(client, sno))
 		return ThrowException(Exception::TypeError(String::New("Error setting serial number in certificate")));
 	 
@@ -295,7 +286,7 @@ Handle<Value> KeyGenerator::GenClientCert(const Arguments& args)
 		return ThrowException(Exception::TypeError(String::New("Error setting days in certificate")));	
 	if(X509_gmtime_adj(X509_get_notAfter(client),(long)60*60*24*days) == NULL)
 		return ThrowException(Exception::TypeError(String::New("Error setting days in certificate")));	
-  
+
   // Cerificate Signature
 	if(!X509_sign(client,pkey,EVP_sha1()))
 		return ThrowException(Exception::TypeError(String::New("Signing Error")));
@@ -305,7 +296,7 @@ Handle<Value> KeyGenerator::GenClientCert(const Arguments& args)
 		return ThrowException(Exception::TypeError(String::New("Error reading/creating file")));
 	if(!PEM_write_bio_X509(bp, client))
 		return ThrowException(Exception::TypeError(String::New("Output File Writing Error")));
-
+    
   // Free allocated stuff
 	BIO_free_all(bp);  // Without this line client cert will not be written
 	EVP_PKEY_free(pkey);
