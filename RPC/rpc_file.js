@@ -111,7 +111,6 @@ function writeBlob(params, successCB, errorCB, objectRef) {
 		var json = webinos.rpc.createRPC(objectRef, "onerror", arguments);
 		webinos.rpc.executeRPC(json);
 	}
-	
 	tmp.write(blob);
 	
 }

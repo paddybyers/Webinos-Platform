@@ -81,7 +81,10 @@ exports.createFile = createFile;
 			if(err) {
 		    	console.log(err);
 				if (typeof inner.onerror !== 'undefined' && inner.onerror != null){
-					inner.onerror();
+					tmp = new WebinosFileError();
+					tmp.code = tmp.NOT_FOUND_ERR;
+					inner.onerror(tmp);
+					inner.onwriteend();
 				}
 				inner.error = err;
 		    } else {
@@ -135,6 +138,18 @@ exports.createFile = createFile;
 		
 		return writer;
 	}
+	
+	var WebinosFileError = function () {
+	    this.NOT_FOUND_ERR = 1;
+	    this.SECURITY_ERR = 2;
+	    this.ABORT_ERR = 3;
+	    this.NOT_READABLE_ERR = 4;
+	    this.ENCODING_ERR = 5;
+	    this.NO_MODIFICATION_ALLOWED_ERR = 6;
+	    this.INVALID_STATE_ERR = 7;
+	    this.SYNTAX_ERR = 8;
+	    this.code = 0;;
+	}
     
 	var WebinosFileWriter = function () {
 	
@@ -153,22 +168,45 @@ exports.createFile = createFile;
 			this.onwritestart();
 			this.readyState = this.WRITING;
 		}
-		
+
 		var log = fs.createWriteStream(this.fileName, {'flags': 'a'});
-		
+
 		if (typeof this.onwriteend !== 'undefined' && this.onwriteend != null){
 			this.onwrite();
 			this.readyState = this.WRITING;
 		}
+
 		// use {'flags': 'a'} to append and {'flags': 'w'} to erase and write a new file
 		
 		//TODO: start writing not at the end of file but at this.seek
-		log.write(blob.__dataAsString);
-		log.end();
+		var self = this;
 		
-		if (typeof this.onwriteend !== 'undefined' && this.onwriteend != null){
-			this.onwriteend();
-			this.readyState = this.DONE;
+		log.on("error", function (err){
+			if (typeof self.onerror !== 'undefined' && self.onerror != null){
+				tmp = new WebinosFileError();
+				tmp.code = tmp.NOT_FOUND_ERR;
+				self.error = tmp;
+				self.readyState = self.DONE;
+				self.onerror(tmp);
+				self.onwriteend();
+			}
+		})
+		log.on("close", function (){
+			if (typeof self.onwriteend !== 'undefined' && self.onwriteend != null){
+				self.onwriteend();
+				self.readyState = self.DONE;
+			}
+		})
+		
+		res = false;
+		res = log.write(blob.__dataAsString);
+		log.end();
+
+		if (res == true){
+			if (typeof this.onwriteend !== 'undefined' && this.onwriteend != null){
+				this.onwriteend();
+				this.readyState = this.DONE;
+			}
 		}
 	}
 	
@@ -201,8 +239,10 @@ exports.createFile = createFile;
 			error.target.error = { };
 			error.target.error.name = "INVALID_ARGUMENT_ERR";
 			error.target.error.code = 1;
-			
+			this.error = new WebinosFileError();
+			this.error.code = this.error.NOT_FOUND_ERR;
 			this.onerror(error);
+			this.onwriteend();
 			return;
 		}
 		
@@ -235,6 +275,7 @@ exports.createFile = createFile;
 				error.target.error.code = 8;
 				
 				self.onerror(error);
+				self.onwriteend();
 			}
 		});
 	}

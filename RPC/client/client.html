@@ -1,56 +1,17 @@
 <html>
 <head>
 <title>webinos rpc</title>
-</head>
-<body>
-	<div>
-		<p>
-			<button id="findService">Find Service</button>
-			<button id="get42">get42</button>
-			<button id="cls">Clear</button>
-			<button id="getFileContent">Get File Content</button>
-		    <button id="fileSaver">Save with FileSaver</button>
-		    <button id="fileWriter">Save with FileWriter</button>
-		    <button id="fileWriterTruncate">Truncate</button>
-		     <input type="text" id="truncate" />
-		</p>
-		<p>
-			<label for="messageText">File Name</label> <input type="text"
-				id="messageText" />
-				<br>
-			<label for="fileContent">File Content</label> 
-			<br><textarea rows='8' size = 500
-				id="fileContent">
-				</textarea>
-		</p>
-	</div>
-	<div>
-		<ul id="messages">
-		</ul>
-	</div>
-	<script type="text/javascript" src="/rpc.js"></script>
+<script type="text/javascript" src="/rpc.js"></script>
 	<script type="text/javascript" src="/client/webinos.js"></script>
 	<script type="text/javascript" src="/client/get42.js"></script>
-<!-- 	 <script type="text/javascript" src="/client/webinos.fs.js"></script>
- -->	
+	<script type="text/javascript" src="/client/webinos.fs.js"></script>
 	<script type="text/javascript"
 		src="http://code.jquery.com/jquery-1.5.2.js"></script>
-
+	<script type="text/javascript"
+	src="http://ajax.googleapis.com/ajax/libs/dojo/1.6.1/dojo/dojo.xd.js"></script>
 	<script type="text/javascript">
 
             $(document).ready(function() {
-           	
-					/*var fs = new webinos.fs.RemoteFileSystem();
-					fs.bind({
-						onBind: function (service) {
-							service.requestFileSystem(webinos.fs.RemoteFileSystem.PERSISTENT, 1024, function (filesystem) {
-								console.log("filesystem name=" + filesystem.name + ", root.name=" + filesystem.root.name + ", root.fullPath=" + filesystem.root.fullPath);
-							}, function (error) {
-								console.log("error #" + error.code);
-							})
-						}
-					});*/
-                   
             		var reader = null;
             	    var fileSaver = null;
             	    var fileWriter = null;
@@ -94,7 +55,7 @@
             	    		};
                        		reader.onerror = function (error) {
                        			reader.unbind();
-               	    			$('#messages').append('<li>Result: Error: ' +  error + '</li>');
+               	    			$('#messages').append('<li>Result: Error Code: ' +  error + '</li>');
             	    		};
             	    	
                        });
@@ -131,8 +92,8 @@
                     		   $('#messages').append('<li> Writing...</li>');
                     	   };
                     	   
-                    	   tmp.onerror = function () {
-                    		   $('#messages').append('<li> Writing error.</li>');
+                    	   tmp.onerror = function (error) {
+                    		   $('#messages').append('<li> Writing error! Code: ' + error.code + '</li>');
                     	   };
                     	   
                     	   $('#messages').append('<li> Accessing FileSaver Constants (INIT, WRITING, DONE, readyState): '
@@ -167,8 +128,8 @@
                         		   $('#messages').append('<li> Writing...</li>');
                         	   };
                         	   
-                        	   tmp.onerror = function () {
-                        		   $('#messages').append('<li> Writing error.</li>');
+                        	   tmp.onerror = function (error) {
+                        		   $('#messages').append('<li> Writing error! Code: ' + error.code + '</li>');
                         	   };
                         	   
                         	   $('#messages').append('<li> Accessing FileWriter Constants (INIT, WRITING, DONE, readyState): '
@@ -216,5 +177,130 @@
                      }); 
             });
         </script>
+        <script type="text/javascript">
+	dojo.require("dojo.hash");
+
+	dojo.addOnLoad(function () {
+		var filesystem;
+
+		var cwd = dojo.byId('cwd');
+		var ls = dojo.byId('ls');
+
+		var update = function (hash) {
+			dojo.empty(ls);
+
+			var fullPath = dojo.queryToObject(hash).fullPath;
+
+			filesystem.root.getDirectory(fullPath, null, function (entry) {
+				cwd.innerHTML = entry.fullPath;
+
+				entry.getParent(function (parent) {
+					var item = dojo.create('li', null, ls);
+
+					dojo.create('a', {
+						href: '#' + dojo.objectToQuery({
+							fullPath: parent.fullPath
+						}),
+						innerHTML: '..'
+					}, item, 'first');
+				}, function (error) {
+					alert("Error retrieving parent directory (#" + error.code + ")");
+				});
+
+				var reader = entry.createReader();
+
+				var successCallback = function (entries) {
+					entries.forEach(function (entry) {
+						var item = dojo.create('li', null, ls);
+
+						if (entry.isFile)
+							item.innerHTML = entry.name;
+						else if (entry.isDirectory)
+							dojo.create('a', {
+								href: '#' + dojo.objectToQuery({
+									fullPath: entry.fullPath
+								}),
+								innerHTML: entry.name
+							}, item);
+					});
+
+					if (entries.length > 0)
+						reader.readEntries(successCallback, errorCallback);
+				};
+
+				var errorCallback = function (error) {
+					alert("Error reading directory (#" + error.code + ")");
+				};
+
+				reader.readEntries(successCallback, errorCallback);
+			}, function (error) {
+				alert("Error retrieving directory entry (#" + error.code + ")");
+			});
+		}
+
+		dojo.subscribe("/dojo/hashchange", update);
+
+		webinos.ServiceDiscovery.findServices("RemoteFileSystem", {
+			onFound: function (service) {
+				service.bind(function () {
+					service.requestFileSystem(webinos.fs.RemoteFileSystem.PERSISTENT, 1024, function (_filesystem) {
+						filesystem = _filesystem;
+
+						if (dojo.hash() == '')
+							dojo.hash(dojo.objectToQuery({
+								fullPath: filesystem.root.fullPath
+							}));
+
+						update(dojo.hash());
+					}, function (error) {
+						alert("Error requesting filesystem (#" + error.code + ")");
+					});
+				});
+			}
+		});
+	});
+</script>
+</head>
+<body>
+<table border="1"  style="height: 100%; width: 100%;">
+<tr valign="top" >
+<td width="50%">
+	<div >
+		<div >
+			<p>
+				<button id="findService">Find Service</button>
+				<button id="get42">get42</button>
+				<button id="cls">Clear</button>
+				<button id="getFileContent">Get File Content</button>
+		    	<button id="fileSaver">Save with FileSaver</button>
+		    	<button id="fileWriter">Save with FileWriter</button>
+		    	<button id="fileWriterTruncate">Truncate</button>
+		     	<input type="text" id="truncate" />
+			</p>
+			<p>
+				<label for="messageText">File Name</label> <input type="text"
+					id="messageText" />
+					<br>
+				<label for="fileContent">File Content</label> 
+				<br>
+				<textarea rows='8' size = 500
+					id="fileContent">
+					</textarea>
+			</p>
+		</div>
+		<div >
+			<ul id="messages">
+			</ul>
+		</div>
+	</div>
+ </td>
+ <td width="50%" >
+	<div >
+		<p id="cwd"></p>
+		<ul id="ls"></ul>
+	</div>
+</td>
+</tr>
+</table>
 </body>
 </html>
