@@ -97,11 +97,17 @@
 			return;
 		}
 		
+		if (type == 'RemoteFileSystem') {
+			webinos.ServiceDiscovery.registeredServices++;
+			
+			return void (callback.onFound(new webinos.fs.RemoteFileSystem()));
+		}
+		
 	}
 	
 	///////////////////// WEBINOS SERVICE INTERFACE ///////////////////////////////
 	
-	var WebinosService = function () {
+	WebinosService = function () {
 		this.id = Math.floor(Math.random()*101);
 		
 	};
