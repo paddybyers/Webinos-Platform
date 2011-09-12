@@ -38,6 +38,13 @@
                     		alert(result);
                     	});
                     }); 
+
+                   $('#geolocation').bind('click', function() {
+                    	test.geolocation(function (result){
+                    		alert(result);
+                    	});
+                    }); 
+
                     
                     $('#cls').bind('click', function() {
                     	document.getElementById("messages").innerHTML = "";
