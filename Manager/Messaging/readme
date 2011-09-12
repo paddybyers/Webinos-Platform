@@ -1,6 +1,7 @@
-The Messaging manager must be able to
+To run test -
 
-receive messages: process incoming messages
-route messages: which implies that it keeps a register of the active sessions and last know physical address or each person, device, service.
-process messages: pass messages directly locally registed services for action
-The messagsing processing and routing code shall be written in Javascript, and hosted by node.js
+node ./serverhdl.js
+
+google-chrome ./msgtest.html
+
+
