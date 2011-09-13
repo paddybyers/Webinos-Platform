@@ -17,7 +17,8 @@
             	    var fileSaver = null;
             	    var fileWriter = null;
             	    var test = null;
-            	    var testGeo = null;
+            	    var geoLocationService = null;
+            	    
                     $('#findService').bind('click', function() {
                 	    webinos.ServiceDiscovery.findServices("FileReader", {onFound: function (service) {
                 	    	reader = service;
@@ -31,8 +32,8 @@
                 	    webinos.ServiceDiscovery.findServices("Test", {onFound: function (service) {
                 	    	test = service;
                 	    }});
-                	    webinos.ServiceDiscovery.findServices("TestGeo", {onFound: function (service) {
-                	    	testGeo = service;
+                	    webinos.ServiceDiscovery.findServices("Geolocation", {onFound: function (service) {
+                	    	geoLocationService = service;
                 	    }});
                 	   
                     });
@@ -43,8 +44,8 @@
                     	});
                     }); 
 
-                   $('#geolocation').bind('click', function() {
-                    	testGeo.geolocation(function (result){
+                   $('#currentPositionButton').bind('click', function() {
+                    	geoLocationService.getCurrentPosition(function (result){
                     		alert(result);
                     	});
                     }); 
@@ -282,7 +283,7 @@
 			<p>
 				<button id="findService">Find Service</button>
 				<button id="get42">get42</button>
-				<button id="geolocation">geolocation</button>
+				<button id="currentPositionButton">current pos</button>
 				<button id="cls">Clear</button>
 				<button id="getFileContent">Get File Content</button>
 		    	<button id="fileSaver">Save with FileSaver</button>

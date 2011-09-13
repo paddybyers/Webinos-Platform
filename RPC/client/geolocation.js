@@ -4,8 +4,8 @@
 		
 	};
 	
-	TestModuleGeo.prototype.geolocation = function (successCB) {
-		var rpc = webinos.rpc.createRPC("TestGeo", "geolocation", arguments);
+	TestModuleGeo.prototype.getCurrentPosition = function (successCB) {
+		var rpc = webinos.rpc.createRPC("Geolocation", "getCurrentPosition", arguments); // RPCservicename, function
 		webinos.rpc.executeRPC(rpc,
 				function (params){
 					successCB(params);

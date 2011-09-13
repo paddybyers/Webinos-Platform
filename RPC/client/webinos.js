@@ -97,8 +97,8 @@
 			return;
 		}
 		
-		if (type == "TestGeo"){
-			var tmp = new TestModuleGeo();
+		if (type == "Geolocation"){		// registered RPC name
+			var tmp = new TestModuleGeo();			// must correspond to what is defined in geolocation.js
 			tmp.origin = 'ws://127.0.0.1:8080';
 			webinos.ServiceDiscovery.registeredServices++;
 			callback.onFound(tmp);

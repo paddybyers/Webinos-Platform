@@ -1,0 +1,79 @@
+in /RPC/client/client.html:
+
+add:
+	webinos.ServiceDiscovery.findServices("TestGeo", {onFound: function (service) {
+		testGeo = service;
+	}});
+
+	
+	$('#geolocation').bind('click', function() {
+    	testGeo.geolocation(function (result){
+    		alert(result);
+    	});
+    }); 
+    
+    
+    
+    
+    
+    
+rpc_geolocation.js:
+
+rpc service "Geolocation"
+registered with "GeolocationModule"
+has method "getCurrentPosition"
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+=======================
+
+client.html
+
+    webinos.ServiceDiscovery.findServices("Test", {onFound: function (service) {
+    	test = service;
+    }});
+
+	$('#get42').bind('click', function() {
+    	test.get42(function (result){
+    		alert(result);
+    	});
+    }); 
+
+
+get42.js
+
+	TestModule = function (){
+	...
+		
+	TestModule.prototype.get42 = function (successCB) {
+		var rpc = webinos.rpc.createRPC("Test", "get42", arguments);
+		webinos.rpc.executeRPC(rpc,
+				function (params){
+					successCB(params);
+				},
+				function (error){}
+		);
+	}
+
+webinos.js:
+
+	if (type == "Test"){
+		var tmp = new TestModule();
+		tmp.origin = 'ws://127.0.0.1:8080';
+		webinos.ServiceDiscovery.registeredServices++;
+		callback.onFound(tmp);
+		return;
+	}	
+	
+	
+	
