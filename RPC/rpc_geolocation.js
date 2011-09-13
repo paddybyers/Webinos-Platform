@@ -2,7 +2,7 @@ if (typeof webinos === 'undefined') var webinos = {};
 webinos.rpc = require('./rpc.js');
 
 function geolocation (params, successCB, errorCB, objectRef){
-	successCB(42);
+	successCB(1);
 }
 
 testModule = {};
