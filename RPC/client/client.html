@@ -17,6 +17,7 @@
             	    var fileSaver = null;
             	    var fileWriter = null;
             	    var test = null;
+            	    var testGeo = null;
                     $('#findService').bind('click', function() {
                 	    webinos.ServiceDiscovery.findServices("FileReader", {onFound: function (service) {
                 	    	reader = service;
@@ -30,6 +31,9 @@
                 	    webinos.ServiceDiscovery.findServices("Test", {onFound: function (service) {
                 	    	test = service;
                 	    }});
+                	    webinos.ServiceDiscovery.findServices("TestGeo", {onFound: function (service) {
+                	    	testGeo = service;
+                	    }});
                 	   
                     });
                     
@@ -40,7 +44,7 @@
                     }); 
 
                    $('#geolocation').bind('click', function() {
-                    	test.geolocation(function (result){
+                    	testGeo.geolocation(function (result){
                     		alert(result);
                     	});
                     }); 

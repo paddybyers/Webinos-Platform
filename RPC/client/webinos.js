@@ -97,6 +97,16 @@
 			return;
 		}
 		
+		if (type == "TestGeo"){
+			var tmp = new TestModuleGeo();
+			tmp.origin = 'ws://127.0.0.1:8080';
+			webinos.ServiceDiscovery.registeredServices++;
+			callback.onFound(tmp);
+			return;
+		}
+		
+		
+		
 		if (type == 'RemoteFileSystem') {
 			webinos.ServiceDiscovery.registeredServices++;
 			

@@ -7,4 +7,4 @@ function geolocation (params, successCB, errorCB, objectRef){
 
 testModule = {};
 testModule.geolocation = geolocation;
-webinos.rpc.registerObject("Test", testModule);
+webinos.rpc.registerObject("TestGeo", testModule);

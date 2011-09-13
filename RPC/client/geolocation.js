@@ -1,11 +1,11 @@
 (function() {
 
-	TestModule = function (){
+	TestModuleGeo = function (){
 		
 	};
 	
-	TestModule.prototype.geolocation = function (successCB) {
-		var rpc = webinos.rpc.createRPC("Test", "geolocation", arguments);
+	TestModuleGeo.prototype.geolocation = function (successCB) {
+		var rpc = webinos.rpc.createRPC("TestGeo", "geolocation", arguments);
 		webinos.rpc.executeRPC(rpc,
 				function (params){
 					successCB(params);
