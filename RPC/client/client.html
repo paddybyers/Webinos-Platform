@@ -46,6 +46,8 @@
 
                    $('#currentPositionButton').bind('click', function() {
                     	geoLocationService.getCurrentPosition(function (result){
+                    		//var resarray = JSON.parse(result);
+                    		// var loc= 'Latitude = ' + resarray['latitude'] + ', longitude = ' + resarray['longitude'];
                     		alert(result);
                     	});
                     }); 
