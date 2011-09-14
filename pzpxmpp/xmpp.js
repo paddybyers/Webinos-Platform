@@ -2,30 +2,36 @@ var ltx = require('ltx');
 var sys = require('sys');
 var xmpp = require('node-xmpp');
 var hashlib = require("./libs/hashlib");
-var serviceFactory = require("./service.js");
 var nodeType = 'http://webinos.org/pzp';
 var connection;
+var EventEmitter = require('events').EventEmitter;
+var WebinosFeatures = require('./WebinosFeatures.js');
+
+//TODO make members and functions that should be private private
 
 function Connection() {
+	EventEmitter.call(this);
+	
 	connection = this;
 
 	this._uniqueId = Math.round(Math.random() * 10000);
 
-	this.features = ["http://jabber.org/protocol/caps", 
-				 	 "http://jabber.org/protocol/disco#info",
-                   	 "http://jabber.org/protocol/commands"];
+	this.basicFeatures = ["http://jabber.org/protocol/caps", 
+				 	 	  "http://jabber.org/protocol/disco#info",
+                   	 	  "http://jabber.org/protocol/commands"];
     
 	this.callbacks = {};         // administration of callbacks for all service types
-    this.sharedServices = {};    // services that the app wants shared
-    this.remoteServices = {};    // services that are shared with us, assoc array of arrays
+    this.sharedFeatures = {};    // services that the app wants shared
+    this.remoteFeatures = {};    // services that are shared with us, assoc array of arrays
     this.pendingRequests = {};   // hash to store <stanza id, geo service> so results can be handled
     this.featureMap = {};      // holds features, see initPresence() for explanation
 }
 
+sys.inherits(Connection, EventEmitter);
 exports.Connection = Connection;
 
 Connection.prototype.connect = function(params, onOnline) {
-	this.remoteServices = new Array;
+	this.remoteFeatures = new Array;
 	this.pendingRequests = new Array;
 	
 	var self = this;
@@ -52,81 +58,58 @@ Connection.prototype.onEnd = function(onEnd) {
 	this.client.on('end', onEnd);
 }
 
-Connection.prototype.findServices = function(p, cb) {
-    var api = p['api'];
-
-    if (!api) {
-        console.error('Error installing callback: api missing');
-        return;
-    }
-
-    if (cb) {
-        this.callbacks[api] = cb;
-        console.log('findService callback installed for ' + api);
-    } else {
-        delete this.callbacks[api];
-        console.log('findService callback removed for ' + api);
-    }
-}
-
-Connection.prototype.shareService = function(ns, flag) {
-    console.log( (flag?"Starting":"Stopping") + " sharing service with ns:" + ns);
-    if (flag) {
-        this.sharedServices[ns] = flag;
-    } else {
-        delete this.sharedServices[ns];
-    }
-    this.updatePresence();
-}
-
-Connection.prototype.geoLocationInvoke = function(geoRequest) {
-	var id = this.getUniqueId('geo');
-	this.pendingRequests[id] = geoRequest;
-	this.client.send(
-		new xmpp.Element('iq', { 'to': geoRequest.device, 'type': 'get', 'id': id }).
-			c('query', {'xmlns': geoRequest.namespace})
-	);
-
-	console.log('Geolocation service invoked for ' + geoRequest.device);
-}
-
 /**
- * This function add the feature to the feature map, calculates the hashes of the current
- * capabilities and sends out a presence update.
+ * Adds a feature to the shared services and updates the presence accordingly.
  */
-Connection.prototype.addFeature = function(feature) {
-	this.features.push(feature);
+Connection.prototype.shareFeature = function(feature) {
+    console.log("Sharing service with ns:" + feature.ns);
+    this.sharedFeatures[feature.ns] = feature;
 	this.updatePresence();
 }
 
+/**
+ * Removes a feature from the shared services and updates the presence accordingly.
+ */
+Connection.prototype.unshareFeature = function(feature) {
+    console.log("Unsharing service with ns:" + feature.ns);
+    delete this.sharedFeatures[feature.ns];
+    this.updatePresence();
+}
+
 Connection.prototype.updatePresence = function() {
-	this.features = this.features.sort();
+	var allFeatures = this.basicFeatures.slice(0); // copies the basic features
+	
+	for (var key in this.sharedFeatures) { // add the shared features
+		allFeatures.push(key);
+	}
+
+	allFeatures = allFeatures.sort();
 
 	var s = "client/device//Webinos 0.1.0<";
 
-	for (var feature in this.features) {
+	for (var feature in allFeatures) {
 		s = s + feature + "<";
 	}
 	
 	var ver = hashlib.sha1(s);
 	
-	this.featureMap[ver] = this.features.slice(0);
+	this.featureMap[ver] = allFeatures;
 	
     this.sendPresence(ver);
 }
 
 /**
- * This function removes the feature to the feature map, calculates the hashes of the current
- * capabilities and sends out a presence update.
+ *
  */
-Connection.prototype.removeFeature = function(feature) {
-	var index = this.features.indexOf(feature);
-	
-	if (index != -1) {
-		this.features.splice(index, 1);
-	}
+Connection.prototype.invokeFeature = function(feature, params) {
+	var id = this.getUniqueId('feature');
+	this.pendingRequests[id] = feature;
+	this.client.send(
+		new xmpp.Element('iq', { 'to': feature.device, 'type': 'get', 'id': id }).
+			c('query', {'xmlns': feature.namespace})
+	);
 
-    this.updatePresence();
+	console.log('Feature ' + feature.namespace + ' invoked for ' + feature.device);
 }
 
 // Send presence notification according to http://xmpp.org/extensions/xep-0115.html
@@ -159,19 +142,29 @@ Connection.prototype.onStanza = function(stanza) {
 			connection.onDiscoInfo(stanza);
 		} else if (stanza.attrs.type == 'result' && stanza.getChild('query', 'http://jabber.org/protocol/disco#info') != null) {
 			connection.onPresenceDisco(stanza);
+		} else if (stanza.attrs.type == 'get') {
+			var query = stanza.getChild('query');
+			var found = false;
+			
+			var feature = sharedFeatures[query.attr.xmlns]; //TODO there is a limit to only 1 feature per namespace.
+
+			if (feature != null) {
+				console.log("Feature " + feature.ns + " is being invoked by " + stanza.attr.from);
+				feature.invoke({'from': stanza.attrs.from, 'id': stanza.attrs.id });
+			}
 		}
 	}
 }
 
 Connection.prototype.onPresenceBye = function(stanza) {
 	var from = stanza.attrs.from;
-	var services = this.remoteServices[from];
+	var features = this.remoteFeatures[from];
 	
-	for (service in services) {
-		service.remove();
+	for (feature in features) {
+		feature.remove();
 	} 
 	
-	delete this.remoteServices[from];
+	delete this.remoteFeatures[from];
 	
 	console.log(from + ' has left the building.');
 }
@@ -192,7 +185,13 @@ Connection.prototype.onDiscoInfo = function(stanza) {
 		currentFeatures = this.featureMap[ver];
 	} else {
 		// return current features
-		currentFeatures = this.features.slice(0);
+		currentFeatures = this.basicFeatures.slice(0);
+		
+		for (var key in this.sharedFeatures) { // add the shared features
+			currentFeatures.push(key);
+		}
+
+		currentFeatures = currentFeatures.sort();
 	}
 
 	var resultQuery = new ltx.Element('query', {'xmlns': query.attrs.xmlsns});
@@ -216,6 +215,8 @@ Connection.prototype.onPresenceCaps = function (stanza) {
 	this.client.send(new xmpp.Element('iq', { 'to': stanza.attrs.from, 'type': 'get', 'id': this.getUniqueId('disco')}).
 		c('query', { 'xmlns': 'http://jabber.org/protocol/disco#info', 'node': c.attrs.node + '#' + c.attrs.ver})
 	);
+	
+	//TODO safe transaction number and lookup the correct transaction for this result.
 }
 
 Connection.prototype.onPresenceDisco = function (stanza) {
@@ -226,8 +227,13 @@ Connection.prototype.onPresenceDisco = function (stanza) {
 	var discoveredFeatures = new Array;
 	
 	for (var i in featureNodes) {
-		var feature = featureNodes[i].attrs.var;
-		discoveredFeatures.push(feature);
+		var ns = featureNodes[i].attrs.var;
+
+		//TODO if this is not one of the interal features then inform listeners about the new feature.
+		
+		this.createAndAddRemoteFeature(ns, from);
+		
+		discoveredFeatures.push(ns);
 	} 
 
     console.log(from + ' now shares services: ' + discoveredFeatures.join(" & ") );
@@ -270,22 +276,27 @@ Connection.prototype.onError = function(error) {
 }
 
 // Helper function that creates a service, adds it to the administration and invokes the callback
-Connection.prototype.createService = function(name, from) {
-    var s = (name == "geolocation") ? (new serviceFactory.GeolocationService) : (new serviceFactory.RemoteAlertingService);
-    s.device = from;
-    s.owner = this.getBareJidFromJid(from);
-    s.id = this.jid2Id(from) + '-' + name;
+Connection.prototype.createAndAddRemoteFeature = function(name, from) {
+	var factory = WebinosFeatures.factory[name];
 
-    var currentServices = this.remoteServices[from];
-    if (!currentServices) currentServices = [];
+	if (factory != null) {
+		feature = factory();
+	    feature.device = from;
+	    feature.owner = this.getBareJidFromJid(from);
+	    feature.id = this.jid2Id(from) + '-' + name;
 
-    currentServices.push(s);
-    this.remoteServices[from] = currentServices;
+	    var currentServices = this.remoteFeatures[from];
+	    if (!currentServices) currentServices = [];
 
-    console.log('Created and added new service of type ' + name);
-    
-	var callback = this.callbacks[s.ns];
-    if (callback) (callback)(s);
+	    currentServices.push(feature);
+
+	    this.remoteFeatures[from] = currentServices; //TODO check if this call is nessary since currentServices already refers to the correct objec
+
+	    console.log('Created and added new service of type ' + name);
+
+		this.emit(feature.ns, feature);
+		feature.on('invoke', this.invokeFeature);
+	}
 }
 
 // Helper function to return a 'clean' id string based on a jid

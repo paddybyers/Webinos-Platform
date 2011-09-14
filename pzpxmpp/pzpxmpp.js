@@ -1,5 +1,7 @@
 var xmpp = require('./xmpp');
 var argv = process.argv;
+var WebinosFeatures = require('./WebinosFeatures.js');
+
 
 if (argv.length != 4) {
     console.error('Usage: pzpxmpp.js <my-jid> <my-password>');
@@ -8,20 +10,18 @@ if (argv.length != 4) {
 
 var connection = new xmpp.Connection();
 connection.connect({ jid: argv[2], password: argv[3] }, function() {
-	connection.addFeature(NS.GEOLOCATION);
+	var geoFeature = WebinosFeatures.factory[WebinosFeatures.NS.GEOLOCATION]();
+	connection.shareFeature(geoFeature);
 });
 
 connection.onEnd(function () {
 		console.log("Connection terminated. Stopping...");
 		process.exit(1);
 });
-	
-var NS = {
-	GEOLOCATION: 'http://webinos.org/api/geolocation',
-	REMOTE_ALERT: 'http://webinos.org/api/remote-alert'
-}
-		
-connection.findServices({api: NS.GEOLOCATION}, function() {
+
+/*	
+connection.findServices({api: WebinosFeatures.NS.GEOLOCATION}, function() {
 		console.log("blaat");
 	}
 );
+*/
