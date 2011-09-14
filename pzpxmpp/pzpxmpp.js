@@ -14,14 +14,19 @@ connection.connect({ jid: argv[2], password: argv[3] }, function() {
 	connection.shareFeature(geoFeature);
 });
 
-connection.onEnd(function () {
-		console.log("Connection terminated. Stopping...");
-		process.exit(1);
+
+connection.on('end', function () {
+	console.log("Connection terminated. Stopping...");
+	process.exit(1);
 });
 
-/*	
-connection.findServices({api: WebinosFeatures.NS.GEOLOCATION}, function() {
-		console.log("blaat");
-	}
-);
-*/
+connection.on(WebinosFeatures.NS.GEOLOCATION, function(geolocationFeature) {
+	console.log("added.");
+	// do something with the feature.
+	geolocationFeature.on('remove', function(feature) {
+		// do something when the feature is removed.
+		console.log("removed.")
+	});
+});
+
+

@@ -33,8 +33,7 @@ Files:
 Installation prerequests:
 
 1. Node.js ;-)
-2. Node Xmpp - see installation instructions on: https://github.com/astro/node-xmpp
-3. Node hashlib:
+2. Node hashlib:
 
 a) Download from: https://github.com/brainfucker/hashlib
 b) execute 'node-waf configure build'
@@ -46,9 +45,8 @@ Instructions:
 
 node pzpxmpp.js <jid> <password>
 
-2. To see if things are working. Connect with another XMPP client (for example PSI) to the same server with the same JID.
-
-When used PSI you can open the XMPP log and here you can see PSI discovering the pzpxmpp client and visa versa.
+2. To see if things are working. Start a second client for the same jid (other resource). You can now see the client discovering
+the features of the other instance and vice versa.
 
 TODOs:
 

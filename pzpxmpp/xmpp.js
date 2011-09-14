@@ -6,6 +6,7 @@ var nodeType = 'http://webinos.org/pzp';
 var connection;
 var EventEmitter = require('events').EventEmitter;
 var WebinosFeatures = require('./WebinosFeatures.js');
+var logger = require('nlogger').logger('xmpp.js');
 
 //TODO make members and functions that should be private private
 
@@ -44,6 +45,10 @@ Connection.prototype.connect = function(params, onOnline) {
 			onOnline();
 		}
 	);
+	
+	this.client.on('end', function() {
+		this.emit('end');
+	});
 
 	this.client.on('stanza', this.onStanza);
 
@@ -54,15 +59,11 @@ Connection.prototype.disconnect = function() {
 	this.client.end();
 }
 
-Connection.prototype.onEnd = function(onEnd) {
-	this.client.on('end', onEnd);
-}
-
 /**
  * Adds a feature to the shared services and updates the presence accordingly.
  */
 Connection.prototype.shareFeature = function(feature) {
-    console.log("Sharing service with ns:" + feature.ns);
+    logger.info("Sharing service with ns:" + feature.ns);
     this.sharedFeatures[feature.ns] = feature;
 	this.updatePresence();
 }
@@ -71,7 +72,7 @@ Connection.prototype.shareFeature = function(feature) {
  * Removes a feature from the shared services and updates the presence accordingly.
  */
 Connection.prototype.unshareFeature = function(feature) {
-    console.log("Unsharing service with ns:" + feature.ns);
+    logger.info("Unsharing service with ns: " + feature.ns);
     delete this.sharedFeatures[feature.ns];
     this.updatePresence();
 }
@@ -109,12 +110,12 @@ Connection.prototype.invokeFeature = function(feature, params) {
 			c('query', {'xmlns': feature.namespace})
 	);
 
-	console.log('Feature ' + feature.namespace + ' invoked for ' + feature.device);
+	logger.debug('Feature ' + feature.namespace + ' invoked for ' + feature.device);
 }
 
 // Send presence notification according to http://xmpp.org/extensions/xep-0115.html
 Connection.prototype.sendPresence = function(ver) {
-    console.log("XEP-0115 caps: " + this.featureMap[ver]);
+    logger.debug("XEP-0115 caps: " + this.featureMap[ver]);
 
 	this.client.send(new xmpp.Element('presence', { }).
 		c('c', {
@@ -126,6 +127,8 @@ Connection.prototype.sendPresence = function(ver) {
 }
 
 Connection.prototype.onStanza = function(stanza) {
+	logger.trace('Stanza received = ' + stanza);
+	
 	if (stanza.is('presence') && stanza.attrs.type !== 'error') {
 		if (stanza.attrs.type == 'unavailable') {
 			// in scope of client so call back to connection
@@ -146,10 +149,10 @@ Connection.prototype.onStanza = function(stanza) {
 			var query = stanza.getChild('query');
 			var found = false;
 			
-			var feature = sharedFeatures[query.attr.xmlns]; //TODO there is a limit to only 1 feature per namespace.
+			var feature = this.sharedFeatures[query.attrs.xmlns]; //TODO there is a limit to only 1 feature per namespace.
 
 			if (feature != null) {
-				console.log("Feature " + feature.ns + " is being invoked by " + stanza.attr.from);
+				logger.debug("Feature " + feature.ns + " is being invoked by " + stanza.attr.from);
 				feature.invoke({'from': stanza.attrs.from, 'id': stanza.attrs.id });
 			}
 		}
@@ -160,13 +163,14 @@ Connection.prototype.onPresenceBye = function(stanza) {
 	var from = stanza.attrs.from;
 	var features = this.remoteFeatures[from];
 	
-	for (feature in features) {
+	for (var i=0; i<features.length; i++) {
+		logger.trace('Feature = ' + features[i].ns);
 		feature.remove();
-	} 
+	}
 	
 	delete this.remoteFeatures[from];
 	
-	console.log(from + ' has left the building.');
+	logger.info(from + ' has left the building.');
 }
 
 Connection.prototype.onDiscoInfo = function(stanza) {
@@ -180,8 +184,8 @@ Connection.prototype.onDiscoInfo = function(stanza) {
 	if (query.attrs.node != null) {
 		var node = query.attrs.node;
 		var ver = node.substring(nodeType.length + 1);
-		console.log("Requested features for version: " + ver);
-		console.log("Returning the features for this version: " + this.featureMap[ver]);
+		logger.debug("Received feature request for version: " + ver);
+		logger.debug("Returning the features for this version: " + this.featureMap[ver]);
 		currentFeatures = this.featureMap[ver];
 	} else {
 		// return current features
@@ -194,7 +198,8 @@ Connection.prototype.onDiscoInfo = function(stanza) {
 		currentFeatures = currentFeatures.sort();
 	}
 
-	var resultQuery = new ltx.Element('query', {'xmlns': query.attrs.xmlsns});
+	var resultQuery = new ltx.Element('query', {xmlns: query.attrs.xmlns});
+	
 	resultQuery.c('identity', {'category': 'client', 'type': 'webinos'});
 	
 	for (var i in currentFeatures) {
@@ -210,16 +215,17 @@ Connection.prototype.onDiscoInfo = function(stanza) {
 Connection.prototype.onPresenceCaps = function (stanza) {
 	var c = stanza.getChild('c', 'http://jabber.org/protocol/caps');
 	
-	console.log("Capabilities received, for now we always query for the result.");
+	logger.debug("Capabilities received, for now we always query for the result.");
 	
 	this.client.send(new xmpp.Element('iq', { 'to': stanza.attrs.from, 'type': 'get', 'id': this.getUniqueId('disco')}).
 		c('query', { 'xmlns': 'http://jabber.org/protocol/disco#info', 'node': c.attrs.node + '#' + c.attrs.ver})
 	);
 	
-	//TODO safe transaction number and lookup the correct transaction for this result.
+	//TODO save transaction number and lookup the correct transaction for this result.
 }
 
 Connection.prototype.onPresenceDisco = function (stanza) {
+	logger.debug('Entering onPresenceDisco');
 	var query = stanza.getChild('query', 'http://jabber.org/protocol/disco#info');
     var from = stanza.attrs.from;
 
@@ -236,7 +242,7 @@ Connection.prototype.onPresenceDisco = function (stanza) {
 		discoveredFeatures.push(ns);
 	} 
 
-    console.log(from + ' now shares services: ' + discoveredFeatures.join(" & ") );
+    logger.debug(from + ' now shares services: ' + discoveredFeatures.join(" & ") );
 
 	//TODO do something with discovered service. Probably call listeners that have previously been installed
 /*
@@ -272,7 +278,7 @@ Connection.prototype.onPresenceDisco = function (stanza) {
 }
 
 Connection.prototype.onError = function(error) {
-	console.log(error);
+	logger.warn(error);
 }
 
 // Helper function that creates a service, adds it to the administration and invokes the callback
@@ -285,14 +291,14 @@ Connection.prototype.createAndAddRemoteFeature = function(name, from) {
 	    feature.owner = this.getBareJidFromJid(from);
 	    feature.id = this.jid2Id(from) + '-' + name;
 
-	    var currentServices = this.remoteFeatures[from];
-	    if (!currentServices) currentServices = [];
+	    var currentFeatures = this.remoteFeatures[from];
+	    if (!currentFeatures) currentFeatures = [];
 
-	    currentServices.push(feature);
+	    currentFeatures.push(feature);
 
-	    this.remoteFeatures[from] = currentServices; //TODO check if this call is nessary since currentServices already refers to the correct objec
+	    this.remoteFeatures[from] = currentFeatures;
 
-	    console.log('Created and added new service of type ' + name);
+	    logger.debug('Created and added new service of type ' + name);
 
 		this.emit(feature.ns, feature);
 		feature.on('invoke', this.invokeFeature);

@@ -14,9 +14,9 @@ function GenericFeature() {
     this.device = null;                                         // (addressable) id of device the service is running on
     this.name = "(you shouldn't see this!)";                    // friendly name, to be overridden
     this.ns = null;                                             // name space that (globally) uniquely defines the service type
+
     this.remove = function() {                                  // call this when this feature is removed.
 		this.emit('remove', this);
-		this.emit(this.ns, this, 'removed');
 	}
 	
     this.isLocal = function() {                                 // returns true is the feature is running on the local device
@@ -48,4 +48,5 @@ function GenericFeature() {
     };
 }
 
+sys.inherits(GenericFeature, EventEmitter);
 exports.GenericFeature = GenericFeature;
