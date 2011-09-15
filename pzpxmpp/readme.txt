@@ -46,10 +46,13 @@ Instructions:
 node pzpxmpp.js <jid> <password>
 
 2. To see if things are working. Start a second client for the same jid (other resource). You can now see the client discovering
-the features of the other instance and vice versa.
+the features of the other instance and vice versa. After discovering you can see the clients trying to invoke each others geoLocation
+features and a response is being send in cleartext.
 
 TODOs:
 
 1. Correctly implement private methods as private.
+2. Think through how to pass queries and results back and forth between the xmpp connection and the webinos code.
+
 
 
