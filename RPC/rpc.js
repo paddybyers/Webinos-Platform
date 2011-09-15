@@ -206,6 +206,8 @@ if (typeof exports !== 'undefined'){
 	require('./rpc_test.js');
 	require('./webinos.rpc.fs.js');
 	require('./rpc_geolocation.js');
+	require('./tv/provider/webinos.rpc.tv.js');
+
 }
 
 
