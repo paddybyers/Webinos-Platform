@@ -4,6 +4,7 @@
 <script type="text/javascript" src="/rpc.js"></script>
 	<script type="text/javascript" src="/client/webinos.js"></script>
 	<script type="text/javascript" src="/client/get42.js"></script>
+	<script type="text/javascript" src="/client/geolocation.js"></script>
 	<script type="text/javascript" src="/client/webinos.fs.js"></script>
 	<script type="text/javascript"
 		src="http://code.jquery.com/jquery-1.5.2.js"></script>
@@ -16,6 +17,8 @@
             	    var fileSaver = null;
             	    var fileWriter = null;
             	    var test = null;
+            	    var geoLocationService = null;
+            	    
                     $('#findService').bind('click', function() {
                 	    webinos.ServiceDiscovery.findServices("FileReader", {onFound: function (service) {
                 	    	reader = service;
@@ -29,6 +32,9 @@
                 	    webinos.ServiceDiscovery.findServices("Test", {onFound: function (service) {
                 	    	test = service;
                 	    }});
+                	    webinos.ServiceDiscovery.findServices("Geolocation", {onFound: function (service) {
+                	    	geoLocationService = service;
+                	    }});
                 	   
                     });
                     
@@ -37,6 +43,15 @@
                     		alert(result);
                     	});
                     }); 
+
+                   $('#currentPositionButton').bind('click', function() {
+                    	geoLocationService.getCurrentPosition(function (result){
+                    		//var resarray = JSON.parse(result);
+                    		// var loc= 'Latitude = ' + resarray['latitude'] + ', longitude = ' + resarray['longitude'];
+                    		alert(result);
+                    	});
+                    }); 
+
                     
                     $('#cls').bind('click', function() {
                     	document.getElementById("messages").innerHTML = "";
@@ -270,6 +285,7 @@
 			<p>
 				<button id="findService">Find Service</button>
 				<button id="get42">get42</button>
+				<button id="currentPositionButton">current pos</button>
 				<button id="cls">Clear</button>
 				<button id="getFileContent">Get File Content</button>
 		    	<button id="fileSaver">Save with FileSaver</button>
