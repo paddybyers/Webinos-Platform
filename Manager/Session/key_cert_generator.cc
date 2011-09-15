@@ -16,14 +16,18 @@
 #include <openssl/pem.h>
 #include <openssl/asn1.h>
 
+#include <sys/types.h>
+
 #include <string.h>
 #include <iostream>
+#include <sys/socket.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
 #include <fstream>
 
 #include <stdio.h>
+#include <ifaddrs.h>
 
 using namespace node;
 using namespace v8;
@@ -313,6 +317,45 @@ Handle<Value> KeyGenerator::GenClientCert(const Arguments& args)
 // Bluetooth: bnep0, pan0
 // Wifi: wlan0
 // Loopback: lo0
+#ifdef __APPLE__
+void KeyGenerator::get_mac_addr()
+{
+  struct ifaddrs     *ifaddr, *ifa;
+  struct sockaddr *sdl;
+  unsigned char *ptr;
+  char *mac = (char*)calloc(sizeof(char), 18);
+
+  if (getifaddrs(&ifaddr)==-1)
+  {
+    perror("getifaddrs");
+    exit(-1);
+  }
+
+  for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
+  {
+    if (ifa->ifa_addr != NULL) {
+      int family = ifa->ifa_addr->sa_family;
+      
+    	std::cerr<< ifa->ifa_name << ": " << family << std::endl;
+      
+      // TODO: Next line should check for family (on linux PF_PACKET, on mac BPF), but BPF doesn't seem to work
+      if((strcmp("eth0", ifa->ifa_name) == 0 || strcmp("en0", ifa->ifa_name) == 0))
+      {
+        std::cerr<< "ok" << std::endl;
+        sdl = (struct sockaddr *)(ifa->ifa_addr);
+        ptr = (unsigned char *)sdl->sa_data;
+        ptr += 10;
+        sprintf(mac, "%02x:%02x:%02x:%02x:%02x:%02x", *(ptr+5), *ptr, *(ptr+1), *(ptr+2), *(ptr+3), *(ptr+4));
+
+        break;
+      }
+    }
+  }
+  
+	std::cerr<< "MAC address @ " << mac << std::endl;
+  freeifaddrs(ifaddr);
+}
+#else
 void KeyGenerator::get_mac_addr()
 {	
 	struct ifreq ifr;
@@ -327,6 +370,7 @@ void KeyGenerator::get_mac_addr()
 	}
 	std::cerr<< "MAC address @ " << mac << std::endl;	
 }
+#endif
 
 extern "C"
 {

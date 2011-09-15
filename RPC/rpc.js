@@ -121,7 +121,9 @@ webinos.rpc.handleMessage = function (message, responseto){
 					else webinos.rpc.awaitingResponse[myObject.id].onError();
 				}
 					
-				webinos.rpc.awaitingResponse[myObject.id] == null;
+				//webinos.rpc.awaitingResponse[myObject.id] == null;
+				//webinos.rpc.awaitingResponse.splice(myObject.id,1);
+				delete webinos.rpc.awaitingResponse[myObject.id];
 			}
 		}
 	}
@@ -216,6 +218,8 @@ if (typeof exports !== 'undefined'){
 	require('./rpc_test.js');
 	require('./webinos.rpc.fs.js');
 	require('./rpc_sensors.js');
+	require('./rpc_geolocation.js');
+	require('./tv/provider/webinos.rpc.tv.js');
 }
 
 
