@@ -29,11 +29,13 @@ $(document).ready(function() {
 		$('#messages').prepend('<li><span class="logdate">'+(new Date())+'</span><br/>'+msg+'</li>');
 	};
 	
-	var updateUI = function(tvSourceName, channelName){
+	var updateUI = function(tvSourceName, channelName,stream){
 		if(tvSourceName)
 		$('#tvSourceLabel').text(tvSourceName);
 		if(channelName)
 		$('#channelNameLabel').text(channelName);
+		if(stream)
+			$('#videoDisplay').attr('src',stream);
 		
 	}
 	
@@ -72,10 +74,10 @@ $(document).ready(function() {
 			if(isServiceDiscovered('TVDisplayManager','TVDisplayManager is not discovered yet.')){
 				var channelChangeHandler = function(channel){
 					log('EVENT: CHANNEL CHANGED: '+JSON.stringify(channel));
-					updateUI(channel.tvsource.name,channel.name);
+					updateUI(channel.tvsource.name,channel.name,channel.stream);
 				};
 				discoveredServices['TVDisplayManager'].addEventListener('channelchange', channelChangeHandler, false);
-				
+				log("EVENTLISTENER registered.");
 			}
 			break;
 		case 'setChannel':
@@ -88,6 +90,7 @@ $(document).ready(function() {
 					var successCallback = function(channel){
 						console.log('setChannel ok.');
 						log('CHANNEL CHANGED: '+JSON.stringify(channel));
+						updateUI(channel.tvsource.name,channel.name,channel.stream);
 					};
 					var errorCallback = function(){
 						console.log('setChannel failed.');

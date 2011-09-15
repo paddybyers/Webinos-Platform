@@ -1,4 +1,4 @@
-//implementation at client side
+//implementation at client side, includes RPC massage invokation
 /**
  * Interface for TV control and managment.
  * 

@@ -19,15 +19,13 @@
 
     var WebinosTV, TVManager, TVDisplayManager, TVDisplaySuccessCB, TVTunerManager, TVSuccessCB, TVErrorCB, TVError, TVSource, Channel, ChannelChangeEvent;
     
+    var channelChangeHandlers = [];
+    
     /**
      * Creates tv object.
      *
      */
     WebinosTV = function () {
-        //TODO implement constructor logic if needed!
-
-        //TODO initialize attributes
-
         this.tv = new TVManager();
     };
     WebinosTV.prototype.tv = null;
@@ -42,7 +40,6 @@
      * 
      */
     TVDisplayManager = function () {
-        //TODO implement constructor logic if needed!
 
     };
 
@@ -51,18 +48,14 @@
      *
      */
     TVDisplayManager.prototype.setChannel = function (channel, successCallback, errorCallback) {
-        console.log("Setting channel to: ",channel);
-        
-        //TODO: implement/invoke the channel change on device
-        
+
+    	//return the set channel immediatelly
         successCallback(channel);
         
-        console.log("SENDING EVENT TO REGISTERING CLIENTS: "+channelChangeHandlers.length);
+        //send the channel change information to all registered handlers
         for(var i=0; channelChangeHandlers.length>i;i++){
         	channelChangeHandlers[i](channel);
         }
-
-        return;
     };
 
     /**
@@ -70,26 +63,12 @@
      *
      */
     TVDisplaySuccessCB = function () {
-        //TODO implement constructor logic if needed!
 
     };
     TVDisplaySuccessCB.prototype.onSuccess = function (channel) {
-        //TODO: Add your application logic here!
-
+    	
         return;
     };
-    
-    var channelChangeHandlers = [];
-    
-    //TODO: does not conform API Spec, but needs to be added!
-    TVDisplayManager.prototype.addEventListener = function (eventname, channelchangeeventhandler, useCapture) {
-		if(eventname==='channelchange' && typeof channelchangeeventhandler==='function'){
-			channelChangeHandlers.push(channelchangeeventhandler);
-			console.log('channelchangeeventhandler added.');
-		}
-        return;
-    };   
-    
    
 
     /**
@@ -97,7 +76,6 @@
      *
      */
     TVTunerManager = function () {
-        //TODO implement constructor logic if needed!
 
     };
 
@@ -109,12 +87,13 @@
         
     	//TODO: The following implementation needs to be modified to fit the focused device, e.g. STB, DVB-Stick
     	
+    	//Sample videos taken from: http://people.opera.com/patrickl/experiments/webm/fancy-swap/
     	var staticExampleTuners = [{
 			name : "DVB-S",
-			channelList : [ new Channel(0,'CH01','Long name of channel 1.','http://tld.com/video.mp4',"DVB-S"),new Channel(0,'CH02','Long name of channel 2.','http://tld.com/video.mp4',"DVB-S")  ]
+			channelList : [ new Channel(0,'CH01','Long name of channel 1.','http://people.opera.com/patrickl/experiments/webm/videos/fridge.webm',new TVSource('DVB-S')),new Channel(0,'CH02','Long name of channel 2.','http://people.opera.com/patrickl/experiments/webm/videos/garden1.webm',new TVSource('DVB-S'))  ]
     	},{
 			name : "DVB-T",
-			channelList : [ new Channel(0,'CH100','Long name of channel 1.','http://tld.com/video.mp4',"DVB-T"),new Channel(0,'CH101','Long name of channel 101.',"DVB-T")  ]
+			channelList : [ new Channel(0,'CH100','Long name of channel 1.','http://people.opera.com/patrickl/experiments/webm/videos/garden2.webm',new TVSource('DVB-T')),new Channel(0,'CH101','Long name of channel 101.','http://people.opera.com/patrickl/experiments/webm/videos/windowsill.webm',new TVSource('DVB-T'))  ]
     	}];
     	
     	if(typeof successCallback==='function'){
@@ -132,7 +111,6 @@
      *
      */
     TVSuccessCB = function () {
-        //TODO implement constructor logic if needed!
 
     };
 
@@ -141,7 +119,6 @@
      *
      */
     TVSuccessCB.prototype.onSuccess = function (sources) {
-        //TODO: Add your application logic here!
 
         return;
     };
@@ -151,8 +128,7 @@
      *
      */
     TVErrorCB = function () {
-        //TODO implement constructor logic if needed!
-
+    	
     };
 
     /**
@@ -160,8 +136,7 @@
      *
      */
     TVErrorCB.prototype.onError = function (error) {
-        //TODO: Add your application logic here!
-
+    	
         return;
     };
 
@@ -170,9 +145,6 @@
      *
      */
     TVError = function () {
-        //TODO implement constructor logic if needed!
-
-        //TODO initialize attributes
 
         this.code = Number;
     };
@@ -200,11 +172,9 @@
      *
      */
     TVSource = function (tvsourcename) {
-        //TODO implement constructor logic if needed!
-
-        //TODO initialize attributes
 
         this.name = tvsourcename;
+        //TODO: get the real channel list from device
         this.channelList = [];
     };
 
@@ -244,11 +214,9 @@
     		this.longName = longName;
     	}
         
-    	//TODO: handle stream attribute
         this.stream = stream;
         
-        //TODO: initialize tvsource
-        this.tvsource = new TVSource(tvsource);
+        this.tvsource = tvsource;
     };
 
     /**
@@ -315,9 +283,6 @@
      * 
      */
     ChannelChangeEvent = function () {
-        //TODO implement constructor logic if needed!
-
-        //TODO initialize attributes
 
         this.channel = new Channel();
     };
@@ -333,19 +298,28 @@
      *
      */
     ChannelChangeEvent.prototype.initChannelChangeEvent = function (type, bubbles, cancelable, channel) {
-        //TODO: Add your application logic here!
 
         return;
     };
-
+    
+    
+    /**
+     * Adding a handler for the channel change event.
+     * 
+     */
+    //TODO: does not conform API Spec, but needs to be added!
+    TVDisplayManager.prototype.addEventListener = function (eventname, channelchangeeventhandler, useCapture) {
+		if(eventname==='channelchange' && typeof channelchangeeventhandler==='function'){
+			channelChangeHandlers.push(channelchangeeventhandler);
+		}
+        return;
+    };  
+    
     /**
      * Access to tuner and display managers.
      *
      */
     TVManager = function () {
-        //TODO implement constructor logic if needed!
-
-        //TODO initialize attributes
 
         this.display = new TVDisplayManager();
         this.tuner = new TVTunerManager();

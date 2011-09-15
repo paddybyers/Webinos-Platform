@@ -15,11 +15,12 @@
 	RemoteTVDisplayManager.addEventListener = function ( params,  successCallback,  errorCallback, objectRef) {
 		
 		if(params[0]==='channelchange'){
+			var useCapture = params[2];
 		
-		tvmodule.tv.display.addEventListener(params[0],function(channel){
+		tvmodule.tv.display.addEventListener('channelchange',function(channel){
 			var json = webinos.rpc.createRPC(objectRef, "onchannelchangeeventhandler", channel);
 			webinos.rpc.executeRPC(json);
-		},params[2]);
+		},useCapture);
 		
 		}
 	};
