@@ -97,28 +97,25 @@
 			return;
 		}
 		
-		if (type == "Geolocation"){		// registered RPC name
-			var tmp = new TestModuleGeo();			// must correspond to what is defined in geolocation.js
-			tmp.origin = 'ws://127.0.0.1:8080';
-			webinos.ServiceDiscovery.registeredServices++;
-			callback.onFound(tmp);
-			return;
-		}
-		
-		
-		
 		if (type == 'RemoteFileSystem') {
 			webinos.ServiceDiscovery.registeredServices++;
 			
 			return void (callback.onFound(new webinos.fs.RemoteFileSystem()));
 		}
 		
-		if (type == 'Sensors') {
-			var sensor = new Sensor();
-			sensor.api = "SensorAPI" + Math.floor(Math.random()*101);
-			callback.onFound(sensor);
+		if (type == "TVTunerManager"){
+			var tmp = webinos.tv.tuner;
+			callback.onFound(tmp);
 			return;
 		}
+		
+		if (type == "TVDisplayManager"){
+			var tmp = webinos.tv.display;
+			callback.onFound(tmp);
+			return;
+		}
+		
+		
 		
 	}
 	
@@ -128,24 +125,6 @@
 		this.id = Math.floor(Math.random()*101);
 		
 	};
-	
-	WebinosService.prototype.state = "";
-    
-
-	WebinosService.prototype.api = "";
-    
-
-	WebinosService.prototype.id = "";
-    
-
-	WebinosService.prototype.displayName = "";
-    
-
-	WebinosService.prototype.description = "";
-    
-
-	WebinosService.prototype.icon = "";
-
 	
 	
 	WebinosService.prototype.bind = function(success) {

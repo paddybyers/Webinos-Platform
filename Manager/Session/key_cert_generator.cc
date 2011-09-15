@@ -317,7 +317,7 @@ Handle<Value> KeyGenerator::GenClientCert(const Arguments& args)
 // Bluetooth: bnep0, pan0
 // Wifi: wlan0
 // Loopback: lo0
-#ifdef __APPLE__
+//#ifdef __APPLE__
 void KeyGenerator::get_mac_addr()
 {
   struct ifaddrs     *ifaddr, *ifa;
@@ -355,7 +355,7 @@ void KeyGenerator::get_mac_addr()
 	std::cerr<< "MAC address @ " << mac << std::endl;
   freeifaddrs(ifaddr);
 }
-#else
+/*#else
 void KeyGenerator::get_mac_addr()
 {	
 	struct ifreq ifr;
@@ -371,7 +371,7 @@ void KeyGenerator::get_mac_addr()
 	std::cerr<< "MAC address @ " << mac << std::endl;	
 }
 #endif
-
+*/
 extern "C"
 {
 	static void init (Handle<Object> target)
