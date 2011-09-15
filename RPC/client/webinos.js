@@ -103,6 +103,13 @@
 			return void (callback.onFound(new webinos.fs.RemoteFileSystem()));
 		}
 		
+		if (type == 'Sensors') {
+			var sensor = new Sensor();
+			sensor.api = "SensorAPI" + Math.floor(Math.random()*101);
+			callback.onFound(sensor);
+			return;
+		}
+		
 	}
 	
 	///////////////////// WEBINOS SERVICE INTERFACE ///////////////////////////////
@@ -111,6 +118,24 @@
 		this.id = Math.floor(Math.random()*101);
 		
 	};
+	
+	WebinosService.prototype.state = "";
+    
+
+	WebinosService.prototype.api = "";
+    
+
+	WebinosService.prototype.id = "";
+    
+
+	WebinosService.prototype.displayName = "";
+    
+
+	WebinosService.prototype.description = "";
+    
+
+	WebinosService.prototype.icon = "";
+
 	
 	
 	WebinosService.prototype.bind = function(success) {
