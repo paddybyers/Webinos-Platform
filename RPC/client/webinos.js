@@ -480,11 +480,16 @@
 	
 	///////////////////// VEHICLE INTERFACE ///////////////////////////////
 	var Vehicle;
-	var referenceMapping = new Array();
+	
+	var _referenceMapping = new Array();
+	var _vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passenger-front', 'climate-passenger-rear-left','passenger-rear-right','lights-fog-front','lights-fog-rear','lights-signal-right','lights-signal-warn','lights-parking-hibeam','lights-head','lights-head','wiper-front-wash','wiper-rear-wash','wiper-automatic','wiper-front-once','wiper-rear-once','wiper-front-level1','wiper-front-level2','destination-reached','destination-changed','destination-cancelled','parksensors-front','parksensors-rear','shift','tripcomputer'); 
+	
 	
 	Vehicle = function(){} 
 	Vehicle.prototype = WebinosService.prototype;
 	Vehicle.prototype.get = function(vehicleDataId, callOnSuccess, callOnError){	
+		
+		
 		arguments[0] = vehicleDataId;
 		var rpc = webinos.rpc.createRPC("Vehicle", "get", arguments);
 		
@@ -499,42 +504,34 @@
 		
 		
 		}
-		
-	ShiftEvent = function(){
-		this.SHIFT = "shift"
-		
-		};
-	//ShiftEvent.prototype.SHIFT = "shift";
-	
-	Vehicle.prototype.ShiftEvent = ShiftEvent;
-	 
 	Vehicle.prototype.addEventListener = function(vehicleDataId, eventHandler, capture){
 		
 				
-		
-		var rpc = webinos.rpc.createRPC("Vehicle", "addEventListener", vehicleDataId);
-		rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
-		
-		referenceMapping.push([rpc.fromObjectRef, eventHandler]);
-		console.log('# of references' + referenceMapping.length);
-		
-		
-		
-		callback = {};
-		callback.onEvent = function (vehicleEvent) {
-			eventHandler(vehicleEvent);
+		if(_vehicleDataIds.indexOf(vehicleDataId) != -1){	
+			var rpc = webinos.rpc.createRPC("Vehicle", "addEventListener", vehicleDataId);
+			rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
+			
+			_referenceMapping.push([rpc.fromObjectRef, eventHandler]);
+			console.log('# of references' + _referenceMapping.length);
+			callback = {};
+			callback.onEvent = function (vehicleEvent) {
+				eventHandler(vehicleEvent);
+			}
+			webinos.rpc.registerObject(rpc.fromObjectRef , callback);
+			webinos.rpc.executeRPC(rpc);
+		}else{
+			console.log(vehicleDataId + ' not found');	
 		}
-		webinos.rpc.registerObject(rpc.fromObjectRef , callback);
-		webinos.rpc.executeRPC(rpc);
+	
 	}
 		
 	Vehicle.prototype.removeEventListener = function(vehicleDataId, eventHandler, capture){
 		var refToBeDeleted = null;
-		for(i = 0; i < referenceMapping.length; i++){
-			console.log("Reference" + i + ": " + referenceMapping[i][0]);
-			console.log("Handler" + i + ": " + referenceMapping[i][1]);
-			if(referenceMapping[i][1] == eventHandler){
-					refToBeDeleted = referenceMapping[i][0];
+		for(i = 0; i < _referenceMapping.length; i++){
+			console.log("Reference" + i + ": " + _referenceMapping[i][0]);
+			console.log("Handler" + i + ": " + _referenceMapping[i][1]);
+			if(_referenceMapping[i][1] == eventHandler){
+					refToBeDeleted = _referenceMapping[i][0];
 					console.log("ListenerObject to be removed ref#" + refToBeDeleted);
 					
 					var rpc = webinos.rpc.createRPC("Vehicle", "removeEventListener", refToBeDeleted);
@@ -549,19 +546,6 @@
 					break;			
 			}	
 		}
-		
-		
-		/*
-		var rpc = webinos.rpc.createRPC("Vehicle", "removeEventListener", vehicleDataId);
-		rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
-		callback = {};
-		callback.onEvent = function (vehicleEvent) {
-			eventHandler(vehicleEvent);
-		}
-		webinos.rpc.registerObject(rpc.fromObjectRef , callback);
-		webinos.rpc.executeRPC(rpc);
-		*/
-		
 	}
 	Vehicle.prototype.requestGuidance = function(successCB, errorCB, destinations){
 		console.log('request guidance');

@@ -10,7 +10,7 @@
 			$(document).ready(function() {
 					var vehicle = null;		
 					var listeners = new Array();
-					
+					var _vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passenger-front', 'climate-passenger-rear-left','passenger-rear-right','lights-fog-front','lights-fog-rear','lights-signal-right','lights-signal-warn','lights-parking-hibeam','lights-head','lights-head','wiper-front-wash','wiper-rear-wash','wiper-automatic','wiper-front-once','wiper-rear-once','wiper-front-level1','wiper-front-level2','destination-reached','destination-changed','destination-cancelled','parksensors-front','parksensors-rear','shift','tripcomputer'); 
 					postMessage('Info','Page loaded. Please Initialize');
 					
 					var handleShiftData = function(event){
@@ -106,7 +106,6 @@
 						}						
 					}
 					
-					                    //$('#findService').bind('click', function() {
                 	webinos.ServiceDiscovery.findServices("Vehicle", {onFound: function (service) {
                 	    	vehicle = service;
 							postMessage("Connected Vehicle System. Please choose a function");
@@ -122,8 +121,9 @@
 						
                 	}});
                 	    
-                    //});
-					
+					for(i=0; i < _vehicleDataIds.length; i++){
+						$('#vehicleDataId').append(new Option(_vehicleDataIds[i],_vehicleDataIds[i],true,true));
+					}				
 					
 			});			
 			
@@ -141,9 +141,6 @@
 		<h3>Access vehicle data</h3>
         <p>
             <select id="vehicleDataId" disabled>
-            	<option value="shift">Gear</option>
-                <option value="tripcomputer">Tripcomputer</option>
-                <option value="climate">Climate</option>
             </select><br/>
             <input type="button" id="getData" value="get Data" disabled class="button"/><br />
             <input type="button" id="addListener" value="add EventListener" disabled class="button"/><br>
