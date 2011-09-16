@@ -1,0 +1,52 @@
+PZP Storage
+
+Code
+----
+
+This is a VERY early example of what we could do for encrypted storage.
+
+It won't work on systems which don't have a "zip" and "unzip" executable, and it relies on being passed relative paths at the moment.
+
+To use it, call "open", then access files as normal in the directory you used as an argument.  When you are finished, call "close".
+
+More documentation on redmine.
+
+
+Tests
+-----
+
+There are two tests in the "testing" directory, plus a load of other files.  These tests work under Linux.
+
+Testing proceedure:
+
+1) Go into the "testing" directory
+2) run "node storagetest.js"
+  - press any key when it stops
+
+example output:
+
+No error from open
+Storing a key value
+Getting a key value
+{ foo: 'bar?' }
+
+closed
+graceful exit
+
+
+3) run "node storagetest-proper.js"
+
+example output:
+
+Passed: Read file
+Passed: Encryption
+Passed: Decryption
+Passed: Read file
+Passed: unzip/zip
+Passed: Open
+Passed: Close 1
+Done
+
+4) Delete all zip files in the "testing" directory.  Do not delete the "test2" directory.
+
+
