@@ -204,6 +204,7 @@ if (typeof exports !== 'undefined'){
 	//add your RPC Implementations here!
 	require('./rpc_file.js');
 	require('./rpc_test.js');
+	require('./rpc_vehicle.js');
 	require('./webinos.rpc.fs.js');
 }
 
