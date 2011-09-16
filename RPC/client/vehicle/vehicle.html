@@ -1,0 +1,164 @@
+<html>
+<head>
+	<title>webinos | Hello Gear</title>
+	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
+	<script type="text/javascript" src="/rpc.js"></script>
+	<script type="text/javascript" src="/client/webinos.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.5.2.js"></script>
+		<script type="text/javascript">
+			
+			$(document).ready(function() {
+					var vehicle = null;		
+					var listeners = new Array();
+					
+					postMessage('Info','Page loaded. Please Initialize');
+					
+					var handleShiftData = function(event){
+						postMessage("info","new Shift-Event received.");
+						$('#info').html("gear: <br />" + event.gear);
+					};
+					
+					var handleTripData = function(data){
+							
+					}
+						
+					var errorCB = function(error){
+						postMessage('error', "ERROR:" + error.message);
+						console.log('error' + error.message);
+					};
+					$('#vehicleDataId').change(function(){
+						var listenerRegistered = false;
+						for(i=0; i < listeners.length; i++){
+							if(listeners[i] == $('#vehicleDataId').val()){
+								listenerRegistered = true;
+								break;	
+							}	
+						}
+						if(listenerRegistered){
+							$('#removeListener').removeAttr('disabled');
+							$('#addListener').attr('disabled', 'true');	
+						}else{					
+							$('#addListener').removeAttr('disabled');
+							$('#removeListener').attr('disabled', 'true');
+
+						}
+						
+						
+					});
+					
+					
+					$('#getData').bind('click', function(){
+						vehicle.get($('#vehicleDataId').val(), getMessageHandler($('#vehicleDataId').val()) ,errorCB);
+						});
+					
+					$('#addListener').bind('click', function(){
+						
+						
+					
+						
+						vehicle.addEventListener($('#vehicleDataId').val(), getMessageHandler($('#vehicleDataId').val()), false);
+						listeners.push($('#vehicleDataId').val());
+						
+						$('#removeListener').removeAttr('disabled');
+						$('#addListener').attr('disabled', 'true');	
+						
+					});
+					$('#removeListener').bind('click', function(){
+						vehicle.removeEventListener($('#vehicleDataId').val(), getMessageHandler($('#vehicleDataId').val()), false);
+						postMessage('info','Listener removed for' + $('#vehicleDataId').val());
+						$('#info').html("<img src='ajaxloader.gif'>");
+						for(i = 0; listeners.length; i++){
+							if(listeners[i] == $('#vehicleDataId').val()){
+								listeners.splice(i,1);
+								break;	
+							}
+					}
+						$('#addListener').removeAttr('disabled');
+						$('#removeListener').attr('disabled', 'true');
+					});
+						
+					$(window).unload(function(e) {
+                        for(i= 0; i < listeners.length; i++){
+						console.log('Removing listener for ' + listeners[i]);
+							vehicle.removeEventListener(listeners[i],getMessageHandler(listeners[i]), false);
+						}
+                    });
+						
+					function postMessage(type,message){
+						var time = new Date();
+						$("#message").html(message + " (" + time.toUTCString() +")");
+						if(type == "error"){
+							$("#status").addClass('error');
+						}else{
+							$("#status").removeClass('error');
+						}
+					}
+					function getMessageHandler(vehicleDataId){
+						switch(vehicleDataId){
+							case "shift":
+								return handleShiftData;
+								break;
+							case "tripcomputer":
+								return handleTripData;
+								break;
+							default:
+								return handleShiftData;
+						}						
+					}
+					
+					                    //$('#findService').bind('click', function() {
+                	webinos.ServiceDiscovery.findServices("Vehicle", {onFound: function (service) {
+                	    	vehicle = service;
+							postMessage("Connected Vehicle System. Please choose a function");
+							$('#addListener').removeAttr('disabled');
+							$('#getData').removeAttr('disabled');
+							$('#vehicleDataId').removeAttr('disabled');
+							//$('#requestGuidance').removeAttr('disabled');
+							
+							$('#info').html("<img src='ajaxloader.gif'>");
+							
+							$('#findService').attr('disabled', 'true');
+							$('#findService').val('Vehicle found');
+						
+                	}});
+                	    
+                    //});
+					
+					
+			});			
+			
+</script>
+</head>
+<body>
+<div id="content">
+	<div id="header">
+		<h1><img src="testbed_logo.png"></h1>
+     </div>
+     <div id="functions">
+		<h2>Testfunctions:</h2>
+        <!-- <h3>First Step</h3>	
+        <p><input type="button" id="findService" value="initialize" class="button"/></p>  -->
+		<h3>Access vehicle data</h3>
+        <p>
+            <select id="vehicleDataId" disabled>
+            	<option value="shift">Gear</option>
+                <option value="tripcomputer">Tripcomputer</option>
+                <option value="climate">Climate</option>
+            </select><br/>
+            <input type="button" id="getData" value="get Data" disabled class="button"/><br />
+            <input type="button" id="addListener" value="add EventListener" disabled class="button"/><br>
+            <input type="button" id="removeListener" value="remove EventListener" disabled class="button"/><br>
+            </p>
+         <h3>Navigationfunctions</h3>
+			<input type="button" id="requestGuidance" value="request Guidance" disabled class="button"/>
+            <input type="button" id="findDestinations" value="find POI" disabled class="button"/>
+		</p>
+    </div>
+
+<div id="info"></div>
+
+<div id="status">STATUS: <span id="message">Please connect to PZH</span></div>
+</div>
+
+</body>
+</html>
