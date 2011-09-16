@@ -97,6 +97,14 @@
 			return;
 		}
 		
+		if (type == "Vehicle"){
+			var tmp = new Vehicle();
+			tmp.origin = 'ws://127.0.0.1:8080';
+			webinos.ServiceDiscovery.registeredServices++;
+			callback.onFound(tmp);
+			return;
+		}
+
 		if (type == "Geolocation"){		// registered RPC name
 			var tmp = new TestModuleGeo();			// must correspond to what is defined in geolocation.js
 			tmp.origin = 'ws://127.0.0.1:8080';
@@ -104,8 +112,6 @@
 			callback.onFound(tmp);
 			return;
 		}
-		
-		
 		
 		if (type == 'RemoteFileSystem') {
 			webinos.ServiceDiscovery.registeredServices++;
@@ -470,6 +476,99 @@
 		var rpc = webinos.rpc.createRPC("FileWriter", "truncate", arguments);
 		rpc.fromObjectRef = this.objectRef;
 		webinos.rpc.executeRPC(rpc);
+	}
+	
+	///////////////////// VEHICLE INTERFACE ///////////////////////////////
+	var Vehicle;
+	var referenceMapping = new Array();
+	
+	Vehicle = function(){} 
+	Vehicle.prototype = WebinosService.prototype;
+	Vehicle.prototype.get = function(vehicleDataId, callOnSuccess, callOnError){	
+		arguments[0] = vehicleDataId;
+		var rpc = webinos.rpc.createRPC("Vehicle", "get", arguments);
+		
+		webinos.rpc.executeRPC(rpc,
+			function(result){
+					callOnSuccess(result);
+				},
+			function(error){
+					callOnError(error);
+				}
+		);
+		
+		
+		}
+		
+	ShiftEvent = function(){
+		this.SHIFT = "shift"
+		
+		};
+	//ShiftEvent.prototype.SHIFT = "shift";
+	
+	Vehicle.prototype.ShiftEvent = ShiftEvent;
+	 
+	Vehicle.prototype.addEventListener = function(vehicleDataId, eventHandler, capture){
+		
+				
+		
+		var rpc = webinos.rpc.createRPC("Vehicle", "addEventListener", vehicleDataId);
+		rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
+		
+		referenceMapping.push([rpc.fromObjectRef, eventHandler]);
+		console.log('# of references' + referenceMapping.length);
+		
+		
+		
+		callback = {};
+		callback.onEvent = function (vehicleEvent) {
+			eventHandler(vehicleEvent);
+		}
+		webinos.rpc.registerObject(rpc.fromObjectRef , callback);
+		webinos.rpc.executeRPC(rpc);
+	}
+		
+	Vehicle.prototype.removeEventListener = function(vehicleDataId, eventHandler, capture){
+		var refToBeDeleted = null;
+		for(i = 0; i < referenceMapping.length; i++){
+			console.log("Reference" + i + ": " + referenceMapping[i][0]);
+			console.log("Handler" + i + ": " + referenceMapping[i][1]);
+			if(referenceMapping[i][1] == eventHandler){
+					refToBeDeleted = referenceMapping[i][0];
+					console.log("ListenerObject to be removed ref#" + refToBeDeleted);
+					
+					var rpc = webinos.rpc.createRPC("Vehicle", "removeEventListener", refToBeDeleted);
+					webinos.rpc.executeRPC(rpc,
+					function(result){
+						callOnSuccess(result);
+					},
+					function(error){
+						callOnError(error);
+					}
+		);
+					break;			
+			}	
+		}
+		
+		
+		/*
+		var rpc = webinos.rpc.createRPC("Vehicle", "removeEventListener", vehicleDataId);
+		rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
+		callback = {};
+		callback.onEvent = function (vehicleEvent) {
+			eventHandler(vehicleEvent);
+		}
+		webinos.rpc.registerObject(rpc.fromObjectRef , callback);
+		webinos.rpc.executeRPC(rpc);
+		*/
+		
+	}
+	Vehicle.prototype.requestGuidance = function(successCB, errorCB, destinations){
+		console.log('request guidance');
+		
+	}
+	Vehicle.prototype.findDestination = function(destinationCB, errorCB, search){
+		console.log('Find Destination...');
 	}
 	
 }());
