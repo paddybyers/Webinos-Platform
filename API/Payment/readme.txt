@@ -14,6 +14,18 @@ create a more convenient structure.
 If added to a central node server, this needs to be added to rpc.js:
 require('./rpc_payment.js');
 
+To be able to build the communication from the client side,
+the following lines need to be added to webinos.js to enable
+discovery of the Payment service.
+
+                if (type == "Payment"){
+                        var tmp = new PaymentModule();
+                        tmp.origin = 'ws://127.0.0.1:8080';
+                        webinos.ServiceDiscovery.registeredServices++;
+                        callback.onFound(tmp);
+                        return;
+                }
+
 Currently the code only covers client-server communication, but
 has no connection to any real payment server. 
 So Shopping baskets get created and can be handled and filled,
