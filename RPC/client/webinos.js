@@ -21,8 +21,11 @@
 	 * messaging/eventing system will be used
 	 */
 	function createCommChannel (successCB){
+		try{
 		channel  = new WebSocket('ws://127.0.0.1:8080');
-		
+		}catch(e){
+			channel  = new MozWebSocket('ws://127.0.0.1:8080');
+		}
 		channel.onopen = function() {
 			webinos.rpc.setWriter(write);
 			if (typeof successCB === 'function') successCB();
