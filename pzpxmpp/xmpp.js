@@ -25,7 +25,7 @@ function Connection() {
     this.sharedFeatures = {};    // services that the app wants shared
     this.remoteFeatures = {};    // services that are shared with us, assoc array of arrays
     this.pendingRequests = {};   // hash to store <stanza id, geo service> so results can be handled
-    this.featureMap = {};      // holds features, see initPresence() for explanation
+    this.featureMap = {};        // holds features, see initPresence() for explanation
 }
 
 sys.inherits(Connection, EventEmitter);
@@ -100,17 +100,20 @@ Connection.prototype.updatePresence = function() {
 }
 
 /**
- *
+ * Called to invoke a remote feature. Params is optional.
  */
-Connection.prototype.invokeFeature = function(feature, params) {
+Connection.prototype.invokeFeature = function(feature, callback, params) {
 	var id = this.getUniqueId('feature');
-	this.pendingRequests[id] = feature;
+	this.pendingRequests[id] = callback;
+	
+	//TODO do something with optional params.
+	
 	this.client.send(
 		new xmpp.Element('iq', { 'to': feature.device, 'type': 'get', 'id': id }).
-			c('query', {'xmlns': feature.namespace})
+			c('query', {'xmlns': feature.ns})
 	);
 
-	logger.debug('Feature ' + feature.namespace + ' invoked for ' + feature.device);
+	logger.debug('Feature ' + feature.ns + ' invoked for ' + feature.device);
 }
 
 // Send presence notification according to http://xmpp.org/extensions/xep-0115.html
@@ -145,18 +148,51 @@ Connection.prototype.onStanza = function(stanza) {
 			connection.onDiscoInfo(stanza);
 		} else if (stanza.attrs.type == 'result' && stanza.getChild('query', 'http://jabber.org/protocol/disco#info') != null) {
 			connection.onPresenceDisco(stanza);
-		} else if (stanza.attrs.type == 'get') {
+		} else if (stanza.attrs.type === 'result' || stanza.attrs.type === 'error') {
+			// handle results of queries.
+			
+			var callback = connection.pendingRequests[stanza.attrs.id];
+			
+			if (callback == null) {
+				logger.warn("Received a result for an unknown request id: " + stanza.attrs.id);
+			} else {
+				// dispatch the result to the 
+				var query = stanza.getChild('query');
+				delete connection.pendingRequests[stanza.attrs.id];
+				callback(stanza.attrs.type, query);
+			}
+		} else if (stanza.attrs.type == 'get' || stanza.attrs.type == 'set') {
 			var query = stanza.getChild('query');
 			var found = false;
 			
-			var feature = this.sharedFeatures[query.attrs.xmlns]; //TODO there is a limit to only 1 feature per namespace.
+			if (query != null && query.attrs.xmlns != null) {
+				var feature = connection.sharedFeatures[query.attrs.xmlns]; //TODO there is a limit to only 1 feature per namespace.
 
-			if (feature != null) {
-				logger.debug("Feature " + feature.ns + " is being invoked by " + stanza.attr.from);
-				feature.invoke({'from': stanza.attrs.from, 'id': stanza.attrs.id });
+				if (feature != null) {
+					logger.debug("Feature " + feature.ns + " is being invoked by " + stanza.attrs.from);
+					feature.invoked(stanza);
+				} else {
+					// default respond with an error
+					this.send(new xmpp.Element('iq', { 'id': stanza.attrs.id, 'type': 'result', 'to': stanza.attrs.from }).c('service-unavailable'));
+				}
+			} else {
+				// default respond with an error
+				this.send(new xmpp.Element('iq', { 'id': stanza.attrs.id, 'type': 'result', 'to': stanza.attrs.from }).c('service-unavailable'));
 			}
 		}
 	}
+}
+
+/**
+ * Answers the info query.
+ */
+Connection.prototype.answer = function(stanza, result) {
+	var query = stanza.getChild('query');
+	
+	this.client.send(
+		new xmpp.Element('iq', { 'id': stanza.attrs.id, 'type': 'result', 'to': stanza.attrs.from }).
+			c('query', { xmlns: query.attrs.xmlns }).t(result)
+	);
 }
 
 Connection.prototype.onPresenceBye = function(stanza) {

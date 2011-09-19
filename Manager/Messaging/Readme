@@ -1,0 +1,43 @@
+The Messaging manager must be able to
+
+receive messages: process incoming messages
+route messages: which implies that it keeps a register of the active sessions and last know physical address or each person, device, service.
+process messages: pass messages directly locally registed services for action
+The messagsing processing and routing code shall be written in Javascript, and hosted by node.js
+
+**********************
+** Folder Structure **
+**********************
+
+messagehandler.js - this is the generic message handling manager. There is no distinction between server & client, rather, it focuses on the concept of message sender and receiver.
+
+Dependencies:
+rpc.js
+impl_file.js
+rpc_file.js
+
+Test files:
+Server: servertest.js
+client1: msgtest.html, msgtest.js
+client2: msgtest2.html, msgtest2.js
+
+The test is to route message from client1 -> node.js server -> client2
+node ./servertest.js
+google-chrome ./msgtest.html &
+google-chrom  ./msgtest2.html
+
+Try the test with client 1->node.js->client1 by change "to" field in messaging, the RPC method will be executed in node.js and the result RPC object is passed back to client1.
+
+
+***********
+* * Next **
+*********** 
+More tests on routings:
+client1->node.js server1 -> node.js server2 -> client 2 
+
+
+
+
+
+
+

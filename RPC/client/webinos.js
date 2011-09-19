@@ -100,6 +100,14 @@
 			return;
 		}
 		
+		if (type == "Vehicle"){
+			var tmp = new Vehicle();
+			tmp.origin = 'ws://127.0.0.1:8080';
+			webinos.ServiceDiscovery.registeredServices++;
+			callback.onFound(tmp);
+			return;
+		}
+
 		if (type == "Geolocation"){		// registered RPC name
 			var tmp = new TestModuleGeo();			// must correspond to what is defined in geolocation.js
 			tmp.origin = 'ws://127.0.0.1:8080';
@@ -107,8 +115,6 @@
 			callback.onFound(tmp);
 			return;
 		}
-		
-		
 		
 		if (type == 'RemoteFileSystem') {
 			webinos.ServiceDiscovery.registeredServices++;
@@ -473,6 +479,83 @@
 		var rpc = webinos.rpc.createRPC("FileWriter", "truncate", arguments);
 		rpc.fromObjectRef = this.objectRef;
 		webinos.rpc.executeRPC(rpc);
+	}
+	
+	///////////////////// VEHICLE INTERFACE ///////////////////////////////
+	var Vehicle;
+	
+	var _referenceMapping = new Array();
+	var _vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passenger-front', 'climate-passenger-rear-left','passenger-rear-right','lights-fog-front','lights-fog-rear','lights-signal-right','lights-signal-warn','lights-parking-hibeam','lights-head','lights-head','wiper-front-wash','wiper-rear-wash','wiper-automatic','wiper-front-once','wiper-rear-once','wiper-front-level1','wiper-front-level2','destination-reached','destination-changed','destination-cancelled','parksensors-front','parksensors-rear','shift','tripcomputer'); 
+	
+	
+	Vehicle = function(){} 
+	Vehicle.prototype = WebinosService.prototype;
+	Vehicle.prototype.get = function(vehicleDataId, callOnSuccess, callOnError){	
+		
+		
+		arguments[0] = vehicleDataId;
+		var rpc = webinos.rpc.createRPC("Vehicle", "get", arguments);
+		
+		webinos.rpc.executeRPC(rpc,
+			function(result){
+					callOnSuccess(result);
+				},
+			function(error){
+					callOnError(error);
+				}
+		);
+		
+		
+		}
+	Vehicle.prototype.addEventListener = function(vehicleDataId, eventHandler, capture){
+		
+				
+		if(_vehicleDataIds.indexOf(vehicleDataId) != -1){	
+			var rpc = webinos.rpc.createRPC("Vehicle", "addEventListener", vehicleDataId);
+			rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
+			
+			_referenceMapping.push([rpc.fromObjectRef, eventHandler]);
+			console.log('# of references' + _referenceMapping.length);
+			callback = {};
+			callback.onEvent = function (vehicleEvent) {
+				eventHandler(vehicleEvent);
+			}
+			webinos.rpc.registerObject(rpc.fromObjectRef , callback);
+			webinos.rpc.executeRPC(rpc);
+		}else{
+			console.log(vehicleDataId + ' not found');	
+		}
+	
+	}
+		
+	Vehicle.prototype.removeEventListener = function(vehicleDataId, eventHandler, capture){
+		var refToBeDeleted = null;
+		for(i = 0; i < _referenceMapping.length; i++){
+			console.log("Reference" + i + ": " + _referenceMapping[i][0]);
+			console.log("Handler" + i + ": " + _referenceMapping[i][1]);
+			if(_referenceMapping[i][1] == eventHandler){
+					refToBeDeleted = _referenceMapping[i][0];
+					console.log("ListenerObject to be removed ref#" + refToBeDeleted);
+					
+					var rpc = webinos.rpc.createRPC("Vehicle", "removeEventListener", refToBeDeleted);
+					webinos.rpc.executeRPC(rpc,
+					function(result){
+						callOnSuccess(result);
+					},
+					function(error){
+						callOnError(error);
+					}
+		);
+					break;			
+			}	
+		}
+	}
+	Vehicle.prototype.requestGuidance = function(successCB, errorCB, destinations){
+		console.log('request guidance');
+		
+	}
+	Vehicle.prototype.findDestination = function(destinationCB, errorCB, search){
+		console.log('Find Destination...');
 	}
 	
 }());
