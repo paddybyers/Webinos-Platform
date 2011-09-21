@@ -5,15 +5,15 @@ var fs = require('fs');
 var dns = require('dns');
 
 // This requires Manager/Session to be compiled before this file is available
-var generator = require('./build/default/generator.node');
+var generator = require('./build/Release/generator.node');
 
 // Default port to be used
-var port = 1000;
+var port = 443;
 
 function Server() {
 	"use strict";
-    this.config = {}; //new Object();
-    this.connected_client = []; // new Array();
+	this.config = {}; //new Object();
+	this.connected_client = []; // new Array();
 }
 
 Server.config = {};
@@ -51,12 +51,18 @@ Server.prototype.readConfig = function () {
 				self.config.days = data1[i][1];
 			} else if(data1[i][0] === 'keyName') {
 				self.config.keyname = data1[i][1];
-            } else if(data1[i][0] === 'keySize') {
+			} else if(data1[i][0] === 'keySize') {
 				self.config.keysize = data1[i][1];
 			} else if(data1[i][0] === 'certName') {
 				self.config.certname = data1[i][1];
 			} else if(data1[i][0] === 'clientCertName') {
 				self.config.clientcertname = data1[i][1];
+			} else if(data1[i][0] === 'masterKeyName') {
+				self.config.masterkeyname = data1[i][1];
+			} else if(data1[i][0] === 'masterKeySize') {
+				self.config.masterkeysize = data1[i][1];
+			} else if(data1[i][0] === 'masterCertName') {
+				self.config.mastercertname = data1[i][1];
 			}
 		}
 		self.emit('configread','config read');		
@@ -75,10 +81,10 @@ Server.prototype.checkfiles = function () {
 			if (err) {			
 				log('server: generating server key');
 				// Bits for key to be generated | KeyName
-				generator.genrsa(self.config.keysize, self.config.keyname);
+				generator.genPrivateKey(self.config.keysize, self.config.keyname);
 				log('server: generating server cert');			
 				// Country, State, City, OrgName, OrgUnit, Common, Email, Days, CertificateName
-				generator.gencert(self.config.country, 
+				generator.genSelfSignedCertificate(self.config.country, 
 						self.config.state, 
 						self.config.city, 
 						self.config.orgname, 
@@ -86,7 +92,36 @@ Server.prototype.checkfiles = function () {
 						self.config.common,
 						self.config.email, 
 						self.config.days, 
-						self.config.certname);
+						self.config.certname, 
+						self.config.keyname);
+			
+				log('server: generating master server key');
+				// Bits for key to be generated | KeyName
+				generator.genPrivateKey(self.config.masterkeysize, self.config.masterkeyname);
+				log('server: generating server cert');			
+				// Country, State, City, OrgName, OrgUnit, Common, Email, Days, CertificateName
+				generator.genSelfSignedCertificate(self.config.country, 
+						self.config.state, 
+						self.config.city, 
+						self.config.orgname, 
+						self.config.orgunit, 
+						self.config.common,
+						self.config.email, 
+						self.config.days, 
+						self.config.mastercertname, 
+						self.config.masterkeyname);
+				var servercert = fs.readFileSync(self.config.certname).toString();
+				
+				log('server: generating server certificate signed by master certificate');
+				generator.genCertifiedCertificate(servercert,
+							self.config.days, 
+							self.config.certname, 
+							self.config.mastercertname, 
+							self.config.masterkeyname, 
+							function(err) {
+								log(err);
+							});
+	
 				self.emit('checked','file created');				
 			} else {
 				self.emit('checked', 'file present');
@@ -97,18 +132,18 @@ Server.prototype.checkfiles = function () {
 
 Server.prototype.connect = function() {
 	"use strict";
-    var self = this;
-    var options = {
+	var self = this;
+	var options = {
 		key: fs.readFileSync(self.config.keyname),
 		cert: fs.readFileSync(self.config.certname),
-		ca: fs.readFileSync(self.config.certname), // This is self signed certificate, so PZH is its own CA
+		ca: fs.readFileSync(self.config.mastercertname), // This is self signed certificate, so PZH is its own CA
 		requestCert:true, // This field controls whether client certificate will be fetched for mutual authentication
 		requestUnauthorized:false
 	};
 
 	var server = tls.createServer(options, function(conn) {
 		var data = {};
-		if(conn.authorized)	{
+		if(conn.authorized) {
 			log("Authenticated ");
 			data = {'status':'Auth',
 				'clientcert':'',
@@ -118,25 +153,25 @@ Server.prototype.connect = function() {
 			var cn = conn.getPeerCertificate().subject.CN;
 			var found = false, i;
 			// This code is needed but for development purpose it is currently commented
-            for(i = 0; i < self.connected_client.length; i += 1)
-            {
-                if(self.connected_client[i] === cn) {
-                    found = true;
+			for(i = 0; i < self.connected_client.length; i += 1) {
+				if(self.connected_client[i].commonname === cn) {
+					found = true;
+					break;
 				}
-            }
+            		}
 			
 			if(found === false) {    
-                var obj = {};//new Object();
-			    obj.commonname=cn;
-                obj.sessionid=obj.commonname+':';
-	            var temp = options.cert.toString();
-                for( i = 0; i < (80 - obj.commonname.length -1);i += 1) {
-                    var id = Math.floor(Math.random() * options.cert.length);
-                    obj.sessionid+=temp.substring(id, id+1);
-                }   
-                self.connected_client.push(obj);
-                log(JSON.stringify(self.connected_client));
-            }
+       				var obj = {};//new Object();
+				obj.commonname=cn;
+				obj.sessionid=obj.commonname+':';
+				var temp = options.cert.toString();
+		                for( i = 0; i < (80 - obj.commonname.length -1);i += 1) {
+		                    var id = Math.floor(Math.random() * options.cert.length);
+                		    obj.sessionid+=temp.substring(id, id+1);
+		                }   
+                		self.connected_client.push(obj);
+		                log(JSON.stringify(self.connected_client));
+            		}
 			conn.write(JSON.stringify(data));			
 		} else {
 			log("Not Authenticated " + conn.authorizationError);			
@@ -156,10 +191,11 @@ Server.prototype.connect = function() {
 			var parse = JSON.parse(data);
 			if(parse.clientcert) {
 				// If we could get this information from within key exchange in openssl, it would not require certificate
-				generator.genclientcert(parse.clientcert, 
+				generator.genCertifiedCertificate(parse.clientcert, 
 							self.config.days, 
 							self.config.clientcertname, 
-							self.config.certname, 
+							self.config.mastercertname, 
+							self.config.masterkeyname, 
 							function(err) {
 								log(err);
 							});
@@ -176,6 +212,12 @@ Server.prototype.connect = function() {
 	
 		conn.on('close', function(err) {
 			log('server: socket closed' + err);
+			for(i = 0; i < self.connected_client.length; i += 1) {
+				if(self.connected_client[i].commonname === self.config.common) {
+					self.connected_client.pop(self.connected_client[i]);
+					break;
+				}
+            		}
 		});	
 		
 		conn.on('error', function(err) {
@@ -201,7 +243,7 @@ function Client()
 {
 	"use strict";
 	this.config = {};//new Object();
-    this.servername = [];//new String();
+	this.servername = [];//new String();
 }
 
 Client.prototype = new process.EventEmitter();
@@ -260,10 +302,10 @@ Client.prototype.checkfiles = function (){
 			if (err) {
 				log('client: generating client key');
 				// Bits for key to be generated | KeyName
-				generator.genrsa(self.config.keysize, self.config.keyname);
+				generator.genPrivateKey(self.config.keysize, self.config.keyname);
 			
 				log('client: generating client cert');
-				generator.gencert(self.config.country, 
+				generator.genSelfSignedCertificate(self.config.country, 
 					self.config.state, 
 					self.config.city, 
 					self.config.orgname, 
@@ -271,7 +313,8 @@ Client.prototype.checkfiles = function (){
 					self.config.common,
 					self.config.email, 
 					self.config.days, 
-					self.config.certname);
+					self.config.certname,
+					self.config.keyname);
 			
 				var options1 = {
 					key: fs.readFileSync(self.config.keyname),		
@@ -313,7 +356,7 @@ Client.prototype.connect = function(options, arg)
 			self.servername=client.getPeerCertificate().subject.CN;					
 		}		
 		
-		if(data1.clientcert !== "")	{
+		if(data1.clientcert !== "") {
 			log('creating client cert');
 			fs.writeFile(self.config.certname, data1.clientcert);
 		}
