@@ -45,14 +45,25 @@ webinos.rpc.handleMessage = function (message, responseto){
 		if (typeof service !== 'undefined'){
 			console.log("Got message to invoke " + method + " on " + service + " with params: " + myObject.params[0] );
 		
-			if (typeof webinos.rpc.objects[service] === 'object'){
+			//enable functions bound to attributes in nested objects
+			var methodPathParts = service.split('.');
+			var includingObject = webinos.rpc.objects[methodPathParts[0]];
+			for(var pIx = 0; pIx<methodPathParts.length; pIx++){
+				if(methodPathParts[pIx] && includingObject[methodPathParts[pIx]]){
+					includingObject = includingObject[methodPathParts[pIx]];
+				}
+			}
+			
+			//if (typeof webinos.rpc.objects[service] === 'object'){
+			if (typeof includingObject === 'object'){
 				id = myObject.id;
 				
 				if (typeof myObject.fromObjectRef !== 'undefined' && myObject.fromObjectRef != null) {
 					
 					webinos.rpc.responseToMapping[myObject.fromObjectRef] = responseto;
 					
-					webinos.rpc.objects[service][method](
+					//webinos.rpc.objects[service][method](
+					includingObject[method](
 						myObject.params, 
 						function (result) {
 							if (typeof id === 'undefined') return;
@@ -77,7 +88,8 @@ webinos.rpc.handleMessage = function (message, responseto){
 					);
 				}
 				else {
-					webinos.rpc.objects[service][method](
+					//webinos.rpc.objects[service][method](
+					includingObject[method](
 						myObject.params, 
 						function (result) {
 							if (typeof id === 'undefined') return;

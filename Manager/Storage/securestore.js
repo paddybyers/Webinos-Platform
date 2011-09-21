@@ -5,6 +5,7 @@
 var crypto = require('crypto');
 var fs = require('fs');
 var path = require('path');
+var zipHelper = require("./zipHelper");
 
 // we're creating an inner directory for arbitary json storage.
 var jsonDirSuffix = "json";
@@ -15,7 +16,7 @@ var secstore = exports;
 function openInner(storeFile, password, done) {
     "use strict";
     secstore.decryptFile(storeFile, password, function () {
-        secstore.unzipFile(storeFile, ".", function () {
+        secstore.unzipFile(storeFile, function () {
             done();
         });
     });
@@ -49,7 +50,7 @@ function rimrafSync(p) {
 // function, I actually recommend you don't use this.
 secstore.storeKeyValue = function (dir, k, json, err) {
     "use strict";
-    fs.writeFile(path.join(path.join(dir,jsonDirSuffix), k),JSON.stringify(json), err);
+    fs.writeFile(path.join(path.join(dir, jsonDirSuffix), k), JSON.stringify(json), err);
 };
 
 // get a key value pair from the directory.  This is a convenience function, 
@@ -111,37 +112,40 @@ secstore.close = function (password, storeFile, storeDirectory, done) {
     // zip up the directory structure
     secstore.zipDir(storeFile, storeDirectory, function () {
         // encrypt
-        secstore.encryptFile(storeFile, password, function () {
-            // secure delete storage, recursive.
-            rimrafSync(storeDirectory);
-            done();
-        });
+        if (path.existsSync(storeFile)) {
+            secstore.encryptFile(storeFile, password, function () {
+                // secure delete storage, recursive.
+                rimrafSync(storeDirectory);
+                done();
+            });
+        } else {
+            console.log("Zip didn't create a file " + storeFile + "so we're assuming nothing to store or encrypt");
+        }
     });
 };
 
 
 // zip a file using the zip command
+// will overwrite the file if necessary.
 secstore.zipDir = function zipDir(zipFile, inPath, fn) {
     "use strict";
-    var spawn = require('child_process').spawn;
-    var zip = spawn('zip', ['-r', zipFile, inPath]);
-    // End the response on zip exit
-    zip.on('exit', function () {
-        fn();
-    });
+    if (path.existsSync(zipFile)) {
+        fs.unlinkSync(zipFile);
+    }
+    zipHelper.makeZipFile(inPath, zipFile, fn);
 };
 
 //Unzip a file using the unzip command
 //DANGER! Will overwrite by default!
-secstore.unzipFile = function unzipFile(zipFile, outPath, fn) {
+secstore.unzipFile = function unzipFile(zipFile, fn) {
     "use strict";
-    var spawn = require('child_process').spawn;
-    var zip = spawn('unzip', ["-o", zipFile, "-d", outPath]);
-    // End the response on zip exit
-    zip.on('exit', function () {
-        fn();
-    });
+    zipHelper.unzipFile(zipFile, fn);
 };
+
+
+
+
+
 
 // decryption based on passwords and a callback for when it is complete.
 secstore.decryptFile = function decryptFile(file, passwd, done) {
