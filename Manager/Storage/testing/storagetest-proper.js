@@ -7,11 +7,11 @@ var fs = require('fs');
 
 var testfilecontent = "Do not delete - I am testing.\n";
 var pass = "nruowgunrwognworu2";
-var zipFile = "./test2zip.zip";
-var zipPath = "./test2";
+var zipFile = "test2zip.zip";
+var zipPath = "test2";
 var testfile = path.join(zipPath,"testfile1.txt");
-var testNoStoreFile = "./test2store.zip";
-var testStoreDir = "./test2store";
+var testNoStoreFile = "test2store.zip";
+var testStoreDir = "test2store";
 
 
 
@@ -77,7 +77,7 @@ function testZip(done) {
 			//rimraf it
 			rimrafSync(zipPath);					
 			// test unzip again
-			securestore.unzipFile(zipFile, ".", function() {
+			securestore.unzipFile(zipFile, function() {
 				read(testfile, function(unzipData) {
 					assertFn((origdata === origdata), "unzip/zip");
 					done();
@@ -93,23 +93,30 @@ function testZip(done) {
 // test open, no storeFile
 // test close
 var testOpenClose = function testOpenClose(donefn) {
-// TODO: delete any store directory
+    var val = "";
+    
+    // TODO: delete any store directory
 
-// TODO: delete any store file
+    // TODO: delete any store file
 
-//open
-securestore.open(pass, testNoStoreFile, testStoreDir, function(err) {	
-	assertFn((err === null || err === undefined), "Open", err);
-	// TODO: check that the store directory exists
-	
-	securestore.close(pass, testNoStoreFile, testStoreDir, function(err) {
-		assertFn(true, "Close 1");
-		donefn();
-		//check that the store directory doesn't exist
-		//check that the store file does.
-	});
-
-});
+    //open
+    securestore.open(pass, testNoStoreFile, testStoreDir, function(err) {	
+	    assertFn((err === null || err === undefined), "Open", err);
+	    // check that the store directory exists
+	    assertFn(path.existsSync(testStoreDir), "Open created a directory");
+	    //store a key value
+	    securestore.storeKeyValue(testStoreDir, "Why", {because: "we have to store something"}, function() { 
+	        securestore.getKeyValue(testStoreDir, "Why", function(err, val) {
+                assertFn((val["because"] === "we have to store something"), "Retrieve value", err);
+                securestore.close(pass, testNoStoreFile, testStoreDir, function(err) {
+		            assertFn(true, "Close 1",err);
+		            assertFn(!path.existsSync(testStoreDir), "Close killed the store directory");
+		            assertFn(path.existsSync(testNoStoreFile), "Close created the store file");
+		            donefn();
+	            });	        
+	        });
+        });
+    });
 
 };
 
