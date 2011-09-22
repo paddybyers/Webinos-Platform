@@ -24,7 +24,7 @@ function logObj(obj, name){
  */
 webinos.rpc.setWriter = function (writer){
 	write = writer;
-}
+};
 
 /**
  * Handles a new JSON RPC message (as string)
@@ -140,7 +140,7 @@ webinos.rpc.handleMessage = function (message, responseto){
 		}
 	}
 	
-}
+};
 
 /**
  * Executes the given RPC Request and registers an optional callback that
@@ -162,6 +162,7 @@ webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto) {
     
     //TODO remove stringify when integrating with Message Routing/Ziran
     write(JSON.stringify(rpc), responseto);
+   
 }
 
 /**
@@ -233,6 +234,7 @@ if (typeof exports !== 'undefined'){
 	require('./rpc_sensors.js');
 	require('./rpc_geolocation.js');
 	require('./tv/provider/webinos.rpc.tv.js');
+	require('./UserProfile/Server/UserProfileServer.js');
 }
 
 

@@ -129,6 +129,16 @@
 			return;
 		}
 		
+		if (type == "UserProfileInt"){
+			var tmp = new UserProfileIntModule();
+			tmp.origin = 'ws://127.0.0.1:8080';
+			webinos.ServiceDiscovery.registeredServices++;
+			callback.onFound(tmp);
+			return;
+		}
+		
+		
+		
 	}
 	
 	///////////////////// WEBINOS SERVICE INTERFACE ///////////////////////////////

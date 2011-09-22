@@ -1,6 +1,6 @@
 (function (exports) {
 	var fs = exports;
-
+	
 	var __fs = require('fs');
 	var __path = require('path');
 
