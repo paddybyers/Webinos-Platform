@@ -32,7 +32,7 @@ userProfileInt.createProf = profileIntCreate;
 userProfileInt.replaceProf = profileIntReplace;
 userProfileInt.deleteProf = profileIntDelete;
 webinos.rpc.registerObject("UserProfileInt", userProfileInt);
-console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
