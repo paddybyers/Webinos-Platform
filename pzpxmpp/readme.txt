@@ -39,6 +39,8 @@ a) Download from: https://github.com/brainfucker/hashlib
 b) execute 'node-waf configure build'
 c) copy module from './build/default/hashlib.node' to '<pzpxmpp-home>/libs'
 
+3. Node-expat: https://github.com/astro/node-expat#readme
+
 Instructions:
 
 1. Start the client.

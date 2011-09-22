@@ -2,7 +2,7 @@
 //as specified @ http://groups.google.com/group/json-rpc/web/json-rpc-2-0
 
 (function() {
-	
+
 
 write = null;
 
@@ -11,6 +11,7 @@ webinos.rpc = {};
 webinos.rpc.awaitingResponse = {};
 webinos.rpc.objects = {};
 webinos.rpc.responseToMapping = [];
+
 
 function logObj(obj, name){
 	for (var myKey in obj){
@@ -24,7 +25,7 @@ function logObj(obj, name){
  */
 webinos.rpc.setWriter = function (writer){
 	write = writer;
-}
+};
 
 /**
  * Handles a new JSON RPC message (as string)
@@ -70,7 +71,7 @@ webinos.rpc.handleMessage = function (message, responseto){
 							var res = {};
 							rpc.jsonrpc = "2.0";
 							res.result = result;
-							res.id = id;
+							res.id = id;						
 							webinos.rpc.executeRPC(res, responseto);
 						},
 						function (error){
@@ -98,6 +99,12 @@ webinos.rpc.handleMessage = function (message, responseto){
 							res.result = result;
 							res.id = id;
 							webinos.rpc.executeRPC(res, responseto);
+							
+							// CONTEXT LOGGING HOOK
+							var cntxMngr = require("./Context/Server/contextAPI.js");
+							cntxMngr.logContext(myObject,res);
+					
+
 						},
 						function (error){
 							if (typeof id === 'undefined') return;
@@ -140,7 +147,7 @@ webinos.rpc.handleMessage = function (message, responseto){
 		}
 	}
 	
-}
+};
 
 /**
  * Executes the given RPC Request and registers an optional callback that
@@ -162,7 +169,8 @@ webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto) {
     
     //TODO remove stringify when integrating with Message Routing/Ziran
     write(JSON.stringify(rpc), responseto);
-}
+   
+};
 
 /**
  * Creates a JSON RPC 2.0 compliant object
@@ -233,6 +241,8 @@ if (typeof exports !== 'undefined'){
 	require('./rpc_sensors.js');
 	require('./rpc_geolocation.js');
 	require('./tv/provider/webinos.rpc.tv.js');
+	require('./UserProfile/Server/UserProfileServer.js');
+
 }
 
 
