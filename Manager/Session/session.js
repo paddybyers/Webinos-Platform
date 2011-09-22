@@ -1,11 +1,18 @@
-var log = console.log;
-var tls = require('tls');
-var events = require('events');
-var fs = require('fs');
-var dns = require('dns');
+var log = console.log,
+tls = require('tls'),
+events = require('events'),
+fs = require('fs'),
+dns = require('dns'),
+generator,
+x;
 
 // This requires Manager/Session to be compiled before this file is available
-var generator = require('./build/Release/generator.node');
+x = process.version;
+x = x.split('.');
+if ( x[1] >= 5)
+	generator = require('./build/Release/generator.node');
+else
+	generator = require('./build/default/generator.node');
 
 // Default port to be used
 var port = 443;
@@ -132,7 +139,7 @@ Server.prototype.checkfiles = function () {
 Server.prototype.connect = function () {
 	"use strict";
 	var i, self, options, server;
-
+	self = this;
 	options = {
 		key: fs.readFileSync(self.config.keyname),
 		cert: fs.readFileSync(self.config.certname),
