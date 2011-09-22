@@ -10,7 +10,7 @@
 			var toSend = text;
 			createCommChannel(function (){
 				channel.send(toSend);
-			})
+			});
 		}
 	}
 	
@@ -139,7 +139,7 @@
 		
 		
 		
-	}
+	};
 	
 	///////////////////// WEBINOS SERVICE INTERFACE ///////////////////////////////
 	
@@ -186,7 +186,7 @@
 			channel.close();
 			channel = null;
 		}
-	}
+	};
 
 	
 	///////////////////// BLOB INTERFACE ///////////////////////////////
@@ -195,7 +195,7 @@
     
     Blob = function () {
     	
-    }
+    };
         
      Blob.prototype.size = 0;
      
@@ -342,35 +342,35 @@
 				fileSaver.readyState = fileWriter.DONE;
 				fileSaver.onwriteend();
 			}
-		}
+		};
 		callback.onwritestart = function (params, successCallback, errorCallback, objectRef) {
 			if (fileSaver.onwritestart != null){
 				fileSaver.onwritestart();
 				fileSaver.readyState = fileWriter.WRITING;
 			}
-		}
+		};
 		callback.onerror = function (params, successCallback, errorCallback, objectRef) {
 			if (fileSaver.onerror != null){
 				fileSaver.onerror(params[0]);
 				fileSaver.readyState = fileWriter.DONE;
 			}
-		}
+		};
 		callback.onwrite = function (params, successCallback, errorCallback, objectRef) {
 			if (fileSaver.onwrite != null){
 				fileSaver.onwrite();
 			}
-		}
+		};
 		callback.onprogress = function (params, successCallback, errorCallback, objectRef) {
 			if (fileSaver.onprogress != null){
 				fileSaver.onprogress();
 			}
-		}
+		};
 		callback.onabort = function (params, successCallback, errorCallback, objectRef) {
 			if (fileSaver.onabort != null){
 				fileSaver.onabort();
 				fileSaver.readyState = fileWriter.DONE;
 			}
-		}
+		};
 		webinos.rpc.registerObject(fileSaver.objectRef , callback);
 		
 		var rpc = webinos.rpc.createRPC("FileSaver", "saveAs", arguments);
@@ -422,35 +422,35 @@
 				fileWriter.readyState = fileWriter.DONE;
 				fileWriter.onwriteend();
 			}
-		}
+		};
 		callback.onwritestart = function (params, successCallback, errorCallback, objectRef) {
 			if (fileWriter.onwritestart != null){
 				fileWriter.onwritestart();
 				fileWriter.readyState = fileWriter.WRITING;
 			}
-		}
+		};
 		callback.onerror = function (params, successCallback, errorCallback, objectRef) {
 			if (fileWriter.onerror != null){
 				fileWriter.onerror(params[0]);
 				fileWriter.readyState = fileWriter.DONE;
 			}
-		}
+		};
 		callback.onwrite = function (params, successCallback, errorCallback, objectRef) {
 			if (fileWriter.onwrite != null){
 				fileWriter.onwrite();
 			}
-		}
+		};
 		callback.onprogress = function (params, successCallback, errorCallback, objectRef) {
 			if (fileWriter.onprogress != null){
 				fileWriter.onprogress();
 			}
-		}
+		};
 		callback.onabort = function (params, successCallback, errorCallback, objectRef) {
 			if (fileWriter.onabort != null){
 				fileWriter.onabort();
 				fileWriter.readyState = fileWriter.DONE;
 			}
-		}
+		};
 		webinos.rpc.registerObject(fileWriter.objectRef , callback);
 		
 		return fileWriter;
@@ -473,10 +473,10 @@
 		var rpc = webinos.rpc.createRPC("FileWriter", "write", arguments);
 		rpc.fromObjectRef = this.objectRef;
 		webinos.rpc.executeRPC(rpc);
-	}
+	};
 	WebinosFileWriter.prototype.seek = function (offset) {
 		if (this.readyState == this.WRITING) throw ("INVALID_STATE_ERR");
-	}
+	};
     
 	WebinosFileWriter.prototype.truncate = function (size) {
 		if (this.readyState == this.WRITING
@@ -489,7 +489,7 @@
 		var rpc = webinos.rpc.createRPC("FileWriter", "truncate", arguments);
 		rpc.fromObjectRef = this.objectRef;
 		webinos.rpc.executeRPC(rpc);
-	}
+	};
 	
 	///////////////////// VEHICLE INTERFACE ///////////////////////////////
 	var Vehicle;
@@ -498,7 +498,7 @@
 	var _vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passenger-front', 'climate-passenger-rear-left','passenger-rear-right','lights-fog-front','lights-fog-rear','lights-signal-right','lights-signal-warn','lights-parking-hibeam','lights-head','lights-head','wiper-front-wash','wiper-rear-wash','wiper-automatic','wiper-front-once','wiper-rear-once','wiper-front-level1','wiper-front-level2','destination-reached','destination-changed','destination-cancelled','parksensors-front','parksensors-rear','shift','tripcomputer'); 
 	
 	
-	Vehicle = function(){} 
+	Vehicle = function(){} ;
 	Vehicle.prototype = WebinosService.prototype;
 	Vehicle.prototype.get = function(vehicleDataId, callOnSuccess, callOnError){	
 		
@@ -516,7 +516,7 @@
 		);
 		
 		
-		}
+		};
 	Vehicle.prototype.addEventListener = function(vehicleDataId, eventHandler, capture){
 		
 				
@@ -529,14 +529,14 @@
 			callback = {};
 			callback.onEvent = function (vehicleEvent) {
 				eventHandler(vehicleEvent);
-			}
+			};
 			webinos.rpc.registerObject(rpc.fromObjectRef , callback);
 			webinos.rpc.executeRPC(rpc);
 		}else{
 			console.log(vehicleDataId + ' not found');	
 		}
 	
-	}
+	};
 		
 	Vehicle.prototype.removeEventListener = function(vehicleDataId, eventHandler, capture){
 		var refToBeDeleted = null;
@@ -545,8 +545,7 @@
 			console.log("Handler" + i + ": " + _referenceMapping[i][1]);
 			if(_referenceMapping[i][1] == eventHandler){
 					refToBeDeleted = _referenceMapping[i][0];
-					console.log("ListenerObject to be removed ref#" + refToBeDeleted);
-					
+					console.log("ListenerObject to be removed ref#" + refToBeDeleted);					
 					var rpc = webinos.rpc.createRPC("Vehicle", "removeEventListener", refToBeDeleted);
 					webinos.rpc.executeRPC(rpc,
 					function(result){
@@ -559,13 +558,13 @@
 					break;			
 			}	
 		}
-	}
+	};
 	Vehicle.prototype.requestGuidance = function(successCB, errorCB, destinations){
 		console.log('request guidance');
 		
-	}
+	};
 	Vehicle.prototype.findDestination = function(destinationCB, errorCB, search){
 		console.log('Find Destination...');
-	}
+	};
 	
 }());
