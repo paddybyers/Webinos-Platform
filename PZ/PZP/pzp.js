@@ -1,7 +1,16 @@
 var session = require('../../Manager/Session/session.js');
 
 var servername = 'localhost';
-if (arguments.length > 0)
-    servername = arguments[0];
+var startserver = '';
+process.argv.forEach(function(val, index, array){
+	console.log(index + ' : ' + val);
+	if (val === 'startserver')
+		startserver = 'startserver';
+});
 
-session.startTLSClient(servername);
+if (startserver === 'startserver')
+	session.startAsServer(servername);
+else 
+	session.startTLSClient(servername);
+
+
