@@ -60,9 +60,9 @@ webinos.rpc.handleMessage = function (message, responseto){
 				id = myObject.id;
 				
 				if (typeof myObject.fromObjectRef !== 'undefined' && myObject.fromObjectRef != null) {
-					
+				
 					webinos.rpc.responseToMapping[myObject.fromObjectRef] = responseto;
-					
+				
 					//webinos.rpc.objects[service][method](
 					includingObject[method](
 						myObject.params, 
@@ -99,11 +99,11 @@ webinos.rpc.handleMessage = function (message, responseto){
 							res.result = result;
 							res.id = id;
 							webinos.rpc.executeRPC(res, responseto);
-							
+						
 							// CONTEXT LOGGING HOOK
 							var cntxMngr = require("./Context/Server/contextAPI.js");
 							cntxMngr.logContext(myObject,res);
-					
+						
 
 						},
 						function (error){
