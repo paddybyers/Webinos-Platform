@@ -15,16 +15,13 @@ function getCurrentPosition (params, successCB, errorCB, objectRef){
 		    if (error !== null) {
 		    	console.log('exec error: ' + error);
 		    }
-		}
+		};
 		child = exec('echo this is your location', childCB); 	// see http://nodejs.org/docs/v0.5.4/api/child_processes.html	
-		
 	} else { 
-
 		var result={};
 		var http = require('http');
 		var freegeoip = http.createClient(80, 'freegeoip.net');
-		var request = freegeoip.request('GET', '/json/',
-		  {'host': 'freegeoip.net'});
+		var request = freegeoip.request('GET', '/json/', {'host': 'freegeoip.net'});
 		request.end();
 		request.on('response', function (response) {
 		  // console.log('STATUS: ' + response.statusCode);
@@ -52,4 +49,4 @@ GeolocationModule = {};
 GeolocationModule.getCurrentPosition = getCurrentPosition;
 GeolocationModule.watchPosition = watchPosition;
 GeolocationModule.clearWatch = clearWatch;
-webinos.rpc.registerObject("Geolocation", GeolocationModule);  // RPC name
+webinos.rpc.registerObject("Geolocation", GeolocationModule);  // RPC name for the service: Geolocation
