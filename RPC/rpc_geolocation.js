@@ -45,8 +45,11 @@ function clearWatch (params, successCB, errorCB, objectRef){
 	successCB("cleared watch");
 }
 
+var geolocation = true; 
+
 GeolocationModule = {};
 GeolocationModule.getCurrentPosition = getCurrentPosition;
 GeolocationModule.watchPosition = watchPosition;
 GeolocationModule.clearWatch = clearWatch;
+GeolocationModule.geolocation = geolocation;
 webinos.rpc.registerObject("Geolocation", GeolocationModule);  // RPC name for the service: Geolocation
