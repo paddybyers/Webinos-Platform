@@ -5,8 +5,8 @@
 		<title>Messaging handler test</title>
 		
 		<script src="http://localhost:8000/socket.io/socket.io.js"></script>
-        <!--<script type="text/javascript" src="../msgclient.js"></script> -->	
-        <script type="text/javascript" src="./clientmessagehandler.js"></script>		
+		<script type="text/javascript" src="./rpc.js"></script>
+        <script type="text/javascript" src="./messagehandler.js"></script>		
         
 	</head>
 	<body>
@@ -45,13 +45,7 @@
 		}
 	</script>
 	
-	<script type="text/javascript">
-		function send()
-		{
-		  var msg = new Msg();
-		  return msg.send();
-		}
-	</script>
+	
 	
 </html>
 

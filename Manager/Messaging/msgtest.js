@@ -2,34 +2,70 @@ if (typeof webinos === 'undefined') var webinos = {};
 
 function Msg()
 {
-  this.socket = io.connect('http://localhost:8000');
+  socket = io.connect('http://localhost:8000');
+  
+  var ownid = "0123456";
+  function send(message){
+	
+   socket.emit("message", message);
+  }
+  
+  
+  webinos.message.setSend(send);
+  
+  function getownid(){
+	
+   return ownid;
+  }
+  webinos.message.setGet(getownid);
+  
+  webinos.message.setSend(send);
   
   this.register = function(id)
   {
-    //reigster sender
+    //register sender
     this.message = webinos.message.registerSender(id);
     console.log(this.message);
-    //this.socket.send(this.message);
-    this.socket.emit("client-message", this.message);
+    socket.emit("client-message", this.message);
   }
   
   this.create = function()
   {
+    //var rpc = webinos.rpc.createRPC("Test", "get42", arguments);
+   
+   tmp = webinos.rpc.createRPC("Test", "get42", arguments);
+    tmp.id = 4;
     //create a message with payload
     var options = {
     register: false    
-    ,type: 1             
+    ,type: "JSONRPC"             
     ,id:   0           
     ,from:  "0123456"      
-    ,to:    "234"          
-    ,resp_to:   null       
+    //,to:    "0123456"        
+    ,to:    "890"          
+    ,resp_to:   "0123456"      
     ,timestamp:  0      
     ,timeout:  null
-    ,payload:  { "method": "echo", "params": ["Hello JSON-RPC"], "id": 1} 
+   // ,payload: webinos.rpc.createRPC("Test", "get42", arguments)
+    ,payload: tmp
     }; 
     
+    
+    
+   /* webinos.rpc.executeRPC(options.payload, function (params){
+					successCB(params);
+				},
+				function (error){}
+		); */
     this.message = webinos.message.createMessage(options);
-    this.socket.emit("client-message", this.message);
+    socket.emit("client-message", this.message);
+    
+    socket.on("server-message", function(message){
+    console.log("message forwarded to me");
+    //webinos.rpc.handleMessge(message);
+    webinos.message.onMessageReceived(message);
+    });
+
   }
 
  return this;

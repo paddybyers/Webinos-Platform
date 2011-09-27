@@ -41,6 +41,13 @@
                     $('#get42').bind('click', function() {
                     	test.get42(function (result){
                     		alert(result);
+                    		alert(test.testAttr);
+                    	});
+                    }); 
+                    
+                    $('#echo').bind('click', function() {
+                    	test.echoAttr.echo(document.getElementById("fileContent").value, function (result){
+                    		alert(result);
                     	});
                     }); 
 
@@ -285,6 +292,7 @@
 			<p>
 				<button id="findService">Find Service</button>
 				<button id="get42">get42</button>
+				<button id="echo">echo</button>
 				<button id="currentPositionButton">current pos</button>
 				<button id="cls">Clear</button>
 				<button id="getFileContent">Get File Content</button>
@@ -300,8 +308,7 @@
 				<label for="fileContent">File Content</label> 
 				<br>
 				<textarea rows='8' size = 500
-					id="fileContent">
-					</textarea>
+					id="fileContent"></textarea>
 			</p>
 		</div>
 		<div >

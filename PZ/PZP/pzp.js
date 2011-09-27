@@ -1,7 +1,8 @@
-var session = require('../../Manager/Session/session.js');
+if (typeof webinos === "undefined") webinos = {};
+if (typeof exports !== "undefined") session = require('../../Manager/Session/session_pzp.js');
+else session = webinos.session; 
 
 var servername = 'localhost';
-if (arguments.length > 0)
-    servername = arguments[0];
 
-session.startTLSClient(servername);
+webinos.session.pzp.startPZP(servername);
+
