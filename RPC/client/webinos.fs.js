@@ -1,41 +1,14 @@
+// TODO Extract (de)serialization?
 (function (exports) {
-	var fs = exports;
 	var rpc = webinos.rpc;
+	var utils = webinos.utils;
 
-	// MDN {@link https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind}
-	if (!Function.prototype.bind) {
-		Function.prototype.bind = function (oThis) {
-			if (typeof this !== "function") // closest thing possible to the ECMAScript 5 internal IsCallable function
-				throw new TypeError("Function.prototype.bind - what is trying to be fBound is not callable");
-
-			var aArgs = Array.prototype.slice.call(arguments, 1), fToBind = this, fNOP = function () {
-			}, fBound = function () {
-				return fToBind.apply(this instanceof fNOP ? this : oThis || window, aArgs.concat(Array.prototype.slice
-						.call(arguments)));
-			};
-
-			fNOP.prototype = this.prototype;
-			fBound.prototype = new fNOP();
-
-			return fBound;
-		};
-	}
-
-	var bind = function (thisArg, fun) {
-		return fun.bind(thisArg);
-	}
-
-	var callback = function (thisArg, fun) {
-		if (typeof fun === 'function')
-			return bind(thisArg, fun);
-
-		return new Function();
-	}
+	var fs = exports;
 
 	var request = function (service, method, params, requestCallback) {
-		var message = webinos.rpc.createRPC(service, method, params);
+		var message = rpc.createRPC(service, method, params);
 
-		webinos.rpc.executeRPC(message, requestCallback.onResult, requestCallback.onError);
+		rpc.executeRPC(message, requestCallback.onResult, requestCallback.onError);
 	}
 
 	// php.js {@link http://phpjs.org/functions/dirname:388}
@@ -63,12 +36,12 @@
 
 	fs.RemoteFileSystem.prototype.requestFileSystem = function (type, size, successCallback, errorCallback) {
 		request('RemoteFileSystem', 'requestFileSystem', [type, size], {
-			onResult: bind(this, function (result) {
-				callback(null, successCallback)(fs.FileSystem.deserialize(result));
-			}),
-			onError: bind(this, function (error) {
-				callback(null, errorCallback)(fs.FileError.deserialize(error));
-			})
+			onResult: utils.bind(function (result) {
+				utils.callback(successCallback, null)(fs.FileSystem.deserialize(result));
+			}, this),
+			onError: utils.bind(function (error) {
+				utils.callback(errorCallback, null)(fs.FileError.deserialize(error));
+			}, this)
 		});
 	}
 
@@ -123,23 +96,23 @@
 
 	fs.Entry.prototype.getMetadata = function (successCallback, errorCallback) {
 		request('Entry', 'getMetadata', [fs.Entry.serialize(this)], {
-			onResult: bind(this, function (result) {
-				callback(null, successCallback)(result);
-			}),
-			onError: bind(this, function (error) {
-				callback(null, errorCallback)(fs.FileError.deserialize(error));
-			})
+			onResult: utils.bind(function (result) {
+				utils.callback(successCallback, null)(result);
+			}, this),
+			onError: utils.bind(function (error) {
+				utils.callback(errorCallback, null)(fs.FileError.deserialize(error));
+			}, this)
 		});
 	}
 
 	fs.Entry.prototype.getParent = function (successCallback, errorCallback) {
 		request('Entry', 'getParent', [fs.Entry.serialize(this)], {
-			onResult: bind(this, function (result) {
-				callback(null, successCallback)(fs.Entry.deserialize(result));
-			}),
-			onError: bind(this, function (error) {
-				callback(null, errorCallback)(fs.FileError.deserialize(error));
-			})
+			onResult: utils.bind(function (result) {
+				utils.callback(successCallback, null)(fs.Entry.deserialize(result));
+			}, this),
+			onError: utils.bind(function (error) {
+				utils.callback(errorCallback, null)(fs.FileError.deserialize(error));
+			}, this)
 		});
 	}
 
@@ -150,6 +123,14 @@
 	}
 
 	fs.Entry.prototype.remove = function (successCallback, errorCallback) {
+		request('Entry', 'remove', [fs.Entry.serialize(this)], {
+			onResult: utils.bind(function (result) {
+				utils.callback(successCallback, null)();
+			}, this),
+			onError: utils.bind(function (error) {
+				utils.callback(errorCallback, null)(fs.FileError.deserialize(error));
+			}, this)
+		});
 	}
 
 	fs.Entry.prototype.toURL = function () {
@@ -170,23 +151,23 @@
 
 	fs.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
 		request('DirectoryEntry', 'getFile', [fs.Entry.serialize(this), path, options], {
-			onResult: bind(this, function (result) {
-				callback(null, successCallback)(fs.Entry.deserialize(result));
+			onResult: utils.bind(function (result) {
+				utils.callback(successCallback, null)(fs.Entry.deserialize(result));
 			}),
-			onError: bind(this, function (error) {
-				callback(null, errorCallback)(fs.FileError.deserialize(error));
-			})
+			onError: utils.bind(function (error) {
+				utils.callback(errorCallback, null)(fs.FileError.deserialize(error));
+			}, this)
 		});
 	}
 
 	fs.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {
 		request('DirectoryEntry', 'getDirectory', [fs.Entry.serialize(this), path, options], {
-			onResult: bind(this, function (result) {
-				callback(null, successCallback)(fs.Entry.deserialize(result));
+			onResult: utils.bind(function (result) {
+				utils.callback(successCallback, null)(fs.Entry.deserialize(result));
 			}),
-			onError: bind(this, function (error) {
-				callback(null, errorCallback)(fs.FileError.deserialize(error));
-			})
+			onError: utils.bind(function (error) {
+				utils.callback(errorCallback, null)(fs.FileError.deserialize(error));
+			}, this)
 		});
 	}
 
@@ -202,15 +183,15 @@
 
 	fs.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
 		request('DirectoryReader', 'readEntries', [fs.Entry.serialize(this.__entry), this.__begin, this.__length], {
-			onResult: bind(this, function (result) {
+			onResult: utils.bind(function (result) {
 				this.__begin = result.__begin;
 				this.__length = result.__length;
 
-				callback(null, successCallback)(result.entries.map(fs.Entry.deserialize, this));
-			}),
-			onError: bind(this, function (error) {
-				callback(null, errorCallback)(fs.FileError.deserialize(error));
-			})
+				utils.callback(successCallback, null)(result.entries.map(fs.Entry.deserialize, this));
+			}, this),
+			onError: utils.bind(function (error) {
+				utils.callback(errorCallback, null)(fs.FileError.deserialize(error));
+			}, this)
 		});
 	}
 

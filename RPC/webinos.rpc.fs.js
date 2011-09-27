@@ -1,23 +1,21 @@
+// TODO Extract (de)serialization?
 (function (exports) {
 	var fs = require('./webinos.fs.js');
 	var rpc = require('./rpc.js');
+	var utils = require('./webinos.utils.js');
 
 	rpc.fs = exports;
-
-	var bind = function (thisArg, fun) {
-		return fun.bind(thisArg);
-	}
 
 	rpc.fs.RemoteFileSystem = function () {
 		this.__object = new fs.RemoteFileSystem();
 	}
 
 	rpc.fs.RemoteFileSystem.prototype.requestFileSystem = function (params, successCallback, errorCallback) {
-		this.__object.requestFileSystem(params[0], params[1], bind(this, function (filesystem) {
-			bind(null, successCallback)(rpc.fs.FileSystem.serialize(filesystem));
-		}), bind(this, function (error) {
-			bind(null, errorCallback)(rpc.fs.FileError.serialize(error));
-		}));
+		this.__object.requestFileSystem(params[0], params[1], utils.bind(function (filesystem) {
+			utils.callback(successCallback, null)(rpc.fs.FileSystem.serialize(filesystem));
+		}, this), utils.bind(function (error) {
+			utils.callback(errorCallback, null)(rpc.fs.FileError.serialize(error));
+		}, this));
 	}
 
 	rpc.fs.RemoteFileSystem.prototype.resolveLocalFileSystemURL = function (params, successCallback, errorCallback) {
@@ -61,21 +59,21 @@
 	rpc.fs.Entry.prototype.getMetadata = function (params, successCallback, errorCallback) {
 		var __object = rpc.fs.Entry.deserialize(params[0]);
 
-		__object.getMetadata(bind(this, function (metadata) {
-			bind(null, successCallback)(metadata);
-		}), bind(this, function (error) {
-			bind(null, errorCallback)(rpc.fs.FileError.serialize(error));
-		}));
+		__object.getMetadata(utils.bind(function (metadata) {
+			utils.callback(successCallback, null)(metadata);
+		}, this), utils.bind(function (error) {
+			utils.callback(errorCallback, null)(rpc.fs.FileError.serialize(error));
+		}, this));
 	}
 
 	rpc.fs.Entry.prototype.getParent = function (params, successCallback, errorCallback) {
 		var __object = rpc.fs.Entry.deserialize(params[0]);
 
-		__object.getParent(bind(this, function (entry) {
-			bind(null, successCallback)(rpc.fs.Entry.serialize(entry));
-		}), bind(this, function (error) {
-			bind(null, errorCallback)(rpc.fs.FileError.serialize(error));
-		}));
+		__object.getParent(utils.bind(function (entry) {
+			utils.callback(successCallback, null)(rpc.fs.Entry.serialize(entry));
+		}, this), utils.bind(function (error) {
+			utils.callback(errorCallback, null)(rpc.fs.FileError.serialize(error));
+		}, this));
 	}
 
 	rpc.fs.Entry.prototype.moveTo = function (params, successCallback, errorCallback) {
@@ -85,6 +83,13 @@
 	}
 
 	rpc.fs.Entry.prototype.remove = function (params, successCallback, errorCallback) {
+		var __object = rpc.fs.Entry.deserialize(params[0]);
+
+		__object.remove(utils.bind(function () {
+			utils.callback(successCallback, null)();
+		}, this), utils.bind(function (error) {
+			utils.callback(errorCallback, null)(rpc.fs.FileError.serialize(error));
+		}, this));
 	}
 
 	rpc.fs.DirectoryEntry = function () {
@@ -93,21 +98,21 @@
 	rpc.fs.DirectoryEntry.prototype.getFile = function (params, successCallback, errorCallback) {
 		var __object = rpc.fs.Entry.deserialize(params[0]);
 
-		__object.getFile(params[1], params[2], bind(this, function (entry) {
-			bind(null, successCallback)(rpc.fs.Entry.serialize(entry));
-		}), bind(this, function (error) {
-			bind(null, errorCallback)(rpc.fs.FileError.serialize(error));
-		}));
+		__object.getFile(params[1], params[2], utils.bind(function (entry) {
+			utils.callback(successCallback, null)(rpc.fs.Entry.serialize(entry));
+		}, this), utils.bind(function (error) {
+			utils.callback(errorCallback, null)(rpc.fs.FileError.serialize(error));
+		}, this));
 	}
 
 	rpc.fs.DirectoryEntry.prototype.getDirectory = function (params, successCallback, errorCallback) {
 		var __object = rpc.fs.Entry.deserialize(params[0]);
 
-		__object.getDirectory(params[1], params[2], bind(this, function (entry) {
-			bind(null, successCallback)(rpc.fs.Entry.serialize(entry));
-		}), bind(this, function (error) {
-			bind(null, errorCallback)(rpc.fs.FileError.serialize(error));
-		}));
+		__object.getDirectory(params[1], params[2], utils.bind(function (entry) {
+			utils.callback(successCallback, null)(rpc.fs.Entry.serialize(entry));
+		}, this), utils.bind(function (error) {
+			utils.callback(errorCallback, null)(rpc.fs.FileError.serialize(error));
+		}, this));
 	}
 
 	rpc.fs.DirectoryEntry.prototype.removeRecursively = function (params, successCallback, errorCallback) {
@@ -122,15 +127,15 @@
 		__object.__begin = params[1];
 		__object.__length = params[2];
 
-		__object.readEntries(bind(this, function (entries) {
-			bind(null, successCallback)({
+		__object.readEntries(utils.bind(function (entries) {
+			utils.callback(successCallback, null)({
 				__begin: __object.__begin,
 				__length: __object.__length,
 				entries: entries.map(rpc.fs.Entry.serialize, this)
 			});
-		}), bind(this, function (error) {
-			bind(null, errorCallback)(rpc.fs.FileError.serialize(error));
-		}));
+		}, this), utils.bind(function (error) {
+			utils.callback(errorCallback, null)(rpc.fs.FileError.serialize(error));
+		}, this));
 	}
 
 	rpc.fs.FileError = function () {
