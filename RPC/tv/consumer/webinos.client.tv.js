@@ -61,7 +61,7 @@
 	 */
 	TVDisplayManager.prototype.setChannel = function(channel, successCallback,
 			errorCallback) {
-		var rpc = webinos.rpc.createRPC("TVDisplayManager", "setChannel",
+		var rpc = webinos.rpc.createRPC("TVManager", "display.setChannel",
 				arguments);
 		webinos.rpc.executeRPC(rpc, function(params) {
 			successCallback(params);
@@ -87,7 +87,7 @@
 	// TODO: does not conform API Spec, but needs to be added!
 	TVDisplayManager.prototype.addEventListener = function(eventname,
 			channelchangeeventhandler, useCapture) {
-		var rpc = webinos.rpc.createRPC("TVDisplayManager", "addEventListener",
+		var rpc = webinos.rpc.createRPC("TVManager", "display.addEventListener",
 				arguments);
 		rpc.fromObjectRef = Math.floor(Math.random() + (new Date().getTime())); // random
 																				// object
@@ -124,7 +124,7 @@
 	 */
 	TVTunerManager.prototype.getTVSources = function(successCallback,
 			errorCallback) {
-		var rpc = webinos.rpc.createRPC("TVTunerManager", "getTVSources",
+		var rpc = webinos.rpc.createRPC("TVManager", "tuner.getTVSources",
 				arguments);
 		webinos.rpc.executeRPC(rpc, function(params) {
 			successCallback(params);

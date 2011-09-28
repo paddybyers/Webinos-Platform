@@ -308,5 +308,4603 @@
             "__length": 10,
             "entries": []
         }
+    },
+    {
+        "timestamp": "2011-09-28T10:28:16.528Z",
+        "method": "TVManager.tuner.getTVSources",
+        "params": {},
+        "result": [
+            {
+                "name": "DVB-S",
+                "channelList": [
+                    {
+                        "channelType": 0,
+                        "name": "CH01",
+                        "longName": "Long name of channel 1.",
+                        "stream": "http://people.opera.com/patrickl/experiments/webm/videos/fridge.webm",
+                        "tvsource": {
+                            "name": "DVB-S",
+                            "channelList": []
+                        }
+                    },
+                    {
+                        "channelType": 0,
+                        "name": "CH02",
+                        "longName": "Long name of channel 2.",
+                        "stream": "http://people.opera.com/patrickl/experiments/webm/videos/garden1.webm",
+                        "tvsource": {
+                            "name": "DVB-S",
+                            "channelList": []
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "DVB-T",
+                "channelList": [
+                    {
+                        "channelType": 0,
+                        "name": "CH100",
+                        "longName": "Long name of channel 1.",
+                        "stream": "http://people.opera.com/patrickl/experiments/webm/videos/garden2.webm",
+                        "tvsource": {
+                            "name": "DVB-T",
+                            "channelList": []
+                        }
+                    },
+                    {
+                        "channelType": 0,
+                        "name": "CH101",
+                        "longName": "Long name of channel 101.",
+                        "stream": "http://people.opera.com/patrickl/experiments/webm/videos/windowsill.webm",
+                        "tvsource": {
+                            "name": "DVB-T",
+                            "channelList": []
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "timestamp": "2011-09-28T10:28:22.003Z",
+        "method": "TVManager.display.setChannel",
+        "params": {
+            "0": {
+                "channelType": 0,
+                "name": "CH01",
+                "longName": "Long name of channel 1.",
+                "stream": "http://people.opera.com/patrickl/experiments/webm/videos/fridge.webm",
+                "tvsource": {
+                    "name": "DVB-S",
+                    "channelList": []
+                }
+            }
+        },
+        "result": {
+            "channelType": 0,
+            "name": "CH01",
+            "longName": "Long name of channel 1.",
+            "stream": "http://people.opera.com/patrickl/experiments/webm/videos/fridge.webm",
+            "tvsource": {
+                "name": "DVB-S",
+                "channelList": []
+            }
+        }
+    },
+    {
+        "timestamp": "2011-09-28T10:29:58.677Z",
+        "method": "RemoteFileSystem.requestFileSystem",
+        "params": [
+            1,
+            1024
+        ],
+        "result": {
+            "name": "default",
+            "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+        }
+    },
+    {
+        "timestamp": "2011-09-28T10:34:06.354Z",
+        "method": "RemoteFileSystem.requestFileSystem",
+        "params": [
+            1,
+            1024
+        ],
+        "result": {
+            "name": "default",
+            "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+        }
+    },
+    {
+        "timestamp": "2011-09-28T10:34:06.376Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T10:34:06.393Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T10:34:06.403Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/.project",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/0.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/Context",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/impl_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/node_modules",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/readme.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T10:34:06.425Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_test.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_vehicle.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/tv",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/UserProfile",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.rpc.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v7.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v8.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T10:34:06.449Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            20,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T10:40:30.616Z",
+        "method": "TVManager.tuner.getTVSources",
+        "params": {},
+        "result": [
+            {
+                "name": "DVB-S",
+                "channelList": [
+                    {
+                        "channelType": 0,
+                        "name": "CH01",
+                        "longName": "Long name of channel 1.",
+                        "stream": "http://people.opera.com/patrickl/experiments/webm/videos/fridge.webm",
+                        "tvsource": {
+                            "name": "DVB-S",
+                            "channelList": []
+                        }
+                    },
+                    {
+                        "channelType": 0,
+                        "name": "CH02",
+                        "longName": "Long name of channel 2.",
+                        "stream": "http://people.opera.com/patrickl/experiments/webm/videos/garden1.webm",
+                        "tvsource": {
+                            "name": "DVB-S",
+                            "channelList": []
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "DVB-T",
+                "channelList": [
+                    {
+                        "channelType": 0,
+                        "name": "CH100",
+                        "longName": "Long name of channel 1.",
+                        "stream": "http://people.opera.com/patrickl/experiments/webm/videos/garden2.webm",
+                        "tvsource": {
+                            "name": "DVB-T",
+                            "channelList": []
+                        }
+                    },
+                    {
+                        "channelType": 0,
+                        "name": "CH101",
+                        "longName": "Long name of channel 101.",
+                        "stream": "http://people.opera.com/patrickl/experiments/webm/videos/windowsill.webm",
+                        "tvsource": {
+                            "name": "DVB-T",
+                            "channelList": []
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "timestamp": "2011-09-28T10:40:32.890Z",
+        "method": "TVManager.display.setChannel",
+        "params": {
+            "0": {
+                "channelType": 0,
+                "name": "CH01",
+                "longName": "Long name of channel 1.",
+                "stream": "http://people.opera.com/patrickl/experiments/webm/videos/fridge.webm",
+                "tvsource": {
+                    "name": "DVB-S",
+                    "channelList": []
+                }
+            }
+        },
+        "result": {
+            "channelType": 0,
+            "name": "CH01",
+            "longName": "Long name of channel 1.",
+            "stream": "http://people.opera.com/patrickl/experiments/webm/videos/fridge.webm",
+            "tvsource": {
+                "name": "DVB-S",
+                "channelList": []
+            }
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:56:05.481Z",
+        "method": "RemoteFileSystem.requestFileSystem",
+        "params": [
+            1,
+            1024
+        ],
+        "result": {
+            "name": "default",
+            "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:56:05.547Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:56:05.565Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:56:05.579Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/.project",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/0.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/Context",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/impl_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/node_modules",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/readme.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:56:05.597Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_test.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_vehicle.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/tv",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/UserProfile",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.rpc.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v7.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v8.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:56:05.609Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            20,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:00.467Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/client",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:00.484Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:00.500Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/.project",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/0.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/Context",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/impl_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/node_modules",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/readme.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:00.545Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_test.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_vehicle.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/tv",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/UserProfile",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.rpc.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v7.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v8.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:00.559Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            20,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:11.607Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/Context",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:11.630Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:11.649Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/.project",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/0.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/Context",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/impl_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/node_modules",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/readme.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:11.666Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_test.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_vehicle.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/tv",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/UserProfile",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.rpc.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v7.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v8.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:11.690Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            20,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:12.597Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/client",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:12.613Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:12.629Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/.project",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/0.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/Context",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/impl_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/node_modules",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/readme.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:12.653Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_test.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_vehicle.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/tv",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/UserProfile",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.rpc.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v7.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v8.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:12.691Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            20,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:19.870Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/Context",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:19.892Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:19.918Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/.project",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/0.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/Context",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/impl_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/node_modules",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/readme.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:19.959Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_test.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_vehicle.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/tv",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/UserProfile",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.rpc.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v7.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v8.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T16:57:19.977Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            20,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:43:59.665Z",
+        "method": "RemoteFileSystem.requestFileSystem",
+        "params": [
+            1,
+            1024
+        ],
+        "result": {
+            "name": "default",
+            "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:45:48.208Z",
+        "method": "RemoteFileSystem.requestFileSystem",
+        "params": [
+            1,
+            1024
+        ],
+        "result": {
+            "name": "default",
+            "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:45:48.256Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/Context",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/Context",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:45:48.278Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/Context",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:45:48.300Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/Context",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/Context/Server",
+                    "isFile": false,
+                    "isDirectory": true
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:45:48.327Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/Context",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:45:53.493Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:45:53.524Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:45:53.554Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/.project",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/0.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/Context",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/impl_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/node_modules",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/readme.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:45:53.599Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_test.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_vehicle.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/tv",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/UserProfile",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.rpc.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v7.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v8.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:45:53.620Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            20,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:45:58.019Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/client",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/client",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:45:58.051Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/client",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:45:58.285Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/client",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/client.html",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/get42.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/jquery-1.4.2.min.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/sensor.html",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/vehicle",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/webinos.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/webinos.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/webinos.sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:45:58.324Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/client",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:46:00.178Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:46:00.212Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:46:00.236Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/.project",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/0.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/Context",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/impl_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/node_modules",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/readme.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:46:00.257Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_test.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_vehicle.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/tv",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/UserProfile",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.rpc.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v7.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v8.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:46:00.296Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            20,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:46:01.552Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/Context",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/Context",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:46:01.590Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/Context",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:46:01.616Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/Context",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/Context/Server",
+                    "isFile": false,
+                    "isDirectory": true
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:46:01.832Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/Context",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:46:03.685Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:46:03.726Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:46:03.751Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/.project",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/0.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/Context",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/impl_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/node_modules",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/readme.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:46:03.783Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_test.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_vehicle.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/tv",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/UserProfile",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.rpc.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v7.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v8.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:46:03.808Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            20,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:37.785Z",
+        "method": "RemoteFileSystem.requestFileSystem",
+        "params": [
+            1,
+            1024
+        ],
+        "result": {
+            "name": "default",
+            "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:37.833Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:37.859Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:37.895Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/.project",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/0.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/Context",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/impl_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/node_modules",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/readme.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:37.929Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_test.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_vehicle.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/tv",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/UserProfile",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.rpc.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v7.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v8.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:37.956Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            20,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:40.547Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/client",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/client",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:40.576Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/client",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:40.605Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/client",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/client.html",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/get42.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/jquery-1.4.2.min.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/sensor.html",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/vehicle",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/webinos.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/webinos.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/webinos.sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:40.649Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/client",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:43.764Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:43.792Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:43.843Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/.project",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/0.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/Context",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/impl_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/node_modules",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/readme.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:43.882Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_test.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_vehicle.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/tv",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/UserProfile",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.rpc.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v7.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v8.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:43.919Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            20,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:56:48.119Z",
+        "method": "Test.get42",
+        "params": [],
+        "result": 42
+    },
+    {
+        "timestamp": "2011-09-28T17:58:12.693Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/client",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/client",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:58:12.743Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/client",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:58:12.785Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/client",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/client.html",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/get42.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/jquery-1.4.2.min.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/sensor.html",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/vehicle",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/webinos.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/webinos.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client/webinos.sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:58:12.831Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/client",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:58:13.740Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:58:13.775Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:58:13.823Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/.project",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/0.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/client",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/Context",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/impl_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/node_modules",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/readme.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:58:13.859Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_test.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_vehicle.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/test0.4.12.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/tv",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/UserProfile",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.rpc.fs.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v7.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:58:13.899Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            20,
+            10
+        ],
+        "result": {
+            "__begin": 30,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v8.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:58:13.950Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/fame/dev/webinos-codefest/wp4-repo/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            30,
+            10
+        ],
+        "result": {
+            "__begin": 30,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-09-28T17:58:23.766Z",
+        "method": "FileReader.readFileAsString",
+        "params": {
+            "0": "test0.4.12.txt"
+        },
+        "result": [
+            "success!"
+        ]
     }
 ]
