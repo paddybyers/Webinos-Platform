@@ -1,11 +1,9 @@
 // TODO Extract (de)serialization?
+// TODO Remove unnecessary function bindings.
 (function (exports) {
 	"use strict";
 
 	var rpc = webinos.rpc;
-	var utils = webinos.utils;
-
-	var file = exports;
 
 	var request = function (service, method, params, requestCallback) {
 		var message = rpc.createRPC(service, method, params);
@@ -13,19 +11,24 @@
 		rpc.executeRPC(message, requestCallback.onResult, requestCallback.onError);
 	}
 
-	// php.js {@link http://phpjs.org/functions/dirname:388}
-	var basename = function (path, suffix) {
-		if (!path)
-			return path;
+	var utils = webinos.utils;
 
-		var b = path.replace(/^.*[\/\\]/g, '');
-
-		if (typeof (suffix) == 'string' && b.substr(b.length - suffix.length) == suffix) {
-			b = b.substr(0, b.length - suffix.length);
+	utils.file = {
+		// php.js {@link http://phpjs.org/functions/dirname:388}
+		basename: function (path, suffix) {
+			if (!path)
+				return path;
+	
+			var b = path.replace(/^.*[\/\\]/g, '');
+	
+			if (typeof suffix == 'string' && b.substr(b.length - suffix.length) == suffix)
+				b = b.substr(0, b.length - suffix.length);
+	
+			return b;
 		}
+	};
 
-		return b;
-	}
+	var file = exports;
 
 	file.RemoteFileSystem = function () {
 	}
@@ -33,7 +36,7 @@
 	file.RemoteFileSystem.TEMPORARY = 0;
 	file.RemoteFileSystem.PERSISTENT = 1;
 
-	file.RemoteFileSystem.prototype = WebinosService.prototype;
+	file.RemoteFileSystem.prototype = WebinosService;
 	file.RemoteFileSystem.prototype.constructor = file.RemoteFileSystem;
 
 	file.RemoteFileSystem.prototype.requestFileSystem = function (type, size, successCallback, errorCallback) {
@@ -48,6 +51,14 @@
 	}
 
 	file.RemoteFileSystem.prototype.resolveLocalFileSystemURL = function (url, successCallback, errorCallback) {
+		request('RemoteFileSystem', 'resolveLocalFileSystemURL', [url], {
+			onResult: utils.bind(function (result) {
+				utils.callback(successCallback, null)(file.Entry.deserialize(result));
+			}, this),
+			onError: utils.bind(function (error) {
+				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
+			}, this)
+		});
 	}
 
 	file.FileSystem = function (name, realPath) {
@@ -71,7 +82,7 @@
 	file.Entry = function (filesystem, fullPath) {
 		this.filesystem = filesystem;
 
-		this.name = basename(fullPath);
+		this.name = utils.file.basename(fullPath);
 		this.fullPath = fullPath;
 	}
 
@@ -119,9 +130,25 @@
 	}
 
 	file.Entry.prototype.moveTo = function (parent, newName, successCallback, errorCallback) {
+		request('Entry', 'moveTo', [file.Entry.serialize(this), file.Entry.serialize(parent), newName], {
+			onResult: utils.bind(function (result) {
+				utils.callback(successCallback, null)(file.Entry.deserialize(result));
+			}, this),
+			onError: utils.bind(function (error) {
+				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
+			}, this)
+		});
 	}
 
 	file.Entry.prototype.copyTo = function (parent, newName, successCallback, errorCallback) {
+		request('Entry', 'copyTo', [file.Entry.serialize(this), file.Entry.serialize(parent), newName], {
+			onResult: utils.bind(function (result) {
+				utils.callback(successCallback, null)(file.Entry.deserialize(result));
+			}, this),
+			onError: utils.bind(function (error) {
+				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
+			}, this)
+		});
 	}
 
 	file.Entry.prototype.remove = function (successCallback, errorCallback) {
@@ -135,14 +162,16 @@
 		});
 	}
 
+	// TODO Transmit filesystem url.
 	file.Entry.prototype.toURL = function () {
+		return '';
 	}
 
 	file.DirectoryEntry = function (filesystem, fullPath) {
 		file.Entry.call(this, filesystem, fullPath);
 	}
 
-	file.DirectoryEntry.prototype = new file.Entry();
+	file.DirectoryEntry.prototype = file.Entry;
 	file.DirectoryEntry.prototype.constructor = file.DirectoryEntry;
 
 	file.DirectoryEntry.prototype.isDirectory = true;
@@ -155,7 +184,7 @@
 		request('DirectoryEntry', 'getFile', [file.Entry.serialize(this), path, options], {
 			onResult: utils.bind(function (result) {
 				utils.callback(successCallback, null)(file.Entry.deserialize(result));
-			}),
+			}, this),
 			onError: utils.bind(function (error) {
 				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
 			}, this)
@@ -166,7 +195,7 @@
 		request('DirectoryEntry', 'getDirectory', [file.Entry.serialize(this), path, options], {
 			onResult: utils.bind(function (result) {
 				utils.callback(successCallback, null)(file.Entry.deserialize(result));
-			}),
+			}, this),
 			onError: utils.bind(function (error) {
 				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
 			}, this)
@@ -174,6 +203,14 @@
 	}
 
 	file.DirectoryEntry.prototype.removeRecursively = function (successCallback, errorCallback) {
+		request('DirectoryEntry', 'removeRecursively', [file.Entry.serialize(this)], {
+			onResult: utils.bind(function (result) {
+				utils.callback(successCallback, null)();
+			}, this),
+			onError: utils.bind(function (error) {
+				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
+			}, this)
+		});
 	}
 
 	file.DirectoryReader = function (entry) {
@@ -201,7 +238,7 @@
 		file.Entry.call(this, filesystem, fullPath);
 	}
 
-	file.FileEntry.prototype = new file.Entry();
+	file.FileEntry.prototype = file.Entry;
 	file.FileEntry.prototype.constructor = file.FileEntry;
 
 	file.FileEntry.prototype.isFile = true;
