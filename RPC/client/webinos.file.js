@@ -15,6 +15,7 @@
 
 	utils.file = {
 		// php.js {@link http://phpjs.org/functions/dirname:388}
+		// TODO Choose meaningful variable names.
 		basename: function (path, suffix) {
 			if (!path)
 				return path;
