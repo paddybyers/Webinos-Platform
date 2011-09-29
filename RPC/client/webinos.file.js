@@ -271,4 +271,4 @@
 	file.FileError.QUOTA_EXCEEDED_ERR = 10;
 	file.FileError.TYPE_MISMATCH_ERR = 11;
 	file.FileError.PATH_EXISTS_ERR = 12;
-})((webinos || (webinos = {})).file = {});
+})((typeof webinos !== 'undefined' ? webinos : webinos = {}).file = {});

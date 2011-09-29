@@ -51,4 +51,4 @@
 				utils.callback(successCallback, thisArg)(result);
 		};
 	}
-})(typeof module !== 'undefined' ? module.exports : (webinos || (webinos = {})).utils = {});
+})(typeof module !== 'undefined' ? module.exports : (typeof webinos !== 'undefined' ? webinos : webinos = {}).utils = {});
