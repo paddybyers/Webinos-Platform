@@ -6,7 +6,7 @@
 	<script type="text/javascript" src="/webinos.utils.js"></script>
 	<script type="text/javascript" src="/client/get42.js"></script>
 	<script type="text/javascript" src="/client/geolocation.js"></script>
-	<script type="text/javascript" src="/client/webinos.fs.js"></script>
+	<script type="text/javascript" src="/client/webinos..js"></script>
 	<script type="text/javascript"
 		src="http://code.jquery.com/jquery-1.5.2.js"></script>
 	<script type="text/javascript"
@@ -265,7 +265,7 @@
 		webinos.ServiceDiscovery.findServices("RemoteFileSystem", {
 			onFound: function (service) {
 				service.bind(function () {
-					service.requestFileSystem(webinos.fs.RemoteFileSystem.PERSISTENT, 1024, function (_filesystem) {
+					service.requestFileSystem(webinos.file.RemoteFileSystem.PERSISTENT, 1024, function (_filesystem) {
 						filesystem = _filesystem;
 
 						if (dojo.hash() == '')
