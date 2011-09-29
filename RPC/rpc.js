@@ -237,7 +237,7 @@ if (typeof exports !== 'undefined'){
 	require('./rpc_file.js');
 	require('./rpc_test.js');
 	require('./rpc_vehicle.js');
-	require('./webinos.rpc.fs.js');
+	require('./webinos.rpc.file.js');
 	require('./rpc_sensors.js');
 	require('./rpc_geolocation.js');
 	require('./tv/provider/webinos.rpc.tv.js');
