@@ -36,7 +36,7 @@
 	file.RemoteFileSystem.TEMPORARY = 0;
 	file.RemoteFileSystem.PERSISTENT = 1;
 
-	file.RemoteFileSystem.prototype = WebinosService;
+	file.RemoteFileSystem.prototype = new WebinosService();
 	file.RemoteFileSystem.prototype.constructor = file.RemoteFileSystem;
 
 	file.RemoteFileSystem.prototype.requestFileSystem = function (type, size, successCallback, errorCallback) {
@@ -171,7 +171,7 @@
 		file.Entry.call(this, filesystem, fullPath);
 	}
 
-	file.DirectoryEntry.prototype = file.Entry;
+	file.DirectoryEntry.prototype = new file.Entry();
 	file.DirectoryEntry.prototype.constructor = file.DirectoryEntry;
 
 	file.DirectoryEntry.prototype.isDirectory = true;
@@ -238,7 +238,7 @@
 		file.Entry.call(this, filesystem, fullPath);
 	}
 
-	file.FileEntry.prototype = file.Entry;
+	file.FileEntry.prototype = new file.Entry();
 	file.FileEntry.prototype.constructor = file.FileEntry;
 
 	file.FileEntry.prototype.isFile = true;

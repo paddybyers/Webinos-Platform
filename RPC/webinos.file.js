@@ -134,7 +134,7 @@
 		this.lastModifiedDate = stats.mtime;
 	}
 
-	file.File.prototype = file.Blob;
+	file.File.prototype = new file.Blob();
 	file.File.prototype.constructor = file.File;
 
 	file.File.prototype.__start = 0;
@@ -364,7 +364,7 @@
 		file.Entry.call(this, filesystem, fullPath);
 	}
 
-	file.DirectoryEntry.prototype = file.Entry;
+	file.DirectoryEntry.prototype = new file.Entry();
 	file.DirectoryEntry.prototype.constructor = file.DirectoryEntry;
 
 	file.DirectoryEntry.prototype.isDirectory = true;
@@ -529,7 +529,7 @@
 		file.Entry.call(this, filesystem, fullPath);
 	}
 
-	file.FileEntry.prototype = file.Entry;
+	file.FileEntry.prototype = new file.Entry();
 	file.FileEntry.prototype.constructor = file.FileEntry;
 
 	file.FileEntry.prototype.isFile = true;
