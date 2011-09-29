@@ -1,4 +1,5 @@
 // TODO Extract (de)serialization?
+// TODO Remove unnecessary function bindings.
 (function (exports) {
 	var file = require('./webinos.file.js');
 	var utils = require('./webinos.utils.js');
@@ -20,6 +21,11 @@
 	}
 
 	rpc.file.RemoteFileSystem.prototype.resolveLocalFileSystemURL = function (params, successCallback, errorCallback) {
+		this.__object.resolveLocalFileSystemURL(params[0], utils.bind(function (entry) {
+			utils.callback(successCallback, null)(rpc.file.Entry.serialize(entry));
+		}, this), utils.bind(function (error) {
+			utils.callback(errorCallback, null)(rpc.file.FileError.serialize(error));
+		}, this));
 	}
 
 	rpc.file.FileSystem = function () {
@@ -78,9 +84,23 @@
 	}
 
 	rpc.file.Entry.prototype.moveTo = function (params, successCallback, errorCallback) {
+		var __object = rpc.file.Entry.deserialize(params[0]);
+
+		__object.moveTo(rpc.file.Entry.deserialize(params[1]), params[2], utils.bind(function (entry) {
+			utils.callback(successCallback, null)(rpc.file.Entry.serialize(entry));
+		}, this), utils.bind(function (error) {
+			utils.callback(errorCallback, null)(rpc.file.FileError.serialize(error));
+		}, this));
 	}
 
 	rpc.file.Entry.prototype.copyTo = function (params, successCallback, errorCallback) {
+		var __object = rpc.file.Entry.deserialize(params[0]);
+
+		__object.copyTo(rpc.file.Entry.deserialize(params[1]), params[2], utils.bind(function (entry) {
+			utils.callback(successCallback, null)(rpc.file.Entry.serialize(entry));
+		}, this), utils.bind(function (error) {
+			utils.callback(errorCallback, null)(rpc.file.FileError.serialize(error));
+		}, this));
 	}
 
 	rpc.file.Entry.prototype.remove = function (params, successCallback, errorCallback) {
@@ -117,6 +137,13 @@
 	}
 
 	rpc.file.DirectoryEntry.prototype.removeRecursively = function (params, successCallback, errorCallback) {
+		var __object = rpc.file.Entry.deserialize(params[0]);
+
+		__object.removeRecursively(utils.bind(function () {
+			utils.callback(successCallback, null)();
+		}, this), utils.bind(function (error) {
+			utils.callback(errorCallback, null)(rpc.file.FileError.serialize(error));
+		}, this));
 	}
 
 	rpc.file.DirectoryReader = function () {
