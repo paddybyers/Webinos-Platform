@@ -1,6 +1,8 @@
 // TODO Extract (de)serialization?
 // TODO Remove unnecessary function bindings.
 (function (exports) {
+	"use strict";
+
 	var file = require('./webinos.file.js');
 	var utils = require('./webinos.utils.js');
 
