@@ -8,9 +8,10 @@
  * 
  * @author Felix-Johannes Jendrusch <felix-johannes.jendrusch@fokus.fraunhofer.de>
  * 
- * TODO Use async ({@link http://github.com/caolan/async}) by Caolan McMahon?
- * TODO Use error codes according to specification.
- * TODO Remove unnecessary function bindings.
+ * TODO Use error/exception codes according to specification, e.g., use filesystem operation-dependent maps.
+ * TODO Invalidate entries, e.g., after being (re)moved.
+ * TODO Check successCallback/errorCallback this-scope (and other scopes..).
+ * TODO Cache synchronous counterpart objects, e.g., <pre>file.DirectoryReader.__sync</pre>.
  */
 (function (exports) {
 	"use strict";
@@ -107,102 +108,137 @@
 			return utils.file.normalize(paths.filter(function (p) {
 				return typeof p === 'string' && p;
 			}, false).join('/'));
+		},
+
+		tryCatch: function (fun, thisArg, map) {
+			return function () {
+				try {
+					return fun.apply(thisArg, arguments);
+				} catch (exception) {
+					if (map && typeof map[exception.code] !== 'undefined')
+						var code = map[exception.code];
+					else
+						var code = file.FileException.SECURITY_ERR;
+
+					throw new file.FileException(code);
+				}
+			};
+		},
+
+		sync: function (object) {
+			if (object instanceof file.LocalFileSystem)
+				return new file.LocalFileSystemSync();
+			else if (object instanceof file.FileSystem)
+				return new file.FileSystemSync(object.name, object.__realPath);
+			else if (object instanceof file.DirectoryEntry)
+				return new file.DirectoryEntrySync(utils.file.sync(object.filesystem), object.fullPath);
+			else if (object instanceof file.DirectoryReader) {
+				var reader = new file.DirectoryReaderSync(utils.file.sync(object.__entry));
+				reader.__begin = object.__begin;
+				reader.__length = object.__length;
+				
+				return reader;
+			} else if (object instanceof file.FileEntry)
+				return new file.FileEntrySync(utils.file.sync(object.filesystem), object.fullPath);
+			else
+				return object;
+		},
+		
+		async: function (object) {
+			if (object instanceof file.LocalFileSystemSync)
+				return new file.LocalFileSystem();
+			else if (object instanceof file.FileSystemSync)
+				return new file.FileSystem(object.name, object.__realPath);
+			else if (object instanceof file.DirectoryEntrySync)
+				return new file.DirectoryEntry(utils.file.async(object.filesystem), object.fullPath);
+			else if (object instanceof file.DirectoryReaderSync) {
+				var reader = new file.DirectoryReader(utils.file.async(object.__entry));
+				reader.__begin = object.__begin;
+				reader.__length = object.__length;
+				
+				return reader;
+			} else if (object instanceof file.FileEntrySync)
+				return new file.FileEntry(utils.file.async(object.filesystem), object.fullPath);
+			else
+				return object;
+		},
+		
+		runAsync: function (fun, thisArg, successCallback, errorCallback) {
+			return function () {
+				var argsArray = arguments;
+				
+				process.nextTick(function () {
+					try {
+						utils.callback(successCallback)(fun.apply(thisArg, argsArray));
+					} catch (exception) {
+						if (exception instanceof file.FileException)
+							var code = exception.code;
+						else
+							var code = file.FileError.SECURITY_ERR;
+						
+						utils.callback(errorCallback)(new file.FileError(code));
+					}
+				});
+			}
 		}
 	};
 
 	var file = exports;
-
-	file.Blob = function () {
+	
+	file.LocalFileSystemSync = function () {
 	}
 
-	file.Blob.prototype.size = 0;
-	file.Blob.prototype.type = '';
-
-	file.File = function (entry) {
-		file.Blobl.call(this);
-
-		this.__entry = entry;
-
-		try {
-			var stats = __fs.stat(entry.filesystem.realize(entry.fullPath));
-		} catch (exception) {
-			throw file.FileException.wrap(exception);
-		}
-
-		this.name = entry.name;
-		this.size = stats.size;
-		this.lastModifiedDate = stats.mtime;
-	}
-
-	file.File.prototype = new file.Blob();
-	file.File.prototype.constructor = file.File;
-
-	file.File.prototype.__start = 0;
-	file.File.prototype.__length = -1;
-
-	file.File.prototype.slice = function (start, length, contentType) {
-		var newFile = new File(this.__entry);
-
-		// ...
-
-		return newFile;
-	}
-
-	file.RemoteFileSystem = function () {
-	}
-
-	file.RemoteFileSystem.TEMPORARY = 0;
-	file.RemoteFileSystem.PERSISTENT = 1;
+	file.LocalFileSystemSync.TEMPORARY = 0;
+	file.LocalFileSystemSync.PERSISTENT = 1;
 
 	// TODO Choose file system according to specification.
-	file.RemoteFileSystem.prototype.requestFileSystem = function (type, size, successCallback, errorCallback) {
-		utils.callback(successCallback, null)(new file.FileSystem('default', process.cwd()));
+	file.LocalFileSystemSync.prototype.requestFileSystem = function (type, size) {
+		return new file.FileSystemSync('default', process.cwd());
 	}
 
-	file.RemoteFileSystem.prototype.resolveLocalFileSystemURL = function (url, successCallback, errorCallback) {
+	file.LocalFileSystemSync.prototype.resolveLocalFileSystemURL = function (url) {
+		throw new file.FileException(file.FileException.SECURITY_ERR);
 	}
-
-	file.FileSystem = function (name, realPath) {
+	
+	file.FileSystemSync = function (name, realPath) {
 		this.name = name;
-		this.root = new file.DirectoryEntry(this, '/');
+		this.root = new file.DirectoryEntrySync(this, '/');
 
 		this.__realPath = realPath;
 	}
 
-	file.FileSystem.prototype.realize = function (fullPath) {
-		if (utils.file.equals(this.root.fullPath, fullPath))
+	file.FileSystemSync.prototype.realize = function (fullPath) {
+		if (utils.file.equals(fullPath, this.root.fullPath))
 			return this.__realPath;
 
 		return __path.join(this.__realPath, fullPath);
 	}
-
-	file.Entry = function (filesystem, fullPath) {
+	
+	file.EntrySync = function (filesystem, fullPath) {
 		this.filesystem = filesystem;
 
 		this.name = __path.basename(fullPath);
 		this.fullPath = fullPath;
 	}
 
-	file.Entry.create = function (filesystem, fullPath, successCallback, errorCallback) {
-		__fs.stat(filesystem.realize(fullPath), utils.erroneous(function (stats) {
-			if (stats.isDirectory())
-				var entry = file.DirectoryEntry;
-			else if (stats.isFile())
-				var entry = file.FileEntry;
-			else
-				return void (utils.callback(errorCallback, null)(new file.FileError(file.FileError.SECURITY_ERR)));
+	file.EntrySync.create = function (filesystem, fullPath) {
+		var stats = utils.file.tryCatch(__fs.statSync)(filesystem.realize(fullPath));
+		
+		if (stats.isFile())
+			var entry = file.FileEntrySync;
+		else if (stats.isDirectory())
+			var entry = file.DirectoryEntrySync;
+		else
+			throw new file.FileException(file.FileException.SECURITY_ERR);
 
-			utils.callback(successCallback, null)(new entry(filesystem, fullPath));
-		}, function (error) {
-			utils.callback(errorCallback, null)(file.FileError.wrap(error));
-		}, null));
+		return new entry(filesystem, fullPath);
 	}
 
-	file.Entry.prototype.isFile = false;
-	file.Entry.prototype.isDirectory = false;
+	file.EntrySync.prototype.isFile = false;
+	file.EntrySync.prototype.isDirectory = false;
 
 	// Node.js - Path {@link https://github.com/joyent/node/blob/master/lib/path.js} module extract.
-	file.Entry.prototype.resolve = function () {
+	file.EntrySync.prototype.resolve = function () {
 		var resolvedPath = '';
 
 		for (var i = arguments.length - 1; i >= -1; i--) {
@@ -228,7 +264,7 @@
 	}
 
 	// Node.js - Path {@link https://github.com/joyent/node/blob/master/lib/path.js} module extract.
-	file.Entry.prototype.relative = function (to) {
+	file.EntrySync.prototype.relative = function (to) {
 		var fromParts = this.fullPath.split('/');
 		var toParts = this.resolve(to).split('/');
 
@@ -255,109 +291,340 @@
 		return outputParts.join('/');
 	}
 
-	file.Entry.prototype.getMetadata = function (successCallback, errorCallback) {
-		__fs.stat(this.filesystem.realize(this.fullPath), utils.erroneous(function (stats) {
-			utils.callback(successCallback, null)({
-				modificationTime: stats.mtime
+	file.EntrySync.prototype.copyTo = function (parent, newName) {
+		newName = newName || this.name;
+		
+		if (utils.file.equals(parent.fullPath, this.getParent().fullPath) && newName == this.name)
+			throw new file.FileException(file.FileException.INVALID_MODIFICATION_ERR);
+		
+		var newFullPath = utils.file.join(parent.fullPath, newName);
+		
+		if (this.isFile) {
+			var newEntry = parent.getFile(newName, {
+				create: true,
+				exclusive: true
 			});
-		}, function (error) {
-			utils.callback(errorCallback, null)(file.FileError.wrap(error));
-		}, this));
+			
+			// TODO Use file.FileReaderSync and file.FileWriterSync.
+			utils.file.tryCatch(__fs.writeFileSync)(parent.filesystem.realize(newFullPath),
+					utils.file.tryCatch(__fs.readFileSync)(this.filesystem.realize(this.fullPath)));
+		} else if (this.isDirectory) {
+			if (parent.isSubdirectoryOf(this))
+				throw new file.FileException(file.FileException.INVALID_MODIFICATION_ERR);
+			
+			var newEntry = parent.getDirectory(newName, {
+				create: true,
+				exclusive: true
+			});
+			
+			var reader = this.createReader();
+			var children = [];
+			
+			while ((children = reader.readEntries()).length > 0)
+				children.forEach(function (child) {
+					child.copyTo(newEntry, child.name);
+				});
+		}
+		
+		return newEntry;
+	}
+	
+	file.EntrySync.prototype.getMetadata = function () {
+		var stats = utils.file.tryCatch(__fs.statSync)(this.filesystem.realize(this.fullPath));
+		
+		return {
+			modificationTime: stats.mtime
+		};
+	}
+
+	file.EntrySync.prototype.getParent = function () {
+		if (utils.file.equals(this.fullPath, this.filesystem.root.fullPath))
+			return this;
+		
+		// TODO Extract POSIX version of dirname(String) from Node.js - Path module?
+		return new file.DirectoryEntrySync(this.filesystem, __path.dirname(this.fullPath));
+	}
+
+	file.EntrySync.prototype.moveTo = function (parent, newName) {
+		newName = newName || this.name;
+		
+		if (utils.file.equals(parent.fullPath, this.getParent().fullPath) && newName == this.name)
+			throw new file.FileException(file.FileException.INVALID_MODIFICATION_ERR);
+		
+		var newFullPath = utils.file.join(parent.fullPath, newName);
+		
+		utils.file.tryCatch(__fs.renameSync)(this.filesystem.realize(this.fullPath),
+				parent.filesystem.realize(newFullPath));
+
+		return file.EntrySync.create(parent.filesystem, newFullPath);
+	}
+
+	file.EntrySync.prototype.remove = function () {
+		if (utils.file.equals(this.fullPath, this.filesystem.root.fullPath))
+			throw new file.FileException(file.FileException.SECURITY_ERR);
+		
+		if (this.isFile)
+			var remove = __fs.unlinkSync;
+		else if (this.isDirectory)
+			var remove = __fs.rmdirSync;
+		
+		utils.file.tryCatch(remove)(this.filesystem.realize(this.fullPath));
+	}
+
+	// TODO Choose filesystem url scheme, e.g.,
+	//     <filesystem:http://example.domain/persistent-or-temporary/path/to/file.html>.
+	file.EntrySync.prototype.toURL = function () {
+	}
+
+	file.DirectoryEntrySync = function (filesystem, fullPath) {
+		file.EntrySync.call(this, filesystem, fullPath);
+	}
+
+	file.DirectoryEntrySync.prototype = new file.EntrySync();
+	file.DirectoryEntrySync.prototype.constructor = file.DirectoryEntrySync;
+
+	file.DirectoryEntrySync.prototype.isDirectory = true;
+
+	file.DirectoryEntrySync.prototype.createReader = function () {
+		return new file.DirectoryReaderSync(this);
+	}
+
+	file.DirectoryEntrySync.prototype.isSubdirectoryOf = function (entry) {
+		var fullPath = this.fullPath;
+
+		while (!utils.file.equals(fullPath, this.filesystem.root.fullPath)) {
+			if (utils.file.equals(fullPath, entry.fullPath))
+				return true;
+
+			// TODO Extract POSIX version of dirname(String) from Node.js - Path module?
+			fullPath = __path.dirname(fullPath);
+		}
+
+		return false;
+	}
+
+	file.DirectoryEntrySync.prototype.getDirectory = function (path, options) {
+		var fullPath = this.resolve(path);
+		
+		if (__path.existsSync(this.filesystem.realize(fullPath))) {
+			if (options && options.create && options.exclusive)
+				throw new file.FileException(file.FileException.PATH_EXISTS_ERR);
+			
+			var entry = file.EntrySync.create(this.filesystem, fullPath);
+			
+			if (!entry.isDirectory)
+				throw new file.FileException(file.FileException.TYPE_MISMATCH_ERR);
+		} else {
+			if (!options || options.create)
+				throw new file.FileException(file.FileException.NOT_FOUND_ERR);
+			
+			var stats = utils.file.tryCatch(__fs.statSync)(this.filesystem.realize(this.fullPath));
+			
+			utils.file.tryCatch(__fs.mkdirSync)(this.filesystem.realize(fullPath), stats.mode);
+
+			var entry = new file.DirectoryEntrySync(this.filesystem, fullPath)
+		}
+		
+		return entry;
+	}
+
+	file.DirectoryEntrySync.prototype.getFile = function (path, options) {
+		var fullPath = this.resolve(path);
+		
+		if (__path.existsSync(this.filesystem.realize(fullPath))) {
+			if (options && options.create && options.exclusive)
+				throw new file.FileException(file.FileException.PATH_EXISTS_ERR);
+			
+			var entry = file.EntrySync.create(this.filesystem, fullPath);
+			
+			if (!entry.isFile)
+				throw new file.FileException(file.FileException.TYPE_MISMATCH_ERR);
+		} else {
+			if (!options || options.create)
+				throw new file.FileException(file.FileException.NOT_FOUND_ERR);
+			
+			var fd = utils.file.tryCatch(__fs.openSync)(this.filesystem.realize(fullPath), 'w');
+			
+			utils.file.tryCatch(__fs.closeSync)(fd);
+			
+			var entry = new file.FileEntrySync(this.filesystem, fullPath)
+		}
+		
+		return entry;
+	}
+
+	file.DirectoryEntrySync.prototype.removeRecursively = function () {
+		var reader = this.createReader();
+		var children = [];
+		
+		while ((children = reader.readEntries()).length > 0)
+			children.forEach(function (child) {
+				if (child.isFile)
+					child.remove();
+				else if (child.isDirectory)
+					child.removeRecursively();
+			});
+		
+		this.remove();
+	}
+
+	file.DirectoryReaderSync = function (entry) {
+		this.__entry = entry;
+	}
+
+	file.DirectoryReaderSync.prototype.__begin = 0;
+	file.DirectoryReaderSync.prototype.__length = 10;
+	
+	file.DirectoryReaderSync.prototype.readEntries = function () {
+		if (typeof this.__children === 'undefined')
+			this.__children = utils.file.tryCatch(__fs.readdirSync)(
+					this.__entry.filesystem.realize(this.__entry.fullPath));
+
+		var entries = [];
+		
+		for (var i = this.__begin; i < Math.min(this.__begin + this.__length, this.__children.length); i++)
+			entries.push(file.EntrySync.create(this.__entry.filesystem,
+					utils.file.join(this.__entry.fullPath, this.__children[i])));
+		
+		this.__begin += entries.length;
+		
+		return entries;
+	}
+
+	file.FileEntrySync = function (filesystem, fullPath) {
+		file.EntrySync.call(this, filesystem, fullPath);
+	}
+
+	file.FileEntrySync.prototype = new file.EntrySync();
+	file.FileEntrySync.prototype.constructor = file.FileEntrySync;
+
+	file.FileEntrySync.prototype.isFile = true;
+
+	file.FileEntrySync.prototype.createWriter = function () {
+		return new file.FileWriterSync(this);
+	}
+
+	file.FileEntrySync.prototype.file = function () {
+		return new file.File(this);
+	}
+	
+//	file.Blob = function () {
+//	}
+//
+//	file.Blob.prototype.size = 0;
+//	file.Blob.prototype.type = '';
+//
+//	file.File = function (entry) {
+//		file.Blobl.call(this);
+//
+//		this.__entry = entry;
+//
+//		try {
+//			var stats = __fs.stat(entry.filesystem.realize(entry.fullPath));
+//		} catch (exception) {
+//			throw file.FileException.wrap(exception);
+//		}
+//
+//		this.name = entry.name;
+//		this.size = stats.size;
+//		this.lastModifiedDate = stats.mtime;
+//	}
+//
+//	file.File.prototype = new file.Blob();
+//	file.File.prototype.constructor = file.File;
+//
+//	file.File.prototype.__start = 0;
+//	file.File.prototype.__length = -1;
+//
+//	file.File.prototype.slice = function (start, length, contentType) {
+//		var newFile = new File(this.__entry);
+//
+//		// ...
+//
+//		return newFile;
+//	}
+
+	file.LocalFileSystem = function () {
+	}
+
+	file.LocalFileSystem.TEMPORARY = 0;
+	file.LocalFileSystem.PERSISTENT = 1;
+
+	file.LocalFileSystem.prototype.requestFileSystem = function (type, size, successCallback, errorCallback) {
+		utils.file.runAsync(file.LocalFileSystemSync.prototype.requestFileSystem, this, function (filesystem) {
+			successCallback(utils.file.async(filesystem));
+		}, errorCallback)(type, size);
+	}
+
+	file.LocalFileSystem.prototype.resolveLocalFileSystemURL = function (url, successCallback, errorCallback) {
+		utils.file.runAsync(file.LocalFileSystemSync.prototype.resolveLocalFileSystemURL, this, function (entry) {
+			successCallback(utils.file.async(entry));
+		}, errorCallback)(url);
+	}
+
+	file.FileSystem = function (name, realPath) {
+		this.name = name;
+		this.root = new file.DirectoryEntry(this, '/');
+
+		this.__realPath = realPath;
+	}
+
+	file.FileSystem.prototype.realize = function (fullPath) {
+		return file.FileSystemSync.prototype.realize.call(this, fullPath);
+	}
+
+	file.Entry = function (filesystem, fullPath) {
+		this.filesystem = filesystem;
+
+		this.name = __path.basename(fullPath);
+		this.fullPath = fullPath;
+	}
+
+	file.Entry.create = function (filesystem, fullPath, successCallback, errorCallback) {
+		utils.file.runAsync(file.EntrySync.prototype.create, this, function (entry) {
+			successCallback(utils.file.async(entry));
+		}, errorCallback)(utils.file.sync(filesystem), fullPath);
+	}
+
+	file.Entry.prototype.isFile = false;
+	file.Entry.prototype.isDirectory = false;
+	
+	file.Entry.prototype.resolve = function () {
+		return file.EntrySync.prototype.resolve.apply(this, arguments);
+	}
+
+	file.Entry.prototype.relative = function (to) {
+		return file.EntrySync.prototype.relative.call(this, to);
+	}
+
+	file.Entry.prototype.copyTo = function (parent, newName, successCallback, errorCallback) {
+		utils.file.runAsync(file.EntrySync.prototype.copyTo, utils.file.sync(this), function (entry) {
+			successCallback(utils.file.async(entry));
+		}, errorCallback)(utils.file.sync(parent), newName);
+	}
+
+	file.Entry.prototype.getMetadata = function (successCallback, errorCallback) {
+		utils.file.runAsync(file.EntrySync.prototype.getMetadata, this, successCallback, errorCallback)();
 	}
 
 	file.Entry.prototype.getParent = function (successCallback, errorCallback) {
-		if (utils.file.equals(this.fullPath, this.filesystem.root.fullPath))
-			var parent = this;
-		else
-			// TODO Extract POSIX version of dirname(String) from Node.js - Path module?
-			var parent = new file.DirectoryEntry(this.filesystem, __path.dirname(this.fullPath));
-
-		utils.callback(successCallback, null)(parent);
+		utils.file.runAsync(file.EntrySync.prototype.getParent, this, function (entry) {
+			successCallback(utils.file.async(entry));
+		}, errorCallback)();
 	}
 
 	file.Entry.prototype.moveTo = function (parent, newName, successCallback, errorCallback) {
-		newName = newName || this.name;
-
-		this.getParent(utils.bind(function (oldParent) {
-			var newFullPath = utils.file.join(parent.fullPath, newName);
-
-			if (utils.file.equals(parent.fullPath, oldParent.fullPath) && newName == this.name)
-				return void (utils.callback(errorCallback, null)(new file.FileError(file.FileError.SECURITY_ERR)));
-
-			__fs.rename(this.filesystem.realize(this.fullPath), parent.filesystem.realize(newFullPath), utils.erroneous(function () {
-				file.Entry.create(parent.filesystem, newFullPath, successCallback, errorCallback);
-			}, function (error) {
-				utils.callback(errorCallback, null)(file.FileError.wrap(error));
-			}, this));
-		}, this), errorCallback);
-	}
-
-	// TODO Use DirectoryEntry and FileEntry to create/copy entries?
-	file.Entry.prototype.copyTo = function (parent, newName, successCallback, errorCallback) {
-		newName = newName || this.name;
-
-		this.getParent(utils.bind(function (oldParent) {
-			var newFullPath = utils.file.join(parent.fullPath, newName);
-
-			if (utils.file.equals(parent.fullPath, oldParent.fullPath) && newName == this.name)
-				return void (utils.callback(errorCallback, null)(new file.FileError(file.FileError.SECURITY_ERR)));
-
-			if (this.isDirectory) {
-				if (parent.isSubdirectoryOf(this))
-					return void (utils.callback(errorCallback, null)(new file.FileError(file.FileError.SECURITY_ERR)));
-
-				this.traverse({
-					preOrder: utils.bind(function (entry, successCallback, errorCallback) {
-						var entryFullPath = utils.file.join(newFullPath, this.relative(entry.fullPath));
-
-						try {
-							if (entry.isDirectory) {
-								var stats = __fs.statSync(entry.filesystem.realize(entry.fullPath));
-
-								__fs.mkdirSync(parent.filesystem.realize(entryFullPath), stats.mode);
-							} else if (entry.isFile)
-								__fs.writeFileSync(parent.filesystem.realize(entryFullPath), __fs.readFileSync(entry.filesystem.realize(entry.fullPath)));
-						} catch (exception) {
-							return void (errorCallback(file.FileError.wrap(exception)));
-						}
-
-						successCallback();
-					}, this)
-				}, utils.bind(function () {
-					utils.callback(successCallback, null)(new file.DirectoryEntry(parent.filesystem, newFullPath));
-				}, this), errorCallback);
-			} else if (this.isFile) {
-				__fs.readFile(this.filesystem.realize(this.fullPath), utils.erroneous(function (data) {
-					__fs.writeFile(parent.filesystem.realize(newFullPath), data, utils.erroneous(function () {
-						utils.callback(successCallback, null)(new file.FileEntry(parent.filesystem, newFullPath));
-					}, function (error) {
-						utils.callback(errorCallback, null)(file.FileError.wrap(error));
-					}, this));
-				}, function (error) {
-					utils.callback(errorCallback, null)(file.FileError.wrap(error));
-				}, this));
-			}
-		}, this), errorCallback);
+		utils.file.runAsync(file.EntrySync.prototype.moveTo, this, function (entry) {
+			successCallback(utils.file.async(entry));
+		}, errorCallback)(utils.file.sync(parent), newName);
 	}
 
 	file.Entry.prototype.remove = function (successCallback, errorCallback) {
-		if (utils.file.equals(this.fullPath, this.filesystem.root.fullPath))
-			return void (utils.callback(errorCallback, null)(new file.FileError(file.FileError.SECURITY_ERR)));
-
-		if (this.isDirectory)
-			var remove = __fs.rmdir;
-		else if (this.isFile)
-			var remove = __fs.unlink;
-
-		remove(this.filesystem.realize(this.fullPath), utils.erroneous(function () {
-			utils.callback(successCallback, null)();
-		}, function (error) {
-			utils.callback(errorCallback, null)(file.FileError.wrap(error));
-		}, this));
+		utils.file.runAsync(file.EntrySync.prototype.remove, this, successCallback, errorCallback)();
 	}
 
-	// TODO Choose filesystem url scheme, e.g., <filesystem:http://example.domain/persistent-or-temporary/path/to/file.html>.
 	file.Entry.prototype.toURL = function () {
+		return file.EntrySync.prototype.toURL.call(this);
 	}
 
 	file.DirectoryEntry = function (filesystem, fullPath) {
@@ -373,121 +640,25 @@
 		return new file.DirectoryReader(this);
 	}
 
-	file.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
-		var fullPath = this.resolve(path);
-
-		__path.exists(this.filesystem.realize(fullPath), utils.conditional(function () {
-			if (options && options.create && options.exclusive)
-				return void (utils.callback(errorCallback, null)(new file.FileError(file.FileError.PATH_EXISTS_ERR)));
-
-			file.Entry.create(this.filesystem, fullPath, utils.bind(function (entry) {
-				if (!entry.isFile)
-					return void (utils.callback(errorCallback, null)(new file.FileError(file.FileError.TYPE_MISMATCH_ERR)));
-
-				utils.callback(successCallback, null)(entry);
-			}, this), errorCallback);
-		}, function () {
-			if (!options || !options.create)
-				return void (utils.callback(errorCallback, null)(new file.FileError(file.FileError.NOT_FOUND_ERR)));
-
-			try {
-				__fs.closeSync(__fs.openSync(this.filesystem.realize(fullPath), 'w'));
-			} catch (exception) {
-				return void (utils.callback(errorCallback, null)(file.FileError.wrap(exception)));
-			}
-
-			utils.callback(successCallback, null)(new file.FileEntry(this.filesystem, fullPath));
-		}, this));
-	}
-
 	file.DirectoryEntry.prototype.isSubdirectoryOf = function (entry) {
-		var fullPath = this.fullPath;
-
-		while (!utils.file.equals(fullPath, this.filesystem.root.fullPath)) {
-			if (utils.file.equals(fullPath, entry.fullPath))
-				return true;
-
-			// TODO Extract POSIX version of dirname(String) from Node.js - Path module?
-			fullPath = __path.dirname(fullPath);
-		}
-
-		return false;
+		return file.DirectoryEntrySync.prototype.isSubdirectoryOf.call(this, utils.file.sync(entry));
 	}
 
 	file.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {
-		var fullPath = this.resolve(path);
-
-		__path.exists(this.filesystem.realize(fullPath), utils.conditional(function () {
-			if (options && options.create && options.exclusive)
-				return void (utils.callback(errorCallback, null)(new file.FileError(file.FileError.PATH_EXISTS_ERR)));
-
-			file.Entry.create(this.filesystem, fullPath, utils.bind(function (entry) {
-				if (!entry.isDirectory)
-					return void (utils.callback(errorCallback, null)(new file.FileError(file.FileError.TYPE_MISMATCH_ERR)));
-
-				utils.callback(successCallback, null)(entry);
-			}, this), errorCallback);
-		}, function () {
-			if (!options || !options.create)
-				return void (utils.callback(errorCallback, null)(new file.FileError(file.FileError.NOT_FOUND_ERR)));
-
-			try {
-				var stats = __fs.statSync(this.filesystem.realize(this.fullPath));
-
-				__fs.mkdirSync(this.filesystem.realize(fullPath), stats.mode);
-			} catch (exception) {
-				return void (utils.callback(errorCallback, null)(file.FileError.wrap(exception)));
-			}
-
-			utils.callback(successCallback, null)(new file.DirectoryEntry(this.filesystem, fullPath));
-		}, this));
+		utils.file.runAsync(file.DirectoryEntrySync.prototype.getDirectory, this, function (entry) {
+			successCallback(utils.file.async(entry));
+		}, errorCallback)(path, options);
 	}
 
-	// TODO Use DirectoryReader to read directories?
-	file.DirectoryEntry.prototype.traverse = function (operationCallback, successCallback, errorCallback) {
-		var defaultOperation = function (entry, successCallback, errorCallback) {
-			successCallback();
-		};
-		
-		operationCallback.preOrder = operationCallback.preOrder || defaultOperation;
-		operationCallback.postOrder = operationCallback.postOrder || defaultOperation;
-
-		__fs.readdir(this.filesystem.realize(this.fullPath), utils.erroneous(function (files) {
-			utils.callback(operationCallback.preOrder, null)(this, utils.bind(function () {
-				var traverse = utils.bind(function () {
-					if (files.length == 0)
-						return void (utils.callback(operationCallback.postOrder, null)(this, utils.bind(function () {
-							utils.callback(successCallback, null)();
-						}, this), errorCallback));
-
-					file.Entry.create(this.filesystem, utils.file.join(this.fullPath, files.shift()), utils.bind(function (entry) {
-						if (entry.isDirectory)
-							entry.traverse(operationCallback, traverse, errorCallback);
-						else if (entry.isFile)
-							utils.callback(operationCallback.preOrder, null)(entry, utils.bind(function () {
-								utils.callback(operationCallback.postOrder, null)(entry, utils.bind(function () {
-									traverse();
-								}, this), errorCallback);
-							}, this), errorCallback);
-					}, this), errorCallback);
-				}, this);
-
-				traverse();
-			}, this), errorCallback);
-		}, function (error) {
-			utils.callback(errorCallback, null)(file.FileError.wrap(error));
-		}, this));
+	file.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
+		utils.file.runAsync(file.DirectoryEntrySync.prototype.getFile, this, function (entry) {
+			successCallback(utils.file.async(entry));
+		}, errorCallback)(path, options);
 	}
 
 	file.DirectoryEntry.prototype.removeRecursively = function (successCallback, errorCallback) {
-		if (utils.file.equals(this.fullPath, this.filesystem.root.fullPath))
-			return void (utils.callback(errorCallback, null)(new file.FileError(file.FileError.SECURITY_ERR)));
-
-		this.traverse({
-			postOrder: utils.bind(function (entry, successCallback, errorCallback) {
-				entry.remove(successCallback, errorCallback);
-			}, this)
-		}, successCallback, errorCallback);
+		utils.file.runAsync(file.DirectoryEntrySync.prototype.removeRecursively, utils.file.sync(this),
+				successCallback, errorCallback)();
 	}
 
 	file.DirectoryReader = function (entry) {
@@ -497,32 +668,17 @@
 	file.DirectoryReader.prototype.__begin = 0;
 	file.DirectoryReader.prototype.__length = 10;
 
-	// TODO Rework (read directory only once).
 	file.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
-		__fs.readdir(this.__entry.filesystem.realize(this.__entry.fullPath), utils.erroneous(function (files) {
-			var extract = files.slice(this.__begin, this.__begin + this.__length);
-			var entries = [];
+		var sync = utils.file.sync(this);
 
-			var entrify = utils.bind(function () {
-				var next = extract.shift();
+		utils.file.runAsync(file.DirectoryReaderSync.prototype.readEntries, sync, utils.bind(function (entries) {
+			this.__begin = sync.__begin;
+			this.__length = sync.__length; 
 
-				if (typeof next === 'undefined') {
-					this.__begin += entries.length;
-
-					return void (utils.callback(successCallback, null)(entries));
-				}
-
-				file.Entry.create(this.__entry.filesystem, utils.file.join(this.__entry.fullPath, next), utils.bind(function (entry) {
-					entries.push(entry);
-
-					entrify();
-				}, this), errorCallback);
-			}, this);
-
-			entrify();
-		}, function (error) {
-			utils.callback(errorCallback, null)(file.FileError.wrap(error));
-		}, this));
+			successCallback(entries.map(function (entry) {
+				return utils.file.async(entry);
+			}));
+		}, this), errorCallback)();
 	}
 
 	file.FileEntry = function (filesystem, fullPath) {
@@ -534,33 +690,16 @@
 
 	file.FileEntry.prototype.isFile = true;
 
-	// TODO Integrate FileWriter.
 	file.FileEntry.prototype.createWriter = function (successCallback, errorCallback) {
+		successCallback(new file.FileWriter(this));
 	}
 
-	// TODO Integrate File.
 	file.FileEntry.prototype.file = function (successCallback, errorCallback) {
+		successCallback(new file.File(this));
 	}
 
 	file.FileError = function (code) {
 		this.code = code;
-	}
-
-	file.FileError.wrap = function (object) {
-		var map = {
-			'ENOENT': file.FileError.NOT_FOUND_ERR
-		};
-
-		if (object instanceof file.FileError)
-			var code = object.code;
-		else if (object instanceof file.FileException)
-			var code = object.code;
-		else if (typeof map[object.code] !== 'undefined')
-			var code = map[object.code];
-		else
-			var code = file.FileError.SECURITY_ERR;
-
-		return new file.FileError(code);
 	}
 
 	file.FileError.NOT_FOUND_ERR = 1;
@@ -579,24 +718,7 @@
 	file.FileException = function (code) {
 		this.code = code;
 	}
-
-	file.FileException.wrap = function (object) {
-		var map = {
-			'ENOENT': file.FileException.NOT_FOUND_ERR
-		};
-
-		if (object instanceof file.FileError)
-			var code = object.code;
-		else if (object instanceof file.FileException)
-			var code = object.code;
-		else if (typeof map[object.code] !== 'undefined')
-			var code = map[object.code];
-		else
-			var code = file.FileException.SECURITY_ERR;
-
-		return new file.FileException(code);
-	}
-
+	
 	file.FileException.NOT_FOUND_ERR = 1;
 	file.FileException.SECURITY_ERR = 2;
 	file.FileException.ABORT_ERR = 3;
