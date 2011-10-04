@@ -116,10 +116,10 @@
 			return;
 		}
 		
-		if (type == 'RemoteFileSystem') {
+		if (type == 'LocalFileSystem') {
 			webinos.ServiceDiscovery.registeredServices++;
 			
-			return void (callback.onFound(new webinos.file.RemoteFileSystem()));
+			return void (callback.onFound(new webinos.file.LocalFileSystem()));
 		}
 		
 		if (type == 'Sensors') {

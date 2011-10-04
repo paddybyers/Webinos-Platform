@@ -31,17 +31,17 @@
 
 	var file = exports;
 
-	file.RemoteFileSystem = function () {
+	file.LocalFileSystem = function () {
 	}
 
-	file.RemoteFileSystem.TEMPORARY = 0;
-	file.RemoteFileSystem.PERSISTENT = 1;
+	file.LocalFileSystem.TEMPORARY = 0;
+	file.LocalFileSystem.PERSISTENT = 1;
 
-	file.RemoteFileSystem.prototype = new WebinosService();
-	file.RemoteFileSystem.prototype.constructor = file.RemoteFileSystem;
+	file.LocalFileSystem.prototype = new WebinosService();
+	file.LocalFileSystem.prototype.constructor = file.LocalFileSystem;
 
-	file.RemoteFileSystem.prototype.requestFileSystem = function (type, size, successCallback, errorCallback) {
-		request('RemoteFileSystem', 'requestFileSystem', [type, size], {
+	file.LocalFileSystem.prototype.requestFileSystem = function (type, size, successCallback, errorCallback) {
+		request('LocalFileSystem', 'requestFileSystem', [type, size], {
 			onResult: utils.bind(function (result) {
 				utils.callback(successCallback, null)(file.FileSystem.deserialize(result));
 			}, this),
@@ -51,8 +51,8 @@
 		});
 	}
 
-	file.RemoteFileSystem.prototype.resolveLocalFileSystemURL = function (url, successCallback, errorCallback) {
-		request('RemoteFileSystem', 'resolveLocalFileSystemURL', [url], {
+	file.LocalFileSystem.prototype.resolveLocalFileSystemURL = function (url, successCallback, errorCallback) {
+		request('LocalFileSystem', 'resolveLocalFileSystemURL', [url], {
 			onResult: utils.bind(function (result) {
 				utils.callback(successCallback, null)(file.Entry.deserialize(result));
 			}, this),

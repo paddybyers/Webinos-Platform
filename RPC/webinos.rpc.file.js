@@ -10,11 +10,11 @@
 
 	rpc.file = exports;
 
-	rpc.file.RemoteFileSystem = function () {
-		this.__object = new file.RemoteFileSystem();
+	rpc.file.LocalFileSystem = function () {
+		this.__object = new file.LocalFileSystem();
 	}
 
-	rpc.file.RemoteFileSystem.prototype.requestFileSystem = function (params, successCallback, errorCallback) {
+	rpc.file.LocalFileSystem.prototype.requestFileSystem = function (params, successCallback, errorCallback) {
 		this.__object.requestFileSystem(params[0], params[1], utils.bind(function (filesystem) {
 			utils.callback(successCallback, null)(rpc.file.FileSystem.serialize(filesystem));
 		}, this), utils.bind(function (error) {
@@ -22,7 +22,7 @@
 		}, this));
 	}
 
-	rpc.file.RemoteFileSystem.prototype.resolveLocalFileSystemURL = function (params, successCallback, errorCallback) {
+	rpc.file.LocalFileSystem.prototype.resolveLocalFileSystemURL = function (params, successCallback, errorCallback) {
 		this.__object.resolveLocalFileSystemURL(params[0], utils.bind(function (entry) {
 			utils.callback(successCallback, null)(rpc.file.Entry.serialize(entry));
 		}, this), utils.bind(function (error) {
@@ -181,7 +181,7 @@
 		return new file.FileError(object.code);
 	}
 
-	rpc.registerObject("RemoteFileSystem", new rpc.file.RemoteFileSystem());
+	rpc.registerObject("LocalFileSystem", new rpc.file.LocalFileSystem());
 	rpc.registerObject("Entry", new rpc.file.Entry());
 	rpc.registerObject("DirectoryEntry", new rpc.file.DirectoryEntry());
 	rpc.registerObject("DirectoryReader", new rpc.file.DirectoryReader());

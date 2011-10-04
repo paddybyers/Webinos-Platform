@@ -262,10 +262,10 @@
 
 		dojo.subscribe("/dojo/hashchange", update);
 
-		webinos.ServiceDiscovery.findServices("RemoteFileSystem", {
+		webinos.ServiceDiscovery.findServices("LocalFileSystem", {
 			onFound: function (service) {
 				service.bind(function () {
-					service.requestFileSystem(webinos.file.RemoteFileSystem.PERSISTENT, 1024, function (_filesystem) {
+					service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 1024, function (_filesystem) {
 						filesystem = _filesystem;
 
 						if (dojo.hash() == '')
