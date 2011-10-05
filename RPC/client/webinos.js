@@ -68,10 +68,10 @@
 			callback.onFound(tmp);
 			return;
 		}
-		if (serviceType == 'RemoteFileSystem') {
+		if (serviceType == 'LocalFileSystem') {
 			webinos.ServiceDiscovery.registeredServices++;
 			
-			return void (callback.onFound(new webinos.fs.RemoteFileSystem()));
+			return void (callback.onFound(new webinos.file.LocalFileSystem()));
 		}
 		
 		function success(params) {
@@ -88,8 +88,7 @@
 			if (typeof Vehicle !== 'undefined') typeMap['http://webinos.org/api/vehicle'] = Vehicle;
 			if (typeof Sensor !== 'undefined') typeMap['http://webinos.org/api/sensors'] = Sensor;
 			if (typeof UserProfileIntModule !== 'undefined') typeMap['UserProfileInt'] = UserProfileIntModule;
-//			if (typeof TVTunerManager !== 'undefined') typeMap["TVTunerManager"] = TVTunerManager;
-//			if (typeof TVDisplayManager !== 'undefined') typeMap["TVDisplayManager"] = TVDisplayManager;
+			if (typeof TVManager !== 'undefined') typeMap['http://webinos.org/api/tv'] = TVManager;
 			
 			// elevate baseServiceObj to usable local WebinosService object
 			var tmp = new typeMap[baseServiceObj.api](baseServiceObj);
@@ -532,9 +531,13 @@
 			console.log("Reference" + i + ": " + _referenceMapping[i][0]);
 			console.log("Handler" + i + ": " + _referenceMapping[i][1]);
 			if(_referenceMapping[i][1] == eventHandler){
-					refToBeDeleted = _referenceMapping[i][0];
+					var arguments = new Array();
+					arguments[0] = _referenceMapping[i][0];
+					arguments[1] = vehicleDataId;
+					
+					
 					console.log("ListenerObject to be removed ref#" + refToBeDeleted);					
-					var rpc = webinos.rpc.createRPC(this, "removeEventListener", refToBeDeleted);
+					var rpc = webinos.rpc.createRPC(this, "removeEventListener", arguments);
 					webinos.rpc.executeRPC(rpc,
 						function(result){
 							callOnSuccess(result);
@@ -555,5 +558,64 @@
 	Vehicle.prototype.findDestination = function(destinationCB, errorCB, search){
 		console.log('Find Destination...');
 	};
+
+	///////////////////// GEOLOCATION INTERFACE ///////////////////////////////
+	
+	var webinosGeolocation;
+
+	webinosGeolocation = function () {
+		// this.objectRef = Math.floor(Math.random()*101);
+	};
+
+	webinosGeolocation.prototype = WebinosService.prototype;
+
+	webinosGeolocation.prototype.getCurrentPosition = function (PositionCB, PositionErrorCB, PositionOptions) {  // according to webinos api definition 
+			var rpc = webinos.rpc.createRPC("Geolocation", "getCurrentPosition", PositionOptions); // RPC service name, function, position options
+			webinos.rpc.executeRPC(rpc,
+					function (position){  // this is called on success
+						PositionCB(position); 
+					},
+					function (error){ // this is called on error
+						PositionErrorCB(error);
+					}
+			);
+		};
+
+	webinosGeolocation.prototype.watchPosition = function (PositionCB, PositionErrorCB, PositionOptions) {   // not yet working
+			var rpc = webinos.rpc.createRPC("Geolocation", "watchPosition", PositionOptions); // RPC service name, function, options
+			// rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
+			/* /create the result callback
+			callback = {};
+			callback.locationUpdate = function (params, successCallback, errorCallback, objectRef) {
+				alert("watchPosition update: " + JSON.stringify(params));
+				PositionCB(params);
+			};
+			
+			//register the object as being remotely accessible
+			webinos.rpc.registerObject(rpc.fromObjectRef, callback);			
+			*/
+			var watchId = webinos.rpc.executeRPC(rpc,
+					function (position){  // this is called on success
+						PositionCB(position); 
+					},
+					function (error){ // this is called on error
+						PositionErrorCB(error);
+					}
+			);
+			return(watchId);
+		};
+
+	webinosGeolocation.prototype.clearWatch = function (watchId) {   // not yet working
+			var rpc = webinos.rpc.createRPC("Geolocation", "clearWatch", watchId); 
+			webinos.rpc.executeRPC(rpc,
+					function (result){  // this is called on success
+						alert("successfully cleared watch");
+					},
+					function (error){ // this is called on error
+						alert("error upon clearWatch: " + error);
+					}
+			);
+		};
+	
 	
 }());

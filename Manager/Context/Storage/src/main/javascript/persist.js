@@ -10,26 +10,25 @@
  * @param {Object} [config.debug] Set database in debug mode. Off by default.
  */
 function JSONDatabase(config) {
-	// Default database configuration settings
-	var default_config = {path: './data/database.json', transactional: false, debug: false};
+    "use strict";
+	var db_engine, param;
+    
 	// Merge default configuration settings with provided config
-	this.config = default_config;
-	for(var param in  config) {
+	this.config = {path: './database.json', transactional: false, debug: false};
+    
+	for(param in  config) {
 		if(config.hasOwnProperty(param)) {
-			this.config[param] = config[param]
+			this.config[param] = config[param];
 		}
 	}
 
 	// Initialize JSORM database engine
-	require('./lib/jsorm13/jsormdb-src');
-	this.db = JSORM.db.db({parser: JSORM.db.parser.json(), writeMode: JSORM.db.db.modes.replace});
+	db_engine = require('./../../lib/jsorm13/jsormdb-src');
+	this.db = db_engine.JSORM.db.db({parser: db_engine.JSORM.db.parser.json(), writeMode: db_engine.JSORM.db.db.modes.replace});
 	
 	// Read data file and insert contents in database engine
-	var fs = require('fs');
 	try{
-		var content = fs.readFileSync(this.config.path, 'utf-8');
-		var jsoncontent = JSON.parse(content);
-		this.db.insert(content);
+        this.db.insert(JSON.parse(require('fs').readFileSync(this.config.path, 'utf-8')));
 	} catch(err) {}
 }
 
@@ -39,13 +38,14 @@ function JSONDatabase(config) {
  * @param {Object[]} data. The records to be inserted, an array of JavaScript objects
  */
 JSONDatabase.prototype.insert = function(data) {
+    "use strict";
 	this.db.insert(data);
 	
 	// in case no transaction support is required, commit changes immediately
 	if(!this.config.transactional) {
 		this.commit();
 	}
-}
+};
 
 /**
  * Remove records from the database.
@@ -54,13 +54,14 @@ JSONDatabase.prototype.insert = function(data) {
  * @param {Object} [query.where] Search term, either primitive or composite, to determine which records to remove.
  */
 JSONDatabase.prototype.remove = function(query) {
+    "use strict";
 	this.db.remove(query);
 	
 	// in case no transaction support is required, commit changes immediately
 	if(!this.config.transactional) {
 		this.commit();
 	}
-}
+};
 
 /**
  * Search by query. Returns an array of records. 
@@ -75,10 +76,11 @@ JSONDatabase.prototype.remove = function(query) {
  * @returns {Object[]} Array of the matched records
  */ 
 JSONDatabase.prototype.query = function(query) {
+    "use strict";
 	var results = this.db.find(query);
 
 	return results;
-}
+};
 
 /**
  * Rollback a transaction. If given a count, it will reject the last count activities. 
@@ -90,21 +92,22 @@ JSONDatabase.prototype.query = function(query) {
  *                         the entire transaction will be rejected.
  */
 JSONDatabase.prototype.rollback = function(count) {
+    "use strict";
 	// rollback changes to database since last commit, load, or db creation
 	this.db.reject();
-}
+};
 
 /**
  * Commit the current transaction.
  */
 JSONDatabase.prototype.commit = function() {
+    "use strict";
 	// commit changes to database since last commit, load, or db creation
 	this.db.commit();
 	
 	// stringify content of database and write to filesystem
 	var content = JSON.stringify(this.db.find(), null, 4);
-	var fs = require('fs');
-	fs.writeFileSync(this.config.path, content);
-}
+	require('fs').writeFileSync(this.config.path, content);
+};
 
 exports.JSONDatabase = JSONDatabase;

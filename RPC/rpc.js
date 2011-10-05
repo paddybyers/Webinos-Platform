@@ -32,7 +32,8 @@ webinos.rpc.setWriter = function (writer){
  */
 webinos.rpc.handleMessage = function (message, responseto){
 	console.log("New websocket packet");
-	
+	console.log("Message" + message);
+	console.log("Response to" + responseto);
 	var myObject = JSON.parse(message);
 	logObj(myObject, "rpc");
 	
@@ -83,9 +84,9 @@ webinos.rpc.handleMessage = function (message, responseto){
 				id = myObject.id;
 				
 				if (typeof myObject.fromObjectRef !== 'undefined' && myObject.fromObjectRef != null) {
-					
+				
 					webinos.rpc.responseToMapping[myObject.fromObjectRef] = responseto;
-					
+				
 					//webinos.rpc.objects[service][method](
 					includingObject[method](
 						myObject.params, 
@@ -122,12 +123,6 @@ webinos.rpc.handleMessage = function (message, responseto){
 							res.result = result;
 							res.id = id;
 							webinos.rpc.executeRPC(res, responseto);
-							
-							// CONTEXT LOGGING HOOK
-							var cntxMngr = require("./Context/Server/contextAPI.js");
-							cntxMngr.logContext(myObject,res);
-					
-
 						},
 						function (error){
 							if (typeof id === 'undefined') return;
@@ -195,6 +190,7 @@ webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto) {
    
 };
 
+
 /**
  * Creates a JSON RPC 2.0 compliant object
  * @param service The service Identifier (e.g., the file reader or the
@@ -241,7 +237,6 @@ webinos.rpc.registerObject = function (callback) {
 		
 		// generate id
 		callback.id = md5.hexhash(callback.api + callback.displayName + callback.description);
-		console.log(callback.id);
 		// verify id isn't existing already
 		var filteredRO = receiverObjs.filter(function(el, idx, array) {
 			return el.id === callback.id;
@@ -351,7 +346,7 @@ if (typeof exports !== 'undefined'){
 	require('./rpc_test2.js');
 	require('./rpc_test.js');
 	require('./rpc_file.js');
-	require('./webinos.rpc.fs.js');
+	require('./webinos.rpc.file.js');
 	require('./rpc_geolocation.js');
 	require('./rpc_vehicle.js');
 	require('./rpc_sensors.js');
