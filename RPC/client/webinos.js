@@ -108,18 +108,18 @@
 			return;
 		}
 
-		if (type == "Geolocation"){		// registered RPC name
-			var tmp = new TestModuleGeo();			// must correspond to what is defined in geolocation.js
+		if (type == "Geolocation"){	// 'Geolocation' is registered rpc service name
+			var tmp = new webinosGeolocation();  // see below for geolocation api definition
 			tmp.origin = 'ws://127.0.0.1:8080';
 			webinos.ServiceDiscovery.registeredServices++;
 			callback.onFound(tmp);
 			return;
 		}
 		
-		if (type == 'RemoteFileSystem') {
+		if (type == 'LocalFileSystem') {
 			webinos.ServiceDiscovery.registeredServices++;
 			
-			return void (callback.onFound(new webinos.fs.RemoteFileSystem()));
+			return void (callback.onFound(new webinos.file.LocalFileSystem()));
 		}
 		
 		if (type == 'Sensors') {
@@ -566,5 +566,64 @@
 	Vehicle.prototype.findDestination = function(destinationCB, errorCB, search){
 		console.log('Find Destination...');
 	};
+
+	///////////////////// GEOLOCATION INTERFACE ///////////////////////////////
+	
+	var webinosGeolocation;
+
+	webinosGeolocation = function () {
+		// this.objectRef = Math.floor(Math.random()*101);
+	};
+
+	webinosGeolocation.prototype = WebinosService.prototype;
+
+	webinosGeolocation.prototype.getCurrentPosition = function (PositionCB, PositionErrorCB, PositionOptions) {  // according to webinos api definition 
+			var rpc = webinos.rpc.createRPC("Geolocation", "getCurrentPosition", PositionOptions); // RPC service name, function, position options
+			webinos.rpc.executeRPC(rpc,
+					function (position){  // this is called on success
+						PositionCB(position); 
+					},
+					function (error){ // this is called on error
+						PositionErrorCB(error);
+					}
+			);
+		};
+
+	webinosGeolocation.prototype.watchPosition = function (PositionCB, PositionErrorCB, PositionOptions) {   // not yet working
+			var rpc = webinos.rpc.createRPC("Geolocation", "watchPosition", PositionOptions); // RPC service name, function, options
+			// rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
+			/* /create the result callback
+			callback = {};
+			callback.locationUpdate = function (params, successCallback, errorCallback, objectRef) {
+				alert("watchPosition update: " + JSON.stringify(params));
+				PositionCB(params);
+			};
+			
+			//register the object as being remotely accessible
+			webinos.rpc.registerObject(rpc.fromObjectRef, callback);			
+			*/
+			var watchId = webinos.rpc.executeRPC(rpc,
+					function (position){  // this is called on success
+						PositionCB(position); 
+					},
+					function (error){ // this is called on error
+						PositionErrorCB(error);
+					}
+			);
+			return(watchId);
+		};
+
+	webinosGeolocation.prototype.clearWatch = function (watchId) {   // not yet working
+			var rpc = webinos.rpc.createRPC("Geolocation", "clearWatch", watchId); 
+			webinos.rpc.executeRPC(rpc,
+					function (result){  // this is called on success
+						alert("successfully cleared watch");
+					},
+					function (error){ // this is called on error
+						alert("error upon clearWatch: " + error);
+					}
+			);
+		};
+	
 	
 }());

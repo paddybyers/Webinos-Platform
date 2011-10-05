@@ -32,7 +32,8 @@ webinos.rpc.setWriter = function (writer){
  */
 webinos.rpc.handleMessage = function (message, responseto){
 	console.log("New websocket packet");
-	
+	console.log("Message" + message);
+	console.log("Response to" + responseto);
 	var myObject = JSON.parse(message);
 	logObj(myObject, "rpc");
 	
@@ -172,6 +173,7 @@ webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto) {
    
 };
 
+
 /**
  * Creates a JSON RPC 2.0 compliant object
  * @param service The service Identifier (e.g., the file reader or the
@@ -237,7 +239,7 @@ if (typeof exports !== 'undefined'){
 	require('./rpc_file.js');
 	require('./rpc_test.js');
 	require('./rpc_vehicle.js');
-	require('./webinos.rpc.fs.js');
+	require('./webinos.rpc.file.js');
 	require('./rpc_sensors.js');
 	require('./rpc_geolocation.js');
 	require('./tv/provider/webinos.rpc.tv.js');

@@ -17,28 +17,30 @@ if (webinos.session !== "undefined") {
 if (webinos.session.pzh !== "undefined") {
 	webinos.session.pzh = {};
 } 
-
+// Global variables and node modules that are required
 var log = console.log,
   tls = require('tls'),
   events = require('events'),
   fs = require('fs'),
   dns = require('dns'),
-  generator,
-  x;
+  common = require('./session_common.js');
 
-var common = require('./session_common.js');
+// This is global as sendMessage will be called by messaginghandler.js
 var clients = []; 
 
+// pzh 
 function pzh() {
 	"use strict";
 	this.config = {};
 	this.sessionid = 0;
 	this.connected_client = [];
-	this.port = 443;// Default port to be used
+	this.connected_pzh = [];
 }
 
+// PZH generates event to enable message flow between different components
 pzh.prototype = new process.EventEmitter();
 
+// PZH sendMessage 
 pzh.prototype.sendMessage = function(message) {
 	var socket = ' ', i; 
 	for(i = 0; i < clients.length; i += 1) {
@@ -53,10 +55,12 @@ pzh.prototype.sendMessage = function(message) {
 		log('PZH: socket is null');
 };
 
-// Create self signed certificate for PZH 
-// openssl genrsa -out server-key.pem
-// openssl req -new -key server-key.pem -out server-csr.pem
-// openssl x509 -req -days 30 -in server-csr.pem -signkey server-key.pem -out server-cert.pem
+/* Create self signed certificate for PZH. It performs functionality
+ * 1. openssl genrsa -out server-key.pem
+ * 2. openssl req -new -key server-key.pem -out server-csr.pem
+ * 3. openssl x509 -req -days 30 -in server-csr.pem -signkey server-key.pem -out server-cert.pem
+ * 
+ */
 pzh.prototype.checkfiles = function () {
 	"use strict";
 	var self = this;
@@ -106,8 +110,7 @@ pzh.prototype.connect = function () {
 				from:  self.sessionid, to: obj.sessionid,
 				resp_to:  self.sessionid, timestamp: 0,
 				timeout:  null, payload: payload};
-			var message = webinos.message.createMessage(msg);
-			self.sendMessage(message);
+			self.sendMessage(msg);
 		} else {
 			log("PZH: Not Authenticated " + conn.authorizationError);
 			payload = {'status':'NotAuth', 'message':''};
@@ -161,8 +164,11 @@ pzh.prototype.connect = function () {
 	});
 	return server;
 };
-// Input
-// arg: server name
+
+/* starts pzh, creates servers and event listeners for listening data from clients.
+ * @param server name
+ * @param port: port on which server is running
+ */
 webinos.session.pzh.startPZH = function(server, port) {
 	"use strict";
 	var server = new pzh(), sock, msg;
@@ -174,10 +180,24 @@ webinos.session.pzh.startPZH = function(server, port) {
 	
 	
 	server.checkfiles();
+	return server;
+};
+webinos.session.pzh.connectOtherPZH = function(server, port, details) {
+	var options  = {key: fs.readFileSync('server-key.pem'),
+			cert: fs.readFileSync('server-cert.pem'),
+			ca: fs.readFileSync('master-server-cert.pem')};
+
+
+	var conn_pzh = tls.connect(port, server, options, function(conn) {
+		log('PZP: connect status: ' + conn_pzh.authorized);
+	});
+
+
 };
 
 if (typeof exports !== 'undefined') {
 	exports.startPZH = webinos.session.pzh.startPZH;
+	exports.connectOtherPZH = webinos.session.pzh.connectOtherPZH;
 }
 
 }());
