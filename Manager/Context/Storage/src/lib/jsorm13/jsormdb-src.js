@@ -1817,7 +1817,9 @@ JSORM.db.index.hash = JSORM.extend({},function(f) {
 	this.fields(f);
 	
 });
-	
+
+exports.JSORM = JSORM;
+
 /**
  * @ignore
  */
@@ -2299,3 +2301,4 @@ replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
         };
     }
 })();
+
