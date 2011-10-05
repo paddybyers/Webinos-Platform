@@ -1,7 +1,7 @@
 if (typeof webinos === "undefined") webinos = {};
-if (typeof exports !== "undefined") session = require('../../Manager/Session/session_pzh.js');
+if (typeof exports !== "undefined")	 session = require('../../Manager/Session/session_pzh.js');
 else session = webinos.session;
-
+var fs = require('fs');
 var servername=' ', port = 0, otherPzh = 0;
 
 process.argv.forEach(function(val, index, array) {
@@ -18,9 +18,12 @@ if (servername === ' ' && port < 0) {
 	console.log("Missing Details of server and port, enter node.js localhost 443");
 } else { 
 	server = webinos.session.pzh.startPZH(servername, port);
-	console.log(otherPzh);
-	if(otherPzh > 0) {
+	server.on('startedPZH', function() {
 		console.log('connecting other pzh');
-		webinos.session.pzh.connectOtherPZH(servername, otherPzh, server);
-	}
+		var options  = {key: fs.readFileSync('master-server-key.pem'),
+			cert: fs.readFileSync('master-server-cert.pem'),
+			ca: fs.readFileSync('master-server-cert.pem')};
+
+		//webinos.session.pzh.connectOtherPZH(servername, otherPzh, options);
+	});
 }

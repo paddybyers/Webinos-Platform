@@ -1,0 +1,69 @@
+<html>
+<head>
+<title>webinos session messaging rpc</title>
+	<script type="text/javascript" src="/rpc.js"></script>
+	<script type="text/javascript" src="/messaging.js"></script>
+	<script type="text/javascript" src="/client/webinos.js"></script>
+	<script type="text/javascript" src="/client/get42.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.5.2.js"></script>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/dojo/1.6.1/dojo/dojo.xd.js"></script>
+	<script type="text/javascript">
+            $(document).ready(function() {
+            	    var test = null;
+            	    var geoLocationService = null;
+   			   	    
+                    $('#findService').bind('click', function() {
+                	    webinos.ServiceDiscovery.findServices("Test", {onFound: function (service) {
+                	    	test = service;	
+                	    }});
+                	    webinos.ServiceDiscovery.findServices("Geolocation", {onFound: function (service) {
+                	    	geoLocationService = service;
+                	    }});
+                	   
+                    });
+                    
+                    $('#get42PZP').bind('click', function() {
+                    	test.get42PZP(function (result){
+                    		alert('result '+result);
+                    		alert('test '+test.testAttr);
+                    	});
+                    }); 
+                     
+		    $('#get42PZH').bind('click', function() {
+                    	test.get42PZH(function (result){
+                    		alert('result '+result);
+                    		alert('test '+test.testAttr);
+                    	});
+                    });                     
+                    
+ 		    $('#get42PZPtoPZP').bind('click', function() {
+                    	test.get42PZPtoPZP(function (result){
+                    		alert('result '+result);
+                    		alert('test '+test.testAttr);
+                    	});
+                    });           
+                   
+            });
+        </script>
+
+
+</head>
+<body>
+<table border="1"  style="height: 100%; width: 100%;">
+<tr valign="top" >
+<td width="50%">
+	<div >
+		<div >
+			<p>
+				<button id="findService">Find Service</button>
+				<button id="get42PZP">get42PZP</button>
+				<button id="get42PZH">get42PZH</button>
+				<button id="get42PZPtoPZP">get42 PZP PZP</button>
+			</p>
+		</div>
+	</div>
+ </td>
+</tr>
+</table>
+</body>
+</html>

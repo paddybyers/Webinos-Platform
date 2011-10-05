@@ -5,145 +5,146 @@ if (typeof webinos === "undefined") {
 }
 
 if (typeof exports !== "undefined") {
-	messaging = require("../Messaging/messagehandler.js");
-} else {
-	messaging = webinos.messaging; 
-}
-
+	webinos.message = require("../Messaging/messaging.js");
+} 
 if (webinos.session !== "undefined") {
 	webinos.session = {};
 } 
 
 if (webinos.session.pzp !== "undefined") {
 	webinos.session.pzp = {};
-} 
+}
+ 
+if(webinos.session.common !== "undefined") {
+	webinos.session.common = require('./session_common.js')
+}
 
 var log = console.log,
   tls = require('tls'),
   events = require('events'),
   fs = require('fs'),
-  dns = require('dns'),
-  generator,
-  x;
+  dns = require('dns');
 
-var common = require('./session_common.js');
 
-// This requires Manager/Session to be compiled before this file is available
-x = process.version;
-x = x.split('.');
-if ( x[1] >= 5) {
-	generator = require('./build/Release/generator.node');
-} else {
-	generator = require('./build/default/generator.node');
-}
-
-var clientSocket = {};
-webinos.session.pzp = function() {
+pzp = function() {
 	"use strict";
 	this.config = {};
-	this.servername = [];
-	this.sessionid = 0;
-	this.connected_client = [];
-	this.port = 443;
-	
 	this.serverPort = 8181;
-	this.serversession = [];
-	this.otherPZP = [];
 }
 
-webinos.session.pzp.prototype = new process.EventEmitter();
+webinos.session.pzp.clientSocket = {};
+webinos.session.pzp.serverName = [];
+webinos.session.pzp.sessionId = 0;
+webinos.session.pzp.serviceSessionId = 0;
+webinos.session.pzp.connectedClient = [];
+webinos.session.pzp.otherPZP = [];
+webinos.session.pzp.connected_app = {};
 
-webinos.session.pzp.prototype.getId = function () {
-	return this.sessionid;
+pzp.prototype = new process.EventEmitter();
+
+webinos.session.pzp.getPZPSessionId = function () {
+	return webinos.session.pzp.sessionId;
 };
 
-webinos.session.pzp.prototype.getServerName = function() {
-	return this.servername;
+webinos.session.pzp.getPZHSessionId = function() {
+	return webinos.session.pzp.serverName;
 };
 
-webinos.session.pzp.prototype.getServerSession = function() {
-	return this.serversession;
+webinos.session.pzp.setServiceSessionId = function() {
+	webinos.session.pzp.serviceSessionId += 1;
+	return webinos.session.pzp.serviceSessionId;
 };
 
-webinos.session.pzp.prototype.getOtherPZPInfo = function() {
+webinos.session.pzp.getServiceSessionId = function() {
+	return webinos.session.pzp.serviceSessionId;
+};
+
+webinos.session.pzp.sendMessage = function(message) {
 	var i;
-	for(i = 0; i < this.otherPZP.length; i++) {
-		if (this.otherPZP[i].sessionid === this.sessionid) {
+	log(message);
+	if(webinos.session.pzp.connected_app[message.to]) { 	// it should be for the one of the apps connected.
+		log("PZP: Message forwarded to one of the connected app on websocket server ");
+		conn = webinos.session.pzp.connected_app[message.to];
+		conn.sendUTF(JSON.stringify(message));
+	} else {
+		// This is for communicating with PZH
+		webinos.session.pzp.clientSocket.write(JSON.stringify(message));
+	}	
+};
+
+webinos.session.pzp.getOtherPZP = function() {
+	var i;
+	for ( i = 0; i < webinos.session.pzp.otherPZP.length; i += 1) {
+		if (webinos.session.pzp.otherPZP[i].sessionid === webinos.session.pzp.sessionId)
 			continue;
-		} else {
-			return this.otherPZP[i].sessionid;
-		}
+		else
+			return webinos.session.pzp.otherPZP[i].sessionid;
 	}
-		
 };
 
-webinos.session.pzp.prototype.sendMessage = function(message) {
-	clientSocket.write(JSON.stringify(message));
-};
-
-webinos.session.pzp.prototype.checkfiles = function () {
+pzp.prototype.checkfiles = function () {
 	"use strict";
-	var self, options1, options2;
+	var self, options;
 	self = this;
-	common.readConfig(self);
-	self.on('readconfig',function () {
-		common.checkFiles(self);
-		self.on('selfgencert', function(status) {
+	webinos.session.common.readConfig(self);
+	self.on('readConfig',function () {
+		webinos.session.common.checkFiles(self);
+		self.on('generatedCert', function(status) {
 			if(status === 'true') {
-				options1 = {
+				options = {
 					key: fs.readFileSync(self.config.keyname),
 					cert: fs.readFileSync(self.config.certname)
 				};
-				self.emit('generated',options1);
+				self.emit('configSet',options);
 			} else {
- 				options2 = {
+ 				options = {
 					key: fs.readFileSync(self.config.keyname),
 					cert: fs.readFileSync(self.config.certname),
 					ca: fs.readFileSync(self.config.mastercertname)
 				};
-				self.emit('generated', options2);
+				self.emit('configSet', options);
 			}
 		});
 	});	
 };
 
-webinos.session.pzp.prototype.connect = function (options, servername, port) {
+pzp.prototype.connect = function (options, servername, port) {
 	"use strict";
 	var self, client;
 	self = this;
 	client = tls.connect(port, servername, options, function(conn) {
 		log('PZP: connect status: ' + client.authorized);
-		clientSocket = client;
+		webinos.session.pzp.clientSocket = client;
 	});
 
 	client.on('data', function(data) {
 		log('PZP: data received : ' + data.length);
-		var data1, send;
+		var data1, send, payload = {}, msg = {};
 		data1 = JSON.parse(data);
 		log('PZP:'+JSON.stringify(data1));
 
 		if (data1.type === 'prop' && data1.payload.status === 'NotAuth') {
 			log('PZP: Not Authenticated');
-			payload = {'status':'clientcert', 'message':fs.readFileSync(self.config.certname).toString()};
+			payload = {'status':'clientCert', 'message':fs.readFileSync(self.config.certname).toString()};
+			msg = {};
 			msg = { register: false,  type: "prop", id: 0,
 				from: null, to: null ,
 				resp_to: null, timestamp: 0,
 				timeout: null, payload: payload};
-			self.sendMessage(msg);
+			webinos.session.pzp.sendMessage(msg);
+
 		} else if (data1.type === 'prop' && data1.payload.status === 'Auth') {
 			log('PZP: Authenticated');
-			self.servername=client.getPeerCertificate().subject.CN;
-		
-			self.serversession = data1.from;
-			self.sessionid= data1.to;
-			self.otherPZP = data1.payload.message;
+			webinos.session.pzp.serverName = data1.from;
+			webinos.session.pzp.sessionId = data1.to;
+			webinos.session.pzp.otherPZP = data1.payload.message;
 
-			//webinos.message.registerSender(self.sessionid);
-			webinos.message.setGet(self.sessionid);
-			webinos.message.setSend(self.sendMessage);
+			webinos.message.registerSenderClient(webinos.session.pzp.serverName);
+			webinos.message.setGet(webinos.session.pzp.sessionId);
+			webinos.message.setSend(webinos.session.pzp.sendMessage);
 			
 			var server = self.startServer();
-			server.listen(self.serverPort, servername);
+
 			server.on('error', function (err) {
 				if (err.code == 'EADDRINUSE') {
 					log('PZP Server: Address in use');
@@ -155,25 +156,23 @@ webinos.session.pzp.prototype.connect = function (options, servername, port) {
 			server.on('listening', function () {
 				log('Server PZP: listening as server on port :' + self.serverPort);
 			});
-			self.emit('started', 'client started');
-		} else if(data1.type === 'prop' && data1.payload.status === 'clientcert') {
-			log('PZP: creating client cert');
-			fs.writeFile(self.config.certname, data1.message);
-		} else if(data1.type === 'prop' && data1.payload.status === 'servercert') {
-			log('PZP: creating server cert');
-			fs.writeFile(self.config.mastercertname, data1.message);
-			var options2 = {key: fs.readFileSync(client.config.keyname),
-				cert: fs.readFileSync(client.config.certname),
-				ca: fs.readFileSync(client.config.mastercertname)};
+				
+			server.listen(self.serverPort, servername);
+			self.emit('startedPZP', 'client started');
+		} else if(data1.type === 'prop' && data1.payload.status === 'signedCert') {
+			log('PZP: creating signed client cert');
+			fs.writeFile(self.config.certname, data1.payload.message);
+		} else if(data1.type === 'prop' && data1.payload.status === 'signingCert') {
+			log('PZP: creating server signing cert');
+			fs.writeFile(self.config.mastercertname, data1.payload.message);
+			var options2 = {key: fs.readFileSync(self.config.keyname),
+					cert: fs.readFileSync(self.config.certname),
+					ca: fs.readFileSync(self.config.mastercertname)};
 
-			self.emit('connect_again',options2);
+			self.emit('connectPZHAgain',options2);
 		} else { 
 			log('PZP: Message Received' + JSON.stringify(data1));
-			//if(data1.message.to === self.sessionid) {
-			//	log('PZP: '+ data1.message );
-			//} else {
-				webinos.message.onMessageReceived(data1);
-			//}
+			webinos.message.onMessageReceived(JSON.stringify(data1));
 		}
 	});
 
@@ -190,26 +189,24 @@ webinos.session.pzp.prototype.connect = function (options, servername, port) {
 	});
 };
 
-webinos.session.pzp.prototype.startServer = function () {
+pzp.prototype.startServer = function () {
 	"use strict";
 	var self, i, cn, found, options, clientServer;
 	self = this;
-	options = common.serverConfig(self.config);
+	options = webinos.session.common.serverConfig(self.config);
 	clientServer = tls.createServer(options, function (conn) {
 		var data = {}, obj;
 		if(conn.authorized) {
 			log("PZP Server: Authenticated ");
-			// This is a session id created randomly of size 80 
-			// Each TLS connection in openssl has a session id but there accessing this id through node.js is not possible, so we create our own
 			cn = conn.getPeerCertificate().subject.CN;
-			found = checkClient(self.connected_client, cn);
-
+			//found = checkClient(self.connected_client, cn);
 			//if (found === false) {
-			obj = generateSessionId(cn, options); 
-			self.connected_client.push(obj);
-			log('PZP Server: Connected PZP details : ' + JSON.stringify(self.connected_client));
+			obj = {commonname: self.config.common, sessionid: self.sessionid+'::'+cn};
+			self.connectedClient.push(obj);
+			log('PZP Server: Connected PZP details : ' + JSON.stringify(self.connectedClient));
 			//}
-			payload = {'status':'Auth', 'message':self.connected_client};
+			payload = {'status':'Auth', 'message':self.connectedClient};
+			msg = {};
 			msg = { register: false,  type: "prop", id: 0,
 				from:  self.sessionid, to: obj.sessionid,
 				resp_to:  self.sessionid, timestamp: 0,
@@ -219,8 +216,9 @@ webinos.session.pzp.prototype.startServer = function () {
 		} else {
 			log("PZP Server: Not Authenticated " + conn.authorizationError);
 			payload = {'status':'NotAuth', 'message':''};
+			msg = {};
 			msg = { register: false,  type: "prop", id: 0,
-				from:  self.sessionid, to: obj.sessionid,
+				from:  self.sessionid, to: null,
 				resp_to:  self.sessionid, timestamp: 0,
 				timeout:  null, payload: payload};
 			self.sendMessage(msg);
@@ -235,9 +233,7 @@ webinos.session.pzp.prototype.startServer = function () {
 			log('PZP Server: read bytes = ' + data.length);
 			var parse;
 			parse = JSON.parse(data);
-			if (parse.type === 'JSONRPC')	{
-				webinos.message.onMessageReceived(parse);
-			}	
+			webinos.message.onMessageReceived(parse);
 		});
 
 		conn.on('end', function() {
@@ -246,7 +242,7 @@ webinos.session.pzp.prototype.startServer = function () {
 
 		conn.on('close', function() {
 			log('PZP Server: socket closed');
-			removeClient(self);
+			//removeClient(self);
 		});
 
 		conn.on('error', function(err) {
@@ -264,13 +260,13 @@ webinos.session.pzp.prototype.startServer = function () {
 // openssl verify -CAfile server-cert.pem client-cert.pem  
 webinos.session.pzp.startPZP = function(servername, port) {
 	"use strict";
-	var client = new webinos.session.pzp();
-	client.on('generated',function(status) {
+	var client = new pzp();
+	client.on('configSet',function(status) {
 		log('PZP: client connecting');
 		client.connect(status, servername, port);		
 	});
 
-	client.on('connect_again',function(status) {
+	client.on('connectPZHAgain',function(status) {
 		log('PZP: client connect again');
 		client.connect(status, servername, port);
 	});
@@ -280,10 +276,10 @@ webinos.session.pzp.startPZP = function(servername, port) {
 };
 
 if (typeof exports !== 'undefined') {
-	exports.pzp = webinos.session.pzp;
 	exports.startPZP = webinos.session.pzp.startPZP;
- 	//exports.getOwnId = webinos.session.pzp.getOwnId; 
- 	//exports.getServerName = webinos.session.pzp.getServerName; 
- 	//exports.sendMessage = webinos.session.pzp.sendMessage; 
+ 	exports.sendMessage = webinos.session.pzp.sendMessage;
+	exports.getPZHSessionId = webinos.session.pzp.getPZHSessionId;
+	exports.getPZPSessionId = webinos.session.pzp.getPZPSessionId;
+	exports.getServiceSessionId = webinos.session.pzp.getServiceSessionId;
 }
 }());
