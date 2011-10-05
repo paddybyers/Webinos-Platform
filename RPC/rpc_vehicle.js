@@ -1,7 +1,13 @@
+/*
+* PLEASE NOTE THIS CODE CURRENTLY DOES NOT CONTAIN ACCESS TO ACTUAL VEHICLE DATA DUE TO COPYRIGTH ISSUES.
+* Simon Isenberg
+*/
+
+
 if (typeof webinos === 'undefined') var webinos = {};
 webinos.rpc = require('./rpc.js');
 
-	
+
 function ShiftEvent(value){
 	this.gear = value;
 }
@@ -15,7 +21,10 @@ function get(vehicleDataId, vehicleDataHandler, errorCB){
 	switch(vehicleDataId[0])
 	{
 	case "shift":
-	  vehicleDataHandler(generateGearEvent());
+
+		vehicleDataHandler(generateGearEvent());
+	
+	  
 	  break;
 	case "tripcomputer":
 	  errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
@@ -23,37 +32,35 @@ function get(vehicleDataId, vehicleDataHandler, errorCB){
 	default:
 	  errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 	}
-	
-	if(vehicleDataId[0] == "shift"){
-		
-	}else{
-		
-	}
-	
 }
 
 
-//var fHandler = null;
-//var eventHandlers = new Array();
 var objectRefs = new Array();
-
-
-
-
-
-var generatingEvents = false;
+var listeningToGear = false;
 
 function addEventListener(vehicleDataId, successHandler, errorHandler, objectRef){
 	
-	console.log("vehicleDataId " + vehicleDataId);
-//	console.log("handler " + successHandler);
-//	console.log("capture " + errorHandler);
-//	console.log("objectRef " + objectRef);
+	console.log("vehicleDataId " + vehicleDataId);	
 	
-	objectRefs.push(objectRef);	
+	//Currently specific for ShiftEvents
+	objectRefs.push(objectRef);
+	
+		
 	if(objectRefs.length == 1){
-		generatingEvents = true;
-		fireShiftEvents();
+		switch(vehicleDataId){
+			case "shift":
+				if(!listeningToGear){ //Listener for gears not yet registered
+					listeningToGear = true;
+					handleShiftEvents();		
+				}			
+				break;		
+			default:
+				
+			
+			}
+		
+		
+
 	}
 	
 }
@@ -70,41 +77,30 @@ function removeEventListener(objectRefId){
 	}
 	
 	if(objectRefs.length  == 0){
-		generatingEvents = false;
+		listeningToGear = false;
 		console.log('disabling event generation');
 	}
 }
 
-function fireShiftEvents(){
-	var shiftE = generateGearEvent();
-	var randomTime = Math.floor(Math.random()*1000*10);
-	
-	console.log("firing Event to # of handlers:" + objectRefs.length);
-	console.log("random Gear:" + shiftE.gear);
-	console.log("random Time:" + randomTime);
-	
-	
-	
-	
-	/*
-	for(i = 0; i < eventHandlers.length; i++){
-		eventHandlers[i](shiftE);
-	}
-	*/
-	var json = null;
-	for(i = 0; i < objectRefs.length; i++){
-		json = webinos.rpc.createRPC(objectRefs[i], "onEvent", shiftE);
- 		webinos.rpc.executeRPC(json);
-	}
-	if(generatingEvents){
-		setTimeout(function(){ fireShiftEvents(); }, randomTime);	
-	}
+function handleShiftEvents(){
+    var shiftE = generateGearEvent();
+        var randomTime = Math.floor(Math.random()*1000*10);
+        console.log("firing Event to # of handlers:" + objectRefs.length);
+        console.log("random Gear:" + shiftE.gear);
+        console.log("random Time:" + randomTime);
+        var json = null;
+        for(i = 0; i < objectRefs.length; i++){
+                json = webinos.rpc.createRPC(objectRefs[i], "onEvent", shiftE);
+                 webinos.rpc.executeRPC(json);
+        }
+        if(listeningToGear){
+                setTimeout(function(){ handleShiftEvents(); }, randomTime);        
+        }
 }
 
-
 function generateGearEvent(){
-	var randomGear = Math.floor(Math.random()*7);
-	return new ShiftEvent(randomGear);	
+    var randomGear = Math.floor(Math.random()*7);
+    return new ShiftEvent(randomGear);        
 }
 
 

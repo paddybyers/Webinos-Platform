@@ -32,7 +32,8 @@ webinos.rpc.setWriter = function (writer){
  */
 webinos.rpc.handleMessage = function (message, responseto){
 	console.log("New websocket packet");
-	
+	console.log("Message" + message);
+	console.log("Response to" + responseto);
 	var myObject = JSON.parse(message);
 	logObj(myObject, "rpc");
 	
@@ -171,6 +172,7 @@ webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto) {
     write(JSON.stringify(rpc), responseto);
    
 };
+
 
 /**
  * Creates a JSON RPC 2.0 compliant object

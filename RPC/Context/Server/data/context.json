@@ -1092,5 +1092,530 @@
             },
             "timestamp": 1317152156130
         }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:15.226Z",
+        "method": "LocalFileSystem.requestFileSystem",
+        "params": [
+            1,
+            1024
+        ],
+        "result": {
+            "name": "default",
+            "__realPath": "/Users/simon/webinos/wp4/RPC"
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:15.259Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/simon/webinos/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/simon/webinos/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:15.278Z",
+        "method": "DirectoryEntry.getDirectory",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/simon/webinos/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            "/",
+            null
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/simon/webinos/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:15.289Z",
+        "method": "Entry.getParent",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/simon/webinos/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            }
+        ],
+        "result": {
+            "filesystem": {
+                "name": "default",
+                "__realPath": "/Users/simon/webinos/wp4/RPC"
+            },
+            "fullPath": "/",
+            "isFile": false,
+            "isDirectory": true
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:15.305Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/simon/webinos/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            0,
+            10
+        ],
+        "result": {
+            "__begin": 10,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/.DS_Store",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/.project",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/0.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/_rpc_vehicle.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/client",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/Context",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/impl_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/node_modules",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/readme.txt",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/rpc.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:15.326Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/simon/webinos/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            10,
+            10
+        ],
+        "result": {
+            "__begin": 20,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_geolocation.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_sensors.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_test.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/rpc_vehicle.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/tv",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/UserProfile",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/vehicle",
+                    "isFile": false,
+                    "isDirectory": true
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.rpc.file.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:15.341Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/simon/webinos/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            20,
+            10
+        ],
+        "result": {
+            "__begin": 24,
+            "__length": 10,
+            "entries": [
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/webinos.utils.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v7.js",
+                    "isFile": true,
+                    "isDirectory": false
+                },
+                {
+                    "filesystem": {
+                        "name": "default",
+                        "__realPath": "/Users/simon/webinos/wp4/RPC"
+                    },
+                    "fullPath": "/websocketserver_protocol_v8.js",
+                    "isFile": true,
+                    "isDirectory": false
+                }
+            ]
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:15.356Z",
+        "method": "DirectoryReader.readEntries",
+        "params": [
+            {
+                "filesystem": {
+                    "name": "default",
+                    "__realPath": "/Users/simon/webinos/wp4/RPC"
+                },
+                "fullPath": "/",
+                "isFile": false,
+                "isDirectory": true
+            },
+            24,
+            10
+        ],
+        "result": {
+            "__begin": 24,
+            "__length": 10,
+            "entries": []
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:23.817Z",
+        "method": "Vehicle.get",
+        "params": {
+            "0": "shift"
+        },
+        "result": {
+            "gear": 1
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:24.711Z",
+        "method": "Vehicle.get",
+        "params": {
+            "0": "shift"
+        },
+        "result": {
+            "gear": 4
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:25.199Z",
+        "method": "Vehicle.get",
+        "params": {
+            "0": "shift"
+        },
+        "result": {
+            "gear": 3
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:25.375Z",
+        "method": "Vehicle.get",
+        "params": {
+            "0": "shift"
+        },
+        "result": {
+            "gear": 2
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:25.545Z",
+        "method": "Vehicle.get",
+        "params": {
+            "0": "shift"
+        },
+        "result": {
+            "gear": 3
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:25.726Z",
+        "method": "Vehicle.get",
+        "params": {
+            "0": "shift"
+        },
+        "result": {
+            "gear": 6
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:25.893Z",
+        "method": "Vehicle.get",
+        "params": {
+            "0": "shift"
+        },
+        "result": {
+            "gear": 5
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:26.072Z",
+        "method": "Vehicle.get",
+        "params": {
+            "0": "shift"
+        },
+        "result": {
+            "gear": 3
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:26.245Z",
+        "method": "Vehicle.get",
+        "params": {
+            "0": "shift"
+        },
+        "result": {
+            "gear": 2
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:26.413Z",
+        "method": "Vehicle.get",
+        "params": {
+            "0": "shift"
+        },
+        "result": {
+            "gear": 5
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:26.585Z",
+        "method": "Vehicle.get",
+        "params": {
+            "0": "shift"
+        },
+        "result": {
+            "gear": 6
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:26.758Z",
+        "method": "Vehicle.get",
+        "params": {
+            "0": "shift"
+        },
+        "result": {
+            "gear": 4
+        }
+    },
+    {
+        "timestamp": "2011-10-05T11:52:26.935Z",
+        "method": "Vehicle.get",
+        "params": {
+            "0": "shift"
+        },
+        "result": {
+            "gear": 6
+        }
     }
 ]
