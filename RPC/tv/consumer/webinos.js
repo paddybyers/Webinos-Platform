@@ -21,8 +21,11 @@
 	 * messaging/eventing system will be used
 	 */
 	function createCommChannel (successCB){
-		channel  = new WebSocket('ws://127.0.0.1:8080');
-		
+		try{
+			channel  = new WebSocket('ws://127.0.0.1:8080');
+			}catch(e){
+				channel  = new MozWebSocket('ws://127.0.0.1:8080');
+			}
 		channel.onopen = function() {
 			webinos.rpc.setWriter(write);
 			if (typeof successCB === 'function') successCB();
@@ -103,17 +106,12 @@
 			return void (callback.onFound(new webinos.fs.RemoteFileSystem()));
 		}
 		
-		if (type == "TVTunerManager"){
-			var tmp = webinos.tv.tuner;
+		if (type == "TVManager"){
+			var tmp = webinos.tv;
 			callback.onFound(tmp);
 			return;
 		}
 		
-		if (type == "TVDisplayManager"){
-			var tmp = webinos.tv.display;
-			callback.onFound(tmp);
-			return;
-		}
 		
 		
 		
