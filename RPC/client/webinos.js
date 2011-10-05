@@ -544,9 +544,13 @@
 			console.log("Reference" + i + ": " + _referenceMapping[i][0]);
 			console.log("Handler" + i + ": " + _referenceMapping[i][1]);
 			if(_referenceMapping[i][1] == eventHandler){
-					refToBeDeleted = _referenceMapping[i][0];
+					var arguments = new Array();
+					arguments[0] = _referenceMapping[i][0];
+					arguments[1] = vehicleDataId;
+					
+					
 					console.log("ListenerObject to be removed ref#" + refToBeDeleted);					
-					var rpc = webinos.rpc.createRPC("Vehicle", "removeEventListener", refToBeDeleted);
+					var rpc = webinos.rpc.createRPC("Vehicle", "removeEventListener", arguments);
 					webinos.rpc.executeRPC(rpc,
 					function(result){
 						callOnSuccess(result);

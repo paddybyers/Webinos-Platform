@@ -19,7 +19,16 @@
 					};
 					
 					var handleTripData = function(data){
-							
+						postMessage("info","new TripComputer-Event received.");
+						$('#info').empty();
+						$('#info').append("<p>Average Consumption1: "+ data.averageConsumption1 +"</p>");
+						$('#info').append("<p>Average Consumption2: "+ data.averageConsumption2 +"</p>");
+						$('#info').append("<p>Average Speed1: "+ data.averageSpeed1 +"</p>");
+						$('#info').append("<p>Average Speed2: "+ data.averageSpeed2 +"</p>");
+						$('#info').append("<p>Trip distance: "+ data.tripDistance +"</p>");
+						$('#info').append("<p>Mileage "+ data.mileage +"</p>");
+						$('#info').append("<p>Range " 	+ data.range +"</p>");
+						
 					}
 						
 					var errorCB = function(error){
@@ -53,9 +62,7 @@
 					
 					$('#addListener').bind('click', function(){
 						
-						
-					
-						
+
 						vehicle.addEventListener($('#vehicleDataId').val(), getMessageHandler($('#vehicleDataId').val()), false);
 						listeners.push($('#vehicleDataId').val());
 						
