@@ -4,8 +4,8 @@ if (typeof webinos === "undefined") webinos = {};
 if (typeof exports !== "undefined") rpc = require("./rpc.js");
 else rpc = webinos.rpc; 
 
-var getownid = null;
-var send = null;
+getownid = null;
+send = null;
 
 webinos.message = {};
 clients = {};
@@ -39,7 +39,6 @@ var messageCallbacks = {};
  */
 webinos.message.setSend = function (sender){
 	send = sender;
-	console.log('Message: send '+send);
 }
 
 webinos.message.setGet = function (getter){
@@ -47,7 +46,6 @@ webinos.message.setGet = function (getter){
 }
 
 webinos.message.createMessage = function (options){
-	var message = {};
   for (var i in options) 
   {
     message[i] = options[i];
@@ -67,15 +65,12 @@ webinos.message.createMessageId = function(message, errorHandler, successHandler
 
 // only call this once for session setup 
 
-webinos.message.registerSender = function(address) {
- // var options = {};
- // options.register = true;
- // options.address = address;
-  clients[address] = address;//sessionid
-  console.log('Message: registered client '+clients[address]);   
-
-  //var message = this.createMessage(options);
-  //return message;
+webinos.message.registerSender = function(address){
+  var options = {};
+  options.register = true;
+  options.address = address;
+  var message = this.createMessage(options);
+  return message;
 }
 
 function logObj(obj, name){
@@ -90,46 +85,46 @@ function write(rpc, respto){
 	    var options = {};
 	    options.to = respto;
 	    options.payload = rpc;
-	    var message = webinos.message.createMessage(options);
-	    send(message); //, clients[message.to]);
+	    message = webinos.message.createMessage(options);
+	    send(message, clients[message.to]);
 	    logObj(clients, "clients");
-	    console.log("Message: write"); 
+	    console.log("message write"); 
         }
 
 rpc.setWriter(write);
 
 webinos.message.onMessageReceived = function(message, sessionid){
   
-  //console.log("message: ", message);
+  console.log("message: ", message);
   
   if(message.hasOwnProperty("register") && message.register && message.address)
   {  
-    //this is a register message, associate the address, with session id 
-    clients[message.address] = message.address;//sessionid
-    console.log('Message:'+clients[message.address]);   
-   return; 
+    //this is a register message, associate the address, with session id    
+    clients[message.address] = sessionid;
+    console.log(clients[message.address]);   
+    return; 
   }
   // check message destination 
   if(message.hasOwnProperty("to") && (message.to))
   {
-    // get own id?    
-    self = getownid;
-    console.log("Message: Get own ID:" + self);
-    console.log("Message: send to:" +  message.to);
+    // get own id?
+    self = getownid();
+    console.log("Get own ID:" + self);
+    console.log("message send to:" +  message.to);
     //check if a session with destination has been stored 
     if(message.to != self)
     {
-      console.log("Message: Forwarding to: " + message.to);
+      console.log("Forwarding Message to: " + message.to);
       //forward the message
       if(clients[message.to])
       {
-        console.log("Message: forward to:" + message.to);
+        console.log("message forward to:" + message.to);
         sessionid = clients[message.to];
-        send(message); //, sessionid);
+        send(message, sessionid);
       }
       else
       {
-        console.log("Message: no session has been established with the forward destination " + message.to);
+        console.log("no session has been established with the forward destination " + message.to);
         //no session with destination - shall we start a new session here?
       }
       return;
@@ -140,7 +135,7 @@ webinos.message.onMessageReceived = function(message, sessionid){
       if(message.payload) 
       { 
         console.log(message.payload);
-        console.log("Message: Forwarding to RPC Message handler: " + message.payload);
+        console.log("Forwarding to RPC Message handler: " + message.payload);
         
         //can rpc.handMessage return a new message?mail
         rpc.handleMessage(message.payload, message.resp_to);
