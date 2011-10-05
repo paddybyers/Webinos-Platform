@@ -56,18 +56,15 @@ exports.readConfig = function (self) {
 				self.config.mastercertname = data1[i][1];
 			}
 		}
-		self.emit('readconfig', 'done');
+		self.emit('readConfig', 'configuration read from config.txt');
 	});
 };
 
 exports.checkFiles = function(self) {
 	fs.readFile(self.config.keyname, function (err) {
 		if (err) {
-			console.log('PZ Common: generating key');
 			// Bits for key to be generated | KeyName
 			generator.genPrivateKey(self.config.keysize, self.config.keyname);
-
-			console.log('PZ Common: generating self signed cert');
 			generator.genSelfSignedCertificate(self.config.country,
 					self.config.state,
 					self.config.city,
@@ -78,10 +75,10 @@ exports.checkFiles = function(self) {
 					self.config.days,
 					self.config.certname,
 					self.config.keyname);
-			self.emit('selfgencert','true');
+			self.emit('generatedCert','true');
 			return;	
 		}
-		self.emit('selfgencert','false');
+		self.emit('generatedCert','false');
 	});
 };
 
@@ -106,17 +103,24 @@ exports.serverConfig = function(config) {
 	var options = {
 		key: fs.readFileSync(config.keyname),
 		cert: fs.readFileSync(config.certname),
-		ca: fs.readFileSync(config.mastercertname), // This is self signed certificate, so PZH is its own CA
+		ca: /*[*/fs.readFileSync(config.mastercertname),/*,fs.readFileSync('othrecert.pem')],*/// This is self signed certificate, so PZH is its own CA
 		requestCert:true, // This field controls whether client certificate will be fetched for mutual authentication
 		requestUnauthorized:false
 	};
 	return options
 }
 
-exports.removeClient = function(self) {
-	for(i = 0; i < self.connected_client.length; i += 1) {
-		if(self.connected_client[i].commonname === self.config.common) {
-			self.connected_client.pop(self.connected_client[i]);
+exports.removeClient = function(self, conn) {
+	for(i = 0; i < webinos.session.pzh.connected_pzp.length; i += 1) {
+		if(webinos.session.pzh.connected_pzp[i].socket.socket.remotePort === conn.socket.remotePort) {
+			for( j =0; j < self.connected_client.length; j += 1) {
+				if(self.connected_client[j].sessionid === webinos.session.pzh.connected_pzp[i].session) { 
+					console.log('PZ Common: Removed client: '+self.connected_client[j].sessionid );
+					self.connected_client.pop(j);
+					break;
+				}
+			}
+			webinos.session.pzh.connected_pzp.pop(i);
 			break;
 		}
 	}
@@ -159,6 +163,7 @@ exports.masterCert = function (self) {
 	console.log('PZ Common: generating master server key');
 	// Bits for key to be generated | KeyName
 	generator.genPrivateKey(self.config.masterkeysize, self.config.masterkeyname);
+
 	console.log('PZ Common: generating master server cert');
 	// Country, State, City, OrgName, OrgUnit, Common, Email, Days, CertificateName
 	self.config.common = 'MasterCert:' + self.config.common;
@@ -172,5 +177,10 @@ exports.masterCert = function (self) {
 						self.config.days,
 						self.config.mastercertname,
 						self.config.masterkeyname);
-};	
+};
+
+exports.addTrustedCert = function(self) {
+	console.log('PZ Common: Add Cert ');
+	generator.addTrustedCert();
+};
 

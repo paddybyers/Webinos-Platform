@@ -231,6 +231,7 @@ if (typeof exports !== 'undefined'){
 
 	//add your RPC Implementations here!
 	require('./rpc_test.js');
+	require('./rpc_geolocation.js');
 
 }
 

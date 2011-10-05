@@ -54,23 +54,24 @@ webinos.rpc.handleMessage = function (message, responseto){
 					includingObject = includingObject[methodPathParts[pIx]];
 				}
 			}
-
+			
 			//if (typeof webinos.rpc.objects[service] === 'object'){
 			if (typeof includingObject === 'object'){
 				id = myObject.id;
+				
 				if (typeof myObject.fromObjectRef !== 'undefined' && myObject.fromObjectRef != null) {
 				
 					webinos.rpc.responseToMapping[myObject.fromObjectRef] = responseto;
+				
 					//webinos.rpc.objects[service][method](
 					includingObject[method](
 						myObject.params, 
 						function (result) {
-
 							if (typeof id === 'undefined') return;
 							var res = {};
 							rpc.jsonrpc = "2.0";
 							res.result = result;
-							res.id = id;
+							res.id = id;						
 							webinos.rpc.executeRPC(res, responseto);
 						},
 						function (error){
@@ -98,7 +99,11 @@ webinos.rpc.handleMessage = function (message, responseto){
 							res.result = result;
 							res.id = id;
 							webinos.rpc.executeRPC(res, responseto);
-																	
+						
+							// CONTEXT LOGGING HOOK
+							var cntxMngr = require("./Context/Server/contextAPI.js");
+							cntxMngr.logContext(myObject,res);
+						
 
 						},
 						function (error){
@@ -163,7 +168,6 @@ webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto) {
     //TODO check if rpc is request on a specific object (objectref) and get mapped responseto / destination session
     
     //TODO remove stringify when integrating with Message Routing/Ziran
-   
     write(JSON.stringify(rpc), responseto);
    
 };
@@ -231,7 +235,7 @@ if (typeof exports !== 'undefined'){
 
 	//add your RPC Implementations here!
 	require('./rpc_test.js');
-
+	require('./rpc_geolocation.js');
 }
 
 
