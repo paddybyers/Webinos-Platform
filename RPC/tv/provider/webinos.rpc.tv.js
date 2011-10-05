@@ -3,7 +3,7 @@
 	var tvmodule = require('./webinos.server.tv.js').tv;
 	var rpc = require('../../rpc.js');
 
-	var RemoteTVDisplayManager={};
+	var RemoteTVDisplayManager = new RPCWebinosService({api:'TVDisplayManager'});
 	RemoteTVDisplayManager.setChannel = function ( params,  successCallback,  errorCallback) {
 		tvmodule.tv.display.setChannel(params[0],function(channel){
 			successCallback(channel);
@@ -25,7 +25,7 @@
 		}
 	};
 	
-	var RemoteTVTunerManager={};
+	var RemoteTVTunerManager = new RPCWebinosService({api:'TVTunerManager'});
 	RemoteTVTunerManager.getTVSources = function ( params,  successCallback,  errorCallback) {
 		tvmodule.tv.tuner.getTVSources(function(sources){
 			successCallback(sources);
@@ -34,7 +34,7 @@
 		});
 	};
 
-	rpc.registerObject("TVTunerManager", RemoteTVTunerManager);
-	rpc.registerObject("TVDisplayManager", RemoteTVDisplayManager);
+	rpc.registerObject(RemoteTVTunerManager);
+	rpc.registerObject(RemoteTVDisplayManager);
 
 })();

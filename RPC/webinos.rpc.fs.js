@@ -8,9 +8,13 @@
 		return fun.bind(thisArg);
 	}
 
-	rpc.fs.RemoteFileSystem = function () {
+	rpc.fs.RemoteFileSystem = function (obj) {
+		this.base = RPCWebinosService;
+		this.base(obj);
+		
 		this.__object = new fs.RemoteFileSystem();
 	}
+	rpc.fs.RemoteFileSystem.prototype = new RPCWebinosService;
 
 	rpc.fs.RemoteFileSystem.prototype.requestFileSystem = function (params, successCallback, errorCallback) {
 		this.__object.requestFileSystem(params[0], params[1], bind(this, function (filesystem) {
@@ -37,8 +41,11 @@
 		return new fs.FileSystem(object.name, object.__realPath);
 	}
 
-	rpc.fs.Entry = function () {
+	rpc.fs.Entry = function (obj) {
+		this.base = RPCWebinosService;
+		this.base(obj);
 	}
+	rpc.fs.Entry.prototype = new RPCWebinosService;
 
 	rpc.fs.Entry.serialize = function (entry) {
 		return {
@@ -87,8 +94,11 @@
 	rpc.fs.Entry.prototype.remove = function (params, successCallback, errorCallback) {
 	}
 
-	rpc.fs.DirectoryEntry = function () {
+	rpc.fs.DirectoryEntry = function (obj) {
+		this.base = RPCWebinosService;
+		this.base(obj);
 	}
+	rpc.fs.DirectoryEntry.prototype = new RPCWebinosService;
 
 	rpc.fs.DirectoryEntry.prototype.getFile = function (params, successCallback, errorCallback) {
 		var __object = rpc.fs.Entry.deserialize(params[0]);
@@ -113,8 +123,11 @@
 	rpc.fs.DirectoryEntry.prototype.removeRecursively = function (params, successCallback, errorCallback) {
 	}
 
-	rpc.fs.DirectoryReader = function () {
+	rpc.fs.DirectoryReader = function (obj) {
+		this.base = RPCWebinosService;
+		this.base(obj);
 	}
+	rpc.fs.DirectoryReader.prototype = new RPCWebinosService;
 
 	rpc.fs.DirectoryReader.prototype.readEntries = function (params, successCallback, errorCallback) {
 		var __object = rpc.fs.Entry.deserialize(params[0]).createReader();
@@ -146,8 +159,32 @@
 		return new fs.FileError(object.code);
 	}
 
-	rpc.registerObject("RemoteFileSystem", new rpc.fs.RemoteFileSystem());
-	rpc.registerObject("Entry", new rpc.fs.Entry());
-	rpc.registerObject("DirectoryEntry", new rpc.fs.DirectoryEntry());
-	rpc.registerObject("DirectoryReader", new rpc.fs.DirectoryReader());
+	var module = new rpc.fs.RemoteFileSystem({
+		api:'RemoteFileSystem',
+		displayName:'RemoveFileSystem',
+		description:'The W3C RemoveFileSystem?'
+	});
+	rpc.registerObject(module);
+	
+	module = new rpc.fs.Entry({
+		api:'Entry',
+		displayName:'Entry',
+		description:'The W3C File Entry?'
+	});
+	rpc.registerObject(module);
+	
+	module = new rpc.fs.DirectoryEntry({
+		api:'DirectoryEntry',
+		displayName:'DirectoryEntry',
+		description:'The W3C DirectoryEntry?'
+	});
+	rpc.registerObject(module);
+	
+	module = new rpc.fs.DirectoryReader({
+		api:'DirectoryReader',
+		displayName:'DirectoryReader',
+		description:'The W3C DirectoryReader?'
+	});
+	rpc.registerObject(module);
+	
 })(module.exports);

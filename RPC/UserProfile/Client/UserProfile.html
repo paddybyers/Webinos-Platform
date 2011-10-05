@@ -1,11 +1,8 @@
 <html>
 <head>
 <title>webinos rpc</title>
-<script type="text/javascript" src="/rpc.js"></script>
+	<script type="text/javascript" src="/rpc.js"></script>
 	<script type="text/javascript" src="/client/webinos.js"></script>
-	<script type="text/javascript" src="/client/get42.js"></script>
-	<script type="text/javascript" src="/client/geolocation.js"></script>
-	<script type="text/javascript" src="/client/webinos.fs.js"></script>
 	<script type="text/javascript" src="/UserProfile/Client/UserProfileClient.js"></script>
 	<script type="text/javascript"
 		src="http://code.jquery.com/jquery-1.5.2.js"></script>
@@ -22,29 +19,9 @@
             	    var userProfileService = null;
             	    
                     $('#findService').bind('click', function() {
-                	    webinos.ServiceDiscovery.findServices("FileReader", {onFound: function (service) {
-                	    	reader = service;
-                	    }});
-                	    webinos.ServiceDiscovery.findServices("FileSaver", {onFound: function (service) {
-                	    	fileSaver = service;
-                	    }});
-                	    webinos.ServiceDiscovery.findServices("FileWriter", {onFound: function (service) {
-                	    	fileWriter = service;
-                	    }});
-                	    webinos.ServiceDiscovery.findServices("Test", {onFound: function (service) {
-                	    	test = service;
-                	    }});
-                	    webinos.ServiceDiscovery.findServices("Geolocation", {onFound: function (service) {
-                	    	geoLocationService = service;
-                	    }});
-                	    
-                	    webinos.ServiceDiscovery.findServices("UserProfileInt", {onFound: function (service) {
+                	    webinos.ServiceDiscovery.findServices(new ServiceType('UserProfileInt'), {onFound: function (service) {
                 	    	userProfileService = service;
                 	    }});
-                	    
-                	    
-                	    
-                	   
                     });
                     
                     
@@ -240,89 +217,7 @@
                      }); 
             });
         </script>
-        <script type="text/javascript">
-	dojo.require("dojo.hash");
-
-	dojo.addOnLoad(function () {
-		var filesystem;
-
-		var cwd = dojo.byId('cwd');
-		var ls = dojo.byId('ls');
-
-		var update = function (hash) {
-			dojo.empty(ls);
-
-			var fullPath = dojo.queryToObject(hash).fullPath;
-
-			filesystem.root.getDirectory(fullPath, null, function (entry) {
-				cwd.innerHTML = entry.fullPath;
-
-				entry.getParent(function (parent) {
-					var item = dojo.create('li', null, ls);
-
-					dojo.create('a', {
-						href: '#' + dojo.objectToQuery({
-							fullPath: parent.fullPath
-						}),
-						innerHTML: '..'
-					}, item, 'first');
-				}, function (error) {
-					alert("Error retrieving parent directory (#" + error.code + ")");
-				});
-
-				var reader = entry.createReader();
-
-				var successCallback = function (entries) {
-					entries.forEach(function (entry) {
-						var item = dojo.create('li', null, ls);
-
-						if (entry.isFile)
-							item.innerHTML = entry.name;
-						else if (entry.isDirectory)
-							dojo.create('a', {
-								href: '#' + dojo.objectToQuery({
-									fullPath: entry.fullPath
-								}),
-								innerHTML: entry.name
-							}, item);
-					});
-
-					if (entries.length > 0)
-						reader.readEntries(successCallback, errorCallback);
-				};
-
-				var errorCallback = function (error) {
-					alert("Error reading directory (#" + error.code + ")");
-				};
-
-				reader.readEntries(successCallback, errorCallback);
-			}, function (error) {
-				alert("Error retrieving directory entry (#" + error.code + ")");
-			});
-		}
-
-		dojo.subscribe("/dojo/hashchange", update);
-
-		webinos.ServiceDiscovery.findServices("RemoteFileSystem", {
-			onFound: function (service) {
-				service.bind(function () {
-					service.requestFileSystem(webinos.fs.RemoteFileSystem.PERSISTENT, 1024, function (_filesystem) {
-						filesystem = _filesystem;
-
-						if (dojo.hash() == '')
-							dojo.hash(dojo.objectToQuery({
-								fullPath: filesystem.root.fullPath
-							}));
-
-						update(dojo.hash());
-					}, function (error) {
-						alert("Error requesting filesystem (#" + error.code + ")");
-					});
-				});
-			}
-		});
-	});
-</script>
+       
 </head>
 <body>
 <table border="1"  style="height: 100%; width: 100%;">

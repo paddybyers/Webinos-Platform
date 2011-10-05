@@ -1,12 +1,11 @@
 (function() {
 
-	Sensor = function (){
-       
+	Sensor = function(obj) {
+       this.base = WebinosService;
+       this.base(obj);
 
 	};
-	
-	
-	Sensor.prototype = WebinosService.prototype;
+	Sensor.prototype = new WebinosService;
 	
 	Sensor.prototype.bind = function(success) {
 		 	this.maximumRange = 0;
@@ -19,7 +18,7 @@
 	        this.configureSensor = function (options, successCB, errorCB){
 	    		//thows (SensorException);
 	    			        	
-	    		var rpc = webinos.rpc.createRPC("Sensor", "configureSensor", arguments[0]);
+	    		var rpc = webinos.rpc.createRPC(this, "configureSensor", arguments[0]);
 	    		webinos.rpc.executeRPC(rpc,
 	    				function (){
 	    					successCB();

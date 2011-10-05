@@ -49,10 +49,11 @@
 	 * switching.
 	 * 
 	 */
-	TVDisplayManager = function() {
-		// TODO implement constructor logic if needed!
-
+	TVDisplayManager = function(obj) {
+		this.base = WebinosService;
+		this.base(obj);
 	};
+	TVDisplayManager.prototype = WebinosService.prototype;
 
 	/**
 	 * Switches the channel natively on the TV (same as when a hardware remote
@@ -61,7 +62,7 @@
 	 */
 	TVDisplayManager.prototype.setChannel = function(channel, successCallback,
 			errorCallback) {
-		var rpc = webinos.rpc.createRPC("TVDisplayManager", "setChannel",
+		var rpc = webinos.rpc.createRPC(this, "setChannel",
 				arguments);
 		webinos.rpc.executeRPC(rpc, function(params) {
 			successCallback(params);
@@ -87,14 +88,14 @@
 	// TODO: does not conform API Spec, but needs to be added!
 	TVDisplayManager.prototype.addEventListener = function(eventname,
 			channelchangeeventhandler, useCapture) {
-		var rpc = webinos.rpc.createRPC("TVDisplayManager", "addEventListener",
+		var rpc = webinos.rpc.createRPC(this, "addEventListener",
 				arguments);
 		rpc.fromObjectRef = Math.floor(Math.random() + (new Date().getTime())); // random
 																				// object
 																				// ID
 
 		// create the result callback
-		callback = {};
+		var callback = new RPCWebinosService({api:rpc.fromObjectRef});
 		callback.onchannelchangeeventhandler = function(params,
 				successCallback, errorCallback) {
 
@@ -103,7 +104,7 @@
 		};
 
 		// register the object as being remotely accessible
-		webinos.rpc.registerObject(rpc.fromObjectRef, callback);
+		webinos.rpc.registerObject(callback);
 
 		webinos.rpc.executeRPC(rpc);
 		return;
@@ -113,10 +114,11 @@
 	 * Get a list of all available TV tuners.
 	 * 
 	 */
-	TVTunerManager = function() {
-		// TODO implement constructor logic if needed!
-
+	TVTunerManager = function(obj) {
+		this.base = WebinosService;
+		this.base(obj);
 	};
+	TVTunerManager.prototype = WebinosService.prototype;
 
 	/**
 	 * Get a list of all available TV tuners.
@@ -124,7 +126,7 @@
 	 */
 	TVTunerManager.prototype.getTVSources = function(successCallback,
 			errorCallback) {
-		var rpc = webinos.rpc.createRPC("TVTunerManager", "getTVSources",
+		var rpc = webinos.rpc.createRPC(this, "getTVSources",
 				arguments);
 		webinos.rpc.executeRPC(rpc, function(params) {
 			successCallback(params);

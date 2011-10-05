@@ -106,7 +106,7 @@
 						}						
 					}
 					
-                	webinos.ServiceDiscovery.findServices("Vehicle", {onFound: function (service) {
+                	webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
                 	    	vehicle = service;
 							postMessage("Connected Vehicle System. Please choose a function");
 							$('#addListener').removeAttr('disabled');

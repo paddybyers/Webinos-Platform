@@ -110,8 +110,12 @@ function generateGearEvent(){
 
 
 
-Vehicle = {};
-Vehicle.get = get;
-Vehicle.addEventListener = addEventListener;
-Vehicle.removeEventListener = removeEventListener;
-webinos.rpc.registerObject("Vehicle", Vehicle);
+var module = new RPCWebinosService({
+	api:'http://webinos.org/api/vehicle',
+	displayName:'Vehicle',
+	description:'Webinos simulated vehicle.'
+});
+module.get = get;
+module.addEventListener = addEventListener;
+module.removeEventListener = removeEventListener;
+webinos.rpc.registerObject(module);

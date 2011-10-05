@@ -48,8 +48,12 @@ function clearWatch (params, successCB, errorCB, objectRef){
 	successCB("cleared watch");
 }
 
-GeolocationModule = {};
+var GeolocationModule = new RPCWebinosService({
+	api:'http://www.w3.org/ns/api-perms/geolocation',
+	displayName:'Geolocation',
+	description:'The W3C Geolocation API'
+});
 GeolocationModule.getCurrentPosition = getCurrentPosition;
 GeolocationModule.watchPosition = watchPosition;
 GeolocationModule.clearWatch = clearWatch;
-webinos.rpc.registerObject("Geolocation", GeolocationModule);  // RPC name
+webinos.rpc.registerObject(GeolocationModule);  // RPC name
