@@ -1,8 +1,10 @@
 <html>
 <head>
 <title>webinos rpc</title>
-<script type="text/javascript" src="/rpc.js"></script>
+	<script type="text/javascript" src="/rpc.js"></script>
 	<script type="text/javascript" src="/client/webinos.js"></script>
+	<script type="text/javascript" src="/webinos.utils.js"></script>
+	<script type="text/javascript" src="/client/webinos.file.js"></script>
 	<script type="text/javascript" src="/client/get42.js"></script>
 	<script type="text/javascript" src="/client/geolocation.js"></script>
 	<script type="text/javascript" src="/client/webinos.fs.js"></script>
@@ -11,45 +13,54 @@
 	<script type="text/javascript"
 	src="http://ajax.googleapis.com/ajax/libs/dojo/1.6.1/dojo/dojo.xd.js"></script>
 	<script type="text/javascript">
-
             $(document).ready(function() {
             		var reader = null;
             	    var fileSaver = null;
             	    var fileWriter = null;
-            	    var test = null;
+            	    var test = [];
             	    var geoLocationService = null;
             	    
                     $('#findService').bind('click', function() {
-                	    webinos.ServiceDiscovery.findServices("FileReader", {onFound: function (service) {
+                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/file.read'), {onFound: function (service) {
                 	    	reader = service;
                 	    }});
-                	    webinos.ServiceDiscovery.findServices("FileSaver", {onFound: function (service) {
+                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/file.save'), {onFound: function (service) {
                 	    	fileSaver = service;
                 	    }});
-                	    webinos.ServiceDiscovery.findServices("FileWriter", {onFound: function (service) {
+                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/file.write'), {onFound: function (service) {
                 	    	fileWriter = service;
                 	    }});
-                	    webinos.ServiceDiscovery.findServices("Test", {onFound: function (service) {
-                	    	test = service;
+                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/test'), {onFound: function (service) {
+                	    	test.push(service);
                 	    }});
-                	    webinos.ServiceDiscovery.findServices("Geolocation", {onFound: function (service) {
+                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
                 	    	geoLocationService = service;
                 	    }});
                 	   
                     });
                     
                     $('#get42').bind('click', function() {
-                    	test.get42(function (result){
-                    		alert(result);
-                    		alert(test.testAttr);
-                    	});
+                    	for (var i in test) {
+	                    	test[i].get42(function (result){
+    	                		alert(result);
+        	            		alert(test[i].testAttr);
+            	        	});
+                    	}
+                    }); 
+                    
+                    $('#echo').bind('click', function() {
+                    	for (var i in test) {
+	                    	test[i].echoAttr.echo(document.getElementById("fileContent").value, function (result){
+	                    		alert(result);
+	                    	});
+                    	}
                     }); 
 
                    $('#currentPositionButton').bind('click', function() {
                     	geoLocationService.getCurrentPosition(function (result){
                     		//var resarray = JSON.parse(result);
-                    		// var loc= 'Latitude = ' + resarray['latitude'] + ', longitude = ' + resarray['longitude'];
-                    		alert(result);
+                    		 var loc= 'Latitude = ' + result.coords.latitude + ', longitude = ' + result.coords.longitude;
+                    		alert(loc);
                     	});
                     }); 
 
@@ -219,36 +230,36 @@
 						}),
 						innerHTML: '..'
 					}, item, 'first');
+					
+					var reader = entry.createReader();
+
+					var successCallback = function (entries) {
+						entries.forEach(function (entry) {
+							var item = dojo.create('li', null, ls);
+
+							if (entry.isFile)
+								item.innerHTML = entry.name;
+							else if (entry.isDirectory)
+								dojo.create('a', {
+									href: '#' + dojo.objectToQuery({
+										fullPath: entry.fullPath
+									}),
+									innerHTML: entry.name
+								}, item);
+						});
+
+						if (entries.length > 0)
+							reader.readEntries(successCallback, errorCallback);
+					};
+
+					var errorCallback = function (error) {
+						alert("Error reading directory (#" + error.code + ")");
+					};
+
+					reader.readEntries(successCallback, errorCallback);
 				}, function (error) {
 					alert("Error retrieving parent directory (#" + error.code + ")");
 				});
-
-				var reader = entry.createReader();
-
-				var successCallback = function (entries) {
-					entries.forEach(function (entry) {
-						var item = dojo.create('li', null, ls);
-
-						if (entry.isFile)
-							item.innerHTML = entry.name;
-						else if (entry.isDirectory)
-							dojo.create('a', {
-								href: '#' + dojo.objectToQuery({
-									fullPath: entry.fullPath
-								}),
-								innerHTML: entry.name
-							}, item);
-					});
-
-					if (entries.length > 0)
-						reader.readEntries(successCallback, errorCallback);
-				};
-
-				var errorCallback = function (error) {
-					alert("Error reading directory (#" + error.code + ")");
-				};
-
-				reader.readEntries(successCallback, errorCallback);
 			}, function (error) {
 				alert("Error retrieving directory entry (#" + error.code + ")");
 			});
@@ -256,10 +267,10 @@
 
 		dojo.subscribe("/dojo/hashchange", update);
 
-		webinos.ServiceDiscovery.findServices("RemoteFileSystem", {
+		webinos.ServiceDiscovery.findServices("LocalFileSystem", {
 			onFound: function (service) {
 				service.bind(function () {
-					service.requestFileSystem(webinos.fs.RemoteFileSystem.PERSISTENT, 1024, function (_filesystem) {
+					service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 1024, function (_filesystem) {
 						filesystem = _filesystem;
 
 						if (dojo.hash() == '')
@@ -286,6 +297,7 @@
 			<p>
 				<button id="findService">Find Service</button>
 				<button id="get42">get42</button>
+				<button id="echo">echo</button>
 				<button id="currentPositionButton">current pos</button>
 				<button id="cls">Clear</button>
 				<button id="getFileContent">Get File Content</button>
@@ -301,8 +313,7 @@
 				<label for="fileContent">File Content</label> 
 				<br>
 				<textarea rows='8' size = 500
-					id="fileContent">
-					</textarea>
+					id="fileContent"></textarea>
 			</p>
 		</div>
 		<div >

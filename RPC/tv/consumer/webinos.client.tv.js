@@ -16,28 +16,7 @@
  */
 (function() {
 
-	// making namespaces
-	if (typeof webinos === "undefined") {
-		webinos = {};
-	}
-	if (!webinos.tv) {
-		webinos.tv = {};
-	}
-
-	var WebinosTV, TVManager, TVDisplayManager, TVDisplaySuccessCB, TVTunerManager, TVSuccessCB, TVErrorCB, TVError, TVSource, Channel, ChannelChangeEvent;
-
-	/**
-	 * Creates tv object.
-	 * 
-	 */
-	WebinosTV = function() {
-		// TODO implement constructor logic if needed!
-
-		// TODO initialize attributes
-
-		this.tv = new TVManager();
-	};
-	WebinosTV.prototype.tv = null;
+	var TVDisplayManager, TVDisplaySuccessCB, TVTunerManager, TVSuccessCB, TVErrorCB, TVError, TVSource, Channel, ChannelChangeEvent;
 
 	/**
 	 * Interface to manage what's currently displayed on TV screen.
@@ -49,10 +28,11 @@
 	 * switching.
 	 * 
 	 */
-	TVDisplayManager = function() {
-		// TODO implement constructor logic if needed!
-
+	TVDisplayManager = function(obj) {
+		this.base = WebinosService;
+		this.base(obj);
 	};
+	TVDisplayManager.prototype = new WebinosService;
 
 	/**
 	 * Switches the channel natively on the TV (same as when a hardware remote
@@ -61,7 +41,7 @@
 	 */
 	TVDisplayManager.prototype.setChannel = function(channel, successCallback,
 			errorCallback) {
-		var rpc = webinos.rpc.createRPC("TVDisplayManager", "setChannel",
+		var rpc = webinos.rpc.createRPC(this, "display.setChannel",
 				arguments);
 		webinos.rpc.executeRPC(rpc, function(params) {
 			successCallback(params);
@@ -87,14 +67,14 @@
 	// TODO: does not conform API Spec, but needs to be added!
 	TVDisplayManager.prototype.addEventListener = function(eventname,
 			channelchangeeventhandler, useCapture) {
-		var rpc = webinos.rpc.createRPC("TVDisplayManager", "addEventListener",
+		var rpc = webinos.rpc.createRPC(this, "display.addEventListener",
 				arguments);
 		rpc.fromObjectRef = Math.floor(Math.random() + (new Date().getTime())); // random
 																				// object
 																				// ID
 
 		// create the result callback
-		callback = {};
+		var callback = new RPCWebinosService({api:rpc.fromObjectRef});
 		callback.onchannelchangeeventhandler = function(params,
 				successCallback, errorCallback) {
 
@@ -103,7 +83,7 @@
 		};
 
 		// register the object as being remotely accessible
-		webinos.rpc.registerObject(rpc.fromObjectRef, callback);
+		webinos.rpc.registerCallbackObject(callback);
 
 		webinos.rpc.executeRPC(rpc);
 		return;
@@ -113,10 +93,11 @@
 	 * Get a list of all available TV tuners.
 	 * 
 	 */
-	TVTunerManager = function() {
-		// TODO implement constructor logic if needed!
-
+	TVTunerManager = function(obj) {
+		this.base = WebinosService;
+		this.base(obj);
 	};
+	TVTunerManager.prototype = new WebinosService;
 
 	/**
 	 * Get a list of all available TV tuners.
@@ -124,7 +105,7 @@
 	 */
 	TVTunerManager.prototype.getTVSources = function(successCallback,
 			errorCallback) {
-		var rpc = webinos.rpc.createRPC("TVTunerManager", "getTVSources",
+		var rpc = webinos.rpc.createRPC(this, "tuner.getTVSources",
 				arguments);
 		webinos.rpc.executeRPC(rpc, function(params) {
 			successCallback(params);
@@ -342,15 +323,13 @@
 	 * Access to tuner and display managers.
 	 * 
 	 */
-	TVManager = function() {
+	this.TVManager = function(obj) {
+		
 		// TODO implement constructor logic if needed!
 
 		// TODO initialize attributes
 
-		this.display = new TVDisplayManager();
-		this.tuner = new TVTunerManager();
+		this.display = new TVDisplayManager(obj);
+		this.tuner = new TVTunerManager(obj);
 	};
-	webinos.tv = new TVManager();
-	webinos.tv.display = new TVDisplayManager();
-	webinos.tv.tuner = new TVTunerManager();
 }());

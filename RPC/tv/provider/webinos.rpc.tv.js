@@ -1,10 +1,19 @@
 //rpc for tv module
 (function () {
+	if (typeof webinos === 'undefined') var webinos = {};
+	webinos.rpc = require('../../rpc.js');
 	var tvmodule = require('./webinos.server.tv.js').tv;
-	var rpc = require('../../rpc.js');
 
-	var RemoteTVDisplayManager={};
-	RemoteTVDisplayManager.setChannel = function ( params,  successCallback,  errorCallback) {
+	var RemoteTVManager = new RPCWebinosService({
+		api:'http://webinos.org/api/tv',
+		displayName:'TV',
+		description:'A TV.'
+	});
+	
+	RemoteTVManager.tuner = {};
+	RemoteTVManager.display = {};
+	
+	RemoteTVManager.display.setChannel = function ( params,  successCallback,  errorCallback) {
 		tvmodule.tv.display.setChannel(params[0],function(channel){
 			successCallback(channel);
 		},function(){
@@ -12,7 +21,7 @@
 		});
 	};
 	
-	RemoteTVDisplayManager.addEventListener = function ( params,  successCallback,  errorCallback, objectRef) {
+	RemoteTVManager.display.addEventListener = function ( params,  successCallback,  errorCallback, objectRef) {
 		
 		if(params[0]==='channelchange'){
 			var useCapture = params[2];
@@ -25,8 +34,7 @@
 		}
 	};
 	
-	var RemoteTVTunerManager={};
-	RemoteTVTunerManager.getTVSources = function ( params,  successCallback,  errorCallback) {
+	RemoteTVManager.tuner.getTVSources = function ( params,  successCallback,  errorCallback) {
 		tvmodule.tv.tuner.getTVSources(function(sources){
 			successCallback(sources);
 		},function(){
@@ -34,7 +42,6 @@
 		});
 	};
 
-	rpc.registerObject("TVTunerManager", RemoteTVTunerManager);
-	rpc.registerObject("TVDisplayManager", RemoteTVDisplayManager);
+	webinos.rpc.registerObject(RemoteTVManager);
 
 })();

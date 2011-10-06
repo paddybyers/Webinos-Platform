@@ -199,9 +199,11 @@ Connection.prototype.onPresenceBye = function(stanza) {
 	var from = stanza.attrs.from;
 	var features = this.remoteFeatures[from];
 	
-	for (var i=0; i<features.length; i++) {
-		logger.trace('Feature = ' + features[i].ns);
-		feature.remove();
+	if (features != null) {
+		for (var i=0; i<features.length; i++) {
+			logger.trace('Feature = ' + features[i].ns);
+			feature.remove();
+		}
 	}
 	
 	delete this.remoteFeatures[from];

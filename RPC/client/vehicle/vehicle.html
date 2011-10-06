@@ -10,7 +10,7 @@
 			$(document).ready(function() {
 					var vehicle = null;		
 					var listeners = new Array();
-					var _vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passenger-front', 'climate-passenger-rear-left','passenger-rear-right','lights-fog-front','lights-fog-rear','lights-signal-right','lights-signal-warn','lights-parking-hibeam','lights-head','lights-head','wiper-front-wash','wiper-rear-wash','wiper-automatic','wiper-front-once','wiper-rear-once','wiper-front-level1','wiper-front-level2','destination-reached','destination-changed','destination-cancelled','parksensors-front','parksensors-rear','shift','tripcomputer'); 
+					var _vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passenger-front', 'climate-passenger-rear-left','passenger-rear-right','lights-fog-front','lights-fog-rear','lights-signal-right','lights-signal-warn','lights-parking-hibeam','lights-head','lights-head','wiper-front-wash','wiper-rear-wash','wiper-automatic','wiper-front-once','wiper-rear-once','wiper-front-level1','wiper-front-level2','destination-reached','destination-changed','destination-cancelled','parksensors-front','parksensors-rear','tripcomputer', 'shift'); 
 					postMessage('Info','Page loaded. Please Initialize');
 					
 					var handleShiftData = function(event){
@@ -19,7 +19,16 @@
 					};
 					
 					var handleTripData = function(data){
-							
+						postMessage("info","new TripComputer-Event received.");
+						$('#info').empty();
+						$('#info').append("<p>Average Consumption1: "+ data.averageConsumption1 +"</p>");
+						$('#info').append("<p>Average Consumption2: "+ data.averageConsumption2 +"</p>");
+						$('#info').append("<p>Average Speed1: "+ data.averageSpeed1 +"</p>");
+						$('#info').append("<p>Average Speed2: "+ data.averageSpeed2 +"</p>");
+						$('#info').append("<p>Trip distance: "+ data.tripDistance +"</p>");
+						$('#info').append("<p>Mileage "+ data.mileage +"</p>");
+						$('#info').append("<p>Range " 	+ data.range +"</p>");
+						
 					}
 						
 					var errorCB = function(error){
@@ -53,9 +62,7 @@
 					
 					$('#addListener').bind('click', function(){
 						
-						
-					
-						
+
 						vehicle.addEventListener($('#vehicleDataId').val(), getMessageHandler($('#vehicleDataId').val()), false);
 						listeners.push($('#vehicleDataId').val());
 						
@@ -105,9 +112,12 @@
 								return handleShiftData;
 						}						
 					}
-					
-                	webinos.ServiceDiscovery.findServices("Vehicle", {onFound: function (service) {
-                	    	vehicle = service;
+					/*
+                	webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
+                	    	
+							console.log("service found...");
+							
+							vehicle = service;
 							postMessage("Connected Vehicle System. Please choose a function");
 							$('#addListener').removeAttr('disabled');
 							$('#getData').removeAttr('disabled');
@@ -120,7 +130,27 @@
 							$('#findService').val('Vehicle found');
 						
                 	}});
-                	    
+					*/
+					
+					
+							webinos.ServiceDiscovery.findServices("Vehicle", {
+							onFound: function (service) {
+								vehicle = service;
+								postMessage("Connected Vehicle System. Please choose a function");
+								$('#addListener').removeAttr('disabled');
+								$('#getData').removeAttr('disabled');
+								$('#vehicleDataId').removeAttr('disabled');
+								//$('#requestGuidance').removeAttr('disabled');
+							
+								$('#info').html("<img src='ajaxloader.gif'>");
+							
+								$('#findService').attr('disabled', 'true');
+								$('#findService').val('Vehicle found');
+							}});
+					
+					
+					
+					         	    
 					for(i=0; i < _vehicleDataIds.length; i++){
 						$('#vehicleDataId').append(new Option(_vehicleDataIds[i],_vehicleDataIds[i],true,true));
 					}				

@@ -14,7 +14,7 @@ $(document).ready(function() {
 	
 	//find service by name and link it
 	var findServiceByName = function(serviceName){
-	    webinos.ServiceDiscovery.findServices(serviceName, {onFound: function (service) {
+	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/tv'), {onFound: function (service) {
 	    	if(!isServiceDiscovered(serviceName)){
     			discoveredServices[serviceName] = service;
     			log('SERVICE FOUND: '+serviceName);
@@ -31,13 +31,13 @@ $(document).ready(function() {
 	
 	var updateUI = function(tvSourceName, channelName,stream){
 		if(tvSourceName)
-		$('#tvSourceLabel').text(tvSourceName);
+			$('#tvSourceLabel').text(tvSourceName);
 		if(channelName)
-		$('#channelNameLabel').text(channelName);
+			$('#channelNameLabel').text(channelName);
 		if(stream)
 			$('#videoDisplay').attr('src',stream);
 		
-	}
+	};
 	
 	//register actions for all buttons
 	$("#commands").delegate("button", "click", function(event){
@@ -46,11 +46,10 @@ $(document).ready(function() {
 		
 		switch($(clickedButton).attr('id')){
 		case 'findService':
-				findServiceByName('TVDisplayManager');
-				findServiceByName('TVTunerManager');
+				findServiceByName('TVManager');
 			break;
 		case 'getTVSources':
-				if(isServiceDiscovered('TVTunerManager','TVTunerManager is not discovered yet.')){
+				if(isServiceDiscovered('TVManager','TVManager is not discovered yet.')){
 					var successCallback = function(sources){
 						//clear old sources.
 						$('#channels').html('');
@@ -67,21 +66,21 @@ $(document).ready(function() {
 					var errorCallback = function(){
 						
 					};
-					discoveredServices['TVTunerManager'].getTVSources(/*TVSuccessCB*/ successCallback, /*optional TVErrorCB*/ errorCallback);
+					discoveredServices['TVManager'].tuner.getTVSources(/*TVSuccessCB*/ successCallback, /*optional TVErrorCB*/ errorCallback);
 				}
 			break;
 		case 'addEventListener':
-			if(isServiceDiscovered('TVDisplayManager','TVDisplayManager is not discovered yet.')){
+			if(isServiceDiscovered('TVManager','TVManager is not discovered yet.')){
 				var channelChangeHandler = function(channel){
 					log('EVENT: CHANNEL CHANGED: '+JSON.stringify(channel));
 					updateUI(channel.tvsource.name,channel.name,channel.stream);
 				};
-				discoveredServices['TVDisplayManager'].addEventListener('channelchange', channelChangeHandler, false);
+				discoveredServices['TVManager'].display.addEventListener('channelchange', channelChangeHandler, false);
 				log("EVENTLISTENER registered.");
 			}
 			break;
 		case 'setChannel':
-				if(isServiceDiscovered('TVDisplayManager','TVDisplayManager is not discovered yet.')){
+				if(isServiceDiscovered('TVManager','TVManager is not discovered yet.')){
 					
 					var clickedChannel = channelMapByName[$(clickedButton).attr('name')];
 					
@@ -95,7 +94,7 @@ $(document).ready(function() {
 					var errorCallback = function(){
 						console.log('setChannel failed.');
 					};
-					discoveredServices['TVDisplayManager'].setChannel(/*Channel*/ clickedChannel.channel, /*TVDisplaySuccessCB*/ successCallback, /*TVErrorCB*/ errorCallback);
+					discoveredServices['TVManager'].display.setChannel(/*Channel*/ clickedChannel.channel, /*TVDisplaySuccessCB*/ successCallback, /*TVErrorCB*/ errorCallback);
 					}else{
 						console.log("ERROR: channel "+$(clickedButton).attr('name')+" not found.");
 					}

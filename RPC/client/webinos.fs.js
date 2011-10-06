@@ -58,7 +58,7 @@
 	fs.RemoteFileSystem.TEMPORARY = 0;
 	fs.RemoteFileSystem.PERSISTENT = 1;
 
-	fs.RemoteFileSystem.prototype = WebinosService.prototype;
+	fs.RemoteFileSystem.prototype = new WebinosService;
 	fs.RemoteFileSystem.prototype.constructor = fs.RemoteFileSystem;
 
 	fs.RemoteFileSystem.prototype.requestFileSystem = function (type, size, successCallback, errorCallback) {
