@@ -70,8 +70,12 @@
 		}
 		if (serviceType == 'LocalFileSystem') {
 			webinos.ServiceDiscovery.registeredServices++;
-			
 			return void (callback.onFound(new webinos.file.LocalFileSystem()));
+		}
+		
+		if (serviceType == 'Vehicle') {
+			webinos.ServiceDiscovery.registeredServices++;
+			return void (callback.onFound(new Vehicle()));
 		}
 		
 		function success(params) {

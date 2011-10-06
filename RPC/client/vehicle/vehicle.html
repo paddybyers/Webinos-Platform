@@ -112,9 +112,12 @@
 								return handleShiftData;
 						}						
 					}
-					
+					/*
                 	webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
-                	    	vehicle = service;
+                	    	
+							console.log("service found...");
+							
+							vehicle = service;
 							postMessage("Connected Vehicle System. Please choose a function");
 							$('#addListener').removeAttr('disabled');
 							$('#getData').removeAttr('disabled');
@@ -127,7 +130,27 @@
 							$('#findService').val('Vehicle found');
 						
                 	}});
-                	    
+					*/
+					
+					
+							webinos.ServiceDiscovery.findServices("Vehicle", {
+							onFound: function (service) {
+								vehicle = service;
+								postMessage("Connected Vehicle System. Please choose a function");
+								$('#addListener').removeAttr('disabled');
+								$('#getData').removeAttr('disabled');
+								$('#vehicleDataId').removeAttr('disabled');
+								//$('#requestGuidance').removeAttr('disabled');
+							
+								$('#info').html("<img src='ajaxloader.gif'>");
+							
+								$('#findService').attr('disabled', 'true');
+								$('#findService').val('Vehicle found');
+							}});
+					
+					
+					
+					         	    
 					for(i=0; i < _vehicleDataIds.length; i++){
 						$('#vehicleDataId').append(new Option(_vehicleDataIds[i],_vehicleDataIds[i],true,true));
 					}				
