@@ -389,18 +389,18 @@
 		return new file.DirectoryReaderSync(this);
 	}
 
-	file.DirectoryEntrySync.prototype.isSubdirectoryOf = function (entry) {
-		var fullPath = this.fullPath;
+	file.DirectoryEntrySync.prototype.isSubdirectoryOf = function (parent) {
+		var childParts = this.fullPath.split('/');
+		var parentParts = parent.fullPath.split('/');
 
-		while (!utils.file.equals(fullPath, this.filesystem.root.fullPath)) {
-			if (utils.file.equals(fullPath, entry.fullPath))
-				return true;
+		if (childParts.length <= parentParts.length)
+			return false;
 
-			// TODO Extract POSIX version of dirname(String) from Node.js - Path module?
-			fullPath = __path.dirname(fullPath);
-		}
+		for (var i = 0; i < parentParts.length; i++)
+			if (childParts[i] != parentParts[i])
+				return false;
 
-		return false;
+		return true;
 	}
 
 	file.DirectoryEntrySync.prototype.getDirectory = function (path, options) {
