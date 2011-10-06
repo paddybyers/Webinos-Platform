@@ -415,7 +415,7 @@
 			if (!entry.isDirectory)
 				throw new file.FileException(file.FileException.TYPE_MISMATCH_ERR);
 		} else {
-			if (!options || options.create)
+			if (!options || !options.create)
 				throw new file.FileException(file.FileException.NOT_FOUND_ERR);
 			
 			var stats = utils.file.tryCatch(__fs.statSync)(this.filesystem.realize(this.fullPath));
@@ -440,7 +440,7 @@
 			if (!entry.isFile)
 				throw new file.FileException(file.FileException.TYPE_MISMATCH_ERR);
 		} else {
-			if (!options || options.create)
+			if (!options || !options.create)
 				throw new file.FileException(file.FileException.NOT_FOUND_ERR);
 			
 			var fd = utils.file.tryCatch(__fs.openSync)(this.filesystem.realize(fullPath), 'w');
