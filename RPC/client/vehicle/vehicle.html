@@ -56,9 +56,31 @@
 					});
 					
 					
+					
 					$('#getData').bind('click', function(){
 						vehicle.get($('#vehicleDataId').val(), getMessageHandler($('#vehicleDataId').val()) ,errorCB);
 						});
+						
+						
+					$('#init').click(function(e) {
+                                        	webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
+                	    	
+							console.log("service found...");
+							
+							vehicle = service;
+							postMessage("Connected Vehicle System. Please choose a function");
+							$('#addListener').removeAttr('disabled');
+							$('#getData').removeAttr('disabled');
+							$('#vehicleDataId').removeAttr('disabled');
+							//$('#requestGuidance').removeAttr('disabled');
+							
+							$('#info').html("<img src='ajaxloader.gif'>");
+							
+							$('#findService').attr('disabled', 'true');
+							$('#findService').val('Vehicle found');
+						
+                	}});
+                    });
 					
 					$('#addListener').bind('click', function(){
 						
@@ -112,45 +134,9 @@
 								return handleShiftData;
 						}						
 					}
-					/*
-                	webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
-                	    	
-							console.log("service found...");
-							
-							vehicle = service;
-							postMessage("Connected Vehicle System. Please choose a function");
-							$('#addListener').removeAttr('disabled');
-							$('#getData').removeAttr('disabled');
-							$('#vehicleDataId').removeAttr('disabled');
-							//$('#requestGuidance').removeAttr('disabled');
-							
-							$('#info').html("<img src='ajaxloader.gif'>");
-							
-							$('#findService').attr('disabled', 'true');
-							$('#findService').val('Vehicle found');
-						
-                	}});
-					*/
-					
-					
-							webinos.ServiceDiscovery.findServices("Vehicle", {
-							onFound: function (service) {
-								vehicle = service;
-								postMessage("Connected Vehicle System. Please choose a function");
-								$('#addListener').removeAttr('disabled');
-								$('#getData').removeAttr('disabled');
-								$('#vehicleDataId').removeAttr('disabled');
-								//$('#requestGuidance').removeAttr('disabled');
-							
-								$('#info').html("<img src='ajaxloader.gif'>");
-							
-								$('#findService').attr('disabled', 'true');
-								$('#findService').val('Vehicle found');
-							}});
-					
-					
-					
-					         	    
+				
+		
+				         	    
 					for(i=0; i < _vehicleDataIds.length; i++){
 						$('#vehicleDataId').append(new Option(_vehicleDataIds[i],_vehicleDataIds[i],true,true));
 					}				
@@ -170,6 +156,7 @@
         <p><input type="button" id="findService" value="initialize" class="button"/></p>  -->
 		<h3>Access vehicle data</h3>
         <p>
+            <input type="button" id="init" value="initialize System" class="button"/><br />
             <select id="vehicleDataId" disabled>
             </select><br/>
             <input type="button" id="getData" value="get Data" disabled class="button"/><br />
