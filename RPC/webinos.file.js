@@ -372,7 +372,7 @@
 
 	// TODO Choose filesystem url scheme, e.g.,
 	//     <filesystem:http://example.domain/persistent-or-temporary/path/to/file.html>.
-	file.EntrySync.prototype.toURL = function () {
+	file.EntrySync.prototype.toURL = function (mimeType) {
 	}
 
 	file.DirectoryEntrySync = function (filesystem, fullPath) {

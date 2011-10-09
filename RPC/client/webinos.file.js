@@ -164,7 +164,7 @@
 	}
 
 	// TODO Transmit filesystem url.
-	file.Entry.prototype.toURL = function () {
+	file.Entry.prototype.toURL = function (mimeType) {
 		return '';
 	}
 
