@@ -68,16 +68,15 @@
 			callback.onFound(tmp);
 			return;
 		}
-		if (serviceType == 'LocalFileSystem') {
-			webinos.ServiceDiscovery.registeredServices++;
-			return void (callback.onFound(new webinos.file.LocalFileSystem()));
-		}
+
 		function success(params) {
 			var baseServiceObj = params;
 			
 			console.log("servicedisco: service found.");
 			
 			var typeMap = {};
+			if (typeof webinos.file.LocalFileSystem !== 'undefined')
+				typeMap['http://webinos.org/api/file'] = webinos.file.LocalFileSystem;
 			if (typeof WebinosFileReader !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/file.read'] = WebinosFileReader;
 			if (typeof WebinosFileSaverRetriever !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/file.save'] = WebinosFileSaverRetriever;
 			if (typeof WebinosFileWriterRetriever !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/file.write'] = WebinosFileWriterRetriever;

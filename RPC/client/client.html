@@ -1,13 +1,12 @@
 <html>
 <head>
 <title>webinos rpc</title>
+	<script type="text/javascript" src="/webinos.utils.js"></script>
 	<script type="text/javascript" src="/rpc.js"></script>
 	<script type="text/javascript" src="/client/webinos.js"></script>
-	<script type="text/javascript" src="/webinos.utils.js"></script>
 	<script type="text/javascript" src="/client/webinos.file.js"></script>
 	<script type="text/javascript" src="/client/get42.js"></script>
 	<script type="text/javascript" src="/client/geolocation.js"></script>
-	<script type="text/javascript" src="/client/webinos.fs.js"></script>
 	<script type="text/javascript"
 		src="http://code.jquery.com/jquery-1.5.2.js"></script>
 	<script type="text/javascript"
@@ -267,7 +266,7 @@
 
 		dojo.subscribe("/dojo/hashchange", update);
 
-		webinos.ServiceDiscovery.findServices("LocalFileSystem", {
+		webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/file"), {
 			onFound: function (service) {
 				service.bind(function () {
 					service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 1024, function (_filesystem) {
