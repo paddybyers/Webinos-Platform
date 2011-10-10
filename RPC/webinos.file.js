@@ -10,11 +10,10 @@
  * 
  * TODO Use error/exception codes according to specification, e.g., use filesystem operation-dependent maps.
  * TODO Invalidate entries, e.g., after being (re)moved.
- * TODO Cache synchronous counterpart objects, e.g., using <pre>file.DirectoryReader.__sync</pre>?
  */
 (function (exports) {
 	"use strict";
-
+	
 	var __fs = require('fs');
 	var __path = require('path');
 
@@ -235,6 +234,10 @@
 
 	file.EntrySync.prototype.isFile = false;
 	file.EntrySync.prototype.isDirectory = false;
+	
+	file.EntrySync.prototype.realize = function () {
+		return this.filesystem.realize(this.fullPath);
+	}
 
 	// Node.js -- Path {@link https://github.com/joyent/node/blob/master/lib/path.js} module extract.
 	file.EntrySync.prototype.resolve = function () {
@@ -306,7 +309,7 @@
 			
 			// TODO Use file.FileReaderSync and file.FileWriterSync.
 			utils.file.wrap(__fs.writeFileSync)(parent.filesystem.realize(newFullPath),
-					utils.file.wrap(__fs.readFileSync)(this.filesystem.realize(this.fullPath)));
+					utils.file.wrap(__fs.readFileSync)(this.realize()));
 		} else if (this.isDirectory) {
 			if (parent.isSubdirectoryOf(this))
 				throw new file.FileException(file.FileException.INVALID_MODIFICATION_ERR);
@@ -329,7 +332,7 @@
 	}
 	
 	file.EntrySync.prototype.getMetadata = function () {
-		var stats = utils.file.wrap(__fs.statSync)(this.filesystem.realize(this.fullPath));
+		var stats = utils.file.wrap(__fs.statSync)(this.realize());
 		
 		return {
 			modificationTime: stats.mtime
@@ -352,8 +355,7 @@
 		
 		var newFullPath = utils.path.join(parent.fullPath, newName);
 		
-		utils.file.wrap(__fs.renameSync)(this.filesystem.realize(this.fullPath),
-				parent.filesystem.realize(newFullPath));
+		utils.file.wrap(__fs.renameSync)(this.realize(), parent.filesystem.realize(newFullPath));
 
 		return file.EntrySync.create(parent.filesystem, newFullPath);
 	}
@@ -367,7 +369,7 @@
 		else if (this.isDirectory)
 			var remove = __fs.rmdirSync;
 		
-		utils.file.wrap(remove)(this.filesystem.realize(this.fullPath));
+		utils.file.wrap(remove)(this.realize());
 	}
 
 	// TODO Choose filesystem url scheme, e.g.,
@@ -418,7 +420,8 @@
 			if (!options || !options.create)
 				throw new file.FileException(file.FileException.NOT_FOUND_ERR);
 			
-			var stats = utils.file.wrap(__fs.statSync)(this.filesystem.realize(this.fullPath));
+			// TODO Use fullPath's parent instead of "this".
+			var stats = utils.file.wrap(__fs.statSync)(this.realize());
 			
 			utils.file.wrap(__fs.mkdirSync)(this.filesystem.realize(fullPath), stats.mode);
 
@@ -477,8 +480,7 @@
 	
 	file.DirectoryReaderSync.prototype.readEntries = function () {
 		if (typeof this.__children === 'undefined')
-			this.__children = utils.file.wrap(__fs.readdirSync)(
-					this.__entry.filesystem.realize(this.__entry.fullPath));
+			this.__children = utils.file.wrap(__fs.readdirSync)(this.__entry.realize());
 
 		var entries = [];
 		
@@ -593,6 +595,10 @@
 
 	file.Entry.prototype.isFile = false;
 	file.Entry.prototype.isDirectory = false;
+
+	file.Entry.prototype.realize = function () {
+		return file.EntrySync.prototype.realize.call(utils.file.sync(this));
+	}
 	
 	file.Entry.prototype.resolve = function () {
 		return file.EntrySync.prototype.resolve.apply(utils.file.sync(this), arguments);
