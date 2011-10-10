@@ -173,6 +173,11 @@ function generateTripComputerEvent(){
 	return new TripComputerEvent(5.9, 5.6, 100.5, 122.2, 234.5, mileage, range);
 }
 
+function generateParkSensorEvent(){
+	
+	
+}
+
 
 
 var module = new RPCWebinosService({

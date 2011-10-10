@@ -63,7 +63,7 @@
 						
 						
 					$('#init').click(function(e) {
-                                        	webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
+                           webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
                 	    	
 							console.log("service found...");
 							
