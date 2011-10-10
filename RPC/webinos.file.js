@@ -10,6 +10,7 @@
  * 
  * TODO Use error/exception codes according to specification, e.g., use filesystem operation-dependent maps.
  * TODO Invalidate entries, e.g., after being (re)moved.
+ * TODO Respect encoding parameters, e.g., at <pre>file.Blob.prototype.type</pre>.
  * TODO Handle multiple read calls to <pre>file.FileReader</pre>.
  */
 (function (exports) {
