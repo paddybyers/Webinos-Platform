@@ -10,6 +10,7 @@
  * 
  * TODO Use error/exception codes according to specification, e.g., use filesystem operation-dependent maps.
  * TODO Invalidate entries, e.g., after being (re)moved.
+ * TODO Handle multiple read calls to <pre>file.FileReader</pre>.
  */
 (function (exports) {
 	"use strict";
@@ -17,6 +18,7 @@
 	var __fs = require('fs');
 	var __path = require('path');
 
+	var events = require('./webinos.events.js');
 	var utils = require('./webinos.utils.js');
 
 	/**
@@ -510,41 +512,157 @@
 		return new file.File(this);
 	}
 	
-//	file.Blob = function () {
-//	}
-//
-//	file.Blob.prototype.size = 0;
-//	file.Blob.prototype.type = '';
-//
-//	file.File = function (entry) {
-//		file.Blobl.call(this);
-//
-//		this.__entry = entry;
-//
-//		try {
-//			var stats = __fs.stat(entry.filesystem.realize(entry.fullPath));
-//		} catch (exception) {
-//			throw file.FileException.wrap(exception);
-//		}
-//
-//		this.name = entry.name;
-//		this.size = stats.size;
-//		this.lastModifiedDate = stats.mtime;
-//	}
-//
-//	file.File.prototype = new file.Blob();
-//	file.File.prototype.constructor = file.File;
-//
-//	file.File.prototype.__start = 0;
-//	file.File.prototype.__length = -1;
-//
-//	file.File.prototype.slice = function (start, length, contentType) {
-//		var newFile = new File(this.__entry);
-//
-//		// ...
-//
-//		return newFile;
-//	}
+	file.Blob = function () {
+	}
+
+	file.Blob.prototype.size = 0;
+	file.Blob.prototype.type = '';
+
+	file.File = function (entry) {
+		file.Blob.call(this);
+
+		var stats = utils.file.wrap(__fs.statSync)(entry.realize());
+
+		this.name = entry.name;
+		this.size = stats.size;
+		// this.type = ...;
+		this.lastModifiedDate = stats.mtime;
+		
+		this.__entry = entry;
+	}
+
+	file.File.prototype = new file.Blob();
+	file.File.prototype.constructor = file.File;
+
+	file.File.prototype.__offset = 0;
+
+	file.File.prototype.slice = function (start, length, contentType) {
+		if (start > this.size)
+			length = 0;
+		else if (start + length > this.size)
+			length = this.size - start;
+		
+		var newFile = new file.File(this.__entry);
+		newFile.size = length;
+		newFile.type = contentType || this.type
+		newFile.__offset = this.__offset + start;
+
+		return newFile;
+	}
+	
+	file.FileReader = function () {
+		events.EventTarget.call(this);
+		
+		this.addEventListener('loadstart', function (evt) {
+			utils.callback(this.onloadstart, this)(evt);
+		});
+		
+		this.addEventListener('progress', function (evt) {
+			utils.callback(this.onprogress, this)(evt);
+		});
+		
+		this.addEventListener('error', function (evt) {
+			utils.callback(this.onerror, this)(evt);
+		});
+		
+		this.addEventListener('abort', function (evt) {
+			utils.callback(this.onabort, this)(evt);
+		});
+		
+		this.addEventListener('load', function (evt) {
+			utils.callback(this.onload, this)(evt);
+		});
+		
+		this.addEventListener('loadend', function (evt) {
+			utils.callback(this.onloadend, this)(evt);
+		});
+	}
+	
+	file.FileReader.EMPTY = 0;
+	file.FileReader.LOADING = 1;
+	file.FileReader.DONE = 2;
+	
+	file.FileReader.prototype = new events.EventTarget();
+	file.FileReader.prototype.constructor = file.FileReader;
+	
+	file.FileReader.prototype.readyState = file.FileReader.EMPTY;
+	file.FileReader.prototype.result = null;
+	file.FileReader.prototype.error = undefined;
+	
+	file.FileReader.prototype.readAsArrayBuffer = function (blob) {
+	}
+	
+	file.FileReader.prototype.readAsBinaryString = function (blob) {
+	}
+	
+	file.FileReader.prototype.readAsText = function (blob, encoding) {
+		this.readyState = file.FileReader.EMPTY;
+		this.result = null;
+
+		utils.bind(utils.file.schedule(function () {
+			if (blob instanceof file.File) {
+				var stream = __fs.createReadStream(blob.__entry.realize(), {
+					encoding: 'utf8',
+					bufferSize: 1024,
+					start: blob.__offset,
+					end: blob.__offset + blob.size - 1
+				});
+				
+				stream.on('open', utils.bind(function () {
+					this.readyState = file.FileReader.LOADING;
+				
+					var loadstartEvent = new events.ProgressEvent();
+					loadstartEvent.initProgressEvent('loadstart', false, false);
+					this.dispatchEvent(loadstartEvent);
+				}, this));
+				
+				stream.on('data', utils.bind(function (data) {
+					if (this.result === null)
+						this.result = '';
+					
+					this.result += data;
+					
+					var progressEvent = new events.ProgressEvent();
+					progressEvent.initProgressEvent('progress', false, false, true, this.result.length, blob.size);
+					this.dispatchEvent(progressEvent);
+				}, this));
+				
+				stream.on('error', utils.bind(function (error) {
+					this.readyState = file.FileReader.DONE;
+					this.result = null;
+					
+					// TODO Map filesystem operation error codes to File API error codes.
+					this.error = new file.FileError(file.FileError.SECURITY_ERR);
+					
+					var errorEvent = new events.ProgressEvent();
+					errorEvent.initProgressEvent('error', false, false);
+					this.dispatchEvent(errorEvent);
+					
+					var loadendEvent = new events.ProgressEvent();
+					loadendEvent.initProgressEvent('loadend', false, false);
+					this.dispatchEvent(loadendEvent);
+				}, this));
+				
+				stream.on('end', utils.bind(function () {
+					this.readyState = file.FileReader.DONE;
+					
+					var loadEvent = new events.ProgressEvent();
+					loadEvent.initProgressEvent('load', false, false);
+					this.dispatchEvent(loadEvent);
+					
+					var loadendEvent = new events.ProgressEvent();
+					loadendEvent.initProgressEvent('loadend', false, false);
+					this.dispatchEvent(loadendEvent);
+				}, this));
+			}
+		}), this)();
+	}
+	
+	file.FileReader.prototype.readAsDataURL = function (blob) {
+	}
+	
+	file.FileReader.prototype.abort = function () {
+	}
 
 	file.LocalFileSystem = function () {
 	}
