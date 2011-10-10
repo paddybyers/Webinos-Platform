@@ -6,7 +6,6 @@
 	<script type="text/javascript" src="/client/webinos.js"></script>
 	<script type="text/javascript" src="/client/webinos.file.js"></script>
 	<script type="text/javascript" src="/client/get42.js"></script>
-	<script type="text/javascript" src="/client/geolocation.js"></script>
 	<script type="text/javascript"
 		src="http://code.jquery.com/jquery-1.5.2.js"></script>
 	<script type="text/javascript"
@@ -32,10 +31,6 @@
                 	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/test'), {onFound: function (service) {
                 	    	test.push(service);
                 	    }});
-                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
-                	    	geoLocationService = service;
-                	    }});
-                	   
                     });
                     
                     $('#get42').bind('click', function() {
@@ -54,15 +49,6 @@
 	                    	});
                     	}
                     }); 
-
-                   $('#currentPositionButton').bind('click', function() {
-                    	geoLocationService.getCurrentPosition(function (result){
-                    		//var resarray = JSON.parse(result);
-                    		 var loc= 'Latitude = ' + result.coords.latitude + ', longitude = ' + result.coords.longitude;
-                    		alert(loc);
-                    	});
-                    }); 
-
                     
                     $('#cls').bind('click', function() {
                     	document.getElementById("messages").innerHTML = "";
@@ -297,7 +283,6 @@
 				<button id="findService">Find Service</button>
 				<button id="get42">get42</button>
 				<button id="echo">echo</button>
-				<button id="currentPositionButton">current pos</button>
 				<button id="cls">Clear</button>
 				<button id="getFileContent">Get File Content</button>
 		    	<button id="fileSaver">Save with FileSaver</button>
