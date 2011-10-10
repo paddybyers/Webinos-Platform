@@ -27,12 +27,16 @@ function profileIntDelete (params, successCB, errorCB)
 {	successCB(49);
 }
 
-userProfileInt = {};
-userProfileInt.findProf = profileIntFind;
-userProfileInt.createProf = profileIntCreate;
-userProfileInt.replaceProf = profileIntReplace;
-userProfileInt.deleteProf = profileIntDelete;
-webinos.rpc.registerObject("UserProfileInt", userProfileInt);
+var userProfileIntModule = new RPCWebinosService({
+	api:'UserProfileInt',
+	displayName:'UserProfileInt',
+	description:''
+});
+userProfileIntModule.findProf = profileIntFind;
+userProfileIntModule.createProf = profileIntCreate;
+userProfileIntModule.replaceProf = profileIntReplace;
+userProfileIntModule.deleteProf = profileIntDelete;
+webinos.rpc.registerObject(userProfileIntModule);
 
 
 
@@ -41,15 +45,19 @@ webinos.rpc.registerObject("UserProfileInt", userProfileInt);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-userProfile = {};
+var userProfileModule = new RPCWebinosService({
+	api:'UserProfile',
+	displayName:'UserProfile',
+	description:''
+});
 
 var preferredUsername = {}; // attribute DOMString? preferredUsername;
 var socialProfiles = {}; //attribute SocialNetworkProfile[]? socialProfiles;
 
-userProfile.preferredUsername=preferredUsername;
-userProfile.socialProfiles=socialProfiles;
+userProfileModule.preferredUsername=preferredUsername;
+userProfileModule.socialProfiles=socialProfiles;
 
-webinos.rpc.registerObject("UserProfile", userProfile);
+webinos.rpc.registerObject(userProfileModule);
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,7 +65,11 @@ webinos.rpc.registerObject("UserProfile", userProfile);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-socialNetworkProfile = {};
+var socialNetworkProfileModule = new RPCWebinosService({
+	api:'SocialNetworkProfile',
+	displayName:'SocialNetworkProfile',
+	description:''
+});
 
 var pref = {}; // attribute boolean pref;
  
@@ -65,9 +77,9 @@ var socialNetworkProvider = {}; // attribute DOMString? socialNetworkProvider;
   
 var userId = {}; // attribute DOMString? userId;
 
-socialNetworkProfile.pref=pref;
-socialNetworkProfile.socialNetworkProvider=socialNetworkProvider;
-socialNetworkProfile.userId=userId;
+socialNetworkProfileModule.pref=pref;
+socialNetworkProfileModule.socialNetworkProvider=socialNetworkProvider;
+socialNetworkProfileModule.userId=userId;
 
-webinos.rpc.registerObject("SocialNetworkProfile", socialNetworkProfile);
+webinos.rpc.registerObject(socialNetworkProfileModule);
 

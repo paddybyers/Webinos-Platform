@@ -145,16 +145,28 @@ function getTextFile(params, successCB, errorCB) {
 	reader.readAsText(file, "UTF-16");
 }
 
-
-fileReader = {};
+var fileReader = new RPCWebinosService({
+	api:'http://www.w3.org/ns/api-perms/file.read',
+	displayName:'FileReader',
+	description:'The W3C FileReader API'
+});
 fileReader.readFileAsString = getTextFile;
-webinos.rpc.registerObject("FileReader", fileReader);
+webinos.rpc.registerObject(fileReader);
 
-fileSaver = {};
+// TODO non standard feature uri
+var fileSaver = new RPCWebinosService({
+	api:'http://www.w3.org/ns/api-perms/file.save',
+	displayName:'FileSaver',
+	description:'The W3C FileSaver API'
+});
 fileSaver.saveAs = saveBlob;
-webinos.rpc.registerObject("FileSaver", fileSaver);
+webinos.rpc.registerObject(fileSaver);
 
-fileWriter = {};
+var fileWriter = new RPCWebinosService({
+	api:'http://www.w3.org/ns/api-perms/file.write',
+	displayName:'FileWriter',
+	description:'The W3C FileWriter API'
+});
 fileWriter.write = writeBlob;
 fileWriter.truncate = truncate;
-webinos.rpc.registerObject("FileWriter", fileWriter);
+webinos.rpc.registerObject(fileWriter);

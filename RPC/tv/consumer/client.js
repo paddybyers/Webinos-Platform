@@ -14,7 +14,7 @@ $(document).ready(function() {
 	
 	//find service by name and link it
 	var findServiceByName = function(serviceName){
-	    webinos.ServiceDiscovery.findServices(serviceName, {onFound: function (service) {
+	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/tv'), {onFound: function (service) {
 	    	if(!isServiceDiscovered(serviceName)){
     			discoveredServices[serviceName] = service;
     			log('SERVICE FOUND: '+serviceName);

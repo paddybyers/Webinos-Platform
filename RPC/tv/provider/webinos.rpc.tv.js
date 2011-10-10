@@ -1,12 +1,18 @@
 //rpc for tv module
 (function () {
+	if (typeof webinos === 'undefined') var webinos = {};
+	webinos.rpc = require('../../rpc.js');
 	var tvmodule = require('./webinos.server.tv.js').tv;
-	var rpc = require('../../rpc.js');
 
-	var RemoteTVManager={
-			tuner:{},
-			display:{}
-	};
+	var RemoteTVManager = new RPCWebinosService({
+		api:'http://webinos.org/api/tv',
+		displayName:'TV',
+		description:'A TV.'
+	});
+	
+	RemoteTVManager.tuner = {};
+	RemoteTVManager.display = {};
+	
 	RemoteTVManager.display.setChannel = function ( params,  successCallback,  errorCallback) {
 		tvmodule.tv.display.setChannel(params[0],function(channel){
 			successCallback(channel);
@@ -36,6 +42,6 @@
 		});
 	};
 
-	rpc.registerObject("TVManager", RemoteTVManager);
+	webinos.rpc.registerObject(RemoteTVManager);
 
 })();

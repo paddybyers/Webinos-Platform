@@ -6,6 +6,10 @@ function configureSensor (params, successCB, errorCB, objectRef){
 }
 
 
-sensor = {};
-sensor.configureSensor = configureSensor;
-webinos.rpc.registerObject("Sensor", sensor);
+var module = new RPCWebinosService({
+	api:'http://webinos.org/api/sensors',
+	displayName:'Sensor',
+	description:'A Webinos sensor.'
+});
+module.configureSensor = configureSensor;
+webinos.rpc.registerObject(module);

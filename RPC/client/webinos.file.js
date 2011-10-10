@@ -1,21 +1,12 @@
 // TODO Extract (de)serialization?
-// TODO Remove unnecessary function bindings.
 (function (exports) {
 	"use strict";
 
 	var rpc = webinos.rpc;
-
-	var request = function (service, method, params, requestCallback) {
-		var message = rpc.createRPC(service, method, params);
-
-		rpc.executeRPC(message, requestCallback.onResult, requestCallback.onError);
-	}
-
 	var utils = webinos.utils;
 
-	utils.file = {
+	utils.path = {
 		// php.js {@link http://phpjs.org/functions/dirname:388}
-		// TODO Choose meaningful variable names.
 		basename: function (path, suffix) {
 			if (!path)
 				return path;
@@ -31,7 +22,8 @@
 
 	var file = exports;
 
-	file.LocalFileSystem = function () {
+	file.LocalFileSystem = function (object) {
+		WebinosService.call(this, object);
 	}
 
 	file.LocalFileSystem.TEMPORARY = 0;
@@ -41,31 +33,26 @@
 	file.LocalFileSystem.prototype.constructor = file.LocalFileSystem;
 
 	file.LocalFileSystem.prototype.requestFileSystem = function (type, size, successCallback, errorCallback) {
-		request('LocalFileSystem', 'requestFileSystem', [type, size], {
-			onResult: utils.bind(function (result) {
-				utils.callback(successCallback, null)(file.FileSystem.deserialize(result));
-			}, this),
-			onError: utils.bind(function (error) {
-				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
-			}, this)
-		});
+		utils.bind(utils.rpc.request(this, 'requestFileSystem', function (result) {
+			utils.callback(successCallback, this)(file.FileSystem.deserialize(this, result));
+		}, function (error) {
+			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
+		}), this)(type, size);
 	}
 
 	file.LocalFileSystem.prototype.resolveLocalFileSystemURL = function (url, successCallback, errorCallback) {
-		request('LocalFileSystem', 'resolveLocalFileSystemURL', [url], {
-			onResult: utils.bind(function (result) {
-				utils.callback(successCallback, null)(file.Entry.deserialize(result));
-			}, this),
-			onError: utils.bind(function (error) {
-				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
-			}, this)
-		});
+		utils.bind(utils.rpc.request(this, 'resolveLocalFileSystemURL', function (result) {
+			utils.callback(successCallback, this)(file.Entry.deserialize(this, result));
+		}, function (error) {
+			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
+		}), this)(url);
 	}
 
-	file.FileSystem = function (name, realPath) {
+	file.FileSystem = function (service, name, realPath) {
 		this.name = name;
 		this.root = new file.DirectoryEntry(this, '/');
 
+		this.__service = service;
 		this.__realPath = realPath;
 	}
 
@@ -76,14 +63,14 @@
 		};
 	}
 
-	file.FileSystem.deserialize = function (object) {
-		return new file.FileSystem(object.name, object.__realPath);
+	file.FileSystem.deserialize = function (service, object) {
+		return new file.FileSystem(service, object.name, object.__realPath);
 	}
 
 	file.Entry = function (filesystem, fullPath) {
 		this.filesystem = filesystem;
 
-		this.name = utils.file.basename(fullPath);
+		this.name = utils.path.basename(fullPath);
 		this.fullPath = fullPath;
 	}
 
@@ -96,75 +83,60 @@
 		};
 	}
 
-	file.Entry.deserialize = function (object) {
+	file.Entry.deserialize = function (service, object) {
 		if (object.isFile)
 			var entry = file.FileEntry;
 		else if (object.isDirectory)
 			var entry = file.DirectoryEntry;
 
-		return new entry(file.FileSystem.deserialize(object.filesystem), object.fullPath);
+		return new entry(file.FileSystem.deserialize(service, object.filesystem), object.fullPath);
 	}
 
 	file.Entry.prototype.isFile = false;
 	file.Entry.prototype.isDirectory = false;
 
+	file.Entry.prototype.copyTo = function (parent, newName, successCallback, errorCallback) {
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'copyTo', function (result) {
+			utils.callback(successCallback, this)(file.Entry.deserialize(this.filesystem.__service, result));
+		}, function (error) {
+			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
+		}), this)(file.Entry.serialize(this), file.Entry.serialize(parent), newName);
+	}
+
 	file.Entry.prototype.getMetadata = function (successCallback, errorCallback) {
-		request('Entry', 'getMetadata', [file.Entry.serialize(this)], {
-			onResult: utils.bind(function (result) {
-				utils.callback(successCallback, null)(result);
-			}, this),
-			onError: utils.bind(function (error) {
-				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
-			}, this)
-		});
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'getMetadata', function (result) {
+			utils.callback(successCallback, this)(result);
+		}, function (error) {
+			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
+		}), this)(file.Entry.serialize(this));
 	}
 
 	file.Entry.prototype.getParent = function (successCallback, errorCallback) {
-		request('Entry', 'getParent', [file.Entry.serialize(this)], {
-			onResult: utils.bind(function (result) {
-				utils.callback(successCallback, null)(file.Entry.deserialize(result));
-			}, this),
-			onError: utils.bind(function (error) {
-				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
-			}, this)
-		});
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'getParent', function (result) {
+			utils.callback(successCallback, this)(file.Entry.deserialize(this.filesystem.__service, result));
+		}, function (error) {
+			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
+		}), this)(file.Entry.serialize(this));
 	}
 
 	file.Entry.prototype.moveTo = function (parent, newName, successCallback, errorCallback) {
-		request('Entry', 'moveTo', [file.Entry.serialize(this), file.Entry.serialize(parent), newName], {
-			onResult: utils.bind(function (result) {
-				utils.callback(successCallback, null)(file.Entry.deserialize(result));
-			}, this),
-			onError: utils.bind(function (error) {
-				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
-			}, this)
-		});
-	}
-
-	file.Entry.prototype.copyTo = function (parent, newName, successCallback, errorCallback) {
-		request('Entry', 'copyTo', [file.Entry.serialize(this), file.Entry.serialize(parent), newName], {
-			onResult: utils.bind(function (result) {
-				utils.callback(successCallback, null)(file.Entry.deserialize(result));
-			}, this),
-			onError: utils.bind(function (error) {
-				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
-			}, this)
-		});
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'moveTo', function (result) {
+			utils.callback(successCallback, this)(file.Entry.deserialize(this.filesystem.__service, result));
+		}, function (error) {
+			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
+		}), this)(file.Entry.serialize(this), file.Entry.serialize(parent), newName);
 	}
 
 	file.Entry.prototype.remove = function (successCallback, errorCallback) {
-		request('Entry', 'remove', [file.Entry.serialize(this)], {
-			onResult: utils.bind(function (result) {
-				utils.callback(successCallback, null)();
-			}, this),
-			onError: utils.bind(function (error) {
-				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
-			}, this)
-		});
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'remove', function (result) {
+			utils.callback(successCallback, this)();
+		}, function (error) {
+			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
+		}), this)(file.Entry.serialize(this));
 	}
 
 	// TODO Transmit filesystem url.
-	file.Entry.prototype.toURL = function () {
+	file.Entry.prototype.toURL = function (mimeType) {
 		return '';
 	}
 
@@ -181,37 +153,28 @@
 		return new file.DirectoryReader(this);
 	}
 
-	file.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
-		request('DirectoryEntry', 'getFile', [file.Entry.serialize(this), path, options], {
-			onResult: utils.bind(function (result) {
-				utils.callback(successCallback, null)(file.Entry.deserialize(result));
-			}, this),
-			onError: utils.bind(function (error) {
-				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
-			}, this)
-		});
+	file.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'getDirectory', function (result) {
+			utils.callback(successCallback, this)(file.Entry.deserialize(this.filesystem.__service, result));
+		}, function (error) {
+			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
+		}), this)(file.Entry.serialize(this), path, options);
 	}
 
-	file.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {
-		request('DirectoryEntry', 'getDirectory', [file.Entry.serialize(this), path, options], {
-			onResult: utils.bind(function (result) {
-				utils.callback(successCallback, null)(file.Entry.deserialize(result));
-			}, this),
-			onError: utils.bind(function (error) {
-				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
-			}, this)
-		});
+	file.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'getFile', function (result) {
+			utils.callback(successCallback, this)(file.Entry.deserialize(this.filesystem.__service, result));
+		}, function (error) {
+			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
+		}), this)(file.Entry.serialize(this), path, options);
 	}
 
 	file.DirectoryEntry.prototype.removeRecursively = function (successCallback, errorCallback) {
-		request('DirectoryEntry', 'removeRecursively', [file.Entry.serialize(this)], {
-			onResult: utils.bind(function (result) {
-				utils.callback(successCallback, null)();
-			}, this),
-			onError: utils.bind(function (error) {
-				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
-			}, this)
-		});
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'removeRecursively', function (result) {
+			utils.callback(successCallback, this)();
+		}, function (error) {
+			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
+		}), this)(file.Entry.serialize(this));
 	}
 
 	file.DirectoryReader = function (entry) {
@@ -222,17 +185,16 @@
 	file.DirectoryReader.prototype.__length = 10;
 
 	file.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
-		request('DirectoryReader', 'readEntries', [file.Entry.serialize(this.__entry), this.__begin, this.__length], {
-			onResult: utils.bind(function (result) {
-				this.__begin = result.__begin;
-				this.__length = result.__length;
+		utils.bind(utils.rpc.request(this.__entry.filesystem.__service, 'readEntries', function (result) {
+			this.__begin = result.__begin;
+			this.__length = result.__length;
 
-				utils.callback(successCallback, null)(result.entries.map(file.Entry.deserialize, this));
-			}, this),
-			onError: utils.bind(function (error) {
-				utils.callback(errorCallback, null)(file.FileError.deserialize(error));
-			}, this)
-		});
+			utils.callback(successCallback, this)(result.entries.map(function (object) {
+				return file.Entry.deserialize(this.__entry.filesystem.__service, object);
+			}, this));
+		}, function (error) {
+			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
+		}), this)(file.Entry.serialize(this.__entry), this.__begin, this.__length);
 	}
 
 	file.FileEntry = function (filesystem, fullPath) {
@@ -244,12 +206,12 @@
 
 	file.FileEntry.prototype.isFile = true;
 
-	// TODO Integrate FileWriter.
 	file.FileEntry.prototype.createWriter = function (successCallback, errorCallback) {
+		utils.callback(successCallback, this)(new file.FileWriter(this));
 	}
 
-	// TODO Integrate File.
 	file.FileEntry.prototype.file = function (successCallback, errorCallback) {
+		utils.callback(successCallback, this)(new file.File(this));
 	}
 
 	file.FileError = function (code) {
