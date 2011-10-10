@@ -142,6 +142,9 @@ webinos.rpc.handleMessage = function (message, responseto){
 							res.result = result;
 							res.id = id;
 							webinos.rpc.executeRPC(res, responseto);
+							// CONTEXT LOGGING HOOK
+							
+							logContext(myObject,res);
 						},
 						function (error){
 							if (typeof id === 'undefined') return;
@@ -371,5 +374,8 @@ if (typeof exports !== 'undefined'){
 	require('./rpc_sensors.js');
 	require('./UserProfile/Server/UserProfileServer.js');
 	require('./tv/provider/webinos.rpc.tv.js');
+	
+	require("./../Manager/Context/Interception/contextInterception.js");
+	
 }
 })();

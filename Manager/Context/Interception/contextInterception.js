@@ -1,9 +1,9 @@
 
-var contextAPI;
+var interceptRPC;
 
-contextAPI = function(){};
+interceptRPC = function(){};
 
-function logContext (myObj,res)
+logContext =function (myObj,res)
 {
 // Get Method Name
 var method = myObj['method'];
@@ -16,14 +16,14 @@ var result = res['result'];
 
 
 // Require the database class
-var databasehelper = require('./../../../Manager/Context/Storage/persist');
+var databasehelper = require('./../Storage/src/main/javascript/persist');
 
 // Initialize helper classes
 var pathclass = require('path');
 var fsclass = require('fs');
 
 
-var dbpath = pathclass.resolve('./Context/Server/data/context.json');
+var dbpath = pathclass.resolve('../Manager/Context/Storage/data/context.json');
 console.log("MY DB PATH");
 
 var dTime = new Date();
@@ -41,5 +41,5 @@ database.insert(data1);
 
 };
 
-contextAPI.prototype.logContext = logContext;
+interceptRPC.prototype.logContext = logContext;
 exports.logContext = logContext;
