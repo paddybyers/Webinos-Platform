@@ -2,26 +2,25 @@
 //as specified @ http://groups.google.com/group/json-rpc/web/json-rpc-2-0
 
 (function() {
-	if (typeof webinos === 'undefined') webinos = {};
+	if (typeof webinos === 'undefined')
+		webinos = {};
 	
 	if (typeof module !== 'undefined')
 		var utils = require('./webinos.utils.js');
-	else{
-		if (typeof webinos.utils !== 'undefined'){
-			var utils = webinos.utils;
-			
-			utils.rpc = {
-					request: function (service, method, successCallback, errorCallback) {
-						return function () {
-							var params = Array.prototype.slice.call(arguments);
-							var message = webinos.rpc.createRPC(service, method, params);
-							
-							webinos.rpc.executeRPC(message, utils.callback(successCallback, this), utils.callback(errorCallback, this));
-						}
-					}
-				};
-		}
-	}
+	else if (typeof webinos.utils !== 'undefined')
+		var utils = webinos.utils;
+	
+	if (typeof utils !== 'undefined')
+		utils.rpc = {
+			request: function (service, method, successCallback, errorCallback) {
+				return function () {
+					var params = Array.prototype.slice.call(arguments);
+					var message = webinos.rpc.createRPC(service, method, params);
+					
+					webinos.rpc.executeRPC(message, utils.callback(successCallback, this), utils.callback(errorCallback, this));
+				}
+			}
+		};
 
 write = null;
 
