@@ -14,7 +14,7 @@ zipHelper.makeStruct = function (filepath) {
     if (fs.lstatSync(filepath).isFile()) {
         return {
             type: "file",
-            isFile: true,
+            isfile: true,
             p: filepath,
             children: null,
             size: 1
@@ -29,7 +29,7 @@ zipHelper.makeStruct = function (filepath) {
         }
         return {
             type: "directory",
-            isFile: false,
+            isfile: false,
             p: filepath,
             children: arr,
             size: (csize + 1)
@@ -41,7 +41,7 @@ zipHelper.makeStruct = function (filepath) {
 zipHelper.flatten = function (struct) {
     "use strict";
     var carray, k;
-    if (struct.isFile) {
+    if (struct.isfile) {
         return [struct];
     } else {
         carray = [struct];
@@ -65,7 +65,7 @@ zipHelper.makeZipFile = function (directoryPath, zipFileName, callback) {
         }
         if (i < fileArr.length) {
             i = i + 1;
-            if (fileArr[i - 1].isFile) {
+            if (fileArr[i - 1].isfile) {
                 zipf.addFile(fileArr[i - 1].p, fileArr[i - 1].p, addToZip);
             } else {
                 addToZip();
