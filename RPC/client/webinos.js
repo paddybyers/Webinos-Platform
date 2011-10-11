@@ -87,7 +87,7 @@
 			if (typeof UserProfileIntModule !== 'undefined') typeMap['UserProfileInt'] = UserProfileIntModule;
 			if (typeof TVManager !== 'undefined') typeMap['http://webinos.org/api/tv'] = TVManager;
 			if (typeof DeviceStatusManager !== 'undefined') typeMap['http://wacapps.net/api/devicestatus'] = DeviceStatusManager;
-			
+			if (typeof Contacts !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/contacts'] = Contacts;
 			// elevate baseServiceObj to usable local WebinosService object
 			var tmp = new typeMap[baseServiceObj.api](baseServiceObj);
 			webinos.ServiceDiscovery.registeredServices++;

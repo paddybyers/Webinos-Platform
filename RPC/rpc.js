@@ -401,9 +401,9 @@ if (typeof exports !== 'undefined'){
 	require('./rpc_sensors.js');
 	require('./UserProfile/Server/UserProfileServer.js');
 	require('./tv/provider/webinos.rpc.tv.js');
-	require("../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js");
+//	require("../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js");
 	
 	require("./../Manager/Context/Interception/contextInterception.js");
-	
+	require('./rpc_contacts.js');
 }
 })();
