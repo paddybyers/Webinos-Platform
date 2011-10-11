@@ -28,8 +28,8 @@ path.exists(filename, function(exists) {
             response.end();  
             return;  
         }  
-
-        response.writeHead(200);  
+        
+        response.writeHead(200, getContentType(uri));  
         response.write(file, "binary");  
         response.end();  
     });  
@@ -37,6 +37,31 @@ path.exists(filename, function(exists) {
 }).listen(WEBSERVER_PORT,function(){
 	console.log((new Date()) + " Web Server is listening on port "+WEBSERVER_PORT);
 	});
+
+function getContentType(uri) {
+    var contentType = {"Content-Type": "text/plain"};
+    switch (uri.substr(uri.lastIndexOf('.'))) {
+    case '.js':
+    	contentType = {"Content-Type": "application/x-javascript"};
+    	break;
+    case '.html':
+    	contentType = {"Content-Type": "text/html"};
+    	break;
+    case '.css':
+    	contentType = {"Content-Type": "text/css"};
+    	break;
+    case '.jpg':
+    	contentType = {"Content-Type": "image/jpeg"};
+    	break;
+    case '.png':
+    	contentType = {"Content-Type": "image/png"};
+    	break;
+    case '.gif':
+    	contentType = {"Content-Type": "image/gif"};
+    	break;
+    }
+    return contentType;
+}
 
 //WebSocket initialization
 var httpserver = http.createServer(function(request, response) {
