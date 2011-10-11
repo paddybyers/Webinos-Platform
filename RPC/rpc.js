@@ -12,13 +12,28 @@
 	
 	if (typeof utils !== 'undefined')
 		utils.rpc = {
-			request: function (service, method, successCallback, errorCallback) {
+			request: function (service, method, objectRef, successCallback, errorCallback) {
 				return function () {
 					var params = Array.prototype.slice.call(arguments);
 					var message = webinos.rpc.createRPC(service, method, params);
 					
+					if (objectRef)
+						message.fromObjectRef = objectRef;
+					
 					webinos.rpc.executeRPC(message, utils.callback(successCallback, this), utils.callback(errorCallback, this));
-				}
+				};
+			},
+			
+			notify: function (service, method, objectRef) {
+				return function () {
+					var params = Array.prototype.slice.call(arguments);
+					var message = webinos.rpc.createRPC(service, method, params);
+					
+					if (objectRef)
+						message.fromObjectRef = objectRef;
+					
+					webinos.rpc.executeRPC(message);
+				};
 			}
 		};
 
