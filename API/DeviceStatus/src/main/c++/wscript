@@ -17,7 +17,7 @@ def configure(conf):
 def build(bld):
   obj = bld.new_task_gen("cxx", "shlib", "node_addon")
   obj.target = "nativedevicestatus"
-  obj.find_sources_in_dirs("src")
+  obj.find_sources_in_dirs(".")
   # see http://www.mail-archive.com/programming@jsoftware.com/msg05886.html
 #  if platform == 'mac':
 #      obj.lib = ["System"]
@@ -28,7 +28,7 @@ def shutdown(bld):
   # HACK to get binding.node out of build directory.
   # better way to do this?
   if Options.commands['clean']:
-    if exists('nativedevicestatus.node'): unlink('nativedevicestatus.node')
+    if exists('../javascript/nativedevicestatus.node'): unlink('../javascript/nativedevicestatus.node')
   else:
     if exists('build/default/nativedevicestatus.node') and not exists('nativedevicestatus.node'):
-      symlink(getcwd()+'/build/default/nativedevicestatus.node', 'nativedevicestatus.node')
+      symlink(getcwd()+'/build/default/nativedevicestatus.node', '../javascript/nativedevicestatus.node')

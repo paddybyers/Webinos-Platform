@@ -1,26 +1,32 @@
 (function () {
-	"use strict";
+//	"use strict";
+//
+//	if (typeof webinos === "undefined") {
+//		webinos = {};
+//	}
+//
+//	if (!webinos.devicestatus) {
+//		webinos.devicestatus = {};
+//	}
+//
+//	var DeviceapisDeviceStatusManager, DeviceStatusManager, PropertyValueSuccessCallback, ErrorCallback, DeviceAPIError, PropertyRef;
+//
+//	DeviceapisDeviceStatusManager = function () {
+//		this.devicestatus = new DeviceStatusManager();
+//	};
+//
+//	DeviceapisDeviceStatusManager.prototype.devicestatus = null;
 
-	if (typeof webinos === "undefined") {
-		webinos = {};
-	}
+	var PropertyValueSuccessCallback, ErrorCallback, DeviceAPIError, PropertyRef;
 
-	if (!webinos.devicestatus) {
-		webinos.devicestatus = {};
-	}
-
-	var DeviceapisDeviceStatusManager, DeviceStatusManager, PropertyValueSuccessCallback, ErrorCallback, DeviceAPIError, PropertyRef;
-
-	DeviceapisDeviceStatusManager = function () {
-		this.devicestatus = new DeviceStatusManager();
+	this.DeviceStatusManager = function (obj) {
+		this.base = WebinosService;
+		this.base(obj);
 	};
-
-	DeviceapisDeviceStatusManager.prototype.devicestatus = null;
-
-	DeviceStatusManager = function () {};
+	DeviceStatusManager.prototype = new WebinosService;
 
 	DeviceStatusManager.prototype.getPropertyValue = function (prop, successCallback, errorCallback) {
-		var rpc = webinos.rpc.createRPC("DeviceStatusManager", "getPropertyValue", arguments);
+		var rpc = webinos.rpc.createRPC(this, "devicestatus.getPropertyValue", arguments);
 		webinos.rpc.executeRPC(rpc, 
 			function (params) { successCallback(params); },
 			function (error) {});
@@ -81,5 +87,4 @@
 	PropertyRef.prototype.aspect = String;
 	PropertyRef.prototype.property = String;
 
-	webinos.devicestatus = new DeviceStatusManager();
 }());

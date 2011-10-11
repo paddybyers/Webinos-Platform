@@ -1,7 +1,7 @@
 describe("DeviceStatus", 
 		function()
 		{
-			var devicestatusManager = require("../../main/javascript/server/webinos.devicestatus.js").devicestatus;
+			var devicestatusManager = require("../../main/javascript/webinos.devicestatus.js").devicestatus;
 
 			it("Gets the aspect of a property", 
 				function() 
