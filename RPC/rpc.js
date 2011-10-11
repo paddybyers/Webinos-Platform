@@ -389,21 +389,33 @@ if (typeof exports !== 'undefined'){
 
 	// none webinos modules
 	var md5 = require('./md5.js');
+
+	require('./rpc_servicedisco.js');
+
 	
 	//add your RPC Implementations here!
-	require('./rpc_servicedisco.js');
-	require('./rpc_test2.js');
-	require('./rpc_test.js');
-	require('./rpc_file.js');
-	require('./webinos.rpc.file.js');
-	require('./rpc_geolocation.js');
-	require('./rpc_vehicle.js');
-	require('./rpc_sensors.js');
-	require('./UserProfile/Server/UserProfileServer.js');
-	require('./tv/provider/webinos.rpc.tv.js');
-//	require("../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js");
+	var modules = [
+	            './rpc_test2.js',
+	            './rpc_test.js',
+	           	'./rpc_file.js',
+				'./webinos.rpc.file.js',
+				'./rpc_geolocation.js',
+				'./rpc_vehicle.js',
+				'./rpc_sensors.js',
+				'../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
+				'./UserProfile/Server/UserProfileServer.js',
+				'./tv/provider/webinos.rpc.tv.js',
+				'./../Manager/Context/Interception/contextInterception.js',
+				'./rpc_contacts.js'
+	               ];
 	
-	require("./../Manager/Context/Interception/contextInterception.js");
-	require('./rpc_contacts.js');
+	for (i = 0; i <modules.length; i++){
+		try{
+			require(modules[i]);
+		}
+		catch (error){
+			console.log("Could not load module " + modules[i] + " with message: " + error );
+		}
+	}
 }
 })();
