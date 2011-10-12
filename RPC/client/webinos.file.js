@@ -3,6 +3,19 @@
 	"use strict";
 
 	var rpc = webinos.rpc;
+	
+	// TODO Extract (to somewhere else).
+	rpc.events = {};
+	
+	rpc.events.ProgressEvent = {
+		deserialize: function (object, target) {
+			object.target = target
+			object.currentTarget = target;
+			
+			return object;
+		}
+	};
+	
 	var utils = webinos.utils;
 
 	utils.path = {
@@ -21,6 +34,371 @@
 	};
 
 	var file = exports;
+	
+	file.Blob = function () {
+	}
+	
+	file.Blob.serialize = function (blob) {
+		if (blob instanceof file.Text) {
+			return {
+				__type: 'text',
+				size: blob.size,
+				type: blob.type,
+				__text: blob.__text
+			};
+		} else if (blob instanceof file.File) {
+			return {
+				__type: 'file',
+				name: blob.name,
+				size: blob.size,
+				type: blob.type,
+				lastModifiedDate: blob.lastModifiedDate,
+				__entry: file.Entry.serialize(blob.__entry),
+				__offset: blob.__offset
+			};
+		}
+	}
+	
+	file.Blob.deserialize = function (service, object) {
+		if (object.__type == 'text') {
+			var blob = new file.Text();
+			
+			blob.size = object.size;
+			blob.type = object.type;
+			
+			blob.__text = object.__text;
+		} else if (object.__type == 'file') {
+			var blob = new file.File(file.Entry.deserialize(service, object.__entry));
+			
+			blob.name = object.name;
+			blob.size = object.size;
+			blob.type = object.type;
+			blob.lastModifiedDate = object.lastModifiedDate;
+			
+			blob.__offset = object.__offset;
+		}
+		
+		return blob;
+	}
+
+	file.Blob.prototype.size = 0;
+	file.Blob.prototype.type = '';
+	
+	file.BlobBuilder = function () {
+	}
+	
+	file.BlobBuilder.prototype.__text = '';
+	
+	file.BlobBuilder.prototype.append = function (data) {
+		if (typeof data === 'string')
+			this.__text += data;
+	}
+	
+	file.BlobBuilder.prototype.getBlob = function (contentType) {
+		var blob = new file.Text();
+		
+		blob.size = this.__text.length;
+		blob.type = contentType || blob.type;
+		
+		blob.__text = this.__text;
+		
+		return blob;
+	}
+	
+	// TODO Think about this constructor.
+	file.Text = function () {
+	}
+	
+	file.Text.prototype = new file.Blob();
+	file.Text.prototype.constructor = file.Text;
+
+	file.Text.prototype.__text = '';
+	
+	file.Text.prototype.slice = function (start, length, contentType) {
+		if (start > this.size)
+			length = 0;
+		else if (start + length > this.size)
+			length = this.size - start;
+		
+		var newText = new file.Text();
+		
+		newText.size = length;
+		newText.type = contentType || this.type;
+		
+		// TODO Check the usage of start.
+		newText.__text = this.text.substr(start, length);
+
+		return newText;
+	}
+	
+	// TODO Think about this constructor.
+	file.File = function (entry) {
+		file.Blob.call(this);
+
+		this.name = entry.name;
+		this.size = 0;
+		// this.type = ...;
+		this.lastModifiedDate = 0;
+		
+		this.__entry = entry;
+	}
+
+	file.File.prototype = new file.Blob();
+	file.File.prototype.constructor = file.File;
+
+	file.File.prototype.__offset = 0;
+
+	file.File.prototype.slice = function (start, length, contentType) {
+		if (start > this.size)
+			length = 0;
+		else if (start + length > this.size)
+			length = this.size - start;
+		
+		var newFile = new file.File(this.__entry);
+		
+		newFile.size = length;
+		newFile.type = contentType || this.type;
+		
+		// TODO Check this calculation.
+		newFile.__offset = this.__offset + start;
+
+		return newFile;
+	}
+	
+	file.FileReader = function (filesystem) {
+		this.__filesystem = filesystem;
+	}
+	
+	file.FileReader.EMPTY = 0;
+	file.FileReader.LOADING = 1;
+	file.FileReader.DONE = 2;
+	
+	file.FileReader.prototype.readyState = file.FileReader.EMPTY;
+	file.FileReader.prototype.result = null;
+	file.FileReader.prototype.error = undefined;
+	
+	file.FileReader.prototype.readAsArrayBuffer = function (blob) {
+	}
+	
+	file.FileReader.prototype.readAsBinaryString = function (blob) {
+	}
+	
+	file.FileReader.prototype.readAsText = function (blob, encoding) {
+		var eventListener = new RPCWebinosService({
+			api: Math.floor(Math.random() * 100)
+		});
+		
+		var eventCallback = function (attributeFun) {
+			return function (params, successCallback, errorCallback) {
+				this.readyState = params[0].readyState;
+				this.result = params[0].result;
+				this.error = params[0].error ? file.FileError.deserialize(params[0].error) : null;
+						
+				var event = params[1];
+				
+				event.target = this;
+				event.currentTarget = this;
+				
+				attributeFun.call(this)(event);
+			};
+		};
+		
+		eventListener.onloadstart = utils.bind(eventCallback(function () {
+			return utils.callback(this.onloadstart, this);
+		}), this);
+		
+		eventListener.onprogress = utils.bind(eventCallback(function () {
+			return utils.callback(this.onprogress, this);
+		}), this);
+		
+		eventListener.onerror = utils.bind(eventCallback(function () {
+			return utils.callback(this.onerror, this);
+		}), this);
+		
+		eventListener.onabort = utils.bind(eventCallback(function () {
+			return utils.callback(this.onabort, this);
+		}), this);
+		
+		eventListener.onload = utils.bind(eventCallback(function () {
+			return utils.callback(this.onload, this);
+		}), this);
+		
+		eventListener.onloadend = utils.bind(eventCallback(function () {
+			return utils.callback(this.onloadend, this);
+		}), this);
+
+		rpc.registerCallbackObject(eventListener);
+		
+		utils.rpc.notify(this.__filesystem.__service, 'readAsText', eventListener.api)
+				(file.Blob.serialize(blob), encoding);
+	}
+	
+	file.FileReader.prototype.readAsDataURL = function (blob) {
+	}
+	
+	file.FileReader.prototype.abort = function () {
+	}
+	
+	file.FileWriter = function (entry) {
+		this.length = 0;
+		
+		this.__entry = entry;
+	}
+	
+	file.FileWriter.INIT = 0;
+	file.FileWriter.WRITING = 1;
+	file.FileWriter.DONE = 2;
+	
+	file.FileWriter.serialize = function (writer) {
+		return {
+//			readyState: writer.readyState,
+			position: writer.position,
+			length: writer.length,
+			error: writer.error ? rpc.file.FileError.serialize(writer.error) : null,
+			__entry: file.Entry.serialize(writer.__entry)
+		};
+	}
+	
+	file.FileWriter.deserialize = function (service, object) {
+		var writer = new file.FileWriter(file.Entry.deserialize(service, object.__entry));
+		
+		writer.readyState = object.readyState;
+		writer.position = object.position;
+		writer.length = object.length;
+		writer.error = object.error;
+		
+		return writer;
+	}
+	
+	file.FileWriter.prototype.readyState = file.FileWriter.INIT;
+	file.FileWriter.prototype.position = 0;
+	file.FileWriter.prototype.length = 0;
+	file.FileWriter.prototype.error = undefined;
+
+	file.FileWriter.prototype.write = function (data) {
+		if (this.readyState == file.FileWriter.WRITING)
+			throw new file.FileException(file.FileException.INVALID_STATE_ERR);
+		
+		this.readyState = file.FileWriter.WRITING;
+		
+		var eventListener = new RPCWebinosService({
+			api: Math.floor(Math.random() * 100)
+		});
+		
+		var eventCallback = function (attributeFun) {
+			return function (params, successCallback, errorCallback) {
+				this.readyState = params[0].readyState;
+				this.position = params[0].position;
+				this.length = params[0].length;
+				this.error = params[0].error ? file.FileError.deserialize(params[0].error) : null;
+						
+				var event = params[1];
+				
+				event.target = this;
+				event.currentTarget = this;
+				
+				attributeFun.call(this)(event);
+			};
+		};
+		
+		eventListener.onwritestart = utils.bind(eventCallback(function () {
+			return utils.callback(this.onwritestart, this);
+		}), this);
+		
+		eventListener.onprogress = utils.bind(eventCallback(function () {
+			return utils.callback(this.onprogress, this);
+		}), this);
+		
+		eventListener.onerror = utils.bind(eventCallback(function () {
+			return utils.callback(this.onerror, this);
+		}), this);
+		
+		eventListener.onabort = utils.bind(eventCallback(function () {
+			return utils.callback(this.onabort, this);
+		}), this);
+		
+		eventListener.onwrite = utils.bind(eventCallback(function () {
+			return utils.callback(this.onwrite, this);
+		}), this);
+		
+		eventListener.onwriteend = utils.bind(eventCallback(function () {
+			return utils.callback(this.onwriteend, this);
+		}), this);
+
+		webinos.rpc.registerCallbackObject(eventListener);
+		
+		utils.rpc.notify(this.__entry.filesystem.__service, 'write', eventListener.api)
+				(file.FileWriter.serialize(this), file.Blob.serialize(data));
+	}
+	
+	file.FileWriter.prototype.seek = function (offset) {
+		if (this.readyState == file.FileWriter.WRITING)
+			throw new file.FileException(file.FileException.INVALID_STATE_ERR);
+		
+		if (offset >= 0)
+			this.position = Math.min(this.length, offset);
+		else
+			this.position = Math.max(0, this.length + offset);
+	}
+	
+	file.FileWriter.prototype.truncate = function (size) {
+		if (this.readyState == file.FileWriter.WRITING)
+			throw new file.FileException(file.FileException.INVALID_STATE_ERR);
+		
+		this.readyState = file.FileWriter.WRITING;
+		
+		var eventListener = new RPCWebinosService({
+			api: Math.floor(Math.random() * 100)
+		});
+		
+		var eventCallback = function (attributeFun) {
+			return function (params, successCallback, errorCallback) {
+				this.readyState = params[0].readyState;
+				this.position = params[0].position;
+				this.length = params[0].length;
+				this.error = params[0].error ? file.FileError.deserialize(params[0].error) : null;
+						
+				var event = params[1];
+				
+				event.target = this;
+				event.currentTarget = this;
+				
+				attributeFun.call(this)(event);
+			};
+		};
+		
+		eventListener.onwritestart = utils.bind(eventCallback(function () {
+			return utils.callback(this.onwritestart, this);
+		}), this);
+		
+		eventListener.onprogress = utils.bind(eventCallback(function () {
+			return utils.callback(this.onprogress, this);
+		}), this);
+		
+		eventListener.onerror = utils.bind(eventCallback(function () {
+			return utils.callback(this.onerror, this);
+		}), this);
+		
+		eventListener.onabort = utils.bind(eventCallback(function () {
+			return utils.callback(this.onabort, this);
+		}), this);
+		
+		eventListener.onwrite = utils.bind(eventCallback(function () {
+			return utils.callback(this.onwrite, this);
+		}), this);
+		
+		eventListener.onwriteend = utils.bind(eventCallback(function () {
+			return utils.callback(this.onwriteend, this);
+		}), this);
+
+		webinos.rpc.registerCallbackObject(eventListener);
+		
+		utils.rpc.notify(this.__entry.filesystem.__service, 'truncate', eventListener.api)
+				(file.FileWriter.serialize(this), size);
+	}
+	
+	file.FileWriter.prototype.abort = function () {
+	}
 
 	file.LocalFileSystem = function (object) {
 		WebinosService.call(this, object);
@@ -33,7 +411,7 @@
 	file.LocalFileSystem.prototype.constructor = file.LocalFileSystem;
 
 	file.LocalFileSystem.prototype.requestFileSystem = function (type, size, successCallback, errorCallback) {
-		utils.bind(utils.rpc.request(this, 'requestFileSystem', function (result) {
+		utils.bind(utils.rpc.request(this, 'requestFileSystem', null, function (result) {
 			utils.callback(successCallback, this)(file.FileSystem.deserialize(this, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
@@ -41,7 +419,7 @@
 	}
 
 	file.LocalFileSystem.prototype.resolveLocalFileSystemURL = function (url, successCallback, errorCallback) {
-		utils.bind(utils.rpc.request(this, 'resolveLocalFileSystemURL', function (result) {
+		utils.bind(utils.rpc.request(this, 'resolveLocalFileSystemURL', null, function (result) {
 			utils.callback(successCallback, this)(file.Entry.deserialize(this, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
@@ -96,7 +474,7 @@
 	file.Entry.prototype.isDirectory = false;
 
 	file.Entry.prototype.copyTo = function (parent, newName, successCallback, errorCallback) {
-		utils.bind(utils.rpc.request(this.filesystem.__service, 'copyTo', function (result) {
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'copyTo', null, function (result) {
 			utils.callback(successCallback, this)(file.Entry.deserialize(this.filesystem.__service, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
@@ -104,7 +482,7 @@
 	}
 
 	file.Entry.prototype.getMetadata = function (successCallback, errorCallback) {
-		utils.bind(utils.rpc.request(this.filesystem.__service, 'getMetadata', function (result) {
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'getMetadata', null, function (result) {
 			utils.callback(successCallback, this)(result);
 		}, function (error) {
 			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
@@ -112,7 +490,7 @@
 	}
 
 	file.Entry.prototype.getParent = function (successCallback, errorCallback) {
-		utils.bind(utils.rpc.request(this.filesystem.__service, 'getParent', function (result) {
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'getParent', null, function (result) {
 			utils.callback(successCallback, this)(file.Entry.deserialize(this.filesystem.__service, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
@@ -120,7 +498,7 @@
 	}
 
 	file.Entry.prototype.moveTo = function (parent, newName, successCallback, errorCallback) {
-		utils.bind(utils.rpc.request(this.filesystem.__service, 'moveTo', function (result) {
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'moveTo', null, function (result) {
 			utils.callback(successCallback, this)(file.Entry.deserialize(this.filesystem.__service, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
@@ -128,7 +506,7 @@
 	}
 
 	file.Entry.prototype.remove = function (successCallback, errorCallback) {
-		utils.bind(utils.rpc.request(this.filesystem.__service, 'remove', function (result) {
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'remove', null, function (result) {
 			utils.callback(successCallback, this)();
 		}, function (error) {
 			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
@@ -154,7 +532,7 @@
 	}
 
 	file.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {
-		utils.bind(utils.rpc.request(this.filesystem.__service, 'getDirectory', function (result) {
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'getDirectory', null, function (result) {
 			utils.callback(successCallback, this)(file.Entry.deserialize(this.filesystem.__service, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
@@ -162,7 +540,7 @@
 	}
 
 	file.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
-		utils.bind(utils.rpc.request(this.filesystem.__service, 'getFile', function (result) {
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'getFile', null, function (result) {
 			utils.callback(successCallback, this)(file.Entry.deserialize(this.filesystem.__service, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
@@ -170,7 +548,7 @@
 	}
 
 	file.DirectoryEntry.prototype.removeRecursively = function (successCallback, errorCallback) {
-		utils.bind(utils.rpc.request(this.filesystem.__service, 'removeRecursively', function (result) {
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'removeRecursively', null, function (result) {
 			utils.callback(successCallback, this)();
 		}, function (error) {
 			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
@@ -185,7 +563,7 @@
 	file.DirectoryReader.prototype.__length = 10;
 
 	file.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
-		utils.bind(utils.rpc.request(this.__entry.filesystem.__service, 'readEntries', function (result) {
+		utils.bind(utils.rpc.request(this.__entry.filesystem.__service, 'readEntries', null, function (result) {
 			this.__begin = result.__begin;
 			this.__length = result.__length;
 
@@ -207,11 +585,19 @@
 	file.FileEntry.prototype.isFile = true;
 
 	file.FileEntry.prototype.createWriter = function (successCallback, errorCallback) {
-		utils.callback(successCallback, this)(new file.FileWriter(this));
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'createWriter', null, function (result) {
+			utils.callback(successCallback, this)(file.FileWriter.deserialize(this.filesystem.__service, result));
+		}, function (error) {
+			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
+		}), this)(file.Entry.serialize(this));
 	}
 
 	file.FileEntry.prototype.file = function (successCallback, errorCallback) {
-		utils.callback(successCallback, this)(new file.File(this));
+		utils.bind(utils.rpc.request(this.filesystem.__service, 'file', null, function (result) {
+			utils.callback(successCallback, this)(file.Blob.deserialize(this.filesystem.__service, result));
+		}, function (error) {
+			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
+		}), this)(file.Entry.serialize(this));
 	}
 
 	file.FileError = function (code) {

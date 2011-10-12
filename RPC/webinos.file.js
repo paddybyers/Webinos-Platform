@@ -10,14 +10,16 @@
  * 
  * TODO Use error/exception codes according to specification, e.g., use filesystem operation-dependent maps.
  * TODO Invalidate entries, e.g., after being (re)moved.
- * TODO Cache synchronous counterpart objects, e.g., using <pre>file.DirectoryReader.__sync</pre>?
+ * TODO Respect encoding parameters, e.g., at <pre>file.Blob.prototype.type</pre>.
+ * TODO Handle multiple read calls to <pre>file.FileReader</pre>.
  */
 (function (exports) {
 	"use strict";
-
+	
 	var __fs = require('fs');
 	var __path = require('path');
 
+	var events = require('./webinos.events.js');
 	var utils = require('./webinos.utils.js');
 
 	/**
@@ -186,6 +188,359 @@
 
 	var file = exports;
 	
+	file.Blob = function () {
+	}
+
+	file.Blob.prototype.size = 0;
+	file.Blob.prototype.type = '';
+	
+	file.BlobBuilder = function () {
+	}
+	
+	file.BlobBuilder.prototype.__text = '';
+	
+	file.BlobBuilder.prototype.append = function (data) {
+		if (typeof data === 'string')
+			this.__text += data;
+	}
+	
+	file.BlobBuilder.prototype.getBlob = function (contentType) {
+		var blob = new file.Text();
+		
+		blob.size = this.__text.length;
+		blob.type = contentType || blob.type;
+		
+		blob.__text = this.__text;
+		
+		return blob;
+	}
+	
+	// TODO Think about this constructor.
+	file.Text = function () {
+	}
+	
+	file.Text.prototype = new file.Blob();
+	file.Text.prototype.constructor = file.Text;
+
+	file.Text.prototype.__text = '';
+	
+	file.Text.prototype.slice = function (start, length, contentType) {
+		if (start > this.size)
+			length = 0;
+		else if (start + length > this.size)
+			length = this.size - start;
+		
+		var newText = new file.Text();
+		
+		newText.size = length;
+		newText.type = contentType || this.type;
+		
+		// TODO Check the usage of start.
+		newText.__text = this.text.substr(start, length);
+
+		return newText;
+	}
+	
+	// TODO Think about this constructor.
+	file.File = function (entry) {
+		file.Blob.call(this);
+
+		var stats = utils.file.wrap(__fs.statSync)(entry.realize());
+
+		this.name = entry.name;
+		this.size = stats.size;
+		// this.type = ...;
+		this.lastModifiedDate = 0;
+		
+		this.__entry = entry;
+	}
+
+	file.File.prototype = new file.Blob();
+	file.File.prototype.constructor = file.File;
+
+	file.File.prototype.__offset = 0;
+
+	file.File.prototype.slice = function (start, length, contentType) {
+		if (start > this.size)
+			length = 0;
+		else if (start + length > this.size)
+			length = this.size - start;
+		
+		var newFile = new file.File(this.__entry);
+		
+		newFile.size = length;
+		newFile.type = contentType || this.type;
+		
+		// TODO Check this calculation.
+		newFile.__offset = this.__offset + start;
+
+		return newFile;
+	}
+	
+	file.FileReader = function () {
+		events.EventTarget.call(this);
+		
+		this.addEventListener('loadstart', function (evt) {
+			utils.callback(this.onloadstart, this)(evt);
+		});
+		
+		this.addEventListener('progress', function (evt) {
+			utils.callback(this.onprogress, this)(evt);
+		});
+		
+		this.addEventListener('error', function (evt) {
+			utils.callback(this.onerror, this)(evt);
+		});
+		
+		this.addEventListener('abort', function (evt) {
+			utils.callback(this.onabort, this)(evt);
+		});
+		
+		this.addEventListener('load', function (evt) {
+			utils.callback(this.onload, this)(evt);
+		});
+		
+		this.addEventListener('loadend', function (evt) {
+			utils.callback(this.onloadend, this)(evt);
+		});
+	}
+	
+	file.FileReader.EMPTY = 0;
+	file.FileReader.LOADING = 1;
+	file.FileReader.DONE = 2;
+	
+	file.FileReader.prototype = new events.EventTarget();
+	file.FileReader.prototype.constructor = file.FileReader;
+	
+	file.FileReader.prototype.readyState = file.FileReader.EMPTY;
+	file.FileReader.prototype.result = null;
+	file.FileReader.prototype.error = undefined;
+	
+	file.FileReader.prototype.readAsArrayBuffer = function (blob) {
+	}
+	
+	file.FileReader.prototype.readAsBinaryString = function (blob) {
+	}
+	
+	file.FileReader.prototype.readAsText = function (blob, encoding) {
+		this.readyState = file.FileReader.EMPTY;
+		this.result = null;
+
+		utils.bind(utils.file.schedule(function () {
+			if (blob instanceof file.Text) {
+				this.readyState = file.FileReader.LOADING;
+				
+				this.dispatchEvent(new events.ProgressEvent('loadstart', false, false, true, 0, blob.size));
+				
+				this.result = blob.__text;
+				
+				this.dispatchEvent(new events.ProgressEvent('progress', false, false,
+						true, this.result.length, blob.size));
+				
+				this.readyState = file.FileReader.DONE;
+				
+				this.dispatchEvent(new events.ProgressEvent('load', false, false,
+						true, this.result.length, blob.size));
+				this.dispatchEvent(new events.ProgressEvent('loadend', false, false,
+						true, this.result.length, blob.size));
+			} else if (blob instanceof file.File) {
+				var stream = __fs.createReadStream(blob.__entry.realize(), {
+					encoding: 'utf8',
+					bufferSize: 1024,
+					start: blob.__offset,
+					end: blob.__offset + blob.size - 1
+				});
+				
+				stream.on('open', utils.bind(function () {
+					this.readyState = file.FileReader.LOADING;
+
+					this.dispatchEvent(new events.ProgressEvent('loadstart', false, false, true, 0, blob.size));
+				}, this));
+				
+				stream.on('data', utils.bind(function (data) {
+					if (this.result === null)
+						this.result = data;
+					else
+						this.result += data;
+					
+					this.dispatchEvent(new events.ProgressEvent('progress', false, false,
+							true, this.result.length, blob.size));
+				}, this));
+				
+				stream.on('error', utils.bind(function (error) {
+					this.readyState = file.FileReader.DONE;
+					this.result = null;
+					
+					// TODO Use error codes according to specification.
+					this.error = new file.FileError(file.FileError.SECURITY_ERR);
+					
+					this.dispatchEvent(new events.ProgressEvent('error', false, false, false, 0, 0));
+					this.dispatchEvent(new events.ProgressEvent('loadend', false, false, false, 0, 0));
+				}, this));
+				
+				stream.on('end', utils.bind(function () {
+					this.readyState = file.FileReader.DONE;
+					
+					this.dispatchEvent(new events.ProgressEvent('load', false, false,
+							true, this.result.length, blob.size));
+					this.dispatchEvent(new events.ProgressEvent('loadend', false, false,
+							true, this.result.length, blob.size));
+				}, this));
+			}
+		}), this)();
+	}
+	
+	file.FileReader.prototype.readAsDataURL = function (blob) {
+	}
+	
+	file.FileReader.prototype.abort = function () {
+	}
+	
+	file.FileWriter = function (entry) {
+		events.EventTarget.call(this);
+		
+		var stats = utils.file.wrap(__fs.statSync)(entry.realize());
+		
+		this.length = stats.size;
+		
+		this.__entry = entry;
+		
+		this.addEventListener('writestart', function (evt) {
+			utils.callback(this.onwritestart, this)(evt);
+		});
+		
+		this.addEventListener('progress', function (evt) {
+			utils.callback(this.onprogress, this)(evt);
+		});
+		
+		this.addEventListener('error', function (evt) {
+			utils.callback(this.onerror, this)(evt);
+		});
+		
+		this.addEventListener('abort', function (evt) {
+			utils.callback(this.onabort, this)(evt);
+		});
+		
+		this.addEventListener('write', function (evt) {
+			utils.callback(this.onwrite, this)(evt);
+		});
+		
+		this.addEventListener('writeend', function (evt) {
+			utils.callback(this.onwriteend, this)(evt);
+		});
+	}
+	
+	file.FileWriter.INIT = 0;
+	file.FileWriter.WRITING = 1;
+	file.FileWriter.DONE = 2;
+	
+	file.FileWriter.prototype = new events.EventTarget();
+	file.FileWriter.prototype.constructor = file.FileWriter;
+	
+	file.FileWriter.prototype.readyState = file.FileWriter.INIT;
+	file.FileWriter.prototype.position = 0;
+	file.FileWriter.prototype.length = 0;
+	file.FileWriter.prototype.error = undefined;
+
+	file.FileWriter.prototype.write = function (data) {
+		if (this.readyState == file.FileWriter.WRITING)
+			throw new file.FileException(file.FileException.INVALID_STATE_ERR);
+		
+		this.readyState = file.FileWriter.WRITING;
+		
+		utils.bind(utils.file.schedule(function () {
+			this.dispatchEvent(new events.ProgressEvent('writestart', false, false, false, 0, 0));
+			
+			// TODO Use stream?
+			var output = utils.file.wrap(__fs.openSync)(this.__entry.realize(), 'a');
+			
+			if (data instanceof file.Text) {
+				// TODO Write in chunks?
+				var written = utils.file.wrap(__fs.writeSync)(output, data.__text, this.position, 'utf8');
+				
+				this.position += written;
+				this.length = Math.max(this.length, this.position);
+				
+				this.dispatchEvent(new events.ProgressEvent('progress', false, false, false, 0, 0));
+			} if (data instanceof file.File) {
+				// TODO Use file.FileReader?
+				var input = utils.file.wrap(__fs.openSync)(data.__entry.realize(), 'r');
+				
+				var read;
+				while ((read = utils.file.wrap(__fs.readSync)(input, 1024, null, 'utf8'))[1] > 0) {
+					var written = utils.file.wrap(__fs.writeSync)(output, read[0], this.position, 'utf8');
+					
+					this.position += written;
+					this.length = Math.max(this.length, this.position);
+					
+					this.dispatchEvent(new events.ProgressEvent('progress', false, false, false, 0, 0));
+				}
+				
+				utils.file.wrap(__fs.closeSync)(input);
+			}
+			
+			utils.file.wrap(__fs.closeSync)(output);
+		}, function () {
+			this.readyState = file.FileWriter.DONE;
+			
+			this.dispatchEvent(new events.ProgressEvent('write', false, false, false, 0, 0));
+			this.dispatchEvent(new events.ProgressEvent('writeend', false, false, false, 0, 0));
+		}, function (error) {
+			this.readyState = file.FileWriter.DONE;
+
+			// TODO Map filesystem operation error codes to File API error codes.
+			this.error = new file.FileError(file.FileError.SECURITY_ERR);
+			
+			this.dispatchEvent(new events.ProgressEvent('error', false, false, false, 0, 0));
+			this.dispatchEvent(new events.ProgressEvent('writeend', false, false, false, 0, 0));
+		}), this)();
+	}
+	
+	file.FileWriter.prototype.seek = function (offset) {
+		if (this.readyState == file.FileWriter.WRITING)
+			throw new file.FileException(file.FileException.INVALID_STATE_ERR);
+		
+		if (offset >= 0)
+			this.position = Math.min(this.length, offset);
+		else
+			this.position = Math.max(0, this.length + offset);
+	}
+	
+	file.FileWriter.prototype.truncate = function (size) {
+		if (this.readyState == file.FileWriter.WRITING)
+			throw new file.FileException(file.FileException.INVALID_STATE_ERR);
+		
+		this.readyState = file.FileWriter.WRITING;
+		
+		utils.bind(utils.file.schedule(function () {
+			this.dispatchEvent(new events.ProgressEvent('writestart', false, false, false, 0, 0));
+
+			var fd = utils.file.wrap(__fs.openSync)(this.__entry.realize(), 'r+');
+
+			utils.file.wrap(__fs.truncateSync)(fd, size);
+			utils.file.wrap(__fs.closeSync)(fd);
+
+			this.position = Math.min(this.position, size);
+			this.length = size;
+		}, function () {
+			this.readyState = file.FileWriter.DONE;
+			
+			this.dispatchEvent(new events.ProgressEvent('write', false, false, false, 0, 0));
+			this.dispatchEvent(new events.ProgressEvent('writeend', false, false, false, 0, 0));
+		}, function (error) {
+			this.readyState = file.FileWriter.DONE;
+
+			// TODO Map filesystem operation error codes to File API error codes.
+			this.error = new file.FileError(file.FileError.SECURITY_ERR);
+
+			this.dispatchEvent(new events.ProgressEvent('error', false, false, false, 0, 0));
+			this.dispatchEvent(new events.ProgressEvent('writeend', false, false, false, 0, 0));
+		}), this)();
+	}
+	
+	file.FileWriter.prototype.abort = function () {
+	}
+	
 	file.LocalFileSystemSync = function () {
 	}
 
@@ -235,6 +590,10 @@
 
 	file.EntrySync.prototype.isFile = false;
 	file.EntrySync.prototype.isDirectory = false;
+	
+	file.EntrySync.prototype.realize = function () {
+		return this.filesystem.realize(this.fullPath);
+	}
 
 	// Node.js -- Path {@link https://github.com/joyent/node/blob/master/lib/path.js} module extract.
 	file.EntrySync.prototype.resolve = function () {
@@ -304,9 +663,10 @@
 				exclusive: true
 			});
 			
-			// TODO Use file.FileReaderSync and file.FileWriterSync.
-			utils.file.wrap(__fs.writeFileSync)(parent.filesystem.realize(newFullPath),
-					utils.file.wrap(__fs.readFileSync)(this.filesystem.realize(this.fullPath)));
+			// TODO Use file.FileReaderSync and file.FileWriterSync?
+			var data = utils.file.wrap(__fs.readFileSync)(this.realize());
+			
+			utils.file.wrap(__fs.writeFileSync)(parent.filesystem.realize(newFullPath), data);
 		} else if (this.isDirectory) {
 			if (parent.isSubdirectoryOf(this))
 				throw new file.FileException(file.FileException.INVALID_MODIFICATION_ERR);
@@ -329,7 +689,7 @@
 	}
 	
 	file.EntrySync.prototype.getMetadata = function () {
-		var stats = utils.file.wrap(__fs.statSync)(this.filesystem.realize(this.fullPath));
+		var stats = utils.file.wrap(__fs.statSync)(this.realize());
 		
 		return {
 			modificationTime: stats.mtime
@@ -352,8 +712,7 @@
 		
 		var newFullPath = utils.path.join(parent.fullPath, newName);
 		
-		utils.file.wrap(__fs.renameSync)(this.filesystem.realize(this.fullPath),
-				parent.filesystem.realize(newFullPath));
+		utils.file.wrap(__fs.renameSync)(this.realize(), parent.filesystem.realize(newFullPath));
 
 		return file.EntrySync.create(parent.filesystem, newFullPath);
 	}
@@ -367,7 +726,7 @@
 		else if (this.isDirectory)
 			var remove = __fs.rmdirSync;
 		
-		utils.file.wrap(remove)(this.filesystem.realize(this.fullPath));
+		utils.file.wrap(remove)(this.realize());
 	}
 
 	// TODO Choose filesystem url scheme, e.g.,
@@ -418,7 +777,8 @@
 			if (!options || !options.create)
 				throw new file.FileException(file.FileException.NOT_FOUND_ERR);
 			
-			var stats = utils.file.wrap(__fs.statSync)(this.filesystem.realize(this.fullPath));
+			// TODO Use fullPath's parent instead of "this".
+			var stats = utils.file.wrap(__fs.statSync)(this.realize());
 			
 			utils.file.wrap(__fs.mkdirSync)(this.filesystem.realize(fullPath), stats.mode);
 
@@ -474,11 +834,11 @@
 
 	file.DirectoryReaderSync.prototype.__begin = 0;
 	file.DirectoryReaderSync.prototype.__length = 10;
+	file.DirectoryReaderSync.prototype.__children = undefined;
 	
 	file.DirectoryReaderSync.prototype.readEntries = function () {
 		if (typeof this.__children === 'undefined')
-			this.__children = utils.file.wrap(__fs.readdirSync)(
-					this.__entry.filesystem.realize(this.__entry.fullPath));
+			this.__children = utils.file.wrap(__fs.readdirSync)(this.__entry.realize());
 
 		var entries = [];
 		
@@ -507,42 +867,6 @@
 	file.FileEntrySync.prototype.file = function () {
 		return new file.File(this);
 	}
-	
-//	file.Blob = function () {
-//	}
-//
-//	file.Blob.prototype.size = 0;
-//	file.Blob.prototype.type = '';
-//
-//	file.File = function (entry) {
-//		file.Blobl.call(this);
-//
-//		this.__entry = entry;
-//
-//		try {
-//			var stats = __fs.stat(entry.filesystem.realize(entry.fullPath));
-//		} catch (exception) {
-//			throw file.FileException.wrap(exception);
-//		}
-//
-//		this.name = entry.name;
-//		this.size = stats.size;
-//		this.lastModifiedDate = stats.mtime;
-//	}
-//
-//	file.File.prototype = new file.Blob();
-//	file.File.prototype.constructor = file.File;
-//
-//	file.File.prototype.__start = 0;
-//	file.File.prototype.__length = -1;
-//
-//	file.File.prototype.slice = function (start, length, contentType) {
-//		var newFile = new File(this.__entry);
-//
-//		// ...
-//
-//		return newFile;
-//	}
 
 	file.LocalFileSystem = function () {
 	}
@@ -593,6 +917,10 @@
 
 	file.Entry.prototype.isFile = false;
 	file.Entry.prototype.isDirectory = false;
+
+	file.Entry.prototype.realize = function () {
+		return file.EntrySync.prototype.realize.call(utils.file.sync(this));
+	}
 	
 	file.Entry.prototype.resolve = function () {
 		return file.EntrySync.prototype.resolve.apply(utils.file.sync(this), arguments);

@@ -25,9 +25,12 @@
             	    
             	    sensors = [];
                     $('#findService').bind('click', function() {
-                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/sensors'), {onFound: function (service) {
+                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/sensors.temperature'), {onFound: function (service) {
                 	    	sensors.push(service);
                 	    	$('#messages').append('<li> New Sensor found: ' + service.api + '</li>');
+                	    	
+
+                	    	
                 	    	logObj(service, "Service");
                 	    }});
                 	    
@@ -37,13 +40,6 @@
                 	    //}});
                     });
                     
-                    $('#get42').bind('click', function() {
-                    	test.get42(function (result){
-                    		alert(result);
-                    		alert(test.testAttr);
-                    	});
-                    }); 
-                    
                     $('#cls').bind('click', function() {
                     	document.getElementById("messages").innerHTML = "";
                     	document.getElementById("fileContent").value = "";
@@ -51,8 +47,18 @@
                     
                     $('#bind').bind('click', function() {
                         for (var i = 0; i < sensors.length; i++){
-                        	sensors[i].bind(function(){
-                        		$('#messages').append('<li> Sensor ' + sensors[i].api + ' bound.</li>');
+                        	var act = i;
+                        	sensors[act].bind(function(){
+                        		
+                        		logObj(sensors,"sensors");
+                        		$('#messages').append('<li> Sensor ' + sensors[act].api + ' bound.</li>');
+                    			
+                    	    	$('#messages').append("<li> Max Range: " + sensors[act].maximumRange + '</li>');
+                    	    	$('#messages').append("<li> Min Delay: " + sensors[act].minDelay + '</li>');
+                    	    	$('#messages').append("<li> Power: " + sensors[act].power + '</li>');
+                    	    	$('#messages').append("<li> Resolution: " + sensors[act].resolution + '</li>');
+                    	    	$('#messages').append("<li> Vendor: " + sensors[act].vendor + '</li>');  
+                    	    	$('#messages').append("<li> Version: " + sensors[act].version + '</li>'); 
                         	});
                         }
             	    	
@@ -61,11 +67,12 @@
                     
                     $('#configure').bind('click', function() {
                     	for (var i = 0; i < sensors.length; i++){
-                        	sensors[i].configureSensor({}, function(){
-                        		$('#messages').append('<li> Sensor ' + sensors[i].api + ' configured.</li>');
+                    		var act = i;
+                    		sensors[act].configureSensor({}, function(){
+                        		$('#messages').append('<li> Sensor ' + sensors[act].api + ' configured.</li>');
                         	},
                         	function (){
-                        		$('#messages').append('<li> Error configuring Sensor ' + sensors[i].api + '</li>');
+                        		$('#messages').append('<li> Error configuring Sensor ' + sensors[act].api + '</li>');
                         	});
                         }
             	    	
@@ -149,7 +156,6 @@
 		<div >
 			<p>
 				<button id="findService">Find Sensors</button>
-				<button id="get42">get42</button>
 				<button id="cls">Clear</button>
 				<button id="bind">Bind Sensors</button>
 		    	<button id="configure">Configure Sensors</button>

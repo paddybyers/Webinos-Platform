@@ -1,0 +1,195 @@
+<!--
+/*******************************************************************************
+ * Copyright 2011 Istituto Superiore Mario Boella (ISMB)
+ *  
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *  
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *  
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
+
+-->
+<!DOCTYPE html>
+<html>
+<head>
+
+<script type="text/javascript" src="/client/jquery-1.6.4.min.js"></script>
+
+<script type="text/javascript" src="/rpc.js"></script>
+<script type="text/javascript" src="/client/webinos.js"></script>
+<script type="text/javascript" src="/client/contacts/contacts.js"></script>
+<script type="text/javascript"
+  src="http://code.jquery.com/jquery-1.5.2.js"></script>
+<script type="text/javascript"
+  src="http://ajax.googleapis.com/ajax/libs/dojo/1.6.1/dojo/dojo.xd.js"></script>
+<!-- Following script contains all the client interface machinery in JS -->
+<!-- <script src="./contactsClientScript.js"></script> -->
+<script type="text/javascript">
+  jQuery(window).ready(function()
+  {
+    jQuery("#btnAuthenticate").click(authenticate_cb);
+    jQuery("#btnContacts").click(get_contact_list_cb);
+    jQuery("#btnFind").click(bindservice); 
+  });
+
+
+  var contactsService = null;
+
+  // Same as "FindService" button,but automatic
+  function bindservice()
+  {
+          webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/contacts'), {onFound: function (service) {
+            contactsService = service;
+            document.getElementById('html_contacts').innerHTML = "<i><b>Contacts</b></i> webinos rpc service found!<br>Please select contacts type, fill the text areas then press <i>Authenticate</i> button above.";    
+          }});
+
+  }
+
+  function authenticate_cb()
+  {
+    if (contactsService)
+    {
+      parameters = {};
+      if ($("input[@name='contactType']:checked").val() == 'remote')
+      {
+        usr = $('#usernameText').val();
+        pwd = $('#passwordText').val();
+        parameters.usr = usr;
+        parameters.pwd = pwd;
+        parameters.type = "remote";
+
+      } else if ($("input[@name='contactType']:checked").val() == 'local')
+      {
+        addressBookName = $('#addressBookNameText').val();
+        parameters.addressBookName = addressBookName;
+        parameters.type = "local";
+      }
+      contactsService.authenticate(parameters, handle_authentication_query)
+
+    } else
+    {
+      document.getElementById('html_contacts').innerHTML = "PROBLEM: Service unreachable";
+    }
+  }
+
+
+  function get_contact_list_cb()
+  {
+    parameters = {};
+    var result = false;
+    if (contactsService)
+    {
+      if ($("input[@name='contactType']:checked").val() == 'remote')
+      {
+        parameters.type = "remote";
+        contactsService.isAlreadyAuthenticated(parameters, function(result)
+        {
+          contactsService.getAllContacts(parameters, print_contact_list);
+        });
+      } else if ($("input[@name='contactType']:checked").val() == 'local')
+      {
+        parameters.type = "local";
+        contactsService.isAlreadyAuthenticated(parameters, function(result)
+        {
+          contactsService.getAllContacts(parameters, print_contact_list);
+        });
+      } 
+    }
+  }
+
+  function handle_authentication_query(status) // see function
+  {
+
+    if (status)
+    {
+      if ($("input[@name='contactType']:checked").val() == 'remote')
+        document.getElementById('authStatus').innerHTML = "<font color='#00CC00'>"+ "Logged in GMail"+"</font>";
+      else if ($("input[@name='contactType']:checked").val() == 'local')
+        document.getElementById('authStatus').innerHTML = "<font color='#AACC00'>"+"Thunderbird Address Book Open"+"</font>";
+    } else
+      document.getElementById('authStatus').innerHTML = "<font color='#FF0000'><b><u>"+"CANNOT"+"</u>" +"Authenticate: check GMail username and password or address book file name"+"</b></font>";
+  }
+
+  // Print a contact list to HTML document
+  function print_contact_list(list)
+  {
+    //clean then wite
+    document.getElementById('contactList').innerHTML = "";
+    for ( var i in list)
+    {
+      for ( var field in list[i])
+      {
+        var info = list[i][field];
+        if (info && field != "id" && field != "edit_uri" && field != "updated")
+          $('#contactList').append(
+            "<b>" + field + ": " + "</b>" + info + "<br>");
+      }
+      $('#contactList').append("<br><br>");
+    }
+  }
+</script>
+
+
+</head>
+<body >
+
+  <!-- The above should be equivalent to "Find Service" button -->
+
+  <div>
+    <p>
+      <input type="radio" name="contactType" value="remote"
+        id="cnt_remote" checked="checked"">Remote Contacts
+      (GMail) <br> <input type="radio" name="contactType"
+        value="local" id="cnt_local"">Local Contacts
+      (Thunderbird) <br> <label for="addressBookNameText">Local
+        Address Book (path to .mab file): </label>
+      <!-- better put an "open file" form -->
+      <input type="text" id="addressBookNameText" />
+      <!-- Uses C:\fakepath - no way to get full path <input type="file" id="getAddressBook" accept=".mab">-->
+      <br> <label for="usernameText">Username: </label> <input
+        type="text" id="usernameText" /> <br> <label
+        for="passwordText">Password: </label> <input type="password"
+        id="passwordText" /> <br>
+      <!--     <label for="fileContent">File Content</label> <br>
+    <textarea rows='8' size=500 id="fileContent"></textarea> -->
+    </p>
+  </div>
+
+  <p>
+  <div>
+  <button id="btnFind" >Find Contacts Service</button>
+    <button id="btnAuthenticate">Authenticate</button>
+    <br>
+    <button id="btnContacts">Get Contacts List</button>
+    <!-- TODO implement find() then uncomment this
+    <button id="btnFind">Find</button>
+     -->
+  </div>
+  </p>
+
+  <p>
+  <div id="html_contacts">
+    <script>
+          document.write("NO SERVICE");
+        </script>
+  </div>
+  <div id="authStatus">
+    <script>
+          document.write("NOT YET AUTHENTICATED");
+        </script>
+  </div>
+  <div id="contactList">
+    <script>
+          document.write("");
+        </script>
+  </div>
+  </p>
+</body>
+</html>

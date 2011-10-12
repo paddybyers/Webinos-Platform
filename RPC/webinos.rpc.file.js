@@ -3,10 +3,176 @@
 	"use strict";
 
 	var file = require('./webinos.file.js');
+	var utils = require('./webinos.utils.js');
 
 	var rpc = require('./rpc.js');
+	
+	// TODO Extract (to somewhere else).
+	rpc.events = {};
+	
+	rpc.events.Event = {
+			serialize: function (event) {
+				return {
+					type: event.type,
+					eventPhase: event.eventPhase,
+					bubbles: event.bubbles,
+					cancelable: event.cancelable,
+					timeStamp: event.timeStamp
+				};
+			}
+		};
+	
+	rpc.events.ProgressEvent = {
+		serialize: function (event) {
+			var object = rpc.events.Event.serialize(event);
+			
+			object.lengthComputable = event.lengthComputable;
+			object.loaded = event.loaded;
+			object.total = event.total;
+			
+			return object;
+		}
+	};
 
 	rpc.file = exports;
+	
+	rpc.file.Blob = {
+		serialize: function (blob) {
+			if (blob instanceof file.Text) {
+				return {
+					__type: 'text',
+					size: blob.size,
+					type: blob.type,
+					__text: blob.__text
+				};
+			} else if (blob instanceof file.File) {
+				return {
+					__type: 'file',
+					name: blob.name,
+					size: blob.size,
+					type: blob.type,
+					lastModifiedDate: blob.lastModifiedDate,
+					__entry: rpc.file.Entry.serialize(blob.__entry),
+					__offset: blob.__offset
+				};
+			}
+		},
+		
+		deserialize: function (object) {
+			if (object.__type == 'text') {
+				var blob = new file.Text();
+				
+				blob.size = object.size;
+				blob.type = object.type;
+				
+				blob.__text = object.__text;
+			} else if (object.__type == 'file') {
+				var blob = new file.File(rpc.file.Entry.deserialize(object.__entry));
+				
+				blob.name = object.name;
+				blob.size = object.size;
+				blob.type = object.type;
+				blob.lastModifiedDate = object.lastModifiedDate;
+				
+				blob.__offset = object.__offset;
+			}
+			
+			return blob;
+		}
+	};
+	
+	rpc.file.FileReader = {
+		serialize: function (reader) {
+			return {
+				readyState: reader.readyState,
+				result: reader.result,
+				error: reader.error ? rpc.file.FileError.serialize(reader.error) : null
+			};
+		},
+		
+		readAsText: function (params, successCallback, errorCallback, objectRef) {
+			var __object = new file.FileReader();
+			
+			var eventCallback = function (attribute) {
+				return function (evt) {
+					utils.rpc.notify(objectRef, attribute)
+							(rpc.file.FileReader.serialize(__object), rpc.events.ProgressEvent.serialize(evt));
+				};
+			};
+			
+			__object.onloadstart = eventCallback('onloadstart');
+			__object.onprogress = eventCallback('onprogress');
+			__object.onerror = eventCallback('onerror');
+			__object.onabort = eventCallback('onabort');
+			__object.onload = eventCallback('onload');
+			__object.onloadend = eventCallback('onloadend');
+			
+			__object.readAsText(rpc.file.Blob.deserialize(params[0]), params[1]);
+		}
+	};
+	
+	rpc.file.FileWriter = {
+		serialize: function (writer) {
+			return {
+				readyState: writer.readyState,
+				position: writer.position,
+				length: writer.length,
+				error: writer.error ? rpc.file.FileError.serialize(writer.error) : null,
+				__entry: rpc.file.Entry.serialize(writer.__entry)
+			};
+		},
+		
+		deserialize: function (object) {
+			var writer = new file.FileWriter(rpc.file.Entry.deserialize(object.__entry));
+			
+			//writer.readyState = object.readyState;
+			writer.position = object.position;
+			writer.length = object.length;
+			writer.error = object.error;
+			
+			return writer;
+		},
+		
+		write: function (params, successCallback, errorCallback, objectRef) {
+			var __object = rpc.file.FileWriter.deserialize(params[0]);
+			
+			var eventCallback = function (attribute) {
+				return function (evt) {
+					utils.rpc.notify(objectRef, attribute)
+							(rpc.file.FileWriter.serialize(__object), rpc.events.ProgressEvent.serialize(evt));
+				};
+			};
+			
+			__object.onwritestart = eventCallback('onwritestart');
+			__object.onprogress = eventCallback('onprogress');
+			__object.onerror = eventCallback('onerror');
+			__object.onabort = eventCallback('onabort');
+			__object.onwrite = eventCallback('onwrite');
+			__object.onwriteend = eventCallback('onwriteend');
+			
+			__object.write(rpc.file.Blob.deserialize(params[1]));
+		},
+		
+		truncate: function (params, successCallback, errorCallback, objectRef) {
+			var __object = rpc.file.FileWriter.deserialize(params[0]);
+			
+			var eventCallback = function (attribute) {
+				return function (evt) {
+					utils.rpc.notify(objectRef, attribute)
+							(rpc.file.FileWriter.serialize(__object), rpc.events.ProgressEvent.serialize(evt));
+				};
+			};
+			
+			__object.onwritestart = eventCallback('onwritestart');
+			__object.onprogress = eventCallback('onprogress');
+			__object.onerror = eventCallback('onerror');
+			__object.onabort = eventCallback('onabort');
+			__object.onwrite = eventCallback('onwrite');
+			__object.onwriteend = eventCallback('onwriteend');
+			
+			__object.truncate(params[1]);
+		}
+	};
 
 	rpc.file.LocalFileSystem = {
 		__object: new file.LocalFileSystem(),
@@ -161,6 +327,28 @@
 			});
 		}
 	};
+	
+	rpc.file.FileEntry = {
+		createWriter: function (params, successCallback, errorCallback) {
+			var __object = rpc.file.Entry.deserialize(params[0]);
+			
+			__object.createWriter(function (writer) {
+				successCallback(rpc.file.FileWriter.serialize(writer));
+			}, function (error) {
+				errorCallback(rpc.file.FileError.serialize(error));
+			});
+		},
+		
+		file: function (params, successCallback, errorCallback) {
+			var __object = rpc.file.Entry.deserialize(params[0]);
+			
+			__object.file(function (file) {
+				successCallback(rpc.file.Blob.serialize(file));
+			}, function (error) {
+				errorCallback(rpc.file.FileError.serialize(error));
+			});
+		}
+	};
 
 	rpc.file.FileError = {
 		serialize: function (error) {
@@ -172,7 +360,7 @@
 		deserialize: function (object) {
 			return new file.FileError(object.code);
 		}
-	}
+	};
 	
 	rpc.file.Service = function (object) {
 		RPCWebinosService.call(this, object);
@@ -180,6 +368,12 @@
 	
 	rpc.file.Service.prototype = new RPCWebinosService();
 	rpc.file.Service.prototype.constructor = rpc.file.Service;
+	
+	rpc.file.Service.prototype.readAsText = rpc.file.FileReader.readAsText;
+	
+	rpc.file.Service.prototype.write = rpc.file.FileWriter.write;
+	rpc.file.Service.prototype.seek = rpc.file.FileWriter.seek;
+	rpc.file.Service.prototype.truncate = rpc.file.FileWriter.truncate;
 	
 	rpc.file.Service.prototype.requestFileSystem = rpc.file.LocalFileSystem.requestFileSystem;
 	rpc.file.Service.prototype.resolveLocalFileSystemURL = rpc.file.LocalFileSystem.resolveLocalFileSystemURL;
@@ -195,6 +389,9 @@
 	rpc.file.Service.prototype.removeRecursively = rpc.file.DirectoryEntry.removeRecursively;
 	
 	rpc.file.Service.prototype.readEntries = rpc.file.DirectoryReader.readEntries;
+	
+	rpc.file.Service.prototype.createWriter = rpc.file.FileEntry.createWriter;
+	rpc.file.Service.prototype.file = rpc.file.FileEntry.file;
 
 	rpc.registerObject(new rpc.file.Service({
 		api: 'http://webinos.org/api/file',

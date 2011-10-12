@@ -5,63 +5,8 @@ Code
 
 This is a VERY early example of what we could do for encrypted storage.
 
-Update: it now REQUIRES two node.js modules: Zipper and zipFile.  I don't know where you want to put them... they are tested put in the "Storage" directory and installed with npm.
+Update: it now REQUIRES two node.js modules: Zipper and zipFile.  Please install with npm globally - "npm install -g zipper zipfile"
 
 To use it, call "open", then access files as normal in the directory you used as an argument.  When you are finished, call "close".
 
-More documentation on redmine.
-
-
-Tests
------
-
-There are three tests in the "testing" directory, plus a load of other files.  These tests work under Linux.
-
-Testing proceedure:
-
-1) Go into the "testing" directory
-2) run "node storagetest.js"
-  - press any key when it stops
-
-example output:
-
-No error from open
-Storing a key value
-Getting a key value
-{ foo: 'bar?' }
-
-closed
-graceful exit
-
-
-3) run "node storagetest-proper.js"
-
-example output:
-
-Passed: Read file
-Passed: Encryption
-Passed: Decryption
-Passed: Read file
-Passed: unzip/zip
-Passed: Open
-Passed: Open created a directory
-Passed: Retrieve value
-Passed: Close 1
-Passed: Close killed the store directory
-Passed: Close created the store file
-Done
-
-4) node zipHelperTest.js
-  - press any key when it stops
-  
-example output:
-
-Press any key...
-
-graceful exit
-Tests passed!
-
-
-5) Delete all zip files in the "testing" directory, as well as all directories apart from the "test2" directory.
-
-
+Tests are run through maven.  All code should pass JSLint, too, although the tests wont.

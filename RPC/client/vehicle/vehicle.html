@@ -30,6 +30,18 @@
 						$('#info').append("<p>Range " 	+ data.range +"</p>");
 						
 					}
+					
+					
+					var handleParkSensorsData = function(data){
+						postMessage("info","new ParkSensorsData received for position: " + data.position);
+						$('#info').empty();
+						$('#info').append("<p>Position: "+ data.position +"</p>");
+						$('#info').append("<p>Left: "+ data.left +"</p>");
+						$('#info').append("<p>Middle Left: "+ data.midLeft +"</p>");
+						$('#info').append("<p>Middle Right: "+ data.midRight +"</p>");
+						$('#info').append("<p>Right: "+ data.right +"</p>");
+						
+					}
 						
 					var errorCB = function(error){
 						postMessage('error', "ERROR:" + error.message);
@@ -63,7 +75,7 @@
 						
 						
 					$('#init').click(function(e) {
-                                        	webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
+                           webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
                 	    	
 							console.log("service found...");
 							
@@ -129,6 +141,12 @@
 								break;
 							case "tripcomputer":
 								return handleTripData;
+								break;
+							case "parksensors-front":
+								return handleParkSensorsData;
+								break;
+							case "parksensors-rear":
+								return handleParkSensorsData;
 								break;
 							default:
 								return handleShiftData;
