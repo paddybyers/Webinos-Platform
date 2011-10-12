@@ -1,14 +1,15 @@
 (function() {
 
-        PaymentModule = function (){      
-        };
+
 
    //making namespaces
-    if (typeof webinos === "undefined") { webinos = {}; }
-    if (!webinos.payment) { webinos.payment = new PaymentModule(); }
+  //  if (typeof webinos === "undefined") { webinos = {}; }
+   // if (!webinos.payment) { webinos.payment = new PaymentModule(); }
 
-
-        PaymentModule = function (){      
+      //  var PaymentModule;
+        PaymentModule = function (obj){      
+                this.base = WebinosService;
+                this.base(obj);
         };
 
     var rpcServiceProviderID, rpcCustomerID, rpcShopID;
@@ -22,10 +23,11 @@
                 arguments[0]=rpcServiceProviderID;
                 arguments[1]=rpcCustomerID;
                 arguments[2]=rpcShopID;
-                var rpc = webinos.rpc.createRPC("Payment", "createShoppingBasket", arguments);
+                var self = this;
+                var rpc = webinos.rpc.createRPC(this, "createShoppingBasket", arguments);
                 webinos.rpc.executeRPC(rpc,
                                 function (params){
-                                        successCallback(new ShoppingBasket());
+                                        successCallback(new ShoppingBasket(self));
                                 },
                                 function (error){errorCallback(error);}
                 );
@@ -38,7 +40,7 @@
      * add a number of items to the basket before proceeding to checkout.
      * 
      */
-    ShoppingItem = function () {
+    ShoppingItem = function (obj) {
 
         // initialize attributes
 
@@ -48,6 +50,8 @@
         this.itemPrice = 0.0;
         this.itemCount = 0;
         this.itemsPrice = 0.0;
+        this.base = WebinosService;
+        this.base(obj);
     };        
     /**
      * An id that allows the shop to identify the purchased item
@@ -115,12 +119,14 @@
      * add a number of items to the basket before proceeding to checkout.
      * 
      */
-    ShoppingBasket = function () {
+    ShoppingBasket = function (obj) {
 
         // initialize attributes
         this.items =new Array(); 
         this.extras =new Array(); 
-        this.totalBill = 0.0;
+        this.totalBill = 0.0;        
+        this.base = WebinosService;
+        this.base(obj);
     };
   
     
@@ -174,7 +180,7 @@
                 arguments[3]=this;
                 arguments[4]=item;
                 var self = this;
-                var rpc = webinos.rpc.createRPC("Payment", "addItem", arguments);
+                var rpc = webinos.rpc.createRPC(this, "addItem", arguments);
                 webinos.rpc.executeRPC(rpc,
                                 function (params){
                                         
@@ -199,7 +205,7 @@
                 arguments[2]=rpcShopID;
                 arguments[3]=this;
                 var self = this;
-                var rpc = webinos.rpc.createRPC("Payment", "update", arguments);
+                var rpc = webinos.rpc.createRPC(this, "update", arguments);
                 webinos.rpc.executeRPC(rpc,
                                 function (params){                                       
                                               self.items=params.items;
@@ -228,10 +234,10 @@
                 arguments[2]=rpcShopID;
                 arguments[3]=this;
                 var self = this;
-                var rpc = webinos.rpc.createRPC("Payment", "checkout", arguments);
+                var rpc = webinos.rpc.createRPC(this, "checkout", arguments);
                 webinos.rpc.executeRPC(rpc,
                                 function (params){      
-                                	// remove shopping basket after checkout                                 
+                                        // remove shopping basket after checkout                                 
                                               self=null;
                                         successCallback();
                                 },
@@ -250,7 +256,7 @@
                 var self = this;
     
                  // now call thr release on the server, in case it needs to do some clean-up there                       
-                var rpc = webinos.rpc.createRPC("Payment", "release", arguments);
+                var rpc = webinos.rpc.createRPC(this, "release", arguments);
                 webinos.rpc.executeRPC(rpc,
                                 function (params){ },
                                 function (error){errorCallback(error);}
