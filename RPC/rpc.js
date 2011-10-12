@@ -127,7 +127,8 @@ webinos.rpc.handleMessage = function (message, responseto){
 							if (typeof id === 'undefined') return;
 							var res = {};
 							rpc.jsonrpc = "2.0";
-							res.result = result;
+							if (typeof result !== 'undefined') res.result = result;
+							else res.result = {};
 							res.id = id;						
 							webinos.rpc.executeRPC(res, responseto);
 						},
@@ -153,9 +154,11 @@ webinos.rpc.handleMessage = function (message, responseto){
 							if (typeof id === 'undefined') return;
 							var res = {};
 							res.jsonrpc = "2.0";
-							res.result = result;
+							if (typeof result !== 'undefined') res.result = result;
+							else res.result = {};
 							res.id = id;
 							webinos.rpc.executeRPC(res, responseto);
+							
 							// CONTEXT LOGGING HOOK
 							
 							logContext(myObject,res);
