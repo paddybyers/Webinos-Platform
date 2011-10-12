@@ -16,33 +16,18 @@
 	}
 	
             $(document).ready(function() {
-            		var reader = null;
-            	    var fileSaver = null;
-            	    var fileWriter = null;
-            	    var test = null;
-            	    
-
-            	    
             	    sensors = [];
                     $('#findService').bind('click', function() {
                 	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/sensors.temperature'), {onFound: function (service) {
                 	    	sensors.push(service);
                 	    	$('#messages').append('<li> New Sensor found: ' + service.api + '</li>');
-                	    	
 
-                	    	
                 	    	logObj(service, "Service");
                 	    }});
-                	    
-                	   // webinos.ServiceDiscovery.findServices("Test", {onFound: function (service) {
-                	    //	test = service;
-                	    	//logObj(service,"Test");
-                	    //}});
                     });
                     
                     $('#cls').bind('click', function() {
                     	document.getElementById("messages").innerHTML = "";
-                    	document.getElementById("fileContent").value = "";
                     }); 
                     
                     $('#bind').bind('click', function() {
@@ -78,75 +63,27 @@
             	    	
                     });
                     
-                    $('#fileWriter').bind('click', function() {
-                    	fileWriter.bind(function () {
-                     	   
-                      	    webinos.ServiceDiscovery.findServices("BlobBuilder", {onFound: function (service) {
-                    	    
-                      	      var fileName = $('#messageText').val();
-                        	   
-                      	    service.append(document.getElementById("fileContent").value);
-                        	   var tmp = fileWriter.writeAs(fileName);
-                        	   
-                        	   tmp.onwriteend = function () {
-                        		   $('#messages').append('<li> Writing done.</li>'); 
-                        	   };
-                        	   
-                        	   tmp.onwritestart = function () {
-                        		   $('#messages').append('<li> Writing started.</li>');
-                        	   };
-                        	   
-                        	   tmp.onwrite = function () {
-                        		   $('#messages').append('<li> Writing...</li>');
-                        	   };
-                        	   
-                        	   tmp.onerror = function (error) {
-                        		   $('#messages').append('<li> Writing error! Code: ' + error.code + '</li>');
-                        	   };
-                        	   
-                        	   $('#messages').append('<li> Accessing FileWriter Constants (INIT, WRITING, DONE, readyState): '
-                        			   + tmp.INIT + ' '
-                        			   + tmp.WRITING + ' '
-                        			   + tmp.DONE + ' '
-                        			   + tmp.readyState + ' '
-                        			   + '</li>'); 
-                         	   
-                        	   tmp.write(service.getBlob());
-                    	    }});
-                        });
+                    $('#register').bind('click', function() {
+                    	for (var i = 0; i < sensors.length; i++){
+                    		var act = i;
+                    		sensors[act].addEventListener('temperature', 
+                    				function(event){
+                            			document.getElementById("sensorResult").innerHTML = "";
+                        				$('#sensorResult').append('<li> Sensor Event from: ' + sensors[act].api + '</li>');
+                          				$('#sensorResult').append('<li> Sensor Type: ' + event.sensorType + '</li>');
+                        				$('#sensorResult').append('<li> Sensor Id: ' + event.sensorId + '</li>');
+                        				$('#sensorResult').append('<li> Accuracy: ' + event.accuracy + '</li>');
+                        				$('#sensorResult').append('<li> Rate: ' + event.rate + '</li>');
+                        				$('#sensorResult').append('<li> Interrupt: ' + event.interrupt + '</li>');
+                        				
+                        				$('#sensorResult').append('<li> Absolute Temp: ' + event.sensorValues[0] + '</li>');
+                        				$('#sensorResult').append('<li> Normalized Temp: ' + event.sensorValues[1] + '</li>');
+                        		
+                        			}
+                    				, false);
+                        }
                      }); 
-                    
-                    $('#fileWriterTruncate').bind('click', function() {
-                    	fileWriter.bind(function () {
-                     	   
-                      	    webinos.ServiceDiscovery.findServices("BlobBuilder", {onFound: function (service) {
-                    	    
-                      	      var fileName = $('#messageText').val();
-                        	   
-                      	    service.append(document.getElementById("fileContent").value);
-                        	  
-                      	    var tmp = fileWriter.writeAs(fileName);
-                        	   
-                        	   tmp.onwriteend = function () {
-                        		   $('#messages').append('<li> Truncate done.</li>'); 
-                        	   };
-                        	   
-                        	   tmp.onwritestart = function () {
-                        		   $('#messages').append('<li> Truncate started.</li>');
-                        	   };
-                        	   
-                        	   tmp.onwrite = function () {
-                        		   $('#messages').append('<li> Truncateing...</li>');
-                        	   };
-                        	   
-                        	   tmp.onerror = function (error) {
-                        		   $('#messages').append('<li> Truncate error: ' + error.target.error.name + '</li>');
-                        	   };
-                        	   
-                        	   tmp.truncate($('#truncate').val());
-                    	    }});
-                        });
-                     }); 
+
             });
         </script>
      
@@ -159,19 +96,12 @@
 				<button id="cls">Clear</button>
 				<button id="bind">Bind Sensors</button>
 		    	<button id="configure">Configure Sensors</button>
-		    	<button id="fileWriter">Save with FileWriter</button>
-		    	<button id="fileWriterTruncate">Truncate</button>
-		     	<input type="text" id="truncate" />
+		    	<button id="register">Register for all Sensors</button>
 			</p>
 			<p>
-				<label for="messageText">File Name</label> <input type="text"
-					id="messageText" />
-					<br>
-				<label for="fileContent">File Content</label> 
-				<br>
-				<textarea rows='8' size = 500
-					id="fileContent">
-					</textarea>
+				<ul id="sensorResult">
+                   <br><br><br><br><br><br><br><br>
+			</ul>
 			</p>
 		</div>
 		<div >
