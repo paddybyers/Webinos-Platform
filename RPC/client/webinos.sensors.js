@@ -3,36 +3,48 @@
 	Sensor = function(obj) {
        this.base = WebinosService;
        this.base(obj);
-
 	};
 	Sensor.prototype = new WebinosService;
 	
 	Sensor.prototype.bind = function(success) {
-		 	this.maximumRange = 0;
-	        this.minDelay = 5;
-	        this.power = 10;
-	        this.resolution = 50;
-	        this.vendor = "FhG";  
-	        this.version = 5.0; 
+		 	
+		var self = this;
+		
+		var rpc = webinos.rpc.createRPC(this, "getStaticData", []);
+		
+		webinos.rpc.executeRPC(rpc,
+				function (result){
+			
+					self.maximumRange = result.maximumRange;
+					self.minDelay = result.minDelay;
+					self.power = result.power;
+					self.resolution = result.resolution;
+					self.vendor = result.vendor;  
+					self.version = result.version; 
 	        
-	        this.configureSensor = function (options, successCB, errorCB){
-	    		//thows (SensorException);
-	    			        	
-	    		var rpc = webinos.rpc.createRPC(this, "configureSensor", arguments[0]);
-	    		webinos.rpc.executeRPC(rpc,
-	    				function (){
-	    					successCB();
-	    				},
-	    				function (error){}
-	    		);
-	    		
-	    	};
+					self.configureSensor = function (options, successCB, errorCB){
+						//thows (SensorException);
+						var rpc = webinos.rpc.createRPC(this, "configureSensor", arguments[0]);
+						webinos.rpc.executeRPC(rpc,
+								function (){
+							successCB();
+	    					},
+	    					function (error){
+	    						errorCB();
+	    					}
+						);
+					};
 	    	
-	    	this.addEventListener = function (eventType, callback) {
-	    		//TODO register callback for RPC
-	    	};
+					self.addEventListener = function (eventType, callback) {
+						//TODO register callback for RPC
+					};
 	    	
-	    	success();
+					success();
+				},
+				function (error){
+					
+				}
+		);
 	};
 	
 }());
