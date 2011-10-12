@@ -98,8 +98,13 @@ webinos.rpc.handleMessage = function (message, responseto){
 			var filteredRO = receiverObjs.filter(function(el, idx, array) {
 				return el.id === serviceId;
 			});
-			var includingObject = filteredRO[0]; // what if the array is empty? TODO
-			if (!includingObject) includingObject = receiverObjs[0]; // failsafe for line above. what if the array is empty? TODO
+			var includingObject = filteredRO[0]; 
+			if (typeof includingObject === 'undefined') includingObject = receiverObjs[0]; 
+			
+			if (typeof includingObject === 'undefined'){
+				console.log("No service found with id/type " + service);
+				return;
+			}
 			
 			//enable functions bound to attributes in nested objects, TODO
 			idx = myObject.method.lastIndexOf('.');
