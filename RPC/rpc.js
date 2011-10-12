@@ -1,5 +1,5 @@
 //This RPC implementation should be compliant to JSON RPC 2.0
-//as specified @ http://groups.google.com/group/json-rpc/web/json-rpc-2-0
+//as specified @ http://jsonrpc.org/spec.html
 
 (function() {
 	if (typeof webinos === 'undefined')
@@ -283,7 +283,7 @@ webinos.rpc.registerObject = function (callback) {
 			return el.id === callback.id;
 		});
 		if (filteredRO.length > 0)
-			throw new Error('cannot register, already got object with same id. try changing your service desc.')
+			throw new Error('cannot register, already got object with same id. try changing your service desc.');
 		
 		receiverObjs.push(callback);
 		webinos.rpc.objects[callback.api] = receiverObjs;
@@ -324,7 +324,7 @@ webinos.rpc.unregisterObject = function (callback) {
 		});
 		webinos.rpc.objects[callback.api] = filteredRO;
 	}
-}
+};
 
 /**
  * 
@@ -417,7 +417,7 @@ if (typeof exports !== 'undefined'){
 				'./rpc_contacts.js'
 	               ];
 	
-	for (i = 0; i <modules.length; i++){
+	for (var i = 0; i <modules.length; i++){
 		try{
 			require(modules[i]);
 		}
