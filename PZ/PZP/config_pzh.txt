@@ -1,0 +1,15 @@
+country=UK
+state=Middlesex
+city=Staines
+organization=Webinos
+organizationUnit=WP4
+common=pzha
+email=internal@webinos.org
+days=180
+keyName=pzh-server-key.pem
+keySize=1024
+certName=pzh-server-cert.pem
+clientCertName=pzh-client-cert.pem
+masterKeyName=pzh-master-server-key.pem
+masterKeySize=1024
+masterCertName=pzh-master-server-cert.pem

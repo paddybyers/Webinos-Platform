@@ -1,0 +1,12 @@
+country=UK
+state=Middlesex
+city=Staines
+organization=Webinos
+organizationUnit=WP4
+common=pzpa
+email=internal@webinos.org
+days=180
+keyName=pzp-client-key.pem
+keySize=1024
+certName=pzp-client-cert.pem
+masterCertName=pzp-server-cert.pem

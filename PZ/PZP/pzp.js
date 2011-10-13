@@ -8,13 +8,19 @@ if (typeof webinos === "undefined") {
 }
 
 if (typeof exports !== "undefined") {
-	webinos.session = require('../../Manager/Session/session_pzp.js');
+	//webinos.session = require('../../Manager/Session/session_pzp.js');
+	webinos.session = require('./session_pzp.js');
 } 
-
 var servername = ' ', port = 0, serverPort = 0, webServerPort = 0, webSocketServer = false;
-
-
 process.argv.forEach(function(val, index, array) {
+	if(index === 2) 
+		serverPort = val;
+	if(index === 3)
+		webServerPort = val;
+});
+
+webinos.session.pzp.startWebSocketServer(serverPort, webServerPort); 
+/*process.argv.forEach(function(val, index, array) {
 	if(index === 2) 
 		servername = val;
 	if(index === 3)
@@ -44,4 +50,4 @@ if (servername === ' ' || port < 0) {
 			
 	});
 }
-
+*/

@@ -10,14 +10,20 @@
 	<script type="text/javascript">
             $(document).ready(function() {
             	    var test = null;
-            	    var geoLocationService = null;
-   			   	    
+            	    
+					$('#startPZH').bind('click', function() {
+                	    var payload = {status: 'startPZH', servername: 'localhost', serverport: '443', httpserver: 8907}; // RPCservicename, function
+						var options = {type: 'prop', payload: payload};
+						webinos.send(options);                	   
+                    });
+                    $('#startPZP').bind('click', function() {
+                	    var payload = {status: 'startPZP', servername: 'localhost', serverport: '443'}; 
+						var options = {type: 'prop', payload: payload};
+						webinos.send(options);                	   
+                    });			   	    
                     $('#findService').bind('click', function() {
                 	    webinos.ServiceDiscovery.findServices("Test", {onFound: function (service) {
                 	    	test = service;	
-                	    }});
-                	    webinos.ServiceDiscovery.findServices("Geolocation", {onFound: function (service) {
-                	    	geoLocationService = service;
                 	    }});
                 	   
                     });
@@ -69,6 +75,8 @@
 	<div >
 		<div >
 			<p>
+				<button id="startPZH">Start PZH </button>
+				<button id="startPZP">Start PZP </button>
 				<button id="findService">Find Service</button>
 				<button id="get42PZP">get42PZP</button>
 				<button id="get42PZPtoPZH">get42PZPtoPZH</button>
