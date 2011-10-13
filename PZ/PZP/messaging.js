@@ -131,9 +131,9 @@ function write(rpc, respto, msgid){
 	      var data = message.to.split('/');
 	      var id = data[0];
               console.log("id" + id);
-	      var forwardto = message.to; 
+	      var forwardto = data[0]; 
 
-	      for(i = 1; i <= occurences; i++)
+	      for(i = 1; i < occurences; i++)
 	      {
 	        id = id + '/' + data[i];
 		var new_session1 = [id, self];
@@ -233,9 +233,9 @@ webinos.message.onMessageReceived = function(message, sessionid){
         var occurences = (message.to.split("/").length - 1)
         var data = message.to.split('/');
 	var id = data[0];
-        var forwardto = message.to; 
+        var forwardto = data[0]; 
 
-	for(i = 1; i <= occurences; i++)
+	for(i = 1; i < occurences; i++)
         {
 	  id = id + '/' + data[i];
           var new_session1 = [id, self];
