@@ -29,19 +29,33 @@
                     	});
                     }); 
                      
-		    $('#get42PZH').bind('click', function() {
-                    	test.get42PZH(function (result){
+		    $('#get42PZPtoPZH').bind('click', function() {
+                    	test.get42PZPtoPZH(function (result){
                     		alert('result '+result);
                     		alert('test '+test.testAttr);
                     	});
                     });                     
                     
- 		    $('#get42PZPtoPZP').bind('click', function() {
-                    	test.get42PZPtoPZP(function (result){
+ 		    $('#get42PZPtoPZHtoPZP').bind('click', function() {
+                    	test.get42PZPtoPZHtoPZP(function (result){
                     		alert('result '+result);
                     		alert('test '+test.testAttr);
                     	});
-                    });           
+                    });
+
+		   $('#get42PZPtoPZHtoPZH').bind('click', function() {
+                    	test.get42PZPtoPZHtoPZH(function (result){
+                    		alert('result '+result);
+                    		alert('test '+test.testAttr);
+                    	});
+                    });
+		 
+		   $('#get42PZPtoPZHtoPZHtoPZP').bind('click', function() {
+                    	test.get42PZPtoPZHtoPZHtoPZP(function (result){
+                    		alert('result '+result);
+                    		alert('test '+test.testAttr);
+                    	});
+                    });
                    
             });
         </script>
@@ -57,8 +71,10 @@
 			<p>
 				<button id="findService">Find Service</button>
 				<button id="get42PZP">get42PZP</button>
-				<button id="get42PZH">get42PZH</button>
-				<button id="get42PZPtoPZP">get42 PZP PZP</button>
+				<button id="get42PZPtoPZH">get42PZPtoPZH</button>
+				<button id="get42PZPtoPZHtoPZP">get42PZPtoPZHtoPZP</button>
+				<button id="get42PZPtoPZHtoPZH">get42PZPtoPZHtoPZH</button>
+				<button id="get42PZPtoPZHtoPZHtoPZP">get42PZPtoPZHtoPZHtoPZP</button>
 			</p>
 		</div>
 	</div>

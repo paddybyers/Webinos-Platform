@@ -30,7 +30,7 @@ webinos.rpc.setWriter = function (writer){
 /**
  * Handles a new JSON RPC message (as string)
  */
-webinos.rpc.handleMessage = function (message, responseto){
+webinos.rpc.handleMessage = function (message, responseto, mesgid){
 	console.log("New websocket packet");
 	
 	var myObject = JSON.parse(message);
@@ -71,7 +71,7 @@ webinos.rpc.handleMessage = function (message, responseto){
 							rpc.jsonrpc = "2.0";
 							res.result = result;
 							res.id = id;
-							webinos.rpc.executeRPC(res, responseto);
+							webinos.rpc.executeRPC(res, null, null, responseto, mesgid);
 						},
 						function (error){
 							if (typeof id === 'undefined') return;
@@ -82,7 +82,7 @@ webinos.rpc.handleMessage = function (message, responseto){
 							res.error.code = 32000;  //webinos specific error code representing that an API specific error occured
 							res.error.message = "Method Invocation returned with error";
 							res.id = id;
-							webinos.rpc.executeRPC(res, responseto);
+							webinos.rpc.executeRPC(res, null, null, responseto, mesgid);
 						}, 
 						myObject.fromObjectRef
 					);
@@ -97,7 +97,7 @@ webinos.rpc.handleMessage = function (message, responseto){
 							res.jsonrpc = "2.0";
 							res.result = result;
 							res.id = id;
-							webinos.rpc.executeRPC(res, responseto);
+							webinos.rpc.executeRPC(res, null, null, responseto, mesgid);
 																	
 
 						},
@@ -110,7 +110,7 @@ webinos.rpc.handleMessage = function (message, responseto){
 							res.error.code = 32000;
 							res.error.message = "Method Invocation returned with error";
 							res.id = id;
-							webinos.rpc.executeRPC(res, responseto);
+							webinos.rpc.executeRPC(res, null, null, responseto, mesgid);
 						}
 					);
 				}
@@ -148,7 +148,7 @@ webinos.rpc.handleMessage = function (message, responseto){
  * Executes the given RPC Request and registers an optional callback that
  * is invoked if an RPC response with same id was received
  */
-webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto) {
+webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto, mesgid) {
     if (typeof callback === 'function'){
     	rpc.id = Math.floor(Math.random()*101);
 		var cb = {};
@@ -164,7 +164,7 @@ webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto) {
     
     //TODO remove stringify when integrating with Message Routing/Ziran
    
-    write(JSON.stringify(rpc), responseto);
+    write(JSON.stringify(rpc), responseto, mesgid);
    
 };
 
@@ -231,7 +231,6 @@ if (typeof exports !== 'undefined'){
 
 	//add your RPC Implementations here!
 	require('./rpc_test.js');
-	require('./rpc_geolocation.js');
 
 }
 

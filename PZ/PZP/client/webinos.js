@@ -44,6 +44,8 @@
 				pzhid = data.resp_to;
 				otherpzp = data.payload;
 				webinos.message.setGet(sessionid);
+				var msg = webinos.message.registerSender(sessionid,pzpid);
+				webinos.send(msg);
 			}
 			else {
 				webinos.message.onMessageReceived(JSON.stringify(data));
