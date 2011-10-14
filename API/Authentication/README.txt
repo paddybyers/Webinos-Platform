@@ -31,8 +31,9 @@ How to run the test:
 
 1) Put in the root RPC directory rpc_auth.js and auth.zip.
 
-2) Add to rpc.js (located in the RPC root directory) the line:
-require('./rpc_auth.js');
+2) Add to rpc.js (located in the RPC root directory) the element
+'./rpc_auth.js'
+in the modules list
 
 3) Put in the client directory auth.js and test_auth.html
 
