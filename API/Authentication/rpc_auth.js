@@ -1,6 +1,6 @@
 var fs = require('fs');
 var util = require('util');
-var secstore = require("./old_securestore.js");
+var secstore = require("../Manager/Storage/src/main/javascript/securestore.js");
 
 if (typeof webinos === 'undefined') var webinos = {};
 webinos.rpc = require('./rpc.js');

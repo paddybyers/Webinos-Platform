@@ -6,13 +6,9 @@ Files list:
 - rpc_auth.js
 The code about authentication.
 
-- old_securestore.js
-An old version of the John's secure store code.
-The newer version can't be used because it requires node.js version 0.4.
-
 -tools/secstore_open.js
 -tools/secstore_close.js
-Node.js scripts to manually open and close encrypted auth.zip file. They require old_securestore.js.
+Node.js scripts to manually open and close encrypted auth.zip file. They require securestore.js.
 Tho open command reads auth.zip and creates an authentication directory containing the password.txt and the authstatus.txt files.
 The close command creates the auth.zip file and removes authetication directory and contained files.
 
