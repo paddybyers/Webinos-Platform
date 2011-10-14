@@ -64,12 +64,15 @@ pzh.prototype = new process.EventEmitter();
 webinos.session.pzh.sendMessage = function(message, address) {
 	"use strict";
 	var socket = ' ', i;
-	log('PZH: SendMessage '+JSON.stringify(message) + ' to address ' + address);
-
+/*+JSON.stringify(message) + */ 
+	log('PZH: SendMessage to address ' + address);
+	//webinos.message.setGet(webinos.session.pzh.sessionid);
+	//webinos.message.setSend(webinos.session.pzh.sendMessage);
 	if (webinos.session.pzh.connected_pzh[address]) {
-		log('PZH: Other PZH ' + webinos.session.pzh.connected_pzh[address]);
+		log('PZH: Connected PZH ');
 		webinos.session.pzh.connected_pzh[address].write(JSON.stringify(message));
 	} else if (webinos.session.pzh.connected_pzp[address]) {
+		log('PZH: Connected PZP ');
 		webinos.session.pzh.connected_pzp[address].write(JSON.stringify(message));
 	} else {
 		log("PZH: Client " + address + " is not connected");
@@ -81,12 +84,12 @@ webinos.session.pzh.sendMessage = function(message, address) {
  * If certificates are not found, they are generated. The functionality of reading 
  * contents of file and generating certificate is handled in session_common.
 */
-pzh.prototype.checkFiles = function () {
+pzh.prototype.checkFiles = function (filename) {
 	"use strict";
 	var self = this;
-	webinos.session.common.readConfig('config_pzh.txt', webinos.session.pzh, self);
+	webinos.session.common.readConfig(filename, webinos.session.pzh, self);
 	self.on('readConfig', function (msg) {
-		log('PZH: '+ msg);
+		log('PZH: readConfig');
 		webinos.session.common.generateSelfSignedCert(webinos.session.pzh, self);
 
 		self.on('generatedCert', function(status) {
@@ -115,17 +118,17 @@ pzh.prototype.connect = function () {
 	// Read server configuration for creating TLS connection
 	var options = {	key: fs.readFileSync(webinos.session.pzh.config.keyname),
 			cert: fs.readFileSync(webinos.session.pzh.config.certname),
-			ca:fs.readFileSync(webinos.session.pzh.config.mastercertname), 
+			ca:[fs.readFileSync(webinos.session.pzh.config.mastercertname), fs.readFileSync('othercert.pem')],
 			requestCert:true, 
-			rejectUnauthorized:false,
-			//webinosCert: fs.readFileSync('othercert.pem') 
+			rejectUnauthorized:false/*,
+			webinosCert: fs.readFileSync('othercert.pem') */
 			};
 	// PZH session id is the common name assigned to it. In usual scenaio it should be URL of PZH. 
-	webinos.session.pzh.sessionid = webinos.session.pzh.config.common;  
+	webinos.session.pzh.sessionid = webinos.session.pzh.config.common;
 	// Registering getownid value in message handler
-	webinos.message.setGet(webinos.session.pzh.sessionid);
+	//webinos.message.setGet(webinos.session.pzh.sessionid);
 	// send function to be used by message handler
-	webinos.message.setSend(webinos.session.pzh.sendMessage);
+	//webinos.message.setSend(webinos.session.pzh.sendMessage);
 
 	server = tls.createServer (options, function (conn) {
 		var data = {}, obj = {}, cn, found = false, msg, parse = null, payload = {}, msg = {}, sessionId;
@@ -139,7 +142,7 @@ pzh.prototype.connect = function () {
 		if(conn.authorized) {
 			log("PZH: Client Authenticated ");
 			cn = conn.getPeerCertificate().subject.CN;
-			
+			server.addContext('localhost', {ca:fs.readFileSync('othercert.pem')});
 			// temp work around till https is in place
 			//server.setCert(fs.readFileSync('othercert.pem'));	
 
@@ -152,8 +155,8 @@ pzh.prototype.connect = function () {
 			// Assumption: PZH is of form username@domain
 			// Assumption: PZP is of form username@domain/mobile:Deviceid@mac
 			if(data[0].indexOf('@') !== -1 /*&& data[0].indexOf('/') === -1*/) { 
-				//webinos.message.registerSenderClient(data[0]); // Register PZH
 				webinos.session.pzh.connected_pzh[data[0]] = conn;
+
 				msg = webinos.message.registerSender(webinos.session.pzh.sessionid, data[0]);
 				webinos.session.pzh.sendMessage(msg, data[0]);
 
@@ -182,31 +185,23 @@ pzh.prototype.connect = function () {
 				// connected PZP session id is of form PZH::PZP's common name without device id
 				sessionId = webinos.session.pzh.sessionid + "/" + data[0];
 
-				//obj = {sessionid:sessionId, socket: conn};
 				webinos.session.pzh.connected_pzp[sessionId] = conn; 
-				
-				//webinos.message.registerSenderClient(sessionId);
 				var otherPZP = [], myKey;
-			 	//format: ownid :: client sessionid :: other connected pzp
 				for (myKey in webinos.session.pzh.connected_pzp){
-					log("["+myKey +"] = "+webinos.session.pzh.connected_pzp[myKey]);
 					otherPZP.push(myKey);
 				}
 				payload = {'status':'Auth', 'message':otherPZP};
-				msg = { register: false,  type: "prop", id: 0,
-					from:  webinos.session.pzh.sessionid, to: sessionId,
-					resp_to:  webinos.session.pzh.sessionid, timestamp: 0,
-					timeout:  null, payload: payload};
+				msg = { type: "prop", from:  webinos.session.pzh.sessionid, 
+					to: sessionId, resp_to:  webinos.session.pzh.sessionid, 
+					payload: payload};
 				webinos.session.pzh.sendMessage(msg, sessionId);
 
 				payload = {'status':'PZPUpdate', 'message':otherPZP};
-				msg = { register: false,  type: "prop", id: 0,
-					from:  webinos.session.pzh.sessionid, payload: payload};
+				msg = { type: "prop", from:  webinos.session.pzh.sessionid, payload: payload};
 				// send message to all connected PZP and PZH
 				for (myKey in webinos.session.pzh.connected_pzp){
-					log("["+myKey +"] = "+webinos.session.pzh.connected_pzp[myKey]);
 					if(sessionId !== myKey)
-						webinos.session.pzh.connected_pzp[myKey].write(JSON.stringify(msg));;
+						webinos.session.pzh.connected_pzp[myKey].write(JSON.stringify(msg));
 				}
 			}
 		} 
@@ -263,6 +258,8 @@ pzh.prototype.connect = function () {
 				server.setCert(fs.readFileSync('othercert.pem'));
 			} else { // Message is forwarded to Message handler function, onMessageReceived
 				log('PZH: Received data : '+JSON.stringify(parse));
+				webinos.message.setGet(webinos.session.pzh.sessionid);
+				webinos.message.setSend(webinos.session.pzh.sendMessage);
 				webinos.message.onMessageReceived(JSON.stringify(parse));
 			}
 		});
@@ -288,7 +285,7 @@ pzh.prototype.connect = function () {
  * @param server name
  * @param port: port on which server is running
  */
-webinos.session.pzh.startPZH = function(server, port) {
+webinos.session.pzh.startPZH = function(filename, server, port) {
 	"use strict";
 	var server = new pzh(), sock, msg;
 	server.on('generatedSignedCert',function (status) {
@@ -302,7 +299,7 @@ webinos.session.pzh.startPZH = function(server, port) {
 		});		
 	});
 	
-	server.checkFiles();
+	server.checkFiles(filename);
 	return server;
 };
 
@@ -323,13 +320,13 @@ webinos.session.pzh.startHttpsServer = function(args) {
 
 };
 
-webinos.session.pzh.connectOtherPZH = function(server, port, details) {
+webinos.session.pzh.connectOtherPZH = function(server, port) {
 	var self = this;
+	log('connect other PZH');
 	var options = {	key: fs.readFileSync(webinos.session.pzh.config.keyname),
 			cert: fs.readFileSync(webinos.session.pzh.config.certname),
-			ca: fs.readFileSync(webinos.session.pzh.config.mastercertname),
-			webinosCert:fs.readFileSync('othercert.pem')};
-	
+			ca: [fs.readFileSync(webinos.session.pzh.config.mastercertname), fs.readFileSync('pzhb.pem')]}; //fs.readFileSync('pzhb.pem')
+
 	var conn_pzh = tls.connect(port, server, options, function(conn) {
 		log('PZH: Connection Status : '+conn_pzh.authorized);
 		if(conn_pzh.authorized) {

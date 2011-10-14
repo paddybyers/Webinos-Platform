@@ -57,9 +57,12 @@ exports.readConfig = function (filename, session, self) {
 				session.config.masterkeysize = data1[i][1];
 			} else if (data1[i][0] === 'masterCertName') {
 				session.config.mastercertname = data1[i][1];
+			} else if (data1[i][0] === 'otherPZHCert') {
+				session.config.otherPZHCert = data1[i][1];
 			}
+
 		}
-		self.emit('readConfig', 'configuration read from config.txt');
+		self.emit('readConfig', 'configuration read');
 	});
 };
 //This is used for generating id for session. This code is currently not used.
@@ -89,11 +92,13 @@ exports.generateSessionId = function(cn, options) {
  * 
  */
 exports.generateSelfSignedCert = function(session, self) {
-	fs.readFile(session.config.keyname, function (err) {
-		if (err) {
+	console.log('PZ Common: ' + session.config.keyname);
+	if(session.config.keyname !== "undefined") {
+		fs.readFile(session.config.keyname, function (err) {
+			if (err) {
 			// Bits for key to be generated | KeyName
-			generator.genPrivateKey(session.config.keysize, session.config.keyname);
-			generator.genSelfSignedCertificate(session.config.country,
+				generator.genPrivateKey(session.config.keysize, session.config.keyname);
+				generator.genSelfSignedCertificate(session.config.country,
 					session.config.state,
 					session.config.city,
 					session.config.orgname,
@@ -103,11 +108,12 @@ exports.generateSelfSignedCert = function(session, self) {
 					session.config.days,
 					session.config.certname,
 					session.config.keyname);
-			self.emit('generatedCert','true');
-			return;	
-		}
-		self.emit('generatedCert','false');
-	});
+				self.emit('generatedCert','true');
+				return;	
+			}
+			self.emit('generatedCert','false');
+		});
+	} 
 };
 
 /* This creates certificate signed by master certificate on PZH. This function
@@ -173,13 +179,13 @@ exports.generateMasterCert = function (session, self) {
 
 	console.log('PZ Common: generating master server cert');
 	// Country, State, City, OrgName, OrgUnit, Common, Email, Days, CertificateName
-	session.config.common = 'MasterCert:' + session.config.common;
+	var common = 'MasterCert:' + session.config.common;
 	generator.genSelfSignedCertificate(session.config.country,
 						session.config.state,
 						session.config.city,
 						session.config.orgname,
 						session.config.orgunit,
-						session.config.common,
+						common,
 						session.config.email,
 						session.config.days,
 						session.config.mastercertname,

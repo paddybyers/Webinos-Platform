@@ -1,9 +1,9 @@
 country=UK
-state=Middlesex
-city=Staines
+state=TW
+city=ST
 organization=Webinos
 organizationUnit=WP4
-common=pzpa
+common=PC
 email=internal@webinos.org
 days=180
 keyName=pzp-client-key.pem

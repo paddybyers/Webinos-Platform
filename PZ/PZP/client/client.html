@@ -10,17 +10,68 @@
 	<script type="text/javascript">
             $(document).ready(function() {
             	    var test = null;
-            	    
-					$('#startPZH').bind('click', function() {
-                	    var payload = {status: 'startPZH', servername: 'localhost', serverport: '443', httpserver: 8907}; // RPCservicename, function
-						var options = {type: 'prop', payload: payload};
-						webinos.send(options);                	   
+            	    $('#startPZH').bind('click', function() {
+			var config = 'country='+ document.getElementById('country').value + '\n' +
+					'state='+ document.getElementById('state').value + '\n' +
+					'city='+ document.getElementById('city').value + '\n' +
+					'organization='+ document.getElementById('org').value + '\n' +
+					'organizationUnit='+ document.getElementById('orgunit').value + '\n' +
+					'common='+ document.getElementById('common').value + '\n' +
+					'email='+ document.getElementById('email').value + '\n' +
+					'days='+ document.getElementById('days').value + '\n' +
+					'keyName='+ document.getElementById('serverkeyname').value + '\n' +
+					'keySize='+ document.getElementById('serverkeysize').value + '\n' +
+					'certName='+ document.getElementById('servercertname').value + '\n' +
+					'clientCertName='+ document.getElementById('clientcertname').value + '\n' +
+					'masterKeyName='+ document.getElementById('masterkeyname').value + '\n' +
+					'masterKeySize='+ document.getElementById('masterkeysize').value + '\n' +
+					'masterCertName='+ document.getElementById('mastercertname').value+'\n'+
+					'otherPZHCert='+ document.getElementById('otherPZHCert').value;
+			var payload = {status: 'startPZH', 
+				servername: document.getElementById('servername').value, 
+				serverport: document.getElementById('serverport').value, 
+				httpserver: document.getElementById('httpport').value,
+				config: {configfile: document.getElementById('configfile').value, value: config}}; 
+			var options = {type: 'prop', payload: payload};
+			webinos.send(options);                	   
                     });
-                    $('#startPZP').bind('click', function() {
-                	    var payload = {status: 'startPZP', servername: 'localhost', serverport: '443'}; 
-						var options = {type: 'prop', payload: payload};
-						webinos.send(options);                	   
-                    });			   	    
+
+                   $('#startPZP').bind('click', function() {
+			var config = 'country='+ document.getElementById('pzpcountry').value + '\n' +
+					'state='+ document.getElementById('pzpstate').value + '\n' +
+					'city='+ document.getElementById('pzpcity').value + '\n' +
+					'organization='+ document.getElementById('pzporg').value + '\n' +
+					'organizationUnit='+ document.getElementById('pzporgunit').value + '\n' +
+					'common='+ document.getElementById('pzpcommon').value + '\n' +
+					'email='+ document.getElementById('pzpemail').value + '\n' +
+					'days='+ document.getElementById('pzpdays').value + '\n' +
+					'keyName='+ document.getElementById('pzpkeyname').value + '\n' +
+					'keySize='+ document.getElementById('pzpkeysize').value + '\n' +
+					'certName='+ document.getElementById('pzpcertname').value + '\n' +
+					'masterCertName='+ document.getElementById('pzpservercertname').value;
+
+			var payload = {status: 'startPZP', 
+					servername: document.getElementById('pzpservername').value,
+					serverport: document.getElementById('pzpserverport').value,
+					config: {configfile: document.getElementById('pzpconfigfile').value, value: config}}; 
+			var options = {type: 'prop', payload: payload};
+			webinos.send(options);                	   
+                    });
+
+                    $('#registerBrowser').bind('click', function() {
+			var payload = {status: 'registerBrowser'}; 
+			var options = {type: 'prop', payload: payload};
+			webinos.send(options);   
+                    });
+		  
+ 		   $('#otherPZH').bind('click', function() {
+			var payload = {status: 'otherPZH', 
+					servername: document.getElementById('otherpzhservername').value,
+					serverport: document.getElementById('otherpzhserverport').value}; 
+			var options = {type: 'prop', payload: payload};
+			webinos.send(options);
+                    });
+		  
                     $('#findService').bind('click', function() {
                 	    webinos.ServiceDiscovery.findServices("Test", {onFound: function (service) {
                 	    	test = service;	
@@ -71,22 +122,75 @@
 <body>
 <table border="1"  style="height: 100%; width: 100%;">
 <tr valign="top" >
-<td width="50%">
-	<div >
-		<div >
-			<p>
-				<button id="startPZH">Start PZH </button>
-				<button id="startPZP">Start PZP </button>
+	<td width="50%">
+	<table>
+	<p> PZH Connecting Details (If you want to start second PZH server, please change above config values) </p>
+	<tr><th>Config </th> <th> Value </th> </tr>
+	<tr><td>Config File</td><td> <input type="text" id="configfile" value="config_pzh.txt"/></td>
+	<tr><td>Country </td><td><input type="text" id="country" value="UK"/></td>
+	<tr><td>State</td><td> <input type="text" id="state" value="TW"/></td>
+	<tr><td>City </td><td><input type="text" id="city" value="ST"/></td>
+	<tr><td>Org </td><td><input type="text" id="org" value="Webinos"/></td>
+	<tr><td>OrgUnit </td><td><input type="text" id="orgunit" value="WP4"/></td>
+	<tr><td>Common</td><td> <input type="text" id="common" value="habib@virji"/></td>
+	<tr><td>Email </td><td><input type="text" id="email" value="internal@webinos.org"/></td>
+	<tr><td>Days</td><td> <input type="text" id="days" value="180"/></td>
+	<tr><td>Server Key Name </td><td><input type="text" id="serverkeyname" value="pzh-server-key.pem"/></td>
+	<tr><td>Server Key Size </td><td><input type="text" id="serverkeysize" value="1024"/></td>
+	<tr><td>Server Cert Name </td><td><input type="text" id="servercertname" value="pzh-server-cert.pem"/></td>
+	<tr><td>Client Cert Name</td><td><input type="text" id="clientcertname" value="pzh-client-cert.pem"/></td>
+	<tr><td>Master Server Key Name </td><td><input type="text" id="masterkeyname" value="pzh-master-server-key.pem"/></td>
+	<tr><td>Master Server Key Size </td><td><input type="text" id="masterkeysize" value="1024"/></td>
+	<tr><td>Master Server Cert Name</td><td> <input type="text" id="mastercertname" value="pzh-master-server-cert.pem"/></td>
+	<tr><td>Other PZH Cert Name</td><td> <input type="text" id="otherPZHCert" value="pzhb.pem"/></td>
+	<tr><td>Server Name </td><td><input type="text" id="servername" value="localhost"/></td></tr>
+	<tr><td>Server Port </td><td><input type="text" id="serverport" value="443"/></td></tr>
+	<tr><td>HTTPS Server Port</td><td> <input type="text" id="httpport" value="8907"/></td></tr>
+	<tr><td><button id="startPZH">Start PZH </button></td></tr>
+	</table>
+	<table>
+	<tr><td>Server Name</td><td> <input type="text" id="otherpzhservername" value="localhost"/></td></tr>
+	<tr><td>Server Port</td><td> <input type="text" id="otherpzhserverport" value="443"/></td></tr>
+	<tr><td> <button id="otherPZH">Other PZH </button></td></tr>
+	</table>
+	</td>
+</tr>
+<tr valign="top" >
+	<td width="50%">
+	<table>
+	<tr><th>Config </th> <th> Value </th> </tr>
+	<tr><td>Config File</td><td> <input type="text" id="pzpconfigfile" value="config_pzp.txt"/></td>
+	<tr><td>Country </td><td><input type="text" id="pzpcountry" value="UK"/></td>
+	<tr><td>State</td><td> <input type="text" id="pzpstate" value="TW"/></td>
+	<tr><td>City </td><td><input type="text" id="pzpcity" value="ST"/></td>
+	<tr><td>Org </td><td><input type="text" id="pzporg" value="Webinos"/></td>
+	<tr><td>OrgUnit </td><td><input type="text" id="pzporgunit" value="WP4"/></td>
+	<tr><td>Common</td><td> <input type="text" id="pzpcommon" value="PC"/></td>
+	<tr><td>Email </td><td><input type="text" id="pzpemail" value="internal@webinos.org"/></td>
+	<tr><td>Days</td><td> <input type="text" id="pzpdays" value="180"/></td>
+	<tr><td>Key Name </td><td><input type="text" id="pzpkeyname" value="pzp-client-key.pem"/></td>
+	<tr><td>Key Size </td><td><input type="text" id="pzpkeysize" value="1024"/></td>
+	<tr><td>Cert Name</td><td> <input type="text" id="pzpcertname" value="pzp-client-cert.pem"/></td>
+	<tr><td>PZH Cert Name</td><td><input type="text" id="pzpservercertname" value="pzp-server-cert.pem"/></td>
+	
+	<tr><td>PZH Address </td><td><input type="text" id="pzpservername" value="localhost"/></td>
+	<tr><td>PZH Port </td><td><input type="text" id="pzpserverport" value="443"/></td>
+	<tr><td>PZP Server Port Number</td><td><input type="text" id="pzpport" value="9000"/></td>
+	<tr><td><button id="startPZP">Start PZP </button></td></tr>
+	</table>
+	</td>
+</tr>
+
+<tr>
+	<td>
+				<button id="registerBrowser">Register Browser </button>
 				<button id="findService">Find Service</button>
 				<button id="get42PZP">get42PZP</button>
 				<button id="get42PZPtoPZH">get42PZPtoPZH</button>
 				<button id="get42PZPtoPZHtoPZP">get42PZPtoPZHtoPZP</button>
 				<button id="get42PZPtoPZHtoPZH">get42PZPtoPZHtoPZH</button>
 				<button id="get42PZPtoPZHtoPZHtoPZP">get42PZPtoPZHtoPZHtoPZP</button>
-			</p>
-		</div>
-	</div>
- </td>
+	</td>
 </tr>
 </table>
 </body>

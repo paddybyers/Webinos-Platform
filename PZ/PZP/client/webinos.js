@@ -38,11 +38,11 @@
 			console.log('WebSocket Client: Message Received');
 			console.log(JSON.parse(ev.data));
 			var data = JSON.parse(ev.data);
-			if(data.type === "prop") {
+			if(data.type === "prop" && data.payload.status === 'registeredBrowser') {
 				sessionid = data.to;
 				pzpid = data.from;
 				pzhid = data.resp_to;
-				otherpzp = data.payload;
+				otherpzp = data.payload.message;
 				webinos.message.setGet(sessionid);
 				var msg = webinos.message.registerSender(sessionid,pzpid);
 				webinos.send(msg);
