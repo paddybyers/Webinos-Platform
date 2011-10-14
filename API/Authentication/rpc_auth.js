@@ -2,7 +2,9 @@ var fs = require('fs');
 var util = require('util');
 var secstore = require("../Manager/Storage/src/main/javascript/securestore.js");
 
-if (typeof webinos === 'undefined') var webinos = {};
+if (typeof webinos === "undefined") { var webinos = {}; }
+if (!webinos.authentication) { webinos.authentication = {}; }
+
 webinos.rpc = require('./rpc.js');
 
 var AuthStatus = function () {
@@ -267,8 +269,12 @@ WebinosAuthenticationInterface.getAuthenticationStatus = function(params, succes
 	}
 };
 
-authenticationAPIsModule = {};
-authenticationAPIsModule.authenticate = WebinosAuthenticationInterface.authenticate;
-authenticationAPIsModule.isAuthenticated = WebinosAuthenticationInterface.isAuthenticated;
-authenticationAPIsModule.getAuthenticationStatus = WebinosAuthenticationInterface.getAuthenticationStatus;
-webinos.rpc.registerObject("AuthenticationAPIs", authenticationAPIsModule);
+var authenticationModule = new RPCWebinosService({
+	api:'http://webinos.org/api/authentication',
+	displayName:'Authentication',
+	description:'webinos authentication API'
+});
+authenticationModule.authenticate = WebinosAuthenticationInterface.authenticate;
+authenticationModule.isAuthenticated = WebinosAuthenticationInterface.isAuthenticated;
+authenticationModule.getAuthenticationStatus = WebinosAuthenticationInterface.getAuthenticationStatus;
+webinos.rpc.registerObject(authenticationModule);

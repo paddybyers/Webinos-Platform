@@ -29,21 +29,15 @@ authstatus.txt contains data about authenticated users.
 
 How to run the test:
 
-1) Put in the root RPC directory the following files: rpc_auth.js, old_securestore.js, auth.zip.
+1) Put in the root RPC directory rpc_auth.js and auth.zip.
 
 2) Add to rpc.js (located in the RPC root directory) the line:
 require('./rpc_auth.js');
 
 3) Put in the client directory auth.js and test_auth.html
 
-4) Add to webinos.js (located in the client directory) the following lines:
-if (type == "AuthenticationAPIs"){
-	var tmp = new authenticationAPIsModule();
-	tmp.origin = 'ws://127.0.0.1:8080';
-	webinos.ServiceDiscovery.registeredServices++;
-	callback.onFound(tmp);
-	return;
-}
+4) Add to webinos.js (located in the client directory) the following row:
+if (typeof AuthenticationModule !== 'undefined') typeMap['http://webinos.org/api/authentication'] = AuthenticationModule;
 
 5) execute the server
 # node websocketserver.js
