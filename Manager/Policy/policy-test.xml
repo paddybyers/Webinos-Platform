@@ -1,0 +1,30 @@
+<policy-set combine="first-matching-target" description="Webinos-test">
+	<policy combine="first-applicable" description="Untrusted">
+			<rule effect="prompt-blanket">
+					<condition combine="or">
+						<resource-match attr="device-cap" match="web.contact.write"/>
+					</condition>
+			</rule>
+			<rule effect="prompt-session">
+					<condition>
+						<resource-match attr="device-cap" match="web.calendar.write"/>
+					</condition>
+			</rule>
+			<rule effect="permit">
+					<condition combine="or">
+						<resource-match attr="device-cap" match="web.contact"/>
+						<resource-match attr="device-cap" match="web.calendar"/>
+					</condition>
+			</rule>
+			<rule effect="deny">
+					<condition combine="or">
+						<resource-match attr="device-cap" match="web.camera"/>
+					</condition>
+			</rule>
+			<rule effect="deny">
+					<condition>
+						<resource-match attr="device-cap" match="*"/>
+					</condition>
+			</rule>
+	</policy>
+</policy-set>
