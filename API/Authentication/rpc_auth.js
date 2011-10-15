@@ -11,28 +11,65 @@ if (!webinos.authentication) {
 
 webinos.rpc = require('./rpc.js');
 
-var AuthStatus = function () {
+
+var AuthStatus, AuthError, AuthSuccessCB, AuthErrorCB, WebinosAuthenticationInterface, WebinosAuthentication;
+
+AuthStatus = function () {
 };
 
-AuthStatus.lastAuthTime = "";
-AuthStatus.authMethod = "";
-AuthStatus.authMethodDetails = "";
+AuthStatus.prototype.lastAuthTime = "";
+AuthStatus.prototype.authMethod = "";
+AuthStatus.prototype.authMethodDetails = "";
+
+
+AuthError = function () {
+	this.code = Number;
+};
+
+AuthError.prototype.UNKNOWN_ERROR = 0;
+AuthError.prototype.INVALID_ARGUMENT_ERROR = 1;
+AuthError.prototype.PERMISSION_DENIED_ERROR = 20;
+AuthError.prototype.TIMEOUT_ERROR = 2;
+
+
+AuthSuccessCB = function () {
+};
+
+AuthSuccessCB.prototype.onSuccess = function () {
+	return;
+};
+
+
+AuthErrorCB = function () {
+};
+
+AuthErrorCB.prototype.onError = function (error) {
+	return;
+};
+
 
 var WebinosAuthenticationInterface = function () {
+	this.authentication = new WebinosAuthentication();
 };
+
+var WebinosAuthentication = function () {
+};
+
+webinos.authentication = new WebinosAuthentication();
+
 
 var password_filename = "./authentication/password.txt", authstatus_filename = "./authentication/authstatus.txt", sep = '|';
 
 var storePass = "PZpassword", storeFile = "./auth.zip", storeDir  = "./authentication";
 
-var ask, getAuthTime, write_buffer;
+var ask, getAuthTime, write_buffer, username;
 
-WebinosAuthenticationInterface.authenticate = function (params, successCB, errorCB, objectRef) {
-	var username, newly_authenticated, stats, passfile, passrows, p, buffer;
+webinos.authentication.authenticate = function (params, successCB, errorCB, objectRef) {
+	var newly_authenticated, stats, passfile, passrows, p, buffer;
 
 	if (params[0] !== '') {
 		username = params[0];
-		WebinosAuthenticationInterface.isAuthenticated(params, function (authenticated) {
+		webinos.authentication.isAuthenticated(params, function (authenticated) {
 			if (authenticated === false) {
 				ask("Password", function (password) {
 					try {
@@ -191,8 +228,8 @@ ask = function (question, callback) {
 };
 
 
-WebinosAuthenticationInterface.isAuthenticated = function (params, successCB, errorCB, objectRef) {
-	var username, authenticated, stats, authfile, authrows, authrow;
+webinos.authentication.isAuthenticated = function (params, successCB, errorCB, objectRef) {
+	var authenticated, stats, authfile, authrows, authrow;
 	
 	if (params[0] !== '') {
 		username = params[0];
@@ -229,12 +266,12 @@ WebinosAuthenticationInterface.isAuthenticated = function (params, successCB, er
 	}
 };
 
-WebinosAuthenticationInterface.getAuthenticationStatus = function (params, successCB, errorCB, objectRef) {
-	var username, authenticated, resp, stats, authfile, authrows, authrow, auth_s = new AuthStatus();
+webinos.authentication.getAuthenticationStatus = function (params, successCB, errorCB, objectRef) {
+	var authenticated, resp, stats, authfile, authrows, authrow, auth_s = new AuthStatus();
 	
 	if (params[0] !== '') {
 		username = params[0];
-		WebinosAuthenticationInterface.isAuthenticated(params, function (authenticated) {
+		webinos.authentication.isAuthenticated(params, function (authenticated) {
 			if (authenticated === true) {
 				try {
 					resp = "Authentication status not available";
@@ -284,7 +321,7 @@ var authenticationModule = new RPCWebinosService({
 	displayName: 'Authentication',
 	description: 'webinos authentication API'
 });
-authenticationModule.authenticate = WebinosAuthenticationInterface.authenticate;
-authenticationModule.isAuthenticated = WebinosAuthenticationInterface.isAuthenticated;
-authenticationModule.getAuthenticationStatus = WebinosAuthenticationInterface.getAuthenticationStatus;
+authenticationModule.authenticate = webinos.authentication.authenticate;
+authenticationModule.isAuthenticated = webinos.authentication.isAuthenticated;
+authenticationModule.getAuthenticationStatus = webinos.authentication.getAuthenticationStatus;
 webinos.rpc.registerObject(authenticationModule);
