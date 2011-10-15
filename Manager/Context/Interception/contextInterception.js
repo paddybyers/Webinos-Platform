@@ -1,45 +1,43 @@
+//var interceptRPC;
 
-var interceptRPC;
+//interceptRPC = function(){};
 
-interceptRPC = function(){};
+if (typeof webinos === 'undefined') {
+	webinos = {};
+	console.log("webinos not found");
+}
+if (typeof webinos.context === 'undefined')
+	webinos.context = {};
 
-logContext =function (myObj,res)
-{
-// Get Method Name
-var method = myObj['method'];
+//This class represents the context objects that will be logged
+webinos.context.ContextData = function(method, params, results) {
+			this.timestamp = new Date();
+			this.method = method;
+			this.params = params;
+			this.results = results;
+		};
+		// Require the database class
+		var databasehelper = require('./../Storage/src/main/javascript/persist');
 
-// Get Call's parameters
-var params =  myObj['params'];
+		// Initialize helper classes
+		var pathclass = require('path');
+		var fsclass = require('fs');
 
-// Get the result
-var result = res['result'];
+		var dbpath = pathclass
+				.resolve('../Manager/Context/Storage/data/context.json');
+		console.log("CONTEXT DB Initialized");
 
-
-// Require the database class
-var databasehelper = require('./../Storage/src/main/javascript/persist');
-
-// Initialize helper classes
-var pathclass = require('path');
-var fsclass = require('fs');
-
-
-var dbpath = pathclass.resolve('../Manager/Context/Storage/data/context.json');
-console.log("MY DB PATH");
-
-var dTime = new Date();
-
-// Open the database
-var database = new databasehelper.JSONDatabase({path: dbpath , transactional: false});
-
-//test database
-var data1 =  [{timestamp: dTime,   method: method, params:params,result:result}];
-
-
-database.insert(data1);
-
-
-
-};
-
-interceptRPC.prototype.logContext = logContext;
-exports.logContext = logContext;
+		// Open the database
+		webinos.context.database = new databasehelper.JSONDatabase({
+			path : dbpath,
+			transactional : false
+		});		
+		
+webinos.context.logContext = function(myObj, res) {
+			// Create the data object to log
+			var myData = new webinos.context.ContextData(myObj['method'],
+					myObj['params'], res['result']);
+			webinos.context.database.insert(myData);
+			console.log("SAVED CONTEXT DATA");
+		};
+	

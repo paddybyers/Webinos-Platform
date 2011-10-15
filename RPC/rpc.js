@@ -165,8 +165,7 @@ webinos.rpc.handleMessage = function (message, responseto){
 							webinos.rpc.executeRPC(res, responseto);
 							
 							// CONTEXT LOGGING HOOK
-							
-							logContext(myObject,res);
+							webinos.context.logContext(myObject,res);
 						},
 						function (error){
 							if (typeof id === 'undefined') return;
