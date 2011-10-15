@@ -1,10 +1,8 @@
-var secstore = require("./securestore.js");
-var fs = require('fs');
+var secstore = require("../../../Manager/Storage/src/main/javascript/securestore.js");
 
 var storePass = "PZpassword"; 
 var storeFile = "./auth.zip";
 var storeDir  = "./authentication";
-
 
 
 secstore.open(storePass, storeFile, storeDir, function(err) {	

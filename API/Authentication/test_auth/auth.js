@@ -1,48 +1,52 @@
-(function() {
+(function () {
 
-	authenticationAPIsModule = function (){
+	AuthenticationModule = function (obj) {
+		this.base = WebinosService;
+		this.base(obj);
 	};
 
-	var authData;
-	
-	authenticationAPIsModule.prototype = WebinosService.prototype;
+	if (typeof webinos === "undefined") {
+		webinos = {};
+	}
+	if (!webinos.authentication) {
+		webinos.authentication = new AuthenticationModule();
+	}
 
-	authenticationAPIsModule.prototype.authenticate = function (username, successCB, errorCB) {
-		arguments[0] = username;
-		var rpc = webinos.rpc.createRPC("AuthenticationAPIs", "authenticate", arguments);
+	AuthenticationModule.prototype = WebinosService.prototype;
+
+	AuthenticationModule.prototype.authenticate = function (username, successCB, errorCB) {
+		var rpc = webinos.rpc.createRPC(this, "authenticate", [username]);
 		webinos.rpc.executeRPC(rpc,
-				function (params){
-					successCB(params);
-				},
-				function (error){
-					errorCB(error);
-				}
+			function (params) {
+				successCB(params);
+			},
+			function (error) {
+				errorCB(error);
+			}
 		);
 	};
 
-	authenticationAPIsModule.prototype.isAuthenticated = function (username, successCB, errorCB) {
-		arguments[0] = username;
-		var rpc = webinos.rpc.createRPC("AuthenticationAPIs", "isAuthenticated", arguments);
+	AuthenticationModule.prototype.isAuthenticated = function (username, successCB, errorCB) {
+		var rpc = webinos.rpc.createRPC(this, "isAuthenticated", [username]);
 		webinos.rpc.executeRPC(rpc,
-				function (params){
-					successCB(params);
-				},
-				function (error){
-					errorCB(error);
-				}
+			function (params) {
+				successCB(params);
+			},
+			function (error) {
+				errorCB(error);
+			}
 		);
 	};
 	
-	authenticationAPIsModule.prototype.getAuthenticationStatus = function (username, successCB, errorCB) {
-		arguments[0] = username;
-		var rpc = webinos.rpc.createRPC("AuthenticationAPIs", "getAuthenticationStatus", arguments);
+	AuthenticationModule.prototype.getAuthenticationStatus = function (username, successCB, errorCB) {
+		var rpc = webinos.rpc.createRPC(this, "getAuthenticationStatus", [username]);
 		webinos.rpc.executeRPC(rpc,
-				function (params){
-					successCB(params);
-				},
-				function (error){
-					errorCB(error);
-				}
+			function (params) {
+				successCB(params);
+			},
+			function (error) {
+				errorCB(error);
+			}
 		);
 	};
 	
