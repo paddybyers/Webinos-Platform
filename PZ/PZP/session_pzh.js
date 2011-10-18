@@ -53,7 +53,7 @@ webinos.session.pzh.sendMessage = function(message, address) {
 	"use strict";
 	var socket = ' ', i;
 /*+JSON.stringify(message) + */ 
-	log('PZH: SendMessage to address ' + address);
+	log('PZH: SendMessage to address ' + address + ' Message ' + message);
 	//webinos.message.setGet(webinos.session.pzh.sessionid);
 	//webinos.message.setSend(webinos.session.pzh.sendMessage);
 	if (webinos.session.pzh.connected_pzh[address]) {
@@ -148,8 +148,7 @@ pzh.prototype.connect = function () {
 			if(data[0].indexOf('@') !== -1 /*&& data[0].indexOf('/') === -1*/) { 
 				webinos.session.pzh.connected_pzh[data[0]] = conn;
 
-				msg = webinos.message.registerSender(webinos.session.pzh.sessionid, data[0]);
-				webinos.session.pzh.sendMessage(msg, data[0]);
+				/*var */
 
 				var otherPZH = [], myKey;
 			 	//format: ownid :: client sessionid :: other connected pzp
@@ -158,9 +157,11 @@ pzh.prototype.connect = function () {
 					otherPZH.push(myKey);
 				}
 				var payload = {'status':'Auth', 'message': otherPZH};
-				var msg = {type: "prop", from:  webinos.session.pzh.sessionid, to: data[0], payload: payload};
-				webinos.session.pzh.sendMessage(msg, msg.to);
+				var msg1 = { 'type': 'prop', 'from':  webinos.session.pzh.sessionid, 'to': data[0], 'payload': payload };
+				webinos.session.pzh.sendMessage(msg1, msg1.to);
 				
+				/*var msg = webinos.message.registerSender(webinos.session.pzh.sessionid, data[0]);
+				webinos.session.pzh.sendMessage(msg, data[0]);*/
 				/*payload = {'status':'PZHUpdate', 'message':otherPZP};
 				msg = {type: "prop", from:  webinos.session.pzh.sessionid, payload: payload};
 				// send message to all connected PZP and PZH
