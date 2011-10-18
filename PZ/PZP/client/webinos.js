@@ -29,7 +29,7 @@
 	 */
 	function createCommChannel(successCB) {
 		try{
-			channel  = new WebSocket('ws://127.0.0.1:8080');
+			channel  = new WebSocket('ws://127.0.0.1:8081');
 		} catch(e) {
 			channel  = new MozWebSocket('ws://127.0.0.1:8080');
 		}

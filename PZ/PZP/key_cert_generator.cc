@@ -351,11 +351,11 @@ void KeyGenerator::GetMacAddress() {
 
 	for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
 		if (ifa->ifa_addr != NULL) {
-			int family = ifa->ifa_addr->sa_family;
+			//int family = ifa->ifa_addr->sa_family;
       			// TODO: Next line should check for family (on linux PF_PACKET, on mac BPF), but BPF doesn't seem to work
 		      	if((strcmp("eth0", ifa->ifa_name) == 0 || strcmp("en0", ifa->ifa_name) == 0)) {
 				sdl = (struct sockaddr *)(ifa->ifa_addr);
-				ptr = (unsigned char *)sdl->sa_data;
+				//ptr = (unsigned char *)sdl->sa_data;
 			        ptr += 10;
 			        sprintf(KeyGenerator::mac, "%02x:%02x:%02x:%02x:%02x:%02x", *ptr, *(ptr+1), *(ptr+2), *(ptr+3), *(ptr+4), *(ptr+5));
 				break;

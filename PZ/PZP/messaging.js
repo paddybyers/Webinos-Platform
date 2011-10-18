@@ -57,6 +57,7 @@ webinos.message.setSend = function (sender){
 
 webinos.message.setGet = function (getter){
 	getownid = getter;
+	console.log('Message: getownid : ' + getownid);
 }
 
 //this function will be used when current address format changes, e.g. separator changes from "::" to "/"
@@ -108,7 +109,7 @@ function write(rpc, respto, msgid){
 
 	    options.payload = rpc;
 	    message = webinos.message.createMessage(options);
-            console.log("Message: message.create:" + JSON.stringify(message));
+        console.log("Message: message.create:" + JSON.stringify(message));
 
  	    var to = message.to;
             var session1 = [to, self];
@@ -184,18 +185,18 @@ webinos.message.onMessageReceived = function(message, sessionid){
     //this is a register message, associate the address, with session id    
     if(sessionid)
     {
-      console.log("Message: register session: sessionid=" + sessionid);
+      //console.log("Message: register session: sessionid=" + sessionid);
       clients[regid] = sessionid;
     }
     else if(message.from)
     {
       clients[regid] = message.from;
-      console.log("Message: register session: regid=" + regid); 
-      console.log("Message: register session: clients[regid]=" + clients[regid]); 
+      //console.log("Message: register session: regid=" + regid); 
+      //console.log("Message: register session: clients[regid]=" + clients[regid]); 
     }
    
     console.log("Message:  Message = " + message + ": clients[regid]" + clients[regid] );   
-    logObj(message, "register Message");
+    //logObj(message, "register Message");
     return; 
   }
   // check message destination 

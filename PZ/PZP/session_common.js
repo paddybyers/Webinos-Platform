@@ -93,7 +93,7 @@ exports.generateSessionId = function(cn, options) {
  */
 exports.generateSelfSignedCert = function(session, self) {
 	console.log('PZ Common: ' + session.config.keyname);
-	if(session.config.keyname !== "undefined") {
+	if(typeof session.config.keyname !== "undefined") {
 		fs.readFile(session.config.keyname, function (err) {
 			if (err) {
 			// Bits for key to be generated | KeyName
@@ -134,14 +134,16 @@ exports.generateServerCertifiedCert = function(cert, config) {
  * This results in native code call.
  */
 exports.generateClientCertifiedCert = function(cert, config) {
-	generator.genCertifiedCertificate(cert,
-		config.days,
-		config.clientcertname,
-		config.mastercertname,
-		config.masterkeyname,
-		function(err) {
-			console.log('PZ Common: Certificate generation error' + err);
-		});
+	if( cert !== ""){
+		generator.genCertifiedCertificate(cert,
+			config.days,
+			config.clientcertname,
+			config.mastercertname,
+			config.masterkeyname,
+			function(err) {
+				console.log('PZ Common: Certificate generation error' + err);
+			});
+	}
 };
 
 /* Before adding client it checks if client is already present or not.

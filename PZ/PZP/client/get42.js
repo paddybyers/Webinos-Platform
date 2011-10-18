@@ -64,7 +64,7 @@
 		var payload = webinos.rpc.createRPC("Test", "get42", []); // RPCservicename, function
 		payload.id = 1;
 		var options = {register: false, type: "JSONRPC", id: 0,
-			from: webinos.getSessionId(), to: "nick@allott::pzpa", resp_to: webinos.getSessionId(),
+			from: webinos.getSessionId(), to: "nick@allott/PC", resp_to: webinos.getSessionId(),
 			timestamp: 0, timeout:  null, payload: JSON.stringify(payload)
 		}; 		
 		webinos.message.createMessageId(options, successCB);

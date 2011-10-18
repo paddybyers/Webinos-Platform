@@ -11,65 +11,64 @@
             $(document).ready(function() {
             	    var test = null;
             	    $('#startPZH').bind('click', function() {
-			var config = 'country='+ document.getElementById('country').value + '\n' +
-					'state='+ document.getElementById('state').value + '\n' +
-					'city='+ document.getElementById('city').value + '\n' +
-					'organization='+ document.getElementById('org').value + '\n' +
-					'organizationUnit='+ document.getElementById('orgunit').value + '\n' +
-					'common='+ document.getElementById('common').value + '\n' +
-					'email='+ document.getElementById('email').value + '\n' +
-					'days='+ document.getElementById('days').value + '\n' +
-					'keyName='+ document.getElementById('serverkeyname').value + '\n' +
-					'keySize='+ document.getElementById('serverkeysize').value + '\n' +
-					'certName='+ document.getElementById('servercertname').value + '\n' +
-					'clientCertName='+ document.getElementById('clientcertname').value + '\n' +
-					'masterKeyName='+ document.getElementById('masterkeyname').value + '\n' +
-					'masterKeySize='+ document.getElementById('masterkeysize').value + '\n' +
-					'masterCertName='+ document.getElementById('mastercertname').value+'\n'+
-					'otherPZHCert='+ document.getElementById('otherPZHCert').value;
-			var payload = {status: 'startPZH', 
-				servername: document.getElementById('servername').value, 
-				serverport: document.getElementById('serverport').value, 
-				httpserver: document.getElementById('httpport').value,
-				config: {configfile: document.getElementById('configfile').value, value: config}}; 
-			var options = {type: 'prop', payload: payload};
-			webinos.send(options);                	   
+						var config = 'country='+ document.getElementById('country').value + '\n' +
+						'state='+ document.getElementById('state').value + '\n' +
+						'city='+ document.getElementById('city').value + '\n' +
+						'organization='+ document.getElementById('org').value + '\n' +
+						'organizationUnit='+ document.getElementById('orgunit').value + '\n' +
+						'common='+ document.getElementById('common').value + '\n' +
+						'email='+ document.getElementById('email').value + '\n' +
+						'days='+ document.getElementById('days').value + '\n' +
+						'keyName='+ document.getElementById('serverkeyname').value + '\n' +
+						'keySize='+ document.getElementById('serverkeysize').value + '\n' +
+						'certName='+ document.getElementById('servercertname').value + '\n' +
+						'clientCertName='+ document.getElementById('clientcertname').value + '\n' +
+						'masterKeyName='+ document.getElementById('masterkeyname').value + '\n' +
+						'masterKeySize='+ document.getElementById('masterkeysize').value + '\n' +
+						'masterCertName='+ document.getElementById('mastercertname').value+'\n'+
+						'otherPZHCert='+ document.getElementById('otherPZHCert').value;
+						var payload = {status: 'startPZH', 
+							servername: document.getElementById('servername').value, 
+							serverport: document.getElementById('serverport').value, 
+							httpserver: document.getElementById('httpport').value,
+							config: {configfile: document.getElementById('configfile').value, value: config}}; 
+						var options = {type: 'prop', payload: payload};
+						webinos.send(options);                	   
                     });
 
                    $('#startPZP').bind('click', function() {
-			var config = 'country='+ document.getElementById('pzpcountry').value + '\n' +
-					'state='+ document.getElementById('pzpstate').value + '\n' +
-					'city='+ document.getElementById('pzpcity').value + '\n' +
-					'organization='+ document.getElementById('pzporg').value + '\n' +
-					'organizationUnit='+ document.getElementById('pzporgunit').value + '\n' +
-					'common='+ document.getElementById('pzpcommon').value + '\n' +
-					'email='+ document.getElementById('pzpemail').value + '\n' +
-					'days='+ document.getElementById('pzpdays').value + '\n' +
-					'keyName='+ document.getElementById('pzpkeyname').value + '\n' +
-					'keySize='+ document.getElementById('pzpkeysize').value + '\n' +
-					'certName='+ document.getElementById('pzpcertname').value + '\n' +
-					'masterCertName='+ document.getElementById('pzpservercertname').value;
-
-			var payload = {status: 'startPZP', 
-					servername: document.getElementById('pzpservername').value,
-					serverport: document.getElementById('pzpserverport').value,
-					config: {configfile: document.getElementById('pzpconfigfile').value, value: config}}; 
-			var options = {type: 'prop', payload: payload};
-			webinos.send(options);                	   
+						var config = 'country='+ document.getElementById('pzpcountry').value + '\n' +
+						'state='+ document.getElementById('pzpstate').value + '\n' +
+						'city='+ document.getElementById('pzpcity').value + '\n' +
+						'organization='+ document.getElementById('pzporg').value + '\n' +
+						'organizationUnit='+ document.getElementById('pzporgunit').value + '\n' +
+						'common='+ document.getElementById('pzpcommon').value + '\n' +
+						'email='+ document.getElementById('pzpemail').value + '\n' +
+						'days='+ document.getElementById('pzpdays').value + '\n' +
+						'keyName='+ document.getElementById('pzpkeyname').value + '\n' +
+						'keySize='+ document.getElementById('pzpkeysize').value + '\n' +
+						'certName='+ document.getElementById('pzpcertname').value + '\n' +
+						'masterCertName='+ document.getElementById('pzpservercertname').value;
+						var payload = {status: 'startPZP', 
+								servername: document.getElementById('pzpservername').value,
+								serverport: document.getElementById('pzpserverport').value,
+								config: {configfile: document.getElementById('pzpconfigfile').value, value: config}}; 
+						var options = {type: 'prop', payload: payload};
+						webinos.send(options);
                     });
 
                     $('#registerBrowser').bind('click', function() {
-			var payload = {status: 'registerBrowser'}; 
-			var options = {type: 'prop', payload: payload};
-			webinos.send(options);   
+						var payload = {status: 'registerBrowser'}; 
+						var options = {type: 'prop', payload: payload};
+						webinos.send(options);   
                     });
 		  
- 		   $('#otherPZH').bind('click', function() {
-			var payload = {status: 'otherPZH', 
-					servername: document.getElementById('otherpzhservername').value,
-					serverport: document.getElementById('otherpzhserverport').value}; 
-			var options = {type: 'prop', payload: payload};
-			webinos.send(options);
+				   $('#otherPZH').bind('click', function() {
+						var payload = {status: 'otherPZH', 
+								servername: document.getElementById('otherpzhservername').value,
+								serverport: document.getElementById('otherpzhserverport').value}; 
+						var options = {type: 'prop', payload: payload};
+						webinos.send(options);
                     });
 		  
                     $('#findService').bind('click', function() {
@@ -86,14 +85,14 @@
                     	});
                     }); 
                      
-		    $('#get42PZPtoPZH').bind('click', function() {
+					$('#get42PZPtoPZH').bind('click', function() {
                     	test.get42PZPtoPZH(function (result){
                     		alert('result '+result);
                     		alert('test '+test.testAttr);
                     	});
                     });                     
                     
- 		    $('#get42PZPtoPZHtoPZP').bind('click', function() {
+					$('#get42PZPtoPZHtoPZP').bind('click', function() {
                     	test.get42PZPtoPZHtoPZP(function (result){
                     		alert('result '+result);
                     		alert('test '+test.testAttr);
@@ -142,9 +141,9 @@
 	<tr><td>Master Server Key Name </td><td><input type="text" id="masterkeyname" value="pzh-master-server-key.pem"/></td>
 	<tr><td>Master Server Key Size </td><td><input type="text" id="masterkeysize" value="1024"/></td>
 	<tr><td>Master Server Cert Name</td><td> <input type="text" id="mastercertname" value="pzh-master-server-cert.pem"/></td>
-	<tr><td>Other PZH Cert Name</td><td> <input type="text" id="otherPZHCert" value="pzhb.pem"/></td>
+	<tr><td>Other PZH Cert Name</td><td> <input type="text" id="otherPZHCert" value=""/></td><!--pzhb.pem-->
 	<tr><td>Server Name </td><td><input type="text" id="servername" value="localhost"/></td></tr>
-	<tr><td>Server Port </td><td><input type="text" id="serverport" value="443"/></td></tr>
+	<tr><td>Server Port </td><td><input type="text" id="serverport" value="442"/></td></tr>
 	<tr><td>HTTPS Server Port</td><td> <input type="text" id="httpport" value="8907"/></td></tr>
 	<tr><td><button id="startPZH">Start PZH </button></td></tr>
 	</table>
@@ -174,7 +173,7 @@
 	<tr><td>PZH Cert Name</td><td><input type="text" id="pzpservercertname" value="pzp-server-cert.pem"/></td>
 	
 	<tr><td>PZH Address </td><td><input type="text" id="pzpservername" value="localhost"/></td>
-	<tr><td>PZH Port </td><td><input type="text" id="pzpserverport" value="443"/></td>
+	<tr><td>PZH Port </td><td><input type="text" id="pzpserverport" value="442"/></td>
 	<tr><td>PZP Server Port Number</td><td><input type="text" id="pzpport" value="9000"/></td>
 	<tr><td><button id="startPZP">Start PZP </button></td></tr>
 	</table>
