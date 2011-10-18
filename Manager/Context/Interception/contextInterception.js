@@ -28,16 +28,17 @@ webinos.context.ContextData = function(method, params, results) {
 		console.log("CONTEXT DB Initialized");
 
 		// Open the database
-		webinos.context.database = new databasehelper.JSONDatabase({
-			path : dbpath,
-			transactional : false
-		});		
+		webinos.context.database = new databasehelper.JSONDatabase({path : dbpath,transactional : false});		
 		
 webinos.context.logContext = function(myObj, res) {
+	
+	
 			// Create the data object to log
-			var myData = new webinos.context.ContextData(myObj['method'],
-					myObj['params'], res['result']);
-			webinos.context.database.insert(myData);
+			var myData = new webinos.context.ContextData(myObj['method'],myObj['params'], res['result']);
+			
+			var dataIn = [{timestamp:myData.timestamp, method: myData.method, params:myData.params, result:myData.result}];
+			
+			webinos.context.database.insert(dataIn);
 			console.log("SAVED CONTEXT DATA");
 		};
 	
