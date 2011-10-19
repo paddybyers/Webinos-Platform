@@ -17,18 +17,18 @@ function runPolicyTest() {
 			return;
 		}
 
-		console.log("Calling checkFeature with no args...");
+		console.log("Calling enforceRequest with no args...");
 		try {
-			res = pm.checkFeature();
+			res = pm.enforceRequest();
 			console.log("Unexpected success...");
 		}
 		catch(e) {
 			console.log("Expected error: "+e.message+"...");
 		}
 		
-		console.log("Calling checkFeature with bad args...");
+		console.log("Calling enforceRequest with bad args...");
 		try {
-			res = pm.checkFeature(1);
+			res = pm.enforceRequest(1);
 			console.log("Unexpected success...");
 		}
 		catch(e) {
@@ -37,22 +37,22 @@ function runPolicyTest() {
 		
 		console.log("Testing some features...");
 		
-		res = pm.checkFeature("web.contact");
+		res = pm.enforceRequest("web.contact");
 		console.log("web.contact: "+ruleEffectDescription(res));
 
-		res = pm.checkFeature("web.calendar");
+		res = pm.enforceRequest("web.calendar");
 		console.log("web.calendar: "+ruleEffectDescription(res));
 
-		res = pm.checkFeature("web.contact.write");
+		res = pm.enforceRequest("web.contact.write");
 		console.log("web.contact.write: "+ruleEffectDescription(res));
 
-		res = pm.checkFeature("web.camera");
+		res = pm.enforceRequest("web.camera");
 		console.log("web.camera: "+ruleEffectDescription(res));
 
-		res = pm.checkFeature("web.calendar.write");
+		res = pm.enforceRequest("web.calendar.write");
 		console.log("web.calendar.write: "+ruleEffectDescription(res));
 
-		res = pm.checkFeature("web.discovery");
+		res = pm.enforceRequest("web.discovery");
 		console.log("web.discovery: "+ruleEffectDescription(res));
 
 	}

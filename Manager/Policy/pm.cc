@@ -22,7 +22,7 @@ public:
 		s_ct = Persistent<FunctionTemplate>::New(t);
 		s_ct->InstanceTemplate()->SetInternalFieldCount(1);
 		s_ct->SetClassName(String::NewSymbol("PolicyManagerInt"));
-		NODE_SET_PROTOTYPE_METHOD(s_ct, "checkFeature", CheckFeature);
+		NODE_SET_PROTOTYPE_METHOD(s_ct, "enforceRequest", EnforceRequest);
 		target->Set(String::NewSymbol("PolicyManagerInt"),
 		s_ct->GetFunction());
 	}
@@ -41,7 +41,7 @@ public:
 		return args.This();
 	}
 
-	static Handle<Value> CheckFeature(const Arguments& args)  {
+	static Handle<Value> EnforceRequest(const Arguments& args)  {
 		HandleScope scope;
 
 		if (args.Length() < 1) {
