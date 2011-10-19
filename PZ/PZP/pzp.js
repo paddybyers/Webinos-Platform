@@ -6,7 +6,7 @@ if (typeof exports !== "undefined") {
 	webinos.session = require('../../Manager/Session/session_pzp.js');
 } 
 
-var servername = ' ', port = 0;
+var servername = null, port = null;
 
 var WebSocketServer = require('websocket').server;
 var WEBSOCKET_SERVER_PORT = 8080;
@@ -23,7 +23,7 @@ process.argv.forEach(function(val, index, array) {
 		port = val;
 });
 
-if (servername === ' ' || port < 0) {
+if (servername === null || port === null) {
 	console.log("PZP: Missing Details of server and port, enter node.js localhost 443");
 } else {
 	client = webinos.session.pzp.startPZP(servername, port);

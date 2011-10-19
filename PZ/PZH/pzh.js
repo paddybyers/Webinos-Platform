@@ -2,7 +2,7 @@ if (typeof webinos === "undefined") webinos = {};
 if (typeof exports !== "undefined")	 session = require('../../Manager/Session/session_pzh.js');
 else session = webinos.session;
 var fs = require('fs');
-var servername=' ', port = 0, otherPzh = 0;
+var servername = null, port = null, otherPzh = 0;
 
 process.argv.forEach(function(val, index, array) {
 	if (index === 2) 
@@ -14,7 +14,7 @@ process.argv.forEach(function(val, index, array) {
 		
 });
 
-if (servername === ' ' && port < 0) {
+if (servername === null || port === null) {
 	console.log("Missing Details of server and port, enter node.js localhost 443");
 } else { 
 	server = webinos.session.pzh.startPZH(servername, port);
