@@ -1,68 +1,60 @@
 (function() {
-	var channel = null;
-	var sessionid = null;
-	var pzpid = null;
-	var pzhid = null;
-	var otherpzp = null;
-	webinos.send = function(text) {
-		console.log('WebSocket Client: Message Sent');
-		console.log(text);
-		channel.send(JSON.stringify(text));
+
+	
+	channel = null;
+	function write(text){
+		if (channel != null){
+			channel.send(text);
+		}
+		else{
+			var toSend = text;
+			createCommChannel(function (){
+				channel.send(toSend);
+			})
+		}
 	}
-	webinos.getSessionId = function() {
-		return sessionid;
-	}
-	webinos.getPZPId = function() {
-		return pzpid;
-	}
-	webinos.getPZHId = function() {
-		return pzhid;
-	}
-	webinos.getOtherPZP = function() {
-		return otherpzp;
-	}
+	
 	/**
 	 * Creates the socket communication channel
 	 * for a locally hosted websocket server at port 8080
 	 * for now this channel is used for sending RPC, later the webinos
 	 * messaging/eventing system will be used
 	 */
-	function createCommChannel(successCB) {
+	function createCommChannel (successCB){
 		try{
-			channel  = new WebSocket('ws://127.0.0.1:8081');
-		} catch(e) {
-			channel  = new MozWebSocket('ws://127.0.0.1:8080');
-		}
-				
+			channel  = new WebSocket('ws://127.0.0.1:8080');
+			}catch(e){
+				channel  = new MozWebSocket('ws://127.0.0.1:8080');
+			}
+		channel.onopen = function() {
+			webinos.rpc.setWriter(write);
+			if (typeof successCB === 'function') successCB();
+		};
 		channel.onmessage = function(ev) {
-			console.log('WebSocket Client: Message Received');
-			console.log(JSON.parse(ev.data));
-			var data = JSON.parse(ev.data);
-			if(data.type === "prop" && data.payload.status === 'registeredBrowser') {
-				sessionid = data.to;
-				pzpid = data.from;
-				pzhid = data.resp_to;
-				otherpzp = data.payload.message;
-				webinos.message.setGet(sessionid);
-				var msg = webinos.message.registerSender(sessionid,pzpid);
-				webinos.send(msg);
-			}
-			else {
-				webinos.message.onMessageReceived(JSON.stringify(data));
-			}
+			webinos.rpc.handleMessage(ev.data);
 		};
 	}
 	createCommChannel ();
-			
+	
+	
+	
+	
 	if (typeof webinos === 'undefined') webinos = {}; 
 	
+	
+	
+
+	
 	///////////////////// WEBINOS INTERNAL COMMUNICATION INTERFACE ///////////////////////////////
+
+	
 	function logObj(obj, name){
 		for (var myKey in obj){
 			console.log(name + "["+myKey +"] = "+obj[myKey]);
 			if (typeof obj[myKey] == 'object') logObj(obj[myKey], name + "." + myKey);
 		}
 	}
+
 	///////////////////// WEBINOS DISCOVERY INTERFACE ///////////////////////////////
 	
 	webinos.ServiceDiscovery = {};
@@ -108,46 +100,22 @@
 			return;
 		}
 		
-		if (type == "Vehicle"){
-			var tmp = new Vehicle();
-			tmp.origin = 'ws://127.0.0.1:8080';
-			webinos.ServiceDiscovery.registeredServices++;
-			callback.onFound(tmp);
-			return;
-		}
-
-		if (type == "Geolocation"){	// 'Geolocation' is registered rpc service name
-			var tmp = new webinosGeolocation();  // see below for geolocation api definition
-			tmp.origin = 'ws://127.0.0.1:8080';
-			webinos.ServiceDiscovery.registeredServices++;
-			callback.onFound(tmp);
-			return;
-		}
-		
-		if (type == 'LocalFileSystem') {
+		if (type == 'RemoteFileSystem') {
 			webinos.ServiceDiscovery.registeredServices++;
 			
-			return void (callback.onFound(new webinos.file.LocalFileSystem()));
+			return void (callback.onFound(new webinos.fs.RemoteFileSystem()));
 		}
 		
-		if (type == 'Sensors') {
-			var sensor = new Sensor();
-			sensor.api = "SensorAPI" + Math.floor(Math.random()*101);
-			callback.onFound(sensor);
-			return;
-		}
-		
-		if (type == "UserProfileInt"){
-			var tmp = new UserProfileIntModule();
-			tmp.origin = 'ws://127.0.0.1:8080';
-			webinos.ServiceDiscovery.registeredServices++;
+		if (type == "TVManager"){
+			var tmp = webinos.tv;
 			callback.onFound(tmp);
 			return;
 		}
 		
 		
 		
-	};
+		
+	}
 	
 	///////////////////// WEBINOS SERVICE INTERFACE ///////////////////////////////
 	
@@ -155,24 +123,6 @@
 		this.id = Math.floor(Math.random()*101);
 		
 	};
-	
-	WebinosService.prototype.state = "";
-    
-
-	WebinosService.prototype.api = "";
-    
-
-	WebinosService.prototype.id = "";
-    
-
-	WebinosService.prototype.displayName = "";
-    
-
-	WebinosService.prototype.description = "";
-    
-
-	WebinosService.prototype.icon = "";
-
 	
 	
 	WebinosService.prototype.bind = function(success) {
@@ -194,7 +144,7 @@
 			channel.close();
 			channel = null;
 		}
-	};
+	}
 
 	
 	///////////////////// BLOB INTERFACE ///////////////////////////////
@@ -203,7 +153,7 @@
     
     Blob = function () {
     	
-    };
+    }
         
      Blob.prototype.size = 0;
      
@@ -350,35 +300,35 @@
 				fileSaver.readyState = fileWriter.DONE;
 				fileSaver.onwriteend();
 			}
-		};
+		}
 		callback.onwritestart = function (params, successCallback, errorCallback, objectRef) {
 			if (fileSaver.onwritestart != null){
 				fileSaver.onwritestart();
 				fileSaver.readyState = fileWriter.WRITING;
 			}
-		};
+		}
 		callback.onerror = function (params, successCallback, errorCallback, objectRef) {
 			if (fileSaver.onerror != null){
 				fileSaver.onerror(params[0]);
 				fileSaver.readyState = fileWriter.DONE;
 			}
-		};
+		}
 		callback.onwrite = function (params, successCallback, errorCallback, objectRef) {
 			if (fileSaver.onwrite != null){
 				fileSaver.onwrite();
 			}
-		};
+		}
 		callback.onprogress = function (params, successCallback, errorCallback, objectRef) {
 			if (fileSaver.onprogress != null){
 				fileSaver.onprogress();
 			}
-		};
+		}
 		callback.onabort = function (params, successCallback, errorCallback, objectRef) {
 			if (fileSaver.onabort != null){
 				fileSaver.onabort();
 				fileSaver.readyState = fileWriter.DONE;
 			}
-		};
+		}
 		webinos.rpc.registerObject(fileSaver.objectRef , callback);
 		
 		var rpc = webinos.rpc.createRPC("FileSaver", "saveAs", arguments);
@@ -430,35 +380,35 @@
 				fileWriter.readyState = fileWriter.DONE;
 				fileWriter.onwriteend();
 			}
-		};
+		}
 		callback.onwritestart = function (params, successCallback, errorCallback, objectRef) {
 			if (fileWriter.onwritestart != null){
 				fileWriter.onwritestart();
 				fileWriter.readyState = fileWriter.WRITING;
 			}
-		};
+		}
 		callback.onerror = function (params, successCallback, errorCallback, objectRef) {
 			if (fileWriter.onerror != null){
 				fileWriter.onerror(params[0]);
 				fileWriter.readyState = fileWriter.DONE;
 			}
-		};
+		}
 		callback.onwrite = function (params, successCallback, errorCallback, objectRef) {
 			if (fileWriter.onwrite != null){
 				fileWriter.onwrite();
 			}
-		};
+		}
 		callback.onprogress = function (params, successCallback, errorCallback, objectRef) {
 			if (fileWriter.onprogress != null){
 				fileWriter.onprogress();
 			}
-		};
+		}
 		callback.onabort = function (params, successCallback, errorCallback, objectRef) {
 			if (fileWriter.onabort != null){
 				fileWriter.onabort();
 				fileWriter.readyState = fileWriter.DONE;
 			}
-		};
+		}
 		webinos.rpc.registerObject(fileWriter.objectRef , callback);
 		
 		return fileWriter;
@@ -481,10 +431,10 @@
 		var rpc = webinos.rpc.createRPC("FileWriter", "write", arguments);
 		rpc.fromObjectRef = this.objectRef;
 		webinos.rpc.executeRPC(rpc);
-	};
+	}
 	WebinosFileWriter.prototype.seek = function (offset) {
 		if (this.readyState == this.WRITING) throw ("INVALID_STATE_ERR");
-	};
+	}
     
 	WebinosFileWriter.prototype.truncate = function (size) {
 		if (this.readyState == this.WRITING
@@ -497,145 +447,6 @@
 		var rpc = webinos.rpc.createRPC("FileWriter", "truncate", arguments);
 		rpc.fromObjectRef = this.objectRef;
 		webinos.rpc.executeRPC(rpc);
-	};
-	
-	///////////////////// VEHICLE INTERFACE ///////////////////////////////
-	var Vehicle;
-	
-	var _referenceMapping = new Array();
-	var _vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passenger-front', 'climate-passenger-rear-left','passenger-rear-right','lights-fog-front','lights-fog-rear','lights-signal-right','lights-signal-warn','lights-parking-hibeam','lights-head','lights-head','wiper-front-wash','wiper-rear-wash','wiper-automatic','wiper-front-once','wiper-rear-once','wiper-front-level1','wiper-front-level2','destination-reached','destination-changed','destination-cancelled','parksensors-front','parksensors-rear','shift','tripcomputer'); 
-	
-	
-	Vehicle = function(){} ;
-	Vehicle.prototype = WebinosService.prototype;
-	Vehicle.prototype.get = function(vehicleDataId, callOnSuccess, callOnError){	
-		
-		
-		arguments[0] = vehicleDataId;
-		var rpc = webinos.rpc.createRPC("Vehicle", "get", arguments);
-		
-		webinos.rpc.executeRPC(rpc,
-			function(result){
-					callOnSuccess(result);
-				},
-			function(error){
-					callOnError(error);
-				}
-		);
-		
-		
-		};
-	Vehicle.prototype.addEventListener = function(vehicleDataId, eventHandler, capture){
-		
-				
-		if(_vehicleDataIds.indexOf(vehicleDataId) != -1){	
-			var rpc = webinos.rpc.createRPC("Vehicle", "addEventListener", vehicleDataId);
-			rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
-			
-			_referenceMapping.push([rpc.fromObjectRef, eventHandler]);
-			console.log('# of references' + _referenceMapping.length);
-			callback = {};
-			callback.onEvent = function (vehicleEvent) {
-				eventHandler(vehicleEvent);
-			};
-			webinos.rpc.registerObject(rpc.fromObjectRef , callback);
-			webinos.rpc.executeRPC(rpc);
-		}else{
-			console.log(vehicleDataId + ' not found');	
-		}
-	
-	};
-		
-	Vehicle.prototype.removeEventListener = function(vehicleDataId, eventHandler, capture){
-		var refToBeDeleted = null;
-		for(i = 0; i < _referenceMapping.length; i++){
-			console.log("Reference" + i + ": " + _referenceMapping[i][0]);
-			console.log("Handler" + i + ": " + _referenceMapping[i][1]);
-			if(_referenceMapping[i][1] == eventHandler){
-					var arguments = new Array();
-					arguments[0] = _referenceMapping[i][0];
-					arguments[1] = vehicleDataId;
-					
-					
-					console.log("ListenerObject to be removed ref#" + refToBeDeleted);					
-					var rpc = webinos.rpc.createRPC("Vehicle", "removeEventListener", arguments);
-					webinos.rpc.executeRPC(rpc,
-					function(result){
-						callOnSuccess(result);
-					},
-					function(error){
-						callOnError(error);
-					}
-		);
-					break;			
-			}	
-		}
-	};
-	Vehicle.prototype.requestGuidance = function(successCB, errorCB, destinations){
-		console.log('request guidance');
-		
-	};
-	Vehicle.prototype.findDestination = function(destinationCB, errorCB, search){
-		console.log('Find Destination...');
-	};
-
-	///////////////////// GEOLOCATION INTERFACE ///////////////////////////////
-	
-	var webinosGeolocation;
-
-	webinosGeolocation = function () {
-		// this.objectRef = Math.floor(Math.random()*101);
-	};
-
-	webinosGeolocation.prototype = WebinosService.prototype;
-
-	webinosGeolocation.prototype.getCurrentPosition = function (PositionCB, PositionErrorCB, PositionOptions) {  // according to webinos api definition 
-			var rpc = webinos.rpc.createRPC("Geolocation", "getCurrentPosition", PositionOptions); // RPC service name, function, position options
-			webinos.rpc.executeRPC(rpc,
-					function (position){  // this is called on success
-						PositionCB(position); 
-					},
-					function (error){ // this is called on error
-						PositionErrorCB(error);
-					}
-			);
-		};
-
-	webinosGeolocation.prototype.watchPosition = function (PositionCB, PositionErrorCB, PositionOptions) {   // not yet working
-			var rpc = webinos.rpc.createRPC("Geolocation", "watchPosition", PositionOptions); // RPC service name, function, options
-			// rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
-			/* /create the result callback
-			callback = {};
-			callback.locationUpdate = function (params, successCallback, errorCallback, objectRef) {
-				alert("watchPosition update: " + JSON.stringify(params));
-				PositionCB(params);
-			};
-			
-			//register the object as being remotely accessible
-			webinos.rpc.registerObject(rpc.fromObjectRef, callback);			
-			*/
-			var watchId = webinos.rpc.executeRPC(rpc,
-					function (position){  // this is called on success
-						PositionCB(position); 
-					},
-					function (error){ // this is called on error
-						PositionErrorCB(error);
-					}
-			);
-			return(watchId);
-		};
-
-	webinosGeolocation.prototype.clearWatch = function (watchId) {   // not yet working
-			var rpc = webinos.rpc.createRPC("Geolocation", "clearWatch", watchId); 
-			webinos.rpc.executeRPC(rpc,
-					function (result){  // this is called on success
-						alert("successfully cleared watch");
-					},
-					function (error){ // this is called on error
-						alert("error upon clearWatch: " + error);
-					}
-			);
-		};
-	
+	}
 	
 }());

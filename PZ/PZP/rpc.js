@@ -231,6 +231,14 @@ if (typeof exports !== 'undefined'){
 
 	//add your RPC Implementations here!
 	require('./rpc_test.js');
+	require('./rpc_file.js');
+	require('./rpc_test.js');
+	require('./rpc_vehicle.js');
+	require('./webinos.rpc.file.js');
+	require('./rpc_sensors.js');
+	require('./rpc_geolocation.js');
+	require('./tv/provider/webinos.rpc.tv.js');
+	require('./UserProfile/Server/UserProfileServer.js');
 
 }
 
