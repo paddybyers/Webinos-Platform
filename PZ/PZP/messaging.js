@@ -47,12 +47,14 @@ var address = {
 
 var message = {};
 var messageCallbacks = {};
+var object; 
 
 /**
  * Sets the send that should be used to send message on a specific session.
  */
-webinos.message.setSend = function (sender){
+webinos.message.setSend = function (obj, sender){
 	send = sender;
+	object = obj;
 }
 
 webinos.message.setGet = function (getter){
@@ -148,18 +150,18 @@ function write(rpc, respto, msgid){
                   console.log("Message: forwardto", forwardto);
                 }
 	       }
-		send(message,forwardto);
+		object.sendMessage(message,forwardto);
 	    }
 	      else if(clients[session2])
               {
                 console.log("Message: clients[session2]:" + clients[session2]);
-		send(message, clients[session2]);
+		object.sendMessage(message, clients[session2]);
               }
 	      else if(clients[session1])
               {
                 console.log("Message: clients[session1]:" + clients[session1]);
 
-		send(message, clients[session1]);
+		object.sendMessage(message, clients[session1]);
               }
 
 }
@@ -247,17 +249,17 @@ webinos.message.onMessageReceived = function(message, sessionid){
           if(clients[new_session1] || clients[new_session2])
             forwardto = id;
 	}
-        send(message,forwardto);
+        object.sendMessage(message,forwardto);
       }
       else if(clients[session2])
       {
         console.log("Message: session2 is up");
-        send(message, clients[session2]);
+        object.sendMessage(message, clients[session2]);
       }
       else if(clients[session1])
       {
         console.log("Message: session1 is up, clients[session1]:", clients[session1]);
-        send(message, clients[session1]);
+        object.sendMessage(message, clients[session1]);
       }	
 
       return;

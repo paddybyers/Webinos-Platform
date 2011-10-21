@@ -1,5 +1,6 @@
 var  fs = require('fs'),
-     crypto = require('crypto'),	
+    crypto = require('crypto'),
+	child_process = require('child_process'),
 	x,
 	generator;
 
@@ -96,8 +97,39 @@ exports.generateSelfSignedCert = function(self) {
 	if(typeof self.config.keyname !== "undefined") {
 		fs.readFile(self.config.keyname, function (err) {
 			if (err) {
+			child_process.exec('openssl genrsa -out ' + self.config.keyname + ' ' +self.config.keysize);
+			setTimeout(function() {
+				var req = 'openssl req -new -subj \"/C='+self.config.country+'/ST='+self.config.state+
+					'/L='+self.config.city+'/CN='+self.config.common+'/emailAddress='+self.config.email + '\" -key ' 
+					+ self.config.keyname + ' -out temp1.csr';//'+self.config.certname;
+				console.log(req);
+				child_process.exec(req, function (error, stdout, stderr) {
+						console.log('stdout: ' + stdout);
+						console.log('stderr: ' + stderr);
+						if (error !== null) {
+						  console.log('exec error: ' + error);
+						};
+					});
+				setTimeout(function() {
+					var req = 'openssl x509 -req -days ' + self.config.days + ' -in temp1.csr -signkey ' + self.config.keyname + ' -out ' + self.config.certname;
+					child_process.exec(req);
+					setTimeout(function() {
+						self.emit('generatedCert','true');
+					}, 500);
+				}, 500);
+			
+			}, 500);
+			
 			// Bits for key to be generated | KeyName
-				generator.genPrivateKey(self.config.keysize, self.config.keyname);
+				/*child_process.exec('openssl genrsa -out ' + self.config.keyname + ' ' +self.config.keysize,
+					function (error, stdout, stderr) {
+						console.log('stdout: ' + stdout);
+						console.log('stderr: ' + stderr);
+						if (error !== null) {
+						  console.log('exec error: ' + error);
+						};
+					});
+				/*generator.genPrivateKey(self.config.keysize, self.config.keyname);
 				generator.genSelfSignedCertificate(self.config.country,
 					self.config.state,
 					self.config.city,
@@ -107,11 +139,11 @@ exports.generateSelfSignedCert = function(self) {
 					self.config.email,
 					self.config.days,
 					self.config.certname,
-					self.config.keyname);
-				self.emit('generatedCert','true');
-				return;	
+					self.config.keyname);*/
+							
+			} else {
+				self.emit('generatedCert','false');
 			}
-			self.emit('generatedCert','false');
 		});
 	} 
 };
@@ -119,30 +151,39 @@ exports.generateSelfSignedCert = function(self) {
 /* This creates certificate signed by master certificate on PZH. This function
  *  is used twice on PZH only. This results in native code call.
  */
-exports.generateServerCertifiedCert = function(cert, config) {
-	generator.genCertifiedCertificate(cert,
-		config.days,
-		config.certname,
-		config.mastercertname,
-		config.masterkeyname,
-		function(err) {
-			console.log('PZ Common: Certificate generation error' + err);
-		});
+exports.generateServerCertifiedCert = function(config) {
+	/*generator.genCertifiedCertificate(cert,	config.days, config.certname, config.mastercertname, config.masterkeyname, 
+	function(err) {	console.log('PZ Common: Certificate generation error' + err);});*/
+	var req = 'openssl x509 -req -days ' + config.days + ' -in temp1.csr -CAcreateserial -CAkey ' + config.masterkeyname + ' -CA ' + config.mastercertname+' -out ' + config.certname;
+
+	console.log(req);
+
+	child_process.exec(req,  function (error, stdout, stderr) {
+						console.log('stdout: ' + stdout);
+						console.log('stderr: ' + stderr);
+						if (error !== null) {
+						  console.log('exec error: ' + error);
+						};
+					});
 };
+
 
 /* This is called once from PZH to generate master certificate for PZH.
  * This results in native code call.
  */
 exports.generateClientCertifiedCert = function(cert, config) {
 	if( cert !== ""){
-		generator.genCertifiedCertificate(cert,
-			config.days,
-			config.clientcertname,
-			config.mastercertname,
-			config.masterkeyname,
-			function(err) {
-				console.log('PZ Common: Certificate generation error' + err);
-			});
+		/*generator.genCertifiedCertificate(cert, config.days, config.clientcertname,	config.mastercertname, config.masterkeyname, 
+			function(err) {	console.log('PZ Common: Certificate generation error' + err);});*/
+		var req = 'openssl x509 -days ' + config.days + ' -in ' + config.clientcertname + ' -CAcreateserial -CAkey ' + config.masterkeyname + ' -CA ' + config.mastercertname + ' -out ' + config.clientcertname;
+		console.log(req);
+		child_process.exec(req, function (error, stdout, stderr) {
+						console.log('stdout: ' + stdout);
+						console.log('stderr: ' + stderr);
+						if (error !== null) {
+						  console.log('exec error: ' + error);
+						};
+					});
 	}
 };
 
@@ -177,12 +218,11 @@ exports.removeClient = function(client, conn) {
 exports.generateMasterCert = function (self) {
 	console.log('PZ Common: generating master server key');
 	// Bits for key to be generated | KeyName
-	generator.genPrivateKey(self.config.masterkeysize, self.config.masterkeyname);
+	//generator.genPrivateKey(self.config.masterkeysize, self.config.masterkeyname);
 
-	console.log('PZ Common: generating master server cert');
 	// Country, State, City, OrgName, OrgUnit, Common, Email, Days, CertificateName
 	var common = 'MasterCert:' + self.config.common;
-	generator.genSelfSignedCertificate(self.config.country,
+	/*generator.genSelfSignedCertificate(self.config.country,
 						self.config.state,
 						self.config.city,
 						self.config.orgname,
@@ -192,5 +232,13 @@ exports.generateMasterCert = function (self) {
 						self.config.days,
 						self.config.mastercertname,
 						self.config.masterkeyname);
+*/
+	child_process.exec('openssl genrsa -out ' + self.config.masterkeyname + ' ' +self.config.masterkeysize);
+	var req = 'openssl req -new -subj \"/C='+self.config.country+'/ST='+self.config.state+'/L='+self.config.city+'/CN='+common+
+	'/emailAddress='+self.config.email + '\" -key ' + self.config.masterkeyname + ' -out temp.pem';
+	console.log('PZ Common: generating master server cert');
+	child_process.exec(req);
+	var req = 'openssl x509 -req -days ' + self.config.days + ' -in temp.pem -signkey ' + self.config.masterkeyname + ' -out ' + self.config.mastercertname;
+	child_process.exec(req);
 };
 
