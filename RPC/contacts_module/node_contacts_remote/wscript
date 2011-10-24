@@ -1,5 +1,5 @@
 srcdir = '.'
-blddir = '../node_contacts_remote.build' #set an out of source tree build directory so source directory does not get messy
+blddir = './build' #'../node_contacts_remote.build' #set an out of source tree build directory so source directory does not get messy
 
 def set_options(opt):
   opt.tool_options("compiler_cxx")

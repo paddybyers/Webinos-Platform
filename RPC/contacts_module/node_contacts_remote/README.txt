@@ -14,16 +14,18 @@ INSTRUCTIONS:
 
 To build and install the node:
 
-  node-waf configure build install
+  node-waf configure build
 
-The extension will be build OUTSIDE the source three, in a directory called node_contacts_remote.build one level above. There you will find a remote_contacts.js which interfaces the remotecontacts.node C++ module.
+The extension will be built in a directory called "build". 
+
+remote_contacts.js interfaces the remotecontacts.node C++ module which is built into build/default.
 
 C++ extension module source files are under the src/ folder.
 
-standaloneCpp/ folder provides a standalone C++ test and debug program for the basic C++ classes with a CMake file to compile it (it should cross-compile). Better use CMake GUI to make this task easier.
+test/standaloneCpp/ folder provides a standalone C++ test and debug program for the basic C++ classes with a CMake file to compile it (it should cross-compile). Better use CMake GUI to make this task easier.
 
-standaloneJS/ folder provides a test.js file to test the C++ wrappers and binding of this module. To run it, once the extension module has been compiled:
+test/standaloneJS/ folder provides a test.js file to test the C++ wrappers and binding of this module. To run it, once the extension module has been compiled:
 
-  cd standaloneJS
+  cd test/standaloneJS
   node test.js
 

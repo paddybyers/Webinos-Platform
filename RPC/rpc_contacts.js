@@ -18,44 +18,46 @@ if (typeof webinos === 'undefined')
   var webinos = {};
 webinos.rpc = require('./rpc.js');
 
-require.paths.unshift("./contacts_module");
+require.paths.unshift(__dirname +"/contacts_module");
 var contacts_module = require("contacts_module");
 
+console.log("in rpc_contacts.js ...")
+
 // Contacts specific errors TODO for some reason not working
-var ContactError = function() {
-  // TODO implement constructor logic if needed!
-
-  // TODO initialize attributes
-
-  this.code = Number;
-};
-
-// An unknown error occurred.
-ContactError.prototype.UNKNOWN_ERROR = 0;
-
-// An invalid parameter was provided when the requested method was invoked
-ContactError.prototype.INVALID_ARGUMENT_ERROR = 1;
-
-// The requested method timed out before it could be completed
-ContactError.prototype.TIMEOUT_ERROR = 2;
-
-// There is already a task in the device task source
-ContactError.prototype.PENDING_OPERATION_ERROR = 3;
-
-// An error occurred in communication with the underlying implementation that
-// meant the requested method could not complete
-ContactError.prototype.IO_ERROR = 4;
-
-// The requested method is not supported by the current implementation
-ContactError.prototype.NOT_SUPPORTED_ERROR = 5;
-
-// Access to the requested information was denied by the implementation or by
-// the user
-ContactError.prototype.PERMISSION_DENIED_ERROR = 20;
-
-// An error code assigned by an implementation when an error has occurred in
-// Contacts API processing. No exceptions
-ContactError.prototype.code = Number;
+//var ContactError = function() {
+//  // TODO implement constructor logic if needed!
+//
+//  // TODO initialize attributes
+//
+//  this.code = Number;
+//};
+//
+//// An unknown error occurred.
+//ContactError.prototype.UNKNOWN_ERROR = 0;
+//
+//// An invalid parameter was provided when the requested method was invoked
+//ContactError.prototype.INVALID_ARGUMENT_ERROR = 1;
+//
+//// The requested method timed out before it could be completed
+//ContactError.prototype.TIMEOUT_ERROR = 2;
+//
+//// There is already a task in the device task source
+//ContactError.prototype.PENDING_OPERATION_ERROR = 3;
+//
+//// An error occurred in communication with the underlying implementation that
+//// meant the requested method could not complete
+//ContactError.prototype.IO_ERROR = 4;
+//
+//// The requested method is not supported by the current implementation
+//ContactError.prototype.NOT_SUPPORTED_ERROR = 5;
+//
+//// Access to the requested information was denied by the implementation or by
+//// the user
+//ContactError.prototype.PERMISSION_DENIED_ERROR = 20;
+//
+//// An error code assigned by an implementation when an error has occurred in
+//// Contacts API processing. No exceptions
+//ContactError.prototype.code = Number;
 
 // Contacts Object Registration
 var Contacts = new RPCWebinosService({
@@ -64,18 +66,6 @@ var Contacts = new RPCWebinosService({
   description:'W3C Contacts Module'
 });
 
-// Instantiation of local and remote contacts modules
-Contacts.LocalContacts = new contacts_module.local.contacts();
-Contacts.RemoteContacts = new contacts_module.remote.contacts();
-
-/*
- * TODO expose only following functions:
- * 
- * bool authenticate(params) params is (remote/local flag + func_params = usr,
- * pwd if remote, addressBook name if local (open a file selection form in
- * client please!) bool isAuthenticated(params) - no W3C but but find() - W3C
- */
-
 /**
  * returns true if contacts service is already authenticated with GMail or a
  * valid address book file is aready open TODO this method has to be removed
@@ -83,17 +73,7 @@ Contacts.RemoteContacts = new contacts_module.remote.contacts();
  */
 function authenticate(params, successCB, errorCB, objectRef)
 {
-  if (params)
-  {
-    if (params[0]['type'] == "local")
-    {
-      successCB(Contacts.LocalContacts.open(params[0]['addressBookName']));
-    } else if (params[0]['type'] == "remote")
-    {
-      successCB(Contacts.RemoteContacts.logIn(params[0]['usr'],
-        params[0]['pwd']));
-    }
-  }
+  contacts_module.authenticate(params,successCB);
 }
 
 /**
@@ -103,16 +83,7 @@ function authenticate(params, successCB, errorCB, objectRef)
  */
 function isAlreadyAuthenticated(params, successCB, errorCB, objectRef)
 {
-  if (params)
-  {
-    if (params[0]['type'] == "local")
-    {
-      successCB(Contacts.LocalContacts.isOpen());
-    } else if (params[0]['type'] == "remote")
-    {
-      successCB(Contacts.RemoteContacts.isLoggedIn());
-    }
-  }
+  contacts_module.isAlreadyAuthenticated(params,successCB);
 }
 
 /**
@@ -121,24 +92,16 @@ function isAlreadyAuthenticated(params, successCB, errorCB, objectRef)
  */
 function getAllContacts(params, successCB, errorCB, objectRef)
 {
-  if (params)
-  {
-    if (params[0]['type'] == "local")
-    {
-      successCB(Contacts.LocalContacts.getAB());
-    } else if (params[0]['type'] == "remote")
-    {
-      successCB(Contacts.RemoteContacts.getContacts());
-    }
-  }
+  contacts_module.getAllContacts(params,successCB);
 }
 
 /**
- * TODO W3C Spec
+ * TODO full W3C Spec
  */
 function find(params, successCB, errorCB, objectRef)
 {
-  console.log("Not implemented yet");
+  contacts_module.findContacts(params,successCB);
+  //contacts_module.find(params,successCB); //TODO use contacts_module.find() directly once switching remote/local contacts happens in a different way
 }
 
 //www.w3.org/ns/api-perms/
@@ -148,7 +111,6 @@ function find(params, successCB, errorCB, objectRef)
 Contacts.authenticate = authenticate;
 Contacts.isAlreadyAuthenticated = isAlreadyAuthenticated;
 Contacts.getAllContacts = getAllContacts;
-
 Contacts.find = find;
 
 console.log("Registering Contacts module")

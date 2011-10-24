@@ -17,16 +17,112 @@
 #include "gAddressBook.h"
 #include <cstring>
 
-std::ostream& operator<<(std::ostream& out, const RawContact &rc )
+std::ostream& operator<<(std::ostream& out, const W3CContact &w3c)
 {
-  RawContact::const_iterator iter;
-  out<<"{"<<std::endl;
-  for ( iter = rc.begin(); iter != rc.end(); iter++ )
-  {
-    out<<iter->first<<": "<<iter->second<<std::endl;
-  }
-  out<<"}"<<std::endl;
-  return out;
+    out << "{" << std::endl;
+
+    out << "id : " << w3c.id << std::endl;
+    out << "displayName : " << w3c.displayName << std::endl;
+
+    //structured name
+    std::map<std::string, std::string>::const_iterator name_it;
+    out << "name : [";
+    for (name_it = w3c.name.begin(); name_it != w3c.name.end(); name_it++)
+    {
+        out << name_it->first << ": " << name_it->second << "; ";
+    }
+    out << " ]" << std::endl;
+
+    //phone numbers
+    out << "phones : [";
+    for (size_t i = 0; i < w3c.phoneNumbers.size(); i++)
+    {
+        std::map<std::string, std::string>::const_iterator phone_it;
+        out << "phone #" << i << ": [";
+        for (phone_it = w3c.phoneNumbers.at(i).begin(); phone_it != w3c.phoneNumbers.at(i).end(); phone_it++)
+        {
+            out << phone_it->first << ": " << phone_it->second << "; ";
+        }
+        out << " ]" << std::endl;
+    }
+    out << " ]" << std::endl;
+
+    //emails
+    out << "emails : [";
+    for (size_t i = 0; i < w3c.emails.size(); i++)
+    {
+        std::map<std::string, std::string>::const_iterator email_it;
+        out << "email #" << i << ": [";
+        for (email_it = w3c.emails.at(i).begin(); email_it != w3c.emails.at(i).end(); email_it++)
+        {
+            out << email_it->first << ": " << email_it->second << "; ";
+        }
+        out << " ]" << std::endl;
+    }
+    out << " ]" << std::endl;
+
+    //addresses
+    out << "addresses : [";
+    for (size_t i = 0; i < w3c.addresses.size(); i++)
+    {
+        std::map<std::string, std::string>::const_iterator addr_it;
+        out << "address #" << i << ": [";
+        for (addr_it = w3c.addresses.at(i).begin(); addr_it != w3c.addresses.at(i).end(); addr_it++)
+        {
+            out << addr_it->first << ": " << addr_it->second << "; ";
+        }
+        out << " ]" << std::endl;
+    }
+    out << " ]" << std::endl;
+
+    //ims
+    out << "ims : [";
+    for (size_t i = 0; i < w3c.ims.size(); i++)
+    {
+        std::map<std::string, std::string>::const_iterator im_it;
+        out << "im #" << i << ": [";
+        for (im_it = w3c.ims.at(i).begin(); im_it != w3c.ims.at(i).end(); im_it++)
+        {
+            out << im_it->first << ": " << im_it->second << "; ";
+        }
+        out << " ]" << std::endl;
+    }
+    out << " ]" << std::endl;
+
+    //orgs
+    out << "organizations : [";
+    for (size_t i = 0; i < w3c.organizations.size(); i++)
+    {
+        std::map<std::string, std::string>::const_iterator org_it;
+        out << "org #" << i << ": [";
+        for (org_it = w3c.organizations.at(i).begin(); org_it != w3c.organizations.at(i).end(); org_it++)
+        {
+            out << org_it->first << ": " << org_it->second << "; ";
+        }
+        out << " ]" << std::endl;
+    }
+    out << " ]" << std::endl;
+
+    out << "revision : " << w3c.revision << std::endl;
+    out << "birthday : " << w3c.birthday << std::endl;
+    out << "note : " << w3c.note << std::endl;
+
+    //Urls
+    out << "Urls : [";
+    for (size_t i = 0; i < w3c.urls.size(); i++)
+    {
+        std::map<std::string, std::string>::const_iterator url_it;
+        out << "url #" << i << ": [";
+        for (url_it = w3c.urls.at(i).begin(); url_it != w3c.urls.at(i).end(); url_it++)
+        {
+            out << url_it->first << ": " << url_it->second << "; ";
+        }
+        out << " ]" << std::endl;
+    }
+    out << " ]" << std::endl;
+
+    out << "}" << std::endl;
+    return out;
 }
 
 GCalAddressBook::GCalAddressBook()
@@ -36,167 +132,316 @@ GCalAddressBook::GCalAddressBook()
 
 GCalAddressBook::~GCalAddressBook()
 {
-  if (!m_password.empty())
-    logout();
+    if (!m_password.empty())
+        logout();
 }
-
 
 bool GCalAddressBook::authenticate(std::string username, std::string password)
 {
-  int resultCode=-1;
-  m_username=username;
-  m_password=password;
+    int resultCode = -1;
+    m_username = username;
+    m_password = password;
 
-  if(!(m_gcalToken = gcal_new(GCONTACT)))
-    return false;
-  
-  resultCode = gcal_get_authentication(m_gcalToken, (char*)m_username.c_str(), (char*)m_password.c_str());
-  //gcal_get_authentication returns 0 if success!
-  
-  return (resultCode==0);
+    if (!(m_gcalToken = gcal_new(GCONTACT)))
+        return false;
+
+    resultCode = gcal_get_authentication(m_gcalToken, (char*) m_username.c_str(), (char*) m_password.c_str());
+    //gcal_get_authentication returns 0 if success!
+
+    return (resultCode == 0);
 }
 
 void GCalAddressBook::logout()
 {
-  gcal_destroy(m_gcalToken);
-  //TODO shall we delete credentials?
-  m_username="";
-  m_password="";
+    gcal_destroy(m_gcalToken);
+    //TODO shall we delete credentials?
+    m_username = "";
+    m_password = "";
 }
 
-std::vector<RawContact> GCalAddressBook::getContacts()
+W3CContacts GCalAddressBook::getContacts()
 {
-  struct gcal_contact_array remoteContacts;
-  int result = gcal_get_contacts(m_gcalToken, &remoteContacts);
-  uint numOfContacts=remoteContacts.length;
+    struct gcal_contact_array remoteContacts;
+    int result = gcal_get_contacts(m_gcalToken, &remoteContacts);
+    uint numOfContacts = remoteContacts.length;
 
-  gcal_contact_t remoteContactEntry;
-  
-  //Let's pre-allocate the vector for efficiency sake
-  std::vector<RawContact> contactsVec(numOfContacts);
-  
-  if(result ==0 ) //if can't get contacts, return empty vector
-  {
-    for (uint i=0;i<numOfContacts;i++) 
+    gcal_contact_t remoteContactEntry;
+
+    //Let's pre-allocate the vector for efficiency sake
+    W3CContacts contactsVec(numOfContacts);
+
+    if (result == 0) //if can't get contacts, return empty vector
     {
-      remoteContactEntry = gcal_contact_element(&remoteContacts, i);
-      if(!remoteContactEntry)
-        break;
-      fromGCalContact(remoteContactEntry,contactsVec.at(i));
+        for (uint i = 0; i < numOfContacts; i++)
+        {
+            remoteContactEntry = gcal_contact_element(&remoteContacts, i);
+            if (!remoteContactEntry)
+                break;
+            fromGCalContact(remoteContactEntry, contactsVec.at(i));
+        }
+        gcal_cleanup_contacts(&remoteContacts);
     }
-    gcal_cleanup_contacts(&remoteContacts);
-  }
-  return contactsVec;
+    return contactsVec;
 }
 
-bool GCalAddressBook::addContact(RawContact &entry)
+void GCalAddressBook::fromGCalContact(gcal_contact_t gContact, W3CContact &w3cContact)
 {
-  //TODO use structured entries!!!: gcal_contact_get_structured_entry(contacts[i].structured_name,0,1,"fullName");
-  gcal_contact_t gContact;
-  struct gcal_contact updated;
-  gcal_init_contact(&updated);
-  int result=-1;
-  if((gContact = gcal_contact_new(NULL))) 
-  {
-    if(!entry["title"].empty())
-      gcal_contact_set_title(gContact, entry["title"].c_str());
-    if(!entry["content"].empty())
-      gcal_contact_set_content(gContact, entry["content"].c_str());
-    if(!entry["email"].empty())
-      gcal_contact_set_email(gContact, entry["email"].c_str());
-    if(!entry["org_name"].empty())
-      gcal_contact_set_organization(gContact, entry["org_name"].c_str());
-    if(!entry["org_title"].empty())
-      gcal_contact_set_profission(gContact, entry["org_title"].c_str());
-    if(!entry["phone"].empty())
-      gcal_contact_set_phone(gContact, entry["phone"].c_str());
-//        if(!entry["address"].empty()) //TODO:return error. Label?!
-//          gcal_contact_set_address(gContact, entry["address"].c_str());
-    
-    result = gcal_create_contact(m_gcalToken, gContact, &updated);
-  }
-//  else
-//    std::cout<<"DBG toGCalContact() ERROR"<<std::endl;
+    w3cContact.id = (gcal_contact_get_id(gContact) == NULL ? std::string("") : std::string(gcal_contact_get_id(gContact)));
+    w3cContact.displayName = (gcal_contact_get_title(gContact) == NULL ? std::string("") : std::string(gcal_contact_get_title(gContact)));
 
+    gcal_structured_subvalues_t gsc;
+    gsc = gcal_contact_get_structured_name(gContact);
+    w3cContact.name = parseStructuredName(gsc);
 
-  return (result==0);
+    w3cContact.nickname = (gcal_contact_get_nickname(gContact) == NULL ? std::string("") : std::string(gcal_contact_get_nickname(gContact)));
+    w3cContact.phoneNumbers = parsePhoneNumber(gContact);
+    w3cContact.emails = parseEmails(gContact);
+    w3cContact.addresses = parseAddresses(gContact);
+    w3cContact.ims = parseIms(gContact);
+    ;
+    w3cContact.organizations = parseOrganizations(gContact);
+    w3cContact.revision = (gcal_contact_get_updated(gContact) == NULL ? std::string("") : std::string(gcal_contact_get_updated(gContact)));
+    ;
+    w3cContact.birthday = (gcal_contact_get_birthday(gContact) == NULL ? std::string("") : std::string(gcal_contact_get_birthday(gContact)));
+    ;
+//    w3cContact.gender; //NOT MAPPED
+    w3cContact.note = (gcal_contact_get_content(gContact) == NULL ? std::string("") : std::string(gcal_contact_get_content(gContact)));
+    ;
+//    w3cContact.photos; //TODO
+//    w3cContact.categories; //NOT MAPPED
+    w3cContact.urls = parseUrls(gContact);
+//    w3cContact.timezone; //NOT MAPPED
 
 }
 
-bool GCalAddressBook::delContact(std::string name)
+std::map<std::string, std::string> GCalAddressBook::parseStructuredName(gcal_structured_subvalues_t gsc)
 {
-//  struct gcal_contact_array remoteContacts;
-//  int result = gcal_get_contacts(m_gcalToken, &remoteContacts);
-//  uint numOfContacts=remoteContacts.length;
-//  
-//  for (uint i=0;i<numOfContacts;i++) 
-//  {
-//    gcal_contact_t remoteContactEntry = gcal_contact_element(&remoteContacts, i);
-//    if(!remoteContactEntry)
-//      break;
-//    if(name==gcal_contact_get_title(remoteContactEntry))
-//    {  
-//      std::string contact_to_delete = std::string (gcal_contact_get_id(remoteContactEntry));
-//      gcal_contact_set_id(remoteContactEntry, contact_to_delete.c_str());
-//      result = gcal_erase_contact(m_gcalToken,remoteContactEntry);
-//      break; //break at first occurrence of name
-//    }
-//  }
-  gcal_contact_t contact;
-  char* contact_to_delete=NULL;
-  size_t i;
-  int result;
+    std::map < std::string, std::string > name;
+    std::stringstream ss;
 
-  struct gcal_contact_array remoteContacts;
-  gcal_get_contacts(m_gcalToken, &remoteContacts);
-
-  for(i=0;i<remoteContacts.length;++i) 
-  {
-    contact = gcal_contact_element(&remoteContacts, i);
-    if(strcmp(gcal_contact_get_title(contact), name.c_str()) == 0)
+    while (gsc->next_field != NULL)
     {
-      //TODO: there could be more than one contact 
-      contact_to_delete = strdup(gcal_contact_get_id(contact));
-      break;
+        if (gsc->field_key)
+        {
+            if (gsc->field_key == std::string("fullName"))
+                name["formatted"] = gsc->field_value;
+            if (gsc->field_key == std::string("familyName"))
+                name["familyName"] = gsc->field_value;
+            if (gsc->field_key == std::string("givenName"))
+                name["givenName"] = gsc->field_value;
+            if (gsc->field_key == std::string("additionalName"))
+                name["middleName"] = gsc->field_value;
+            if (gsc->field_key == std::string("namePrefix"))
+                name["honorificPrefix"] = gsc->field_value;
+            if (gsc->field_key == std::string("nameSuffix"))
+                name["honorificSuffix"] = gsc->field_value;
+        }
+
+        gsc = gsc->next_field;
     }
-  }
-
-  if(contact_to_delete) {
-   // printf("DBG: deleting contact id: %s\n", contact_to_delete);
-    gcal_contact_set_id(contact, contact_to_delete);
-    result = gcal_erase_contact(m_gcalToken, contact);
-  }
-  
-   //printf("DBG: contact %s not found!\n",title);
-
-  //gcal_contact_delete(contact);
-  //gcal_cleanup_contacts(&all_contacts);
-  //return result;
-
-  return (result==0);
-
+    return name;
 }
 
-bool GCalAddressBook::findContact(std::string name)
+std::vector<std::map<std::string, std::string> > GCalAddressBook::parsePhoneNumber(gcal_contact_t gContact)
 {
-  struct gcal_contact_array remoteContacts;
-  int result = gcal_get_contacts(m_gcalToken, &remoteContacts);
-  uint numOfContacts=remoteContacts.length;
-  
-  bool ret=false;
-  
-  //if result != 0 (i.e. no contact list, return false)
-  for (uint i=0;i<numOfContacts && (result==0);i++) 
-  {
-    gcal_contact_t remoteContactEntry = gcal_contact_element(&remoteContacts, i);
-    if(!remoteContactEntry)
-      break;
-    if(name==gcal_contact_get_title(remoteContactEntry))
-    {  
-      ret=true;
-      break; //break at first occurrence of name
+
+    int num_of_pn = gcal_contact_get_phone_numbers_count(gContact);
+    std::vector < std::map<std::string, std::string> > phoneNumbers(num_of_pn);
+
+    for (int i = 0; i < num_of_pn; i++)
+    {
+        phoneNumbers.at(i)["pref"] = (i == 0 ? "true" : "false");
+        phoneNumbers.at(i)["value"] = gcal_contact_get_phone_number(gContact, i);
+
+        std::string type = "";
+        switch (gcal_contact_get_phone_number_type(gContact, i))
+        {
+        case P_ASSISTANT:
+            type = "assistant";
+            break;
+        case P_CALLBACK:
+            type = "callback";
+            break;
+        case P_CAR:
+            type = "car";
+            break;
+        case P_COMPANY_MAIN:
+            type = "company";
+            break;
+        case P_FAX:
+            type = "fax";
+            break;
+        case P_HOME:
+            type = "home";
+            break;
+        case P_HOME_FAX:
+            type = "home_fax";
+            break;
+        case P_ISDN:
+            type = "isdn";
+            break;
+        case P_MAIN:
+            type = "main";
+            break;
+        case P_MOBILE:
+            type = "mobile";
+            break;
+        case P_OTHER:
+            type = "other";
+            break;
+        case P_OTHER_FAX:
+            type = "other_fax";
+            break;
+        case P_PAGER:
+            type = "pager";
+            break;
+        case P_RADIO:
+            type = "radio";
+            break;
+        case P_TELEX:
+            type = "telex";
+            break;
+        case P_TTY_TDD:
+            type = "tty_tdd";
+            break;
+        case P_WORK:
+            type = "work";
+            break;
+        case P_WORK_FAX:
+            type = "work_fax";
+            break;
+        case P_WORK_MOBILE:
+            type = "work_mobile";
+            break;
+        case P_WORK_PAGER:
+            type = "work_pager";
+            break;
+        default:
+            break;
+        }
+        phoneNumbers.at(i)["type"] = type;
+
     }
-  }
-  
-  return ret;
+
+    return phoneNumbers;
+}
+
+std::vector<std::map<std::string, std::string> > GCalAddressBook::parseEmails(gcal_contact_t gContact)
+{
+    int num_of_em = gcal_contact_get_emails_count(gContact);
+    std::vector < std::map<std::string, std::string> > emails(num_of_em);
+
+    int p = gcal_contact_get_pref_email(gContact); //pref email index
+    for (int i = 0; i < num_of_em; i++)
+    {
+        emails.at(i)["pref"] = (i == p ? "true" : "false");
+        emails.at(i)["value"] = gcal_contact_get_email_address(gContact, i);
+
+        std::string type = "";
+        switch (gcal_contact_get_email_address_type(gContact, i))
+        {
+        case E_HOME:
+            type = "home";
+            break;
+        case E_WORK:
+            type = "work";
+            break;
+        case E_OTHER:
+            type = "other";
+            break;
+        default:
+            break;
+        }
+        emails.at(i)["type"] = type;
+    }
+    return emails;
+}
+
+std::vector<std::map<std::string, std::string> > GCalAddressBook::parseAddresses(gcal_contact_t gContact)
+{
+    int num_addrs = gcal_contact_get_structured_address_count(gContact);
+    std::vector < std::map<std::string, std::string> > addresses(num_addrs);
+    int p = gcal_contact_get_pref_structured_address(gContact); //preferred address
+
+    gcal_structured_subvalues_t gsc;
+    gsc = gcal_contact_get_structured_address(gContact);
+    char*** types = gcal_contact_get_structured_address_type_obj(gContact);
+
+    while (gsc->next_field)
+    {
+        if (gsc->field_key)
+        {
+            if (gsc->field_typenr == p)
+                addresses.at(gsc->field_typenr)["pref"] = "true";
+            else
+                addresses.at(gsc->field_typenr)["pref"] = "false";
+            if (gsc->field_key == std::string("formattedAddress"))
+                addresses.at(gsc->field_typenr)["formatted"] = gsc->field_value;
+            if (gsc->field_key == std::string("street"))
+                addresses.at(gsc->field_typenr)["streetAddress"] = gsc->field_value;
+            addresses.at(gsc->field_typenr)["type"] = types[0][gsc->field_typenr];
+            //std::cout << gsc->field_key <<"("<<type<< "): " << gsc->field_value << "; - " <<gsc->field_typenr<<","<<type.empty()<< std::endl;
+        }
+        gsc = gsc->next_field;
+    }
+
+    return addresses;
+}
+
+std::vector<std::map<std::string, std::string> > GCalAddressBook::parseIms(gcal_contact_t gContact)
+{
+    int num_of_im = gcal_contact_get_im_count(gContact);
+    std::vector < std::map<std::string, std::string> > emails(num_of_im);
+
+    int p = gcal_contact_get_pref_im(gContact); //pref im index
+    for (int i = 0; i < num_of_im; i++)
+    {
+        emails.at(i)["pref"] = (i == p ? "true" : "false");
+        emails.at(i)["value"] = gcal_contact_get_im_address(gContact, i);
+        emails.at(i)["type"] = gcal_contact_get_im_protocol(gContact, i);
+    }
+    return emails;
+}
+
+std::vector<std::map<std::string, std::string> > GCalAddressBook::parseOrganizations(gcal_contact_t gContact)
+{
+    //GCal only allows one organization, therefore it is always preferred
+    std::vector < std::map<std::string, std::string> > organizations;
+    if (gcal_contact_get_organization(gContact) != NULL)
+        if (!std::string(gcal_contact_get_organization(gContact)).empty())
+        {
+            organizations = std::vector < std::map<std::string, std::string> > (1);
+            organizations.at(0)["pref"] = "true";
+            organizations.at(0)["type"] = (gcal_contact_get_profission(gContact) == NULL ? "" : gcal_contact_get_profission(gContact));
+            organizations.at(0)["name"] = gcal_contact_get_organization(gContact); //has to be non-empty
+            organizations.at(0)["department"] = "";
+            organizations.at(0)["title"] = (gcal_contact_get_occupation(gContact) == NULL ? "" : gcal_contact_get_occupation(gContact));
+        }
+    return organizations;
+}
+
+std::vector<std::map<std::string, std::string> > GCalAddressBook::parseUrls(gcal_contact_t gContact)
+{
+    std::vector < std::map<std::string, std::string> > urls;
+    if (gcal_contact_get_homepage(gContact) != NULL)
+        if (!std::string(gcal_contact_get_homepage(gContact)).empty())
+        {
+            std::map < std::string, std::string > tmp = std::map<std::string, std::string>();
+            //GCal only allows homepage and blog - we set the first for being preferred
+            tmp["pref"] = "true";
+            tmp["type"] = "homepage";
+            tmp["value"] = (gcal_contact_get_homepage(gContact) == NULL ? "" : gcal_contact_get_homepage(gContact));
+            urls.push_back(tmp);
+        }
+    if (gcal_contact_get_blog(gContact) != NULL)
+        if (!std::string(gcal_contact_get_blog(gContact)).empty())
+        {
+            std::map < std::string, std::string > tmp = std::map<std::string, std::string>();
+            //GCal only allows homepage and blog - we set the first for being preferred
+            tmp["pref"] = urls.size() == 0 ? "true" : "false";
+            tmp["type"] = "blog";
+            tmp["value"] = (gcal_contact_get_blog(gContact) == NULL ? "" : gcal_contact_get_blog(gContact));
+            urls.push_back(tmp);
+        }
+    return urls;
 }

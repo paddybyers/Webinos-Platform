@@ -1,5 +1,5 @@
 srcdir = '.'
-blddir = '../node_contacts_local.build' #set an out of source tree build directory so source directory does not get messy
+blddir = './build' #'../node_contacts_local.build' #set an out of source tree build directory so source directory does not get messy
 
 def set_options(opt):
   opt.tool_options("compiler_cxx")
@@ -7,9 +7,6 @@ def set_options(opt):
 def configure(conf):
   conf.check_tool("compiler_cxx")
   conf.check_tool("node_addon")
-  # @oli
-  #conf.check_cfg(package='gtkmm-2.4', args='--cflags --libs', uselib_store='LIBGTKMM')
-  #conf.check_cfg(package='libnotifymm-1.0', args='--cflags --libs', uselib_store='LIBNOTIFYMM')
 
 def build(bld):
   bld.install_files(blddir, ['local_contacts.js'])
@@ -17,5 +14,3 @@ def build(bld):
   obj.cxxflags = ["-g", "-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE", "-Wall"]
   obj.target = "localcontacts"
   obj.source = "src/node_contacts_mork.cpp src/MorkAddressBook.cpp src/MorkParser.cpp"
-  # @oli
-  #obj.uselib = ['LIBGTKMM', 'LIBNOTIFYMM']

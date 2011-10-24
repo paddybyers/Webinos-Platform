@@ -77,17 +77,22 @@
   
 
 
-  // TODO implement on back end
-//  Contacts.prototype.find = function(successCB)
-//  {
-//    var rpc = webinos.rpc.createRPC(this, "find", arguments); // RPCservicename,
-//    // function
-//    webinos.rpc.executeRPC(rpc, function(params)
-//    {
-//      successCB(params);
-//    }, function(error)
-//    {
-//    });
-//  };
+  /**
+   * return a list of contacts matching some search criteria
+   * 
+   * TODO full W3C specs
+   */
+  Contacts.prototype.find = function(attr,successCB)
+  {
+    var rpc = webinos.rpc.createRPC(this, "find", [ attr ]); // RPCservicename,
+    //RPCservicename,
+    // function
+    webinos.rpc.executeRPC(rpc, function(params)
+    {
+    successCB(params);
+    }, function(error)
+    {
+    });
+  };
 
 }());
