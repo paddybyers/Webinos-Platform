@@ -10,7 +10,7 @@ ENDIF(NOT CMAKE_BUILD_TYPE)
 set(CMAKE_MODULE_PATH  ${PROJECT_SOURCE_DIR}/cmake-extensions/ )
 find_package(PkgConfig)
 
-set(MORK_SRC_DIR "../src" CACHE STRING "..." FORCE)
+set(MORK_SRC_DIR "../../src" CACHE STRING "..." FORCE)
 include_directories(${MORK_SRC_DIR})
 
 #Compile and install MorkAB library

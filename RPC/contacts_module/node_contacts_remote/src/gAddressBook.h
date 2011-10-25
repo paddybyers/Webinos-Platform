@@ -20,111 +20,164 @@
 #include <string>
 #include <map>
 #include <vector>
-
+#include <sstream>
 #include <iostream>
 
-extern "C" {
+extern "C"
+{
 #include <gcalendar.h>
 #include <gcontact.h>
 #include <internal_gcal.h>
 }
 
-typedef std::map<std::string,std::string> RawContact;
 
-//Overload of << operator for RawContact for nice output function writing (mainly for debug)
-std::ostream& operator<<(std::ostream& out,const RawContact &rc );
+///Base 64 encoding routine from http://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64#C.2B.2B
+///Lookup table for encoding
+///If you want to use an alternate alphabet, change the characters here
+const static char encodeLookup[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const static char padCharacter = '=';
+/**
+ *
+ * @param inputBuffer buffer to be base64-encoded
+ * @return
+ */
+std::string base64Encode(std::vector<unsigned char> inputBuffer);
 
+/**
+ @brief a struct defining an Address Book Entry
+ */
+typedef struct _W3CContact
+{
+public:
+    /// Entry ID
+    std::string id;
+    std::string displayName;
+    std::map<std::string, std::string> name;
+    std::string nickname;
+    std::vector<std::map<std::string, std::string> > phoneNumbers;
+    std::vector<std::map<std::string, std::string> > emails;
+    std::vector<std::map<std::string, std::string> > addresses;
+    std::vector<std::map<std::string, std::string> > ims;
+    std::vector<std::map<std::string, std::string> > organizations;
+    std::string revision;
+    std::string birthday;
+    std::string gender; //NOT MAPPED
+    std::string note;
+    std::vector<std::map<std::string, std::string> > photos; //TODO
+    std::vector<std::string> categories; //NOT MAPPED
+    std::vector<std::map<std::string, std::string> > urls;
+    std::string timezone; //NOT MAPPED
+
+} W3CContact;
+
+typedef std::vector<W3CContact> W3CContacts;
+
+//Overload of << operator for W3CContact for nice output function writing (mainly for debug)
+std::ostream& operator<<(std::ostream& out, const W3CContact &w3c);
 
 class GCalAddressBook
 {
-  private:
-    //Username for authentication
+private:
+    ///Username for authentication
     std::string m_username;
-    
-    //Password for authentication
+
+    ///Password for authentication
     std::string m_password;
-    
-    //Authentication Token
+
+    ///Authentication Token
     gcal_t m_gcalToken;
-  public:
-  
+
     /**
-      Class Constructor
-    */
+     Map a GCal contact to a RawContact
+     */
+    void fromGCalContact(gcal_contact_t gContact, W3CContact &w3cContact);
+
+    /**
+     *
+     * @param gsc
+     * @return
+     */
+    std::map<std::string, std::string> parseStructuredName(gcal_structured_subvalues_t gsc);
+
+    /**
+     *
+     * @param gContact
+     * @return
+     */
+    std::vector<std::map<std::string, std::string> > parsePhoneNumber(gcal_contact_t gContact);
+
+    /**
+     *
+     * @param gContact
+     * @return
+     */
+    std::vector<std::map<std::string, std::string> > parseEmails(gcal_contact_t gContact);
+
+    /**
+     *
+     * @param gContact
+     * @return
+     */
+    std::vector<std::map<std::string, std::string> > parseAddresses(gcal_contact_t gContact);
+
+    /**
+     *
+     * @param gContact
+     * @return
+     */
+    std::vector<std::map<std::string, std::string> > parseIms(gcal_contact_t gContact);
+
+    /**
+     *
+     * @param gContact
+     * @return
+     */
+    std::vector<std::map<std::string, std::string> > parseOrganizations(gcal_contact_t gContact);
+
+    /**
+     *
+     * @param gContact
+     * @return
+     */
+    std::vector<std::map<std::string, std::string> > parsePhotos(gcal_contact_t gContact);
+
+    /**
+     *
+     * @param gContact
+     * @return
+     */
+    std::vector<std::map<std::string, std::string> > parseUrls(gcal_contact_t gContact);
+
+public:
+
+    /**
+     * Class Constructor
+     */
     GCalAddressBook();
-    
+
     /**
-      Class Destructor
-    */
+     * Class Destructor
+     */
     ~GCalAddressBook();
-    
+
     /**
-      Perform login, storing token, username and password
-    */
+     * Perform login, storing token, username and password
+     * @param username
+     * @param password
+     * @return
+     */
     bool authenticate(std::string username, std::string password);
-    
+
     /**
-      Perform logout
-    */
+     * Perform logout
+     */
     void logout();
-    
+
     /**
-      Gives Back a vector of address book entries
-    */
-    //gcal_contact_array getContacts();
-    std::vector<RawContact> getContacts();
-    
-    /**
-      Add a new entry
-    */
-    bool addContact(RawContact &entry);
-    
-    /**
-      Delete contact by name
-      TODO find a better way to do this?
-    */
-    bool delContact(std::string name);
-    
-    /**
-      Find a contact by name
-      TODO find a better way to do this?
-      @param name of the contact to be found
-      @return true if found
-    */
-    bool findContact(std::string name);
-    
-    /**
-      Map a GCal contact to a RawContact
-    */
-    inline void fromGCalContact(gcal_contact_t gContact, RawContact & rawContact)
-    {
-      //NULL check is necessary to avoid crash
-      //TODO use extended email, address, phone and name fields
-      rawContact["id"]=(gcal_contact_get_id(gContact)==NULL ? std::string("") : std::string(gcal_contact_get_id(gContact)));
-      rawContact["updated"]=(gcal_contact_get_updated(gContact)==NULL ? std::string("") : std::string(gcal_contact_get_updated(gContact)));
-      rawContact["title"]=(gcal_contact_get_title(gContact)==NULL ? std::string("") : std::string(gcal_contact_get_title(gContact)));  
-      rawContact["edit_uri"]=(gcal_contact_get_url(gContact)==NULL ? std::string("") : std::string(gcal_contact_get_url(gContact)));
-      rawContact["content"]=(gcal_contact_get_content(gContact)==NULL ? std::string("") : std::string(gcal_contact_get_content(gContact)));
-      rawContact["email"]=(gcal_contact_get_email(gContact)==NULL ? std::string("") : std::string(gcal_contact_get_email(gContact)));
-//    rawContact["im"]=std::string(gcal_contact_get_im(gContact));      //TODO: not implemented in libgcal 0.9.1
-      rawContact["org_name"]=(gcal_contact_get_organization(gContact)==NULL ? std::string("") : std::string(gcal_contact_get_organization(gContact)));
-      rawContact["org_title"]=(gcal_contact_get_profission(gContact)==NULL ? std::string("") : std::string(gcal_contact_get_profission(gContact)));
-      rawContact["phone"]=(gcal_contact_get_phone(gContact)==NULL ? std::string("") : std::string(gcal_contact_get_phone(gContact)));
-      rawContact["photo"]=(gcal_contact_get_photo(gContact)==NULL ? std::string("") : std::string(gcal_contact_get_photo(gContact)));
-//    //TODO:add photodata, photolength
-      rawContact["post_address"]=(gcal_contact_get_address(gContact)==NULL ? std::string("") : std::string(gcal_contact_get_address(gContact)));
-    }
-    
+     * Gives Back a vector of address book entries
+     * @return
+     */
+    W3CContacts getContacts();
 
 };
-
-
-
-
-
-
-
-
-
-
 #endif //G_ADDRESS_BOOK_H

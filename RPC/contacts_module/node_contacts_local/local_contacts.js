@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-require.paths.unshift("./default/"); // path to local contacts extension module
+require.paths.unshift(__dirname+"/build/default/"); // path to local contacts extension module
 var localcontacts = require("localcontacts");
 
 //Pass methods to the above levels using this

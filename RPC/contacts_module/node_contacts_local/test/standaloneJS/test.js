@@ -14,40 +14,39 @@
  * limitations under the License.
  ******************************************************************************/
 
-require.paths.unshift("../../node_contacts_remote.build/default/"); // path to our extension
-var remotecontacts = require("remotecontacts");
+require.paths.unshift("../../build/default/"); // path to our extension
+var localcontacts = require("localcontacts");
 
 //TEST module loaded ok
-console.log("remotecontacts module OBJ: "+remotecontacts);
+console.log("localcontacts module OBJ: "+localcontacts);
 
-//default address book
-var defUsr = "<gmail_usr>";
-var defPwd = "<gmail_pwd>";
+//default address book TODO add a sample .mab file
+var addressbookName="<path_to_thunderbird_address_book>/abook.mab"; //history.mab";
 
 //TEST constructor
-var myContacts = new remotecontacts.contacts();
+var myContacts = new localcontacts.contacts();
 console.log("myContacts OBJ: "+myContacts);
 
-//TEST logIn() all right
-var r= myContacts.logIn(defUsr,defPwd);
+//TEST open() all right
+var r= myContacts.open(addressbookName);
 console.log("address book opened succesfully: "+r);
 
-//TEST isLoggedIn() all right 
-var isOp = myContacts.isLoggedIn()
-console.log("myContacts.isLoggedIn(): "+isOp);
+//TEST isOpen() all right 
+var isOp = myContacts.isOpen()
+console.log("myContacts.isOpen(): "+isOp);
 
-//TEST logIn() and isLoggedIn() behavior with wrong path
-var badContacts = new remotecontacts.contacts();
-var isOp2 = badContacts.isLoggedIn()
-console.log("badContacts.isLoggedIn(): "+isOp2);
-var bad= badContacts.logIn("uauauauau","153231");
+//TEST open() and isOpen() behavior with wrong path
+var badContacts = new localcontacts.contacts();
+var isOp2 = badContacts.isOpen()
+console.log("badContacts.isOpen(): "+isOp2);
+var bad= badContacts.open("uauauauau");
 console.log("badContacts address book opened succesfully: "+bad);
 
-//TEST isLoggedIn() behavior with empty path
-var emptyContacts = new remotecontacts.contacts();
-var isOp3 = emptyContacts.isLoggedIn()
-console.log("emptyContacts.isLoggedIn(): "+isOp3);
+//TEST isOpen() behavior with empty path
+var emptyContacts = new localcontacts.contacts();
+var isOp3 = emptyContacts.isOpen()
+console.log("emptyContacts.isOpen(): "+isOp3);
 
-//TEST getContacts()
+//TEST getAB()
 console.log("\nADDRESS BOOK CONTENT:\n")
-console.log(myContacts.getContacts());
+console.log(myContacts.getAB());

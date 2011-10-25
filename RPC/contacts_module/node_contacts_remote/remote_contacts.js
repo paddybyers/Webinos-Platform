@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
  
-require.paths.unshift("./default/"); // path to our extension
+require.paths.unshift(__dirname+"/build/default/"); // path to our extension
 var remotecontacts = require("remotecontacts");
 
 //Pass methods to the above levels using this

@@ -212,13 +212,13 @@ pzh.prototype.connect = function () {
  * @param server name
  * @param port: port on which server is running
  */
-webinos.session.pzh.startPZH = function(server, port) {
+webinos.session.pzh.startPZH = function(servername, port) {
 	"use strict";
 	var server = new pzh(), sock, msg;
 	server.on('generatedSignedCert',function (status) {
 		log('PZH: starting server: ' + status);
 		sock = server.connect()	;
-		sock.listen(port, server);
+		sock.listen(port, servername);
 
 		sock.on('listening', function() {
 			log('PZH: server listening');

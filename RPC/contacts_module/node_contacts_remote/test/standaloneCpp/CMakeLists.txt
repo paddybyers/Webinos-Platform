@@ -13,17 +13,18 @@ find_package(PkgConfig)
 #add libgcal and its dependencies
 pkg_check_modules(LGCal REQUIRED libgcal)
 IF("${LGCal_FOUND}" STREQUAL "1")
-	message(STATUS "LGCal found: TRUE")
-	message(STATUS "LGCal VERSION: ${LGCal_VERSION}")
-	include_directories(${LGCal_INCLUDE_DIRS})
-	link_directories(${LGCal_LIBRARY_DIRS})
+    message(STATUS "LGCal found: TRUE")
+    message(STATUS "LGCal VERSION: ${LGCal_VERSION}")
+    include_directories(${LGCal_INCLUDE_DIRS})
+    link_directories(${LGCal_LIBRARY_DIRS})
 ENDIF("${LGCal_FOUND}" STREQUAL "1")
+
 
 #you may add other libraries here if needed
 set(EXTERNAL_LIBS ${EXTERNAL_LIBS} ${LGCal_LIBRARIES})
 
 
-set(GCONTACTS_SRC_DIR "../src" CACHE STRING "..." FORCE)
+set(GCONTACTS_SRC_DIR "../../src" CACHE STRING "..." FORCE)
 include_directories(${GCONTACTS_SRC_DIR})
 
 #Compile and install gCalContactsAB library
