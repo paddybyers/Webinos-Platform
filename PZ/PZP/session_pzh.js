@@ -5,7 +5,6 @@ if (typeof webinos === "undefined") {
 }
 
 if (typeof exports !== "undefined") {
-	//webinos.message = require("../../PZ/PZP/messaging.js");
 	webinos.message = require("./messaging.js");
 } 
 
@@ -22,21 +21,14 @@ var log = console.log,
  ** socket: Holds socket information which is used while sending message to pzp
  */
 webinos.session.pzh = {};
-//self.connected_pzp = [];
-//self.connected_pzh = [];
-// Session id of PZH
-//self.sessionid = 0;
-// webinos.session.pzh
-//self.config = {};
+
 
 function pzh() {
 	"use strict";
 	this.sessionid = 0;
 	this.config = {};
-	
 	this.connected_pzh = [];
 	this.connected_pzp = [];
-
 };
 
 /* PZH generates self event to enable message flow between different functions. 
@@ -74,35 +66,32 @@ pzh.prototype.sendMessage = function(message, address) {
  * If certificates are not found, they are generated. The functionality of reading 
  * contents of file and generating certificate is handled in session_common.
 */
-pzh.prototype.checkFiles = function (filename) {
+pzh.prototype.checkFiles = function (filename, callback) {
 	"use strict";
 	var self = this;
-	webinos.session.common.readConfig(filename, self);
-	self.on('readConfig', function (msg) {
-		log('PZH: readConfig');
-		webinos.session.common.generateSelfSignedCert(self);
-
-		self.on('generatedCert', function(status) {
-			if(status === 'true') {
-				log('PZH: generating self signed connection certificate');
-				setTimeout(function() {
-						
-						webinos.session.common.generateMasterCert(self);
-						setTimeout(function() {
-							log('PZH: generating connection certificate signed by signing certificate');
-							//var cert = fs.readFileSync(self.config.certname).toString();
-							webinos.session.common.generateServerCertifiedCert(self.config);
-							setTimeout(function() {
-								log('PZH: generated event');
-								self.emit('generatedSignedCert', 'signing and connection certificates created');
-							}, 500);
-						}, 500);
-				}, 500);
-			} else {
-				self.emit('generatedSignedCert', 'certificates present');
-			}		
-		});
-	});
+	fs.readFile(self.config.keyname, function(err) {
+		if(err) {
+			webinos.session.common.generateSelfSignedCert(self, function(status) {
+				if(status === 'true') {
+					fs.readFile(self.config.mastercertname, function(err) {
+						log('PZH: generating self signed signing certificate');
+						webinos.session.common.generateMasterCert(self, function(result) {
+							if(result === 'done') {
+								log('PZH: generating connection certificate signed by signing certificate');
+								webinos.session.common.generateServerCertifiedCert(self, self.config, function(result) {
+									if(result === 'done')
+										callback.call(self, 'certificates created');
+								});
+							}
+						});
+					});
+				}
+				else {
+					callback.call(self, 'certificates present');
+				}		
+			});
+		}
+	});	
 };
 
 pzh.prototype.connect = function () {
@@ -110,8 +99,8 @@ pzh.prototype.connect = function () {
 	var i, self, options, server, msg;
 	self = this;
 	var ca = [fs.readFileSync(self.config.mastercertname)];
-	if (self.config.otherPZHCert !== '')
-		ca = [fs.readFileSync(self.config.mastercertname),  fs.readFileSync(self.config.otherPZHCert)];
+	//if (self.config.otherPZHCert !== '')
+		ca = [fs.readFileSync(self.config.mastercertname)];/*,  fs.readFileSync(self.config.otherPZHCert)*/
 	// Read server configuration for creating TLS connection
 	var options = {	key: fs.readFileSync(self.config.keyname),
 			cert: fs.readFileSync(self.config.certname),
@@ -120,14 +109,16 @@ pzh.prototype.connect = function () {
 			rejectUnauthorized:false
 			};
 	// PZH session id is the common name assigned to it. In usual scenaio it should be URL of PZH. 
-	self.sessionid = self.config.common;
+	self.sessionid = self.config.common.split(':')[0];
 	
 	// Registering getownid value in message handler
 	webinos.message.setGet(self.sessionid);
 	
 	// send function to be used by message handler
-	webinos.message.setSend(self, self.sendMessage);
-//
+	webinos.message.setSend(webinos.session.pzh.send);
+
+	webinos.message.setObject(self);
+
 	server = tls.createServer (options, function (conn) {
 		var data = {}, obj = {}, cn, found = false, msg, parse = null, payload = {}, msg = {}, sessionId;
 		/* If connection is authorized:
@@ -158,46 +149,61 @@ pzh.prototype.connect = function () {
 			// Assumption: PZH is of form username@domain
 			// Assumption: PZP is of form username@domain/mobile:Deviceid@mac
 			if(data[0].indexOf('@') !== -1 /*&& data[0].indexOf('/') === -1*/) { 
-				self.connected_pzh[data[0]] = {'socket': conn, 'name': cn, 'address': conn.socket.remoteAddress, 'port': conn.socket.remotePort, 'object':webinos.rpc.object} ;
+				self.connected_pzh[data[0]] = {'socket': conn, 
+												'name': cn, 
+												'address': conn.socket.remoteAddress, 
+												'port': conn.socket.remotePort, 
+												'object':webinos.rpc.object} ;
 				var otherPZH = [], myKey;
 			 	//format: ownid :: client sessionid :: other connected pzp
 				for (myKey in self.connected_pzh){
 					log("OtherPZH ["+myKey +"] = "+self.connected_pzh[myKey]);
 					otherPZH.push(myKey);
 				}
-				var msg1 = { 'type': 'prop', 'from':  self.sessionid, 'to': data[0], 'payload': {'status':'Auth', 'message': otherPZH} };
+				var msg1 = { 'type': 'prop', 
+							'from':  self.sessionid, 
+							'to': data[0], 
+							'payload': {'status':'Auth', 'message': otherPZH} };
 				self.sendMessage(msg1, msg1.to);
-				/*var msg = webinos.message.registerSender(self.sessionid, data[0]);
+				var msg = webinos.message.registerSender(self.sessionid, data[0]);
 				webinos.session.pzh.sendMessage(msg, data[0]);
 
-				msg = {'type': 'prop', 'from':  self.sessionid, 'payload': {'status':'PZHUpdate', 'message':otherPZP}};
+				msg = {'type': 'prop', 
+						'from':  self.sessionid, 
+						'payload': {'status':'PZHUpdate', 'message':otherPZP}};
 				// send message to all connected PZP and PZH
 				for (myKey in self.connected_pzh){
 					log("PZHUpdate ["+ myKey +"] = "+self.connected_pzh[myKey]);
 					if(data[0] !== myKey) {
 						self.connected_pzh[myKey].write(JSON.stringify(msg));;
 					}
-				}*/
+				}
 			} else {
-				
-				// connected PZP session id is of form PZH::PZP's common name without device id
+				// connected PZP session id is of form PZH/PZP's common name without device id
 				sessionId = self.sessionid + "/" + data[0];
 
-				self.connected_pzp[sessionId] = {'socket': conn, 'name': data[0], 'address': conn.socket.remoteAddress, 'port': conn.socket.remotePort,
-											'object': webinos.rpc.object}; 
+				self.connected_pzp[sessionId] = {'socket': conn, 
+												'name': data[0], 
+												'address': conn.socket.remoteAddress, 
+												'port': conn.socket.remotePort,
+												'object': webinos.rpc.object};
 				var otherPZP = [], myKey;
 				for (myKey in self.connected_pzp){
 					otherPZP.push(myKey);
 				}
-				msg = { 'type': "prop", 'from':  self.sessionid, 
-					'to': sessionId, 'payload': {'status':'Auth', 'message':otherPZP}};
+				msg = { 'type': "prop", 
+						'from':  self.sessionid, 
+						'to': sessionId, 
+						'payload': {'status':'Auth', 'message':otherPZP}};
 				self.sendMessage(msg, sessionId);
 
-				msg = { 'type': "prop", 'from':  self.sessionid, 'payload': {'status':'PZPUpdate', 'message':otherPZP}};
+				msg = { 'type': "prop", 
+						'from':  self.sessionid, 
+						'payload': {'status':'PZPUpdate', 'message':otherPZP}};
 				// send message to all connected PZP and PZH
 				for (myKey in self.connected_pzp){
 					if(sessionId !== myKey)
-						self.connected_pzp[myKey].write(JSON.stringify(msg));
+						self.connected_pzp[myKey].socket.write(JSON.stringify(msg));
 				}
 			}
 		} 
@@ -208,7 +214,10 @@ pzh.prototype.connect = function () {
 		 */
 		else {
 			log("PZH: Not Authenticated " + conn.authorizationError);
-			var msg = {'type': "prop", 'payload': {'status':'NotAuth'}};
+			var msg = {'type': "prop",
+						'to':conn.getPeerCertificate().subject.CN.split(':')[0],
+						'payload': {'status':'NotAuth'}};
+			log("PZH: Not Auth Message Sent " + msg.to);
 			conn.write(JSON.stringify(msg)); // This is special case as client is not listed in the connected_pzp list	
 		}
 		
@@ -229,30 +238,57 @@ pzh.prototype.connect = function () {
 			 */
 			if(parse.type === 'prop' && parse.payload.status === 'clientCert' ) {
 				var signingcert = (fs.readFileSync(self.config.mastercertname).toString());
-				fs.writeFileSync(self.config.clientcertname, parse.payload.message);
-				// If we could get this setSendinformation from within key exchange in openssl, it would not require certificate
-				webinos.session.common.generateClientCertifiedCert(parse.payload.message, self.config);
-				setTimeout(function() {
-					var msg = {'type': 'prop', 'payload': {'status':'signedCert', 'clientCert':(fs.readFileSync(self.config.clientcertname).toString()), 
-							'signingCert':signingcert}};
-					conn.write(JSON.stringify(msg));
-				}, 500);
+				var id1 = -1, id, i;
+				fs.readdir(__dirname, function(err, files) {
+					for(i in files) {
+						if( (files[i].indexOf('pzh',0) === 0) &&  (files[i].indexOf('client_certified', 0) !== -1)) {
+							id = files[i].split('_');
+							id1 = parseInt(id[2]) + 1;
+							log('id1 '+id1);
+						}
+					}
+					if(id1 === -1)
+						id1 = 0;
+					var name = 'pzh_'+self.config.id+'_'+id1;
+					self.config.tempcsr = name+'_client_temp.csr';
+					self.config.clientcert = name+'_client_certified.pem';
+
+					fs.writeFile(self.config.tempcsr, parse.payload.message, function() {
+						// If we could get this setSendinformation from within key exchange in openssl, it would not require certificate
+						log('PZH: Peer Common Name ' + conn.getPeerCertificate().subject.CN);
+						webinos.session.common.generateClientCertifiedCert(self.config.tempcsr, self, function(result) {
+							if(result === 'done') {
+								var msg = {'type': 'prop', 
+										'to':conn.getPeerCertificate().subject.CN.split(':')[0],
+										'payload': {'status':'signedCert', 
+													'clientCert':(fs.readFileSync(self.config.clientcert).toString()), 
+													'signingCert':signingcert}
+										};
+							
+								conn.write(JSON.stringify(msg));
+							}
+						});
+					});
+				});
+				
+				
 			} else { // Message is forwarded to Message handler function, onMessageReceived
 				log('PZH: Received data : '+JSON.stringify(parse));
 				webinos.message.setGet(self.sessionid);
-				webinos.message.setSend(self, self.sendMessage);
+				webinos.message.setSend(webinos.session.pzh.send);
+				webinos.message.setObject(self);
 				webinos.message.onMessageReceived(JSON.stringify(parse));
 			}
 		});
 
 		conn.on('end', function() {
 			log('PZH: server connection end');
-		});
+		});		
 
 		// It calls removeClient to remove PZP from connected_client and connected_pzp.
 		conn.on('close', function() {
 			log('PZH: socket closed');
-			webinos.session.common.removeClient(self.connected_pzpself.connected_pzh, conn);
+			webinos.session.common.removeClient(self.connected_pzp, conn);
 		});
 
 		conn.on('error', function(err) {
@@ -262,31 +298,130 @@ pzh.prototype.connect = function () {
 	return server;
 };
 
+pzh.prototype.configurePZH = function(contents, callback) {
+	"use strict";
+	var self = this;
+	var id1 = -1, id;
+	var name, i, k, j;
+	var flag = true, common = '', data1;
+	webinos.session.common.getId(self, function(getid) {
+		self.config.id = getid;
+		fs.readdir(__dirname, function(err, files) {
+			for(i in files) {
+				if( (files[i].indexOf('pzh',0) === 0) &&  files[i].indexOf('key.pem', 0) !== -1) {
+					id = files[i].split('_');
+					data1 = contents.toString().split('\n');
+					for(j = 0; j < data1.length; j += 1) {
+						if(data1[j].split('=')[0] === 'common') {
+							// If matches no need to generate new config
+							log('read file ' + id[1]);
+							common = data1[j].split('=')[1];
+							log('read config ' + common);
+							if(id[1] === common) {
+								common = id[1];
+								flag = false;
+							}										
+						}
+					}
+				}
+			}
+
+			if(flag === true) {
+				if(common === '') {
+					data1 = contents.toString().split('\n');
+					for(j = 0; j < data1.length; j += 1) {
+						if(data1[j].split('=')[0] === 'common') {
+							common = data1[j].split('=')[1];
+						}
+					}					
+				}				
+				name = 'pzh_'+common+'_'+getid;
+				self.config.keyname = name+'_conn_key.pem';
+				self.config.certname = name+'_conn_cert.pem';
+				self.config.certnamecsr = name+'_conn_cert.csr'
+				self.config.keysize = 1024;
+				self.config.mastercertname = name+'_master_cert.pem';
+				self.config.masterkeyname = name+'_master_key.pem';
+				self.config.masterkeysize = 1024;
+				var i, data1 = contents.toString().split('\n');
+
+				for(i = 0; i < data1.length; i += 1) {
+					data1[i] = data1[i].split('=');			
+				}
+
+				for(i = 0; i < data1.length; i += 1) {
+					if(data1[i][0] === 'country') {
+						self.config.country = data1[i][1];
+					} else if(data1[i][0] === 'state') {
+						self.config.state = data1[i][1];
+					} else if(data1[i][0] === 'city') {
+						self.config.city = data1[i][1];
+					} else if(data1[i][0] === 'organization') {
+						self.config.orgname = data1[i][1];
+					} else if(data1[i][0] === 'organizationUnit') {
+						self.config.orgunit = data1[i][1];
+					} else if(data1[i][0] === 'common') {
+						self.config.common = data1[i][1] + ':DeviceId@'+self.config.id;
+					} else if(data1[i][0] === 'email') {
+						self.config.email = data1[i][1];
+					} else if(data1[i][0] === 'days') {
+						self.config.days = data1[i][1];
+					}
+				} 
+				callback.call(self,'configure pzh');					
+			} else if (flag === false) {
+				name = 'pzh_'+common+'_'+getid;
+				self.config.keyname = name+'_conn_key.pem';
+				self.config.certname = name+'_conn_cert.pem';
+				self.config.mastercertname = name+'_master_cert.pem';
+				callback.call(self,'file present');	
+			}
+		});	
+	});	
+};
 /* starts pzh, creates servers and event listeners for listening data from clients.
  * @param server name
  * @param port: port on which server is running
  */
-webinos.session.pzh.startPZH = function(filename, server, port) {
+webinos.session.pzh.startPZH = function(contents, server, port, callback) {
 	"use strict";
 	var __pzh = new pzh(), sock, msg;
-	__pzh.on('generatedSignedCert',function (status) {
-		log('PZH: starting server: ' + status);
-		sock = __pzh.connect();
-		sock.listen(port, server);
-
-		sock.on('listening', function() {
-			log('PZH: server listening');
-			__pzh.emit('startedPZH', 'PZH started');	
-		});		
-	});
+	__pzh.port = port;
 	
-	__pzh.checkFiles(filename);
+	__pzh.configurePZH(contents, function(result) {
+		//if( result === 'configure pzh' ) {
+			__pzh.checkFiles(__pzh.config.filename, function(result) {
+				log('PZH: starting server: ' + result);
+				sock = __pzh.connect();
+
+				sock.on('error', function (err) {
+					if (err.code == 'EADDRINUSE') {
+						log('PZH: Address in use');
+						__pzh.port = parseInt(__pzh.port) + 1 ;
+						sock.listen(__pzh.port, server);
+					}
+				});
+
+				sock.on('listening', function() {
+					log('PZH: server listening on port ' + __pzh.port);
+					callback.call(__pzh, 'startedPZH');
+				});
+
+				sock.listen(__pzh.port, server);
+			});
+		//}
+	});
 	return __pzh;
 };
 
+webinos.session.pzh.send = function (object, message, address) {
+	object.sendMessage(message, address);
+}
+
 //webinos.session.pzh.startHttpsServer = function(args) {
-pzh.prototype.startHttpsServer = function(args) {
+pzh.prototype.startHttpsServer = function(args, servername) {
 	var self = this;
+	self.httpPort = args;
 	var httpServer = http.createServer(function(request, response) {
 		request.on('data', function(data) {
 			console.log(data);
@@ -296,8 +431,16 @@ pzh.prototype.startHttpsServer = function(args) {
 		response.end();
 	});
 
-	httpServer.listen(args,function(){
-		log("PZH HTTPS Server: Listening on port " + args);
+	httpServer.on('error', function (err) {
+		if (err.code == 'EADDRINUSE') {
+			log('PZP Server: Address in use');
+			self.httpPort = parseInt(self.httpPort) + 1 ;
+				httpServer.listen(self.httpPort, servername);
+			}
+		});
+
+	httpServer.listen(self.httpPort, servername, function(){
+		log("PZH HTTPS Server: Listening on port " + self.httpPort);
 	});
 
 };
@@ -349,15 +492,11 @@ pzh.prototype.connectOtherPZH = function(server, port) {
 	});
 };
 
+
 if (typeof exports !== 'undefined') {
 	exports.startPZH = webinos.session.pzh.startPZH;
-	//exports.connectOtherPZH = webinos.session.pzh.connectOtherPZH;
-	exports.startHttpsServer = webinos.session.pzh.startHttpsServer;
-	//exports.sendMessage = webinos.session.pzh.sendMessage;
-	//exports.connected_pzp = self.connected_pzp;
-	//exports.connected_pzh = self.connected_pzhself.connected_pzp;
-	//exports.sessionid = self.sessionid;
-	//exports.config = self.config;
+	exports.send = webinos.session.pzh.send;
+	
 }
 
 }());

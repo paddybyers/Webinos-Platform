@@ -39,8 +39,14 @@
 	TestModule.prototype.get42PZPtoPZHtoPZP = function (successCB) {
 		var payload = webinos.rpc.createRPC("Test", "get42", []); // RPCservicename, function
 		payload.id = 1;
+		var otherPZP;
+		for(var i in webinos.getOtherPZP()) {
+			if(webinos.getOtherPZP()[i] !== webinos.getPZPId()) {
+				otherPZP = webinos.getOtherPZP()[i];
+			}
+		}	
 		var options = {register: false, type: "JSONRPC", id: 0,
-			from: webinos.getSessionId(), to: webinos.getOtherPZP(), resp_to: webinos.getSessionId(),
+			from: webinos.getSessionId(), to: otherPZP, resp_to: webinos.getSessionId(),
 			timestamp: 0, timeout:  null, payload: JSON.stringify(payload)
 		}; 		
 		webinos.message.createMessageId(options, successCB);

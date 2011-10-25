@@ -52,8 +52,11 @@ var object;
 /**
  * Sets the send that should be used to send message on a specific session.
  */
-webinos.message.setSend = function (obj, sender){
+webinos.message.setSend = function (sender){
 	send = sender;
+}
+
+webinos.message.setObject = function(obj) {
 	object = obj;
 }
 
@@ -150,18 +153,18 @@ function write(rpc, respto, msgid){
                   console.log("Message: forwardto", forwardto);
                 }
 	       }
-		object.sendMessage(message,forwardto);
+		send(object, message,forwardto);
 	    }
 	      else if(clients[session2])
               {
                 console.log("Message: clients[session2]:" + clients[session2]);
-		object.sendMessage(message, clients[session2]);
+		send(object, message, clients[session2]);
               }
 	      else if(clients[session1])
               {
                 console.log("Message: clients[session1]:" + clients[session1]);
 
-		object.sendMessage(message, clients[session1]);
+		send(object, message, clients[session1]);
               }
 
 }
@@ -249,17 +252,17 @@ webinos.message.onMessageReceived = function(message, sessionid){
           if(clients[new_session1] || clients[new_session2])
             forwardto = id;
 	}
-        object.sendMessage(message,forwardto);
+        send(object, message,forwardto);
       }
       else if(clients[session2])
       {
         console.log("Message: session2 is up");
-        object.sendMessage(message, clients[session2]);
+        send(object, message, clients[session2]);
       }
       else if(clients[session1])
       {
         console.log("Message: session1 is up, clients[session1]:", clients[session1]);
-        object.sendMessage(message, clients[session1]);
+        send(object, message, clients[session1]);
       }	
 
       return;
@@ -319,6 +322,7 @@ if (typeof exports !== 'undefined'){
     exports.createMessageId = webinos.message.createMessageId;
     exports.ClientonMessageReceived = webinos.message.ClientonMessageReceived;
     exports.onMessageReceived = webinos.message.onMessageReceived;
+	exports.setObject = webinos.message.setObject;
 }
 
 }());
