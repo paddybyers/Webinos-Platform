@@ -30,6 +30,19 @@ extern "C"
 #include <internal_gcal.h>
 }
 
+
+///Base 64 encoding routine from http://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64#C.2B.2B
+///Lookup table for encoding
+///If you want to use an alternate alphabet, change the characters here
+const static char encodeLookup[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const static char padCharacter = '=';
+/**
+ *
+ * @param inputBuffer buffer to be base64-encoded
+ * @return
+ */
+std::string base64Encode(std::vector<unsigned char> inputBuffer);
+
 /**
  @brief a struct defining an Address Book Entry
  */
@@ -50,7 +63,7 @@ public:
     std::string birthday;
     std::string gender; //NOT MAPPED
     std::string note;
-    std::string photos; //TODO
+    std::vector<std::map<std::string, std::string> > photos; //TODO
     std::vector<std::string> categories; //NOT MAPPED
     std::vector<std::map<std::string, std::string> > urls;
     std::string timezone; //NOT MAPPED
@@ -120,6 +133,13 @@ private:
      * @return
      */
     std::vector<std::map<std::string, std::string> > parseOrganizations(gcal_contact_t gContact);
+
+    /**
+     *
+     * @param gContact
+     * @return
+     */
+    std::vector<std::map<std::string, std::string> > parsePhotos(gcal_contact_t gContact);
 
     /**
      *

@@ -256,8 +256,24 @@ v8::Handle<v8::Value> CRemoteContacts::_getContacts(const v8::Arguments& args)
         //note
         _entry->Set(v8::String::New("note"), v8::String::New(v_iter->note.c_str()));
 
-        //photos TODO
-        _entry->Set(v8::String::New("photos"), v8::String::New(""));
+        //photos
+//        _entry->Set(v8::String::New("photos"), v8::String::New(v_iter->photos.c_str()));
+        //urls
+        v8::Local < v8::Array > _photos_array = v8::Array::New(v_iter->photos.size());
+        std::vector<std::map<std::string, std::string> >::iterator _photoS_it;
+        j = 0;
+        for (_photoS_it = v_iter->photos.begin(); _photoS_it != v_iter->photos.end(); _photoS_it++)
+        {
+            v8::Local < v8::Object > _photo = v8::Object::New();
+            std::map<std::string, std::string>::iterator photo_it;
+            for (photo_it = _photoS_it->begin(); photo_it != _photoS_it->end(); photo_it++)
+            {
+                _photo->Set(v8::String::New(photo_it->first.c_str()), v8::String::New(photo_it->second.c_str()));
+            }
+            _photos_array->Set(j++, _photo);
+        }
+        _entry->Set(v8::String::New("photos"), _photos_array);
+
 
         //categories
         _entry->Set(v8::String::New("categories"), v8::Array::New());

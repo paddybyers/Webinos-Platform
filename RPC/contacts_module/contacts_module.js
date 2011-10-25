@@ -414,6 +414,14 @@ function remoteContact2W3CContact(remoteContact)
       Boolean(remoteContact.urls[j]['pref'] == "true"));
   }
 
+  //Photos (always 1, with libGCal)
+  var _contactPhotos = new Array(remoteContact.photos.length);
+  for ( var j = 0; j < remoteContact.photos.length; j++)
+  {
+    _contactPhotos[j] = new ContactField(remoteContact.photos[j]['value'], remoteContact.photos[j]['type'],
+      Boolean(remoteContact.photos[j]['pref'] == "true"));
+  }
+  
   //Fill Contact
   /*
    * _id, _displayName, _name, _nickname, _phonenumbers, _emails, _addrs, _ims, _orgs, _rev, _birthday,
@@ -424,7 +432,7 @@ function remoteContact2W3CContact(remoteContact)
   var _contact = new Contact(remoteContact.id, remoteContact.displayName, _contactName, remoteContact.nickname,
     _contactPhoneNumbers, _contactEmails, _contactAddresses, _contactIms, _contactOrgs,
     new Date(remoteContact.revision), new Date(remoteContact.birthday), remoteContact.gender, remoteContact.note,
-    remoteContact.photos, remoteContact.categories, _contactUrls, remoteContact.timezone);
+    _contactPhotos, remoteContact.categories, _contactUrls, remoteContact.timezone);
 
   return _contact;
 }

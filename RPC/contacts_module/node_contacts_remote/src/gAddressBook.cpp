@@ -198,16 +198,17 @@ void GCalAddressBook::fromGCalContact(gcal_contact_t gContact, W3CContact &w3cCo
     w3cContact.emails = parseEmails(gContact);
     w3cContact.addresses = parseAddresses(gContact);
     w3cContact.ims = parseIms(gContact);
-    ;
+
     w3cContact.organizations = parseOrganizations(gContact);
     w3cContact.revision = (gcal_contact_get_updated(gContact) == NULL ? std::string("") : std::string(gcal_contact_get_updated(gContact)));
-    ;
+
     w3cContact.birthday = (gcal_contact_get_birthday(gContact) == NULL ? std::string("") : std::string(gcal_contact_get_birthday(gContact)));
-    ;
+
 //    w3cContact.gender; //NOT MAPPED
     w3cContact.note = (gcal_contact_get_content(gContact) == NULL ? std::string("") : std::string(gcal_contact_get_content(gContact)));
-    ;
-//    w3cContact.photos; //TODO
+
+    w3cContact.photos = parsePhotos(gContact);
+
 //    w3cContact.categories; //NOT MAPPED
     w3cContact.urls = parseUrls(gContact);
 //    w3cContact.timezone; //NOT MAPPED
@@ -444,4 +445,73 @@ std::vector<std::map<std::string, std::string> > GCalAddressBook::parseUrls(gcal
             urls.push_back(tmp);
         }
     return urls;
+}
+
+std::string base64Encode(std::vector<unsigned char> inputBuffer)
+{
+    std::string encodedString;
+    encodedString.reserve(((inputBuffer.size() / 3) + (inputBuffer.size() % 3 > 0)) * 4);
+    long temp;
+    std::vector<unsigned char>::iterator cursor = inputBuffer.begin();
+    for (size_t idx = 0; idx < inputBuffer.size() / 3; idx++)
+    {
+        temp = (*cursor++) << 16; //Convert to big endian
+        temp += (*cursor++) << 8;
+        temp += (*cursor++);
+        encodedString.append(1, encodeLookup[(temp & 0x00FC0000) >> 18]);
+        encodedString.append(1, encodeLookup[(temp & 0x0003F000) >> 12]);
+        encodedString.append(1, encodeLookup[(temp & 0x00000FC0) >> 6]);
+        encodedString.append(1, encodeLookup[(temp & 0x0000003F)]);
+    }
+    switch (inputBuffer.size() % 3)
+    {
+    case 1:
+        temp = (*cursor++) << 16; //Convert to big endian
+        encodedString.append(1, encodeLookup[(temp & 0x00FC0000) >> 18]);
+        encodedString.append(1, encodeLookup[(temp & 0x0003F000) >> 12]);
+        encodedString.append(2, padCharacter);
+        break;
+    case 2:
+        temp = (*cursor++) << 16; //Convert to big endian
+        temp += (*cursor++) << 8;
+        encodedString.append(1, encodeLookup[(temp & 0x00FC0000) >> 18]);
+        encodedString.append(1, encodeLookup[(temp & 0x0003F000) >> 12]);
+        encodedString.append(1, encodeLookup[(temp & 0x00000FC0) >> 6]);
+        encodedString.append(1, padCharacter);
+        break;
+    }
+    return encodedString;
+}
+
+std::vector<std::map<std::string, std::string> > GCalAddressBook::parsePhotos(gcal_contact_t gContact)
+{
+    char * pPhoto = gcal_contact_get_photo(gContact);
+    unsigned int photoLen = gcal_contact_get_photolength(gContact);
+    std::vector < std::map<std::string, std::string> > photos;
+    //TODO handle this
+    //    switch (photoLen)
+    //    {
+    //    case 0:
+    //         w3cContact.photos = "NO PHOTO";
+    //        break;
+    //    case 1:
+    //         w3cContact.photos = "LINK" //get link;
+    //        break;
+    //    case -1:
+    //         w3cContact.photos = "ERROR";
+    //        break;
+    //    default:
+    //         w3cContact.photos = base64Encode(...);
+    //        break;
+    //    }
+
+    if (photoLen > 0)
+    {
+        photos = std::vector < std::map<std::string, std::string> > (1);
+        photos.at(0)["pref"] = "true";
+        photos.at(0)["type"] = "photo";
+        photos.at(0)["value"] = base64Encode(std::vector<unsigned char>(pPhoto, pPhoto + photoLen / sizeof(unsigned char)));
+    }
+
+    return photos;
 }

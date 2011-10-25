@@ -185,7 +185,8 @@
           contactString += "<b>Emails:</b><br>";
           for ( var j = 0; j < list[i].emails.length; j++)
             contactString += "&nbsp;&nbsp;" + (list[i].emails[j].pref ? "* " : "&nbsp;&nbsp;") +
-              list[i].emails[j].type + ": <a href=\"mailto:" + list[i].emails[j].value + "\">" + list[i].emails[j].value + "</a><br>";
+              list[i].emails[j].type + ": <a href=\"mailto:" + list[i].emails[j].value + "\">" +
+              list[i].emails[j].value + "</a><br>";
         }
         if ((list[i].addresses instanceof Array) && list[i].addresses.length > 0)
         {
@@ -216,6 +217,16 @@
             contactString += "&nbsp;&nbsp;" + (list[i].organizations[j].pref ? "* " : "&nbsp;&nbsp;") +
               list[i].organizations[j].type + ": " + list[i].organizations[j].name + "<br>";
         }
+
+        if ((list[i].photos instanceof Array) && list[i].photos.length > 0)
+        {
+          contactString += "<b>Picture:</b><br>";
+          for ( var j = 0; j < list[i].photos.length; j++)
+          {
+            contactString+="<img src=\"data:image/png;base64,"+list[i].photos[j].value+"\" alt=\"Red dot\"><br>";
+          }
+        }
+
         if ((list[i].urls instanceof Array) && list[i].urls.length > 0)
         {
           contactString += "<b>Websites:</b><br>";

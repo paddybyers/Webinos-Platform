@@ -19,8 +19,8 @@ var cm = require("contacts_module");
 
 var params = new Array(1);
 params[0] = {};
-params[0].usr = "USER";
-params[0].pwd = "PASSWORD";
+params[0].usr = "gregg01";//"USER";
+params[0].pwd = "lazio000";//"PASSWORD";
 params[0].type = "remote";
 
 cm.authenticate(params, function(res)
@@ -37,7 +37,7 @@ cm.getAllContacts(params, function(list)
 {
   console.log("Found ", list.length, "contacts");
   for ( var i = 0; i < list.length; i++)
-    console.log("getAllContacts res[", i, "].displayName = ", list[i].displayName, list[i].urls);
+    console.log("getAllContacts res[", i, "].displayName = ", list[i].displayName, list[i].photos);
   //console.log("getAllContacts res[",3,"] = ", list[3]);
 });
 console.log("\n");
