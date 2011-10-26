@@ -118,10 +118,6 @@
     var result = false;
     if (contactsService)
     {
-      if ($("input[@name='contactType']:checked").val() == 'remote')
-      {
-        parameters.type = "remote";
-        //TODO set parameters.fields!!!!
         parameters.fields = {};
         if ($('#findContactName').val() != "")
           parameters.fields["name"] = $('#findContactName').val();
@@ -131,6 +127,12 @@
           parameters.fields["addresses"] = $('#findContactAddress').val();
         if ($('#findContactPhone').val() != "")
           parameters.fields["phoneNumbers"] = $('#findContactPhone').val();
+          
+      if ($("input[@name='contactType']:checked").val() == 'remote')
+      {
+        parameters.type = "remote";
+        //TODO set parameters.fields!!!!
+
         contactsService.isAlreadyAuthenticated(parameters, function(result)
         {
           contactsService.find(parameters, print_contact_list);
@@ -139,7 +141,7 @@
       else if ($("input[@name='contactType']:checked").val() == 'local')
       {
         parameters.type = "local";
-        parameters.fields = {};
+        
         contactsService.isAlreadyAuthenticated(parameters, function(result)
         {
           contactsService.find(parameters, print_contact_list);
@@ -223,7 +225,10 @@
           contactString += "<b>Picture:</b><br>";
           for ( var j = 0; j < list[i].photos.length; j++)
           {
-            contactString+="<img src=\"data:image/png;base64,"+list[i].photos[j].value+"\" alt=\"Red dot\"><br>";
+            if(list[i].photos[j].type=="file") //is base64 string
+                contactString+="<img src=\"data:image/png;base64,"+list[i].photos[j].value+"\" alt=\"Image\"><br>";
+            else if(list[i].photos[j].type=="url") //is an URL
+                contactString+="<img src=\""+list[i].photos[j].value+"\" alt=\"Image\"><br>";
           }
         }
 
@@ -278,7 +283,7 @@
           <!--   <p> -->
           <div>
             <button id="btnFind">Find Contacts Service</button>
-            <button id="btnAuthenticate">Authenticate</button>
+            <button id="btnAuthenticate">Authenticate/Open</button>
             <br>
             <button id="btnContacts">Get All Contacts List</button>
             <button id="btnFindContacts">Find Contact!</button>
@@ -338,3 +343,4 @@
   </table>
 </body>
 </html>
+

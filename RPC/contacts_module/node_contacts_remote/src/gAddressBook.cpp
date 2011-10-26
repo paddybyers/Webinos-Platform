@@ -392,16 +392,16 @@ std::vector<std::map<std::string, std::string> > GCalAddressBook::parseAddresses
 std::vector<std::map<std::string, std::string> > GCalAddressBook::parseIms(gcal_contact_t gContact)
 {
     int num_of_im = gcal_contact_get_im_count(gContact);
-    std::vector < std::map<std::string, std::string> > emails(num_of_im);
+    std::vector < std::map<std::string, std::string> > ims(num_of_im);
 
     int p = gcal_contact_get_pref_im(gContact); //pref im index
     for (int i = 0; i < num_of_im; i++)
     {
-        emails.at(i)["pref"] = (i == p ? "true" : "false");
-        emails.at(i)["value"] = gcal_contact_get_im_address(gContact, i);
-        emails.at(i)["type"] = gcal_contact_get_im_protocol(gContact, i);
+        ims.at(i)["pref"] = (i == p ? "true" : "false");
+        ims.at(i)["value"] = gcal_contact_get_im_address(gContact, i);
+        ims.at(i)["type"] = gcal_contact_get_im_protocol(gContact, i);
     }
-    return emails;
+    return ims;
 }
 
 std::vector<std::map<std::string, std::string> > GCalAddressBook::parseOrganizations(gcal_contact_t gContact)
@@ -509,7 +509,7 @@ std::vector<std::map<std::string, std::string> > GCalAddressBook::parsePhotos(gc
     {
         photos = std::vector < std::map<std::string, std::string> > (1);
         photos.at(0)["pref"] = "true";
-        photos.at(0)["type"] = "photo";
+        photos.at(0)["type"] = "file"; //or URL, but it never happens
         photos.at(0)["value"] = base64Encode(std::vector<unsigned char>(pPhoto, pPhoto + photoLen / sizeof(unsigned char)));
     }
 

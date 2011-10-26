@@ -18,126 +18,28 @@
 #include <MorkAddressBook.h>
 #include <MorkParser.h>
 
-///
-/// Opens address book
-/// @param path - path to the address book file
-/// @return - true if success, otherwise false
-///
-RawAbeMap getRawAddressBook( const std::string& path )
-{
-  //abes_.clear();
-  MorkParser mork;
-
-  // Open and parse mork file
-  if ( !mork.open( path ) )
-  {
-    return RawAbeMap();
-  }
-
-  const int defaultScope = 0x80;
-
-  RawAbeMap ram;
-
-  MorkTableMap *Tables = 0;
-  MorkRowMap *Rows = 0;
-  MorkTableMap::iterator tableIter;
-  MorkRowMap::iterator rowIter;
-
-  Tables = mork.getTables( defaultScope );
-
-  if ( Tables )
-  {
-    // Iterate all tables
-    for ( tableIter = Tables->begin(); tableIter != Tables->end(); tableIter++ )
-    {
-      if ( 0 == tableIter->first ) continue;
-
-      // Get rows
-      Rows = mork.getRows( defaultScope, &tableIter->second );
-
-      if ( Rows )
-      {
-        // Iterate all rows
-        for ( rowIter = Rows->begin(); rowIter != Rows->end(); rowIter++ )
-        {
-          if ( 0 == rowIter->first ) continue;
-
-            //RawAbeMap ram;
-            //ABEntry abe;
-            std::string column;
-            std::string value;
-
-//          char buffer[20];
-//          itoa( rowIter->first, buffer, 10 );  //old way of parsing in the original code, but now itoa() is no more supported on g++ 4.5
-          //abe.id = std::string( buffer );
-
-//          std::stringstream ss;
-//          ss<<rowIter->first;
-//          abe.id=ss.str();
-
-
-
-          // Get cells
-          for ( MorkCells::iterator cellsIter = rowIter->second.begin();
-          cellsIter != rowIter->second.end(); cellsIter++ )
-          {
-            column = mork.getColumn( cellsIter->first );
-            value = mork.getValue( cellsIter->second );
-
-            ram[ column ] = value;
-            std::cout<<"\033[1;31;43m COLUMN:\033[0m "<<column<<"    \033[1;33;41mvalue:\033[0m "<<value<<std::endl;
-          }
-          std::cout<<std::endl;
-
-          //AbeMap::iterator abeIter;
-
-          //abes_[ rowIter->first ] = abe;
-          //abeIter = abes_.find( rowIter->first );
-
-          //addEntry( ram, abeIter->second );
-        }
-      }
-    }
-  }
-
-  return ram;
-}
-
-
-
-
-
-
 
 int main( int argc, char ** argv )
 {
-  //openAddressBook( "D:\\Development\\OpenSource\\MorkParser-STL1.0\\abook.mab" );
-  const std::string defaultAB="<path_to_thunderbird_address_book>/abook.mab"; 
+  //HINT use test file abook.mab in test/testAddressBook
   
   MorkAddressBook mab;
   bool result;
-//  if(argc==1)
-//    result=mab.openAddressBook(defaultAB);
-//  else
-//    result=mab.openAddressBook(std::string(argv[1]));
-//
-//
-//  if(!result)
-//    std::cerr<<"Problem opening addrss book: check program arguments and path"<<std::endl;
-//
-//  AbeMap::iterator iter;
-//  AbeMap ab=mab.getAB();
-//  std::cout<<"Found "<<ab.size()<<" contacts"<<std::endl;
-//  int i=0;
-//  for ( iter = ab.begin(); iter != ab.end(); iter++ )
-//  {
-//    std::cout << "Entry #"<< ++i<< std::endl;
-//    std::cout << "Email Address: " << iter->second.email << std::endl;
-//    std::cout << "Name: " << iter->second.first_name  << " " << iter->second.last_name << std::endl << std::endl;
-//  }
+  if(argc>1)
+    result=mab.openAddressBook(std::string(argv[1]));
+  else
+  {
+    std::cerr<<"No address book name supplied!\nHINT: use test file abook.mab in test/testAddressBook"<<std::endl;
+      return 0;
+  }
+  if(!result)
+    std::cerr<<"Problem opening addrss book: check program arguments and path"<<std::endl;
 
-  if (argc>1)
-      RawAbeMap rm =getRawAddressBook(std::string(argv[1]));
+  //get and print contacts
+  W3CContacts vcts=mab.getAB();
+  std::cout<<"Found "<<vcts.size()<<" contacts:"<<std::endl;
+  for(int i=0; i<vcts.size();i++)
+    std::cout<<vcts.at(i)<<std::endl;
 
-  return 0;
+/  return 0;
 }

@@ -65,7 +65,7 @@ function Contact(_id, _displayName, _name, _nickname, _phonenumbers, _emails, _a
   if (_name && _name instanceof ContactName)
     this.name = _name;
   if (_nickname)
-    this.nickname =_nickname;
+    this.nickname = _nickname;
   if (_phonenumbers && _phonenumbers instanceof Array &&
     (_phonenumbers.length > 0 && (_phonenumbers[0] instanceof ContactField)))
     this.phoneNumbers = _phonenumbers;
@@ -328,139 +328,113 @@ this.getAllContacts = function(params, callback)
 function makeW3Ccontacts(type, callback)
 {
   var contacts_l;
+  var rawContacts;
   if (type == "local")
   {
     // get an array of local contacts
-    var rawLocalContacts = LocalContacts.getAB();
-    contacts_l = new Array(rawLocalContacts.length);
-    for ( var i = 0; i < rawLocalContacts.length; i++)
-    {
-      contacts_l[i] = localContact2W3CContact(rawLocalContacts[i]);
-    }
-
+    rawContacts = LocalContacts.getAB();
+    contacts_l = new Array(rawContacts.length);
   }
   else if (type == "remote")
   {
     // get an array of remote contacts
-    var rawRemoteContacts = RemoteContacts.getContacts();
-
-    contacts_l = new Array(rawRemoteContacts.length);
-
-    for ( var i = 0; i < rawRemoteContacts.length; i++)
-    {
-      contacts_l[i] = remoteContact2W3CContact(rawRemoteContacts[i]);
-    }
+    rawContacts = RemoteContacts.getContacts();
+    contacts_l = new Array(rawContacts.length);
   }
+
+  for ( var i = 0; i < rawContacts.length; i++)
+  {
+    contacts_l[i] = rawContact2W3CContact(rawContacts[i]);
+  }
+
   callback(contacts_l);
 }
 
 /**
- * map a remote contact to a w3c contact
+ * map a raw (c++ like) contact to a w3c typed contact
  */
-function remoteContact2W3CContact(remoteContact)
+function rawContact2W3CContact(rawContact)
 {
   //Fill Contact Name
-  var _contactName = new ContactName(remoteContact.name['formatted'], remoteContact.name['familyName'],
-    remoteContact.name['givenName'], remoteContact.name['middleName'], remoteContact.name['honorificPrefix'],
-    remoteContact.name['honorificSuffix']);
+  var _contactName = new ContactName(rawContact.name['formatted'], rawContact.name['familyName'],
+    rawContact.name['givenName'], rawContact.name['middleName'], rawContact.name['honorificPrefix'],
+    rawContact.name['honorificSuffix']);
 
   //Phone Numbers
-  var _contactPhoneNumbers = new Array(remoteContact.phoneNumbers.length);
-  for ( var j = 0; j < remoteContact.phoneNumbers.length; j++)
+  var _contactPhoneNumbers = new Array(rawContact.phoneNumbers.length);
+  for ( var j = 0; j < rawContact.phoneNumbers.length; j++)
   {
-    _contactPhoneNumbers[j] = new ContactField(remoteContact.phoneNumbers[j]['value'],
-      remoteContact.phoneNumbers[j]['type'], Boolean(remoteContact.phoneNumbers[j]['pref'] == "true"));
+    _contactPhoneNumbers[j] = new ContactField(rawContact.phoneNumbers[j]['value'],
+      rawContact.phoneNumbers[j]['type'], Boolean(rawContact.phoneNumbers[j]['pref'] == "true"));
   }
 
   //Email Addresses
-  var _contactEmails = new Array(remoteContact.emails.length);
-  for ( var j = 0; j < remoteContact.emails.length; j++)
+  var _contactEmails = new Array(rawContact.emails.length);
+  for ( var j = 0; j < rawContact.emails.length; j++)
   {
-    _contactEmails[j] = new ContactField(remoteContact.emails[j]['value'], remoteContact.emails[j]['type'],
-      Boolean(remoteContact.emails[j]['pref'] == "true"));
+    _contactEmails[j] = new ContactField(rawContact.emails[j]['value'], rawContact.emails[j]['type'],
+      Boolean(rawContact.emails[j]['pref'] == "true"));
   }
 
   //Post Addresses _formatted
-  var _contactAddresses = new Array(remoteContact.addresses.length);
-  for ( var j = 0; j < remoteContact.addresses.length; j++)
+  var _contactAddresses = new Array(rawContact.addresses.length);
+  for ( var j = 0; j < rawContact.addresses.length; j++)
   {
-    _contactAddresses[j] = new ContactAddress(remoteContact.addresses[j]['formatted'],
-      remoteContact.addresses[j]['type'], remoteContact.addresses[j]['streetAddress'],
-      Boolean(remoteContact.addresses[j]['pref'] == "true"));
+    _contactAddresses[j] = new ContactAddress(rawContact.addresses[j]['formatted'],
+      rawContact.addresses[j]['type'], rawContact.addresses[j]['streetAddress'],
+      Boolean(rawContact.addresses[j]['pref'] == "true"));
   }
 
   //Instant Messengers
-  var _contactIms = new Array(remoteContact.ims.length);
-  for ( var j = 0; j < remoteContact.ims.length; j++)
+  var _contactIms = new Array(rawContact.ims.length);
+  for ( var j = 0; j < rawContact.ims.length; j++)
   {
-    _contactIms[j] = new ContactField(remoteContact.ims[j]['value'], remoteContact.ims[j]['type'],
-      Boolean(remoteContact.ims[j]['pref'] == "true"));
+    _contactIms[j] = new ContactField(rawContact.ims[j]['value'], rawContact.ims[j]['type'],
+      Boolean(rawContact.ims[j]['pref'] == "true"));
   }
 
   //Organizations
-  var _contactOrgs = new Array(remoteContact.organizations.length);
-  for ( var j = 0; j < remoteContact.organizations.length; j++)
+  var _contactOrgs = new Array(rawContact.organizations.length);
+  for ( var j = 0; j < rawContact.organizations.length; j++)
   {
-      _contactOrgs[j] = new ContactOrganization(remoteContact.organizations[j]['name'],
-      remoteContact.organizations[j]['type'], Boolean(remoteContact.organizations[j]['pref'] == "true"),
-      remoteContact.organizations[j]['title']);
+    _contactOrgs[j] = new ContactOrganization(rawContact.organizations[j]['name'],
+      rawContact.organizations[j]['type'], Boolean(rawContact.organizations[j]['pref'] == "true"),
+      rawContact.organizations[j]['title']);
   }
 
   //Urls
-  var _contactUrls = new Array(remoteContact.urls.length);
-  for ( var j = 0; j < remoteContact.urls.length; j++)
+  var _contactUrls = new Array(rawContact.urls.length);
+  for ( var j = 0; j < rawContact.urls.length; j++)
   {
-    _contactUrls[j] = new ContactField(remoteContact.urls[j]['value'], remoteContact.urls[j]['type'],
-      Boolean(remoteContact.urls[j]['pref'] == "true"));
+    _contactUrls[j] = new ContactField(rawContact.urls[j]['value'], rawContact.urls[j]['type'],
+      Boolean(rawContact.urls[j]['pref'] == "true"));
   }
 
   //Photos (always 1, with libGCal)
-  var _contactPhotos = new Array(remoteContact.photos.length);
-  for ( var j = 0; j < remoteContact.photos.length; j++)
+  var _contactPhotos = new Array(rawContact.photos.length);
+  for ( var j = 0; j < rawContact.photos.length; j++)
   {
-    _contactPhotos[j] = new ContactField(remoteContact.photos[j]['value'], remoteContact.photos[j]['type'],
-      Boolean(remoteContact.photos[j]['pref'] == "true"));
+    _contactPhotos[j] = new ContactField(rawContact.photos[j]['value'], rawContact.photos[j]['type'],
+      Boolean(rawContact.photos[j]['pref'] == "true"));
   }
-  
+
   //Fill Contact
   /*
-   * _id, _displayName, _name, _nickname, _phonenumbers, _emails, _addrs, _ims, _orgs, _rev, _birthday,
-  _gender, _note, _photos, _catgories, _urls, _timezone
+   * _id, _displayName, _name, _nickname, _phonenumbers, _emails, _addrs, _ims,
+   * _orgs, _rev, _birthday, _gender, _note, _photos, _catgories, _urls,
+   * _timezone
    * 
-   * */
-  
-  var _contact = new Contact(remoteContact.id, remoteContact.displayName, _contactName, remoteContact.nickname,
+   */
+
+  var _contact = new Contact(rawContact.id, rawContact.displayName, _contactName, rawContact.nickname,
     _contactPhoneNumbers, _contactEmails, _contactAddresses, _contactIms, _contactOrgs,
-    new Date(remoteContact.revision), new Date(remoteContact.birthday), remoteContact.gender, remoteContact.note,
-    _contactPhotos, remoteContact.categories, _contactUrls, remoteContact.timezone);
+    new Date(rawContact.revision), new Date(rawContact.birthday), rawContact.gender, rawContact.note,
+    _contactPhotos, rawContact.categories, _contactUrls, rawContact.timezone);
 
   return _contact;
 }
 
-/**
- * map a local contact to a w3c contact
- */
-function localContact2W3CContact(localContact)
-{
-  var contact = new Contact();
 
-  // TODO IMPLEMENT ME
-  contact.id = "ID";
-
-  contact.displayName = "DISP_NAME";
-
-  contact.name = new ContactName();
-  contact.name.formatted = "NAME_FORMATTED";
-  contact.name.familyName = "NAME_FAMILY";
-  contact.name.givenName = "NAME_GIVEN";
-  contact.name.middleName = "NAME_MID_NAME";
-  contact.name.honorificPrefix = "NAME_HON_PREFIX";
-  contact.name.honorificSuffix = "NAME_HON_SUFFIX";
-
-  contact.nickname = remoteContact.nickname;
-
-  return contact;
-}
 
 // /////////////////CONTACT FIND
 
@@ -490,28 +464,19 @@ function simpleCallback(par)
 this.findContacts = function(params, callback)
 {
   if (params)
-  {
-    if (params[0]['type'] == "local")
-    {
-      callback([]); //NOT IMPLEMENTED YET
-    }
-    else if (params[0]['type'] == "remote")
-    {
-      this.find(params[0]['fields'], callback); //TODO should we set a global flag in this module??
-    }
-  }
+    this.find(params[0]['type'], params[0]['fields'], callback);
 }
 
 /**
  * Retrieve a list of contatcs matching fields specified in field TODO make this
  * full W3C specs compliant
  */
-this.find = function(fields, successCB)// , errorCB, options)
+this.find = function(type, fields, successCB)// , errorCB, options)
 {
   // initialize contacs_l with all contacts 
-  //TODO should we cache them somewhere for speed up?
+  //TODO should we cache the contacts somewhere in this module for speed up?
   var contacts_l;
-  type = "remote"; //TODO should we set a global flag in this module??
+
   // This should be the way to pass params asynchronously... ????
   makeW3Ccontacts(type, function(params)
   {
