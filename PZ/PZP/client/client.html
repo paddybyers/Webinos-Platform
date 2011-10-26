@@ -2,18 +2,21 @@
 <head>
 <title>webinos session messaging rpc</title>
 	<script type="text/javascript" src="/rpc.js"></script>
+	<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+	<script type="text/javascript" src="/jquery.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
 	<script type="text/javascript" src="/client/webinos.js"></script>
 	<script type="text/javascript" src="/webinos.utils.js"></script>
 	<script type="text/javascript" src="/client/webinos.file.js"></script>
 	<script type="text/javascript" src="/messaging.js"></script>
 	<script type="text/javascript" src="/client/get42.js"></script>
-	<script type="text/javascript" src="/jquery.js"></script>
+	<!--<script type="text/javascript" src="/jquery.js"></script>-->
 	<script type="text/javascript" src="/dojo.js"></script>
 
 	<script type="text/javascript">
 		$(document).ready(function() {
-			//$("#tabs").tabs();
+			$("#tabs").tabs();
         	var reader = null;
             var fileSaver = null;
             var fileWriter = null;
@@ -369,6 +372,12 @@
 <body>
 <div class="pzh-pzp">
 <div id = "tabs">
+	<ul>
+		<li> <a href="#pzh"> PZH </a> </li>
+		<li> <a href="#pzp"> PZP </a> </li>
+		<li> <a href="#example"> Example </a> </li>
+	</ul>
+
 	<div id = "pzh">
 		<table>
 			<p> PZH Connecting Details (If you want to start second PZH server, please change above config values) </p>
@@ -388,7 +397,7 @@
 			<tr><td>HTTPS Server Port</td><td> <input type="text" id="httpport" value="8907"/></td></tr>
 			<tr><td><button id="startPZH">Start PZH </button></td></tr>
 		</table>
-	<div>
+	</div>
 	<div id = "pzp">	
 		<table>
 			<tr><th>Config </th> <th> Value </th> </tr>
@@ -424,49 +433,7 @@
 				</td>
 			</tr>
 		</table>
-	</div>
-	
-	<div id = "existing">
-		<table border="1"  style="height: 100%; width: 100%;">
-			<tr valign="top" >
-			<td width="50%">
-				<div >
-					<div >
-						<p>
-							<button id="echo">echo</button>
-							<button id="currentPositionButton">current pos</button>
-							<button id="cls">Clear</button>
-							<button id="getFileContent">Get File Content</button>
-							<button id="fileSaver">Save with FileSaver</button>
-							<button id="fileWriter">Save with FileWriter</button>
-							<button id="fileWriterTruncate">Truncate</button>
-						 	<input type="text" id="truncate" />
-						</p>
-						<p>
-							<label for="messageText">File Name</label> <input type="text"
-								id="messageText" />
-								<br>
-							<label for="fileContent">File Content</label> 
-							<br>
-							<textarea rows='8' size = 500
-								id="fileContent"></textarea>
-						</p>
-					</div>
-					<div >
-						<ul id="messages">
-						</ul>
-					</div>
-				</div>
-			 </td>
-			 <td width="50%" >
-				<div >
-					<p id="cwd"></p>
-					<ul id="ls"></ul>
-				</div>
-			</td>
-			</tr>
-		</table>
-	</div>
+	</div>	
 </div>
 </div>
 </body>

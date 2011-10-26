@@ -85,12 +85,11 @@ pzh.prototype.checkFiles = function (filename, callback) {
 							}
 						});
 					});
-				}
-				else {
-					callback.call(self, 'certificates present');
-				}		
+				}				
 			});
-		}
+		} else {
+			callback.call(self, 'certificates present');
+		}		
 	});	
 };
 
@@ -249,11 +248,12 @@ pzh.prototype.connect = function () {
 					}
 					if(id1 === -1)
 						id1 = 0;
-					var name = 'pzh_'+self.config.id+'_'+id1;
+					var name = 'pzh_'+self.config.common.split(':')[0];
 					self.config.tempcsr = name+'_client_temp.csr';
 					self.config.clientcert = name+'_client_certified.pem';
 
-					fs.writeFile(self.config.tempcsr, parse.payload.message, function() {
+					fs.writeFile(self.config.tempcsr, parse.payload.message, function(err) {
+						if(err) throw err;
 						// If we could get this setSendinformation from within key exchange in openssl, it would not require certificate
 						log('PZH: Peer Common Name ' + conn.getPeerCertificate().subject.CN);
 						webinos.session.common.generateClientCertifiedCert(self.config.tempcsr, self, function(result) {
@@ -304,51 +304,49 @@ pzh.prototype.configurePZH = function(contents, callback) {
 	var id1 = -1, id;
 	var name, i, k, j;
 	var flag = true, common = '', data1;
-	webinos.session.common.getId(self, function(getid) {
-		self.config.id = getid;
-		fs.readdir(__dirname, function(err, files) {
-			for(i in files) {
-				if( (files[i].indexOf('pzh',0) === 0) &&  files[i].indexOf('key.pem', 0) !== -1) {
-					id = files[i].split('_');
-					data1 = contents.toString().split('\n');
-					for(j = 0; j < data1.length; j += 1) {
-						if(data1[j].split('=')[0] === 'common') {
-							// If matches no need to generate new config
-							log('read file ' + id[1]);
-							common = data1[j].split('=')[1];
-							log('read config ' + common);
-							if(id[1] === common) {
-								common = id[1];
-								flag = false;
-							}										
-						}
+	fs.readdir(__dirname, function(err, files) {
+		for(i in files) {
+			if( (files[i].indexOf('pzh',0) === 0) &&  files[i].indexOf('key.pem', 0) !== -1) {
+				id = files[i].split('_');
+				data1 = contents.toString().split('\n');
+				for(j = 0; j < data1.length; j += 1) {
+					if(data1[j].split('=')[0] === 'common') {
+						// If matches no need to generate new config
+						common = data1[j].split('=')[1];
+						if(id[1] === common) {
+							common = id[1];
+							flag = false;
+						}										
 					}
 				}
 			}
+		}
 
-			if(flag === true) {
-				if(common === '') {
-					data1 = contents.toString().split('\n');
-					for(j = 0; j < data1.length; j += 1) {
-						if(data1[j].split('=')[0] === 'common') {
-							common = data1[j].split('=')[1];
-						}
-					}					
-				}				
-				name = 'pzh_'+common+'_'+getid;
-				self.config.keyname = name+'_conn_key.pem';
-				self.config.certname = name+'_conn_cert.pem';
-				self.config.certnamecsr = name+'_conn_cert.csr'
-				self.config.keysize = 1024;
-				self.config.mastercertname = name+'_master_cert.pem';
-				self.config.masterkeyname = name+'_master_key.pem';
-				self.config.masterkeysize = 1024;
-				var i, data1 = contents.toString().split('\n');
-
-				for(i = 0; i < data1.length; i += 1) {
-					data1[i] = data1[i].split('=');			
-				}
-
+		if(flag === true) {
+			if(common === '') {
+				data1 = contents.toString().split('\n');
+				for(j = 0; j < data1.length; j += 1) {
+					if(data1[j].split('=')[0] === 'common') {
+						common = data1[j].split('=')[1];
+					}
+				}					
+			}
+			name = 'pzh_'+common; //+'_'+getid;
+			self.config.keyname = name+'_conn_key.pem';
+			self.config.certname = name+'_conn_cert.pem';
+			self.config.certnamecsr = name+'_conn_cert.csr'
+			self.config.keysize = 1024;
+			self.config.mastercertname = name+'_master_cert.pem';
+			self.config.masterkeyname = name+'_master_key.pem';
+			self.config.masterkeysize = 1024;
+			var i, data1 = contents.toString().split('\n');
+	
+			for(i = 0; i < data1.length; i += 1) {
+				data1[i] = data1[i].split('=');
+			}
+			webinos.session.common.getId(self, function(getid) {
+				self.config.id = getid;
+			
 				for(i = 0; i < data1.length; i += 1) {
 					if(data1[i][0] === 'country') {
 						self.config.country = data1[i][1];
@@ -367,16 +365,18 @@ pzh.prototype.configurePZH = function(contents, callback) {
 					} else if(data1[i][0] === 'days') {
 						self.config.days = data1[i][1];
 					}
-				} 
-				callback.call(self,'configure pzh');					
-			} else if (flag === false) {
-				name = 'pzh_'+common+'_'+getid;
-				self.config.keyname = name+'_conn_key.pem';
-				self.config.certname = name+'_conn_cert.pem';
-				self.config.mastercertname = name+'_master_cert.pem';
-				callback.call(self,'file present');	
-			}
-		});	
+				}
+			callback.call(self,'configure pzh');
+			});
+		} else if (flag === false) {
+				
+			name = 'pzh_'+common;//+'_'+getid;
+			self.config.keyname = name+'_conn_key.pem';
+			self.config.certname = name+'_conn_cert.pem';
+			self.config.common = common;
+			self.config.mastercertname = name+'_master_cert.pem';
+			callback.call(self,'file present');	
+		}			
 	});	
 };
 /* starts pzh, creates servers and event listeners for listening data from clients.

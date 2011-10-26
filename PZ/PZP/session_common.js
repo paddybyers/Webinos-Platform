@@ -9,8 +9,8 @@ exports.getId = function (self, callback) {
 	if(process.platform === 'cygwin') {
 		var req = "getmac -V -FO CSV | awk -F \',\' \'{if(match($1, \"Local Area Connection\")) print $3;}\'";
 		child_process.exec(req, function (error, stdout, stderr) {
-			//console.log('PZ Common: GetID stdout: ' + stdout);
-			console.log('PZ Common: GetID stderr: ' + stderr);
+			console.log('PZ Common: GetID stdout: ' + stdout);
+			//console.log('PZ Common: GetID stderr: ' + stderr);
 			id = stdout.split('\n');
 			if (error !== null) {
 				console.log('PZ Common: GetID exec error: ' + error);
