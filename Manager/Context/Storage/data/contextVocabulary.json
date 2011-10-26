@@ -1,0 +1,533 @@
+{
+   "ApplicationLauncherAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "CalendarAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "ContactsAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "ContextAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "DeviceInteractionAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "DeviceOrientationAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "DevicestatusAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "Devicestatusvocabulary" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "EventhandlingAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "FileAPI:DirectoriesandSystem" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "FileReaderAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "FileWriterAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "GalleryAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "GenericSensorActuatorAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "GeolocationAPI" : {
+      "API" : "http://webinos.org/api/vehicle",
+      "Control" : {
+         "clearWatch" : {
+            "Errors" : null,
+            "inputs" : {
+               "watchId" : {
+                  "type" : "long"
+               }
+            },
+            "outputs" : null
+         }
+      },
+      "MyPositions" : {
+         "getCurrentPosition" : {
+            "Errors" : {
+               "PositionError" : {
+                  "code" : {
+                     "logged" : false,
+                     "type" : "short"
+                  },
+                  "message" : {
+                     "logged" : false,
+                     "type" : "DOMString"
+                  }
+               }
+            },
+            "inputs" : {
+               "PositionOptions" : {
+                  "enableHighAccuracy" : {
+                     "logged" : false,
+                     "type" : "boolean "
+                  },
+                  "maximumAge" : {
+                     "logged" : false,
+                     "type" : "long"
+                  },
+                  "timeout" : {
+                     "logged" : false,
+                     "type" : "long"
+                  }
+               }
+            },
+            "outputs" : {
+               "DOMTimeStamp" : {
+                  "logged" : false,
+                  "type" : "DOMTimeStamp"
+               },
+               "Position" : {
+                  "Coordinates" : {
+                     "accuracy" : {
+                        "logged" : true,
+                        "type" : "double"
+                     },
+                     "altitude" : {
+                        "logged" : true,
+                        "type" : "double"
+                     },
+                     "altitudeAccuracy" : {
+                        "logged" : true,
+                        "type" : "double"
+                     },
+                     "heading" : {
+                        "logged" : true,
+                        "type" : "double"
+                     },
+                     "latitude" : {
+                        "logged" : true,
+                        "type" : "double"
+                     },
+                     "longitude" : {
+                        "logged" : true,
+                        "type" : "double"
+                     },
+                     "speed" : {
+                        "logged" : true,
+                        "type" : "double"
+                     }
+                  }
+               }
+            }
+         },
+         "watchPosition" : {
+            "Errors" : {
+               "PositionError" : {
+                  "code" : {
+                     "logged" : false,
+                     "type" : "short"
+                  },
+                  "message" : {
+                     "logged" : false,
+                     "type" : "DOMString"
+                  }
+               }
+            },
+            "inputs" : {
+               "PositionOptions" : {
+                  "enableHighAccuracy" : {
+                     "logged" : false,
+                     "type" : "boolean "
+                  },
+                  "maximumAge" : {
+                     "logged" : false,
+                     "type" : "long"
+                  },
+                  "timeout" : {
+                     "logged" : false,
+                     "type" : "long"
+                  }
+               }
+            },
+            "outputs" : {
+               "DOMTimeStamp" : {
+                  "logged" : false,
+                  "type" : "DOMTimeStamp"
+               },
+               "Position" : {
+                  "Coordinates" : {
+                     "accuracy" : {
+                        "logged" : true,
+                        "type" : "double"
+                     },
+                     "altitude" : {
+                        "logged" : true,
+                        "type" : "double"
+                     },
+                     "altitudeAccuracy" : {
+                        "logged" : true,
+                        "type" : "double"
+                     },
+                     "heading" : {
+                        "logged" : true,
+                        "type" : "double"
+                     },
+                     "latitude" : {
+                        "logged" : true,
+                        "type" : "double"
+                     },
+                     "longitude" : {
+                        "logged" : true,
+                        "type" : "double"
+                     },
+                     "speed" : {
+                        "logged" : true,
+                        "type" : "double"
+                     }
+                  }
+               }
+            }
+         }
+      }
+   },
+   "MediaCaptureAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "MessagingAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "NFCAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "PaymentAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "PlatformattestationAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "ServiceDicoveryAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "TVandSTBcontrolAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "UserAuthenticationAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "UserProfileAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "VehicleAPI" : {
+      "API" : "http://webinos.org/api/vehicle",
+      "MyClimate" : {
+         "get" : {
+            "Errors" : {
+               "VehicleError" : {
+                  "logged" : false,
+                  "type" : "short"
+               }
+            },
+            "inputs" : {
+               "vehicleDataId" : {
+                  "logged" : true,
+                  "type" : "DOMString",
+                  "values" : {
+                     "climate-all" : null,
+                     "climate-driver" : null,
+                     "climate-passenger-front" : null,
+                     "climate-passenger-rear-left" : null,
+                     "climate-passenger-rear-right" : null
+                  }
+               }
+            },
+            "outputs" : {
+               " VehicleEvent" : {
+                  "acStatus" : {
+                     "logged" : true,
+                     "type" : "boolean"
+                  },
+                  "desiredTemperature" : {
+                     "logged" : true,
+                     "type" : "short"
+                  },
+                  "ventLevel" : {
+                     "logged" : true,
+                     "type" : "short"
+                  },
+                  "ventMode" : {
+                     "logged" : true,
+                     "type" : "boolean"
+                  },
+                  "zone" : {
+                     "logged" : true,
+                     "type" : "DOMString"
+                  }
+               }
+            }
+         }
+      },
+      "MyDestination" : {
+         "get" : {
+            "Errors" : {
+               "VehicleError" : {
+                  "logged" : false,
+                  "type" : "short"
+               }
+            },
+            "inputs" : {
+               "vehicleDataId" : {
+                  "logged" : true,
+                  "type" : "DOMString",
+                  "values" : {
+                     "destination-cancelled" : null,
+                     "destination-changed" : null,
+                     "destination-reached" : null
+                  }
+               }
+            },
+            "outputs" : {
+               " VehicleEvent" : {
+                  "Address" : {
+                     "additionalInformation" : {
+                        "logged" : true,
+                        "type" : "DOMString"
+                     },
+                     "city" : {
+                        "logged" : true,
+                        "type" : "DOMString"
+                     },
+                     "country" : {
+                        "logged" : true,
+                        "type" : "DOMString"
+                     },
+                     "county" : {
+                        "logged" : true,
+                        "type" : "DOMString"
+                     },
+                     "postalCode" : {
+                        "logged" : true,
+                        "type" : "DOMString"
+                     },
+                     "premises" : {
+                        "logged" : true,
+                        "type" : "DOMString"
+                     },
+                     "region" : {
+                        "logged" : true,
+                        "type" : "DOMString"
+                     },
+                     "street" : {
+                        "logged" : true,
+                        "type" : "DOMString"
+                     },
+                     "streetNumber" : {
+                        "logged" : true,
+                        "type" : "DOMString"
+                     }
+                  },
+                  "type" : {
+                     "logged" : true,
+                     "type" : "DOMString"
+                  }
+               }
+            }
+         }
+      },
+      "MyLights" : {
+         "get" : {
+            "Errors" : {
+               "VehicleError" : {
+                  "logged" : false,
+                  "type" : "short"
+               }
+            },
+            "inputs" : {
+               "vehicleDataId" : {
+                  "logged" : true,
+                  "type" : "DOMString",
+                  "values" : {
+                     "lights-fog-front" : null,
+                     "lights-fog-rear" : null,
+                     "lights-head" : null,
+                     "lights-parking-hibeam" : null,
+                     "lights-signal-right" : null,
+                     "lights-signal-warn" : null
+                  }
+               }
+            },
+            "outputs" : {
+               " VehicleEvent" : {
+                  "active" : {
+                     "logged" : true,
+                     "type" : "boolean"
+                  }
+               }
+            }
+         }
+      },
+      "MyParkSensors" : {
+         "get" : {
+            "Errors" : {
+               "VehicleError" : {
+                  "logged" : false,
+                  "type" : "short"
+               }
+            },
+            "inputs" : {
+               "vehicleDataId" : {
+                  "logged" : true,
+                  "type" : "DOMString",
+                  "values" : {
+                     "parksensors-front" : null,
+                     "parksensors-rear" : null
+                  }
+               }
+            },
+            "outputs" : {
+               " VehicleEvent" : {
+                  "left" : {
+                     "logged" : true,
+                     "type" : "short"
+                  },
+                  "midLeft" : {
+                     "logged" : true,
+                     "type" : "short"
+                  },
+                  "midRigth" : {
+                     "logged" : true,
+                     "type" : "short"
+                  },
+                  "position" : {
+                     "logged" : true,
+                     "type" : "DOMString"
+                  },
+                  "rigth" : {
+                     "logged" : true,
+                     "type" : "short"
+                  }
+               }
+            }
+         }
+      },
+      "MyShift" : {
+         "get" : {
+            "Errors" : {
+               "VehicleError" : {
+                  "logged" : false,
+                  "type" : "short"
+               }
+            },
+            "inputs" : {
+               "vehicleDataId" : {
+                  "logged" : true,
+                  "type" : "DOMString",
+                  "values" : {
+                     "shift" : null
+                  }
+               }
+            },
+            "outputs" : {
+               "VehicleEvent" : {
+                  "gear" : {
+                     "logged" : true,
+                     "type" : "short"
+                  }
+               }
+            }
+         }
+      },
+      "MyTripComputer" : {
+         "get" : {
+            "Errors" : {
+               "VehicleError" : {
+                  "logged" : false,
+                  "type" : "short"
+               }
+            },
+            "inputs" : {
+               "vehicleDataId" : {
+                  "logged" : true,
+                  "type" : "DOMString",
+                  "values" : {
+                     "tripcomputer" : null
+                  }
+               }
+            },
+            "outputs" : {
+               "VehicleEvent" : {
+                  "averageConsumption1" : {
+                     "logged" : true,
+                     "type" : "float"
+                  },
+                  "averageConsumption2" : {
+                     "logged" : true,
+                     "type" : "float"
+                  },
+                  "averageSpeed1" : {
+                     "logged" : true,
+                     "type" : "float"
+                  },
+                  "averageSpeed2" : {
+                     "logged" : true,
+                     "type" : "float"
+                  },
+                  "milage" : {
+                     "logged" : true,
+                     "type" : "float"
+                  },
+                  "range" : {
+                     "logged" : true,
+                     "type" : "float"
+                  },
+                  "tripDistance" : {
+                     "logged" : true,
+                     "type" : "float"
+                  }
+               }
+            }
+         }
+      },
+      "MyWipers" : {
+         "get" : {
+            "Errors" : {
+               "VehicleError" : {
+                  "logged" : false,
+                  "type" : "short"
+               }
+            },
+            "inputs" : {
+               "vehicleDataId" : {
+                  "logged" : true,
+                  "type" : "DOMString",
+                  "values" : {
+                     "wiper-automatic" : null,
+                     "wiper-front-level1" : null,
+                     "wiper-front-level2" : null,
+                     "wiper-front-once" : null,
+                     "wiper-front-wash" : null,
+                     "wiper-rear-once" : null,
+                     "wiper-rear-wash" : null
+                  }
+               }
+            },
+            "outputs" : {
+               " VehicleEvent" : {
+                  "active" : {
+                     "logged" : true,
+                     "type" : "boolean"
+                  }
+               }
+            }
+         }
+      }
+   },
+   "WebinosCoreAPI" : {
+      "API" : "http://webinos.org/api/"
+   },
+   "WidgetexecutionAPI" : {
+      "API" : "http://webinos.org/api/"
+   }
+}
