@@ -1,5 +1,10 @@
 <policy-set combine="first-matching-target" description="Webinos-test">
-	<policy combine="first-applicable" description="Untrusted">
+	<policy combine="first-applicable" description="PZOwner">
+			<target>
+				<subject>
+					<subject-match attr="user-id" match="xxx"/>
+				</subject>
+			</target>
 			<rule effect="prompt-blanket">
 					<condition combine="or">
 						<resource-match attr="device-cap" match="web.contact.write"/>
@@ -25,6 +30,41 @@
 					<condition>
 						<resource-match attr="device-cap" match="*"/>
 					</condition>
+			</rule>
+	</policy>
+	<policy combine="first-applicable" description="PZOwnerFriend">
+			<target>
+				<subject>
+					<subject-match attr="user-id" match="yyy"/>
+				</subject>
+			</target>
+			<rule effect="deny">
+					<condition combine="or">
+						<resource-match attr="device-cap" match="web.contact.write"/>
+						<resource-match attr="device-cap" match="web.calendar.write"/>
+					</condition>
+			</rule>
+			<rule effect="permit">
+					<condition combine="or">
+						<resource-match attr="device-cap" match="web.contact"/>
+					</condition>
+			</rule>
+			<rule effect="prompt-oneshot">
+					<condition combine="or">
+						<resource-match attr="device-cap" match="web.calendar"/>
+					</condition>
+			</rule>
+			<rule effect="deny">
+				<condition>
+					<resource-match attr="device-cap" match="*"/>
+				</condition>
+			</rule>
+	</policy>
+	<policy combine="first-applicable" description="untrusted">
+			<rule effect="deny">
+				<condition>
+					<resource-match attr="device-cap" match="*"/>
+				</condition>
 			</rule>
 	</policy>
 </policy-set>

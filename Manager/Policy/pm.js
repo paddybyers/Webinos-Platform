@@ -35,25 +35,9 @@ function runPolicyTest() {
 			console.log("Expected error: "+e.message+"...");
 		}
 		
-		console.log("Testing some features...");
-		
-		res = pm.enforceRequest("web.contact");
-		console.log("web.contact: "+ruleEffectDescription(res));
-
-		res = pm.enforceRequest("web.calendar");
-		console.log("web.calendar: "+ruleEffectDescription(res));
-
-		res = pm.enforceRequest("web.contact.write");
-		console.log("web.contact.write: "+ruleEffectDescription(res));
-
-		res = pm.enforceRequest("web.camera");
-		console.log("web.camera: "+ruleEffectDescription(res));
-
-		res = pm.enforceRequest("web.calendar.write");
-		console.log("web.calendar.write: "+ruleEffectDescription(res));
-
-		res = pm.enforceRequest("web.discovery");
-		console.log("web.discovery: "+ruleEffectDescription(res));
+		testFeatures("xxx");
+		testFeatures("yyy");
+		testFeatures("zzz");
 
 	}
 	catch(e) {
@@ -75,6 +59,45 @@ function ruleEffectDescription(num) {
 	if(num == 5)
 		return "UNDETERMINED";
 	return "INAPPLICABLE";
+}
+
+function testFeatures(userId) {
+	console.log("Testing features for user "+userId+"...");
+	var req = {};
+	var ri = {};
+	var si = {};
+	si.userId = userId;
+	req.subjectInfo = si;
+
+	ri.deviceCap = "web.contact";
+	req.resourceInfo = ri;
+	res = pm.enforceRequest(req);
+	console.log(req.resourceInfo.deviceCap+": "+ruleEffectDescription(res));
+
+	ri.deviceCap = "web.contact.write";
+	req.resourceInfo = ri;
+	res = pm.enforceRequest(req);
+	console.log(req.resourceInfo.deviceCap+": "+ruleEffectDescription(res));
+
+	ri.deviceCap = "web.calendar";
+	req.resourceInfo = ri;
+	res = pm.enforceRequest(req);
+	console.log(req.resourceInfo.deviceCap+": "+ruleEffectDescription(res));
+
+	ri.deviceCap = "web.calendar.write";
+	req.resourceInfo = ri;
+	res = pm.enforceRequest(req);
+	console.log(req.resourceInfo.deviceCap+": "+ruleEffectDescription(res));
+
+	ri.deviceCap = "web.camera";
+	req.resourceInfo = ri;
+	res = pm.enforceRequest(req);
+	console.log(req.resourceInfo.deviceCap+": "+ruleEffectDescription(res));
+
+	ri.deviceCap = "web.discovery";
+	req.resourceInfo = ri;
+	res = pm.enforceRequest(req);
+	console.log(req.resourceInfo.deviceCap+": "+ruleEffectDescription(res));
 }
 
 runPolicyTest();
