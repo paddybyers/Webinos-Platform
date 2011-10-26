@@ -2,6 +2,12 @@ var  fs = require('fs'),
     crypto = require('crypto'),
 	child_process = require('child_process');
 
+var debug = true;
+
+exports.debug = function(msg) {
+	if(debug === true)
+		console.log(msg);
+}
 // This is a device id through which we recognize device
 exports.getId = function (self, callback) {
 	var id;

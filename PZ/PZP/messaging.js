@@ -62,7 +62,7 @@ webinos.message.setObject = function(obj) {
 
 webinos.message.setGet = function (getter){
 	getownid = getter;
-	console.log('Message: getownid : ' + getownid);
+	console.log('Message: GetOwnId : ' + getownid);
 }
 
 //this function will be used when current address format changes, e.g. separator changes from "::" to "/"
@@ -73,7 +73,7 @@ webinos.message.setSeparator = function (sep){
 webinos.message.createMessage = function (options){
 	var message = {};
 	for (var i in options){
-	message[i] = options[i];
+		message[i] = options[i];
 	}
 	return message;
 }
@@ -82,7 +82,7 @@ webinos.message.createMessageId = function(message, successHandler, errorHandler
   //create a random messageid for it - to increase the range, replace 1024 with large number
   message.id =  1 + Math.floor(Math.random() * 1024);
   if( errorHandler || successHandler){
-  messageCallbacks[message.id] = {onError: errorHandler, onSuccess: successHandler};
+  	messageCallbacks[message.id] = {onError: errorHandler, onSuccess: successHandler};
   }  
 }
 
@@ -108,36 +108,32 @@ function write(rpc, respto, msgid){
 
 	    //create response message
 	    var options = {};
-            options.to = respto;
-            options.resp_to = respto;
-            options.id = msgid;
+        options.to = respto;
+        options.resp_to = respto;
+        options.id = msgid;
 
 	    options.payload = rpc;
 	    message = webinos.message.createMessage(options);
-        console.log("Message: message.create:" + JSON.stringify(message));
 
  	    var to = message.to;
-            var session1 = [to, self];
+        var session1 = [to, self];
 	    session1.join("->");
-            console.log("Message: write function - session1:" + session1);
 	    var session2 = [self, to];
 	    session2.join("->");
-            console.log("Message: write function - session2:" + session2);
 
 	    if((!clients[session1]) && (!clients[session2]))  // not registered either way
 	    {
-              console.log("Message: session not set up");
+           console.log("Message: session not set up");
               //check occurances of "::" or "/" 
 	      //var occurences = (message.to.split("/").length - 1);
-              var occurences = (message.to.split("/").length - 1)
-	      console.log("Message: occurences:", occurences);
+          var occurences = (message.to.split("/").length - 1)
+	      
 
 	      //strip from right side
 	      //var data = message.to.split('/');
 	      var data = message.to.split('/');
 	      var id = data[0];
-              console.log("Message: id" + id);
-	      var forwardto = data[0]; 
+           var forwardto = data[0]; 
 
 	      for(i = 1; i < occurences; i++)
 	      {
@@ -173,7 +169,6 @@ rpc.setWriter(write);
 
 webinos.message.onMessageReceived = function(message, sessionid){
  
-  console.log("Message: message received:" + message);
   message = JSON.parse(message);
 
   if(message.hasOwnProperty("register") && message.register)
@@ -185,7 +180,6 @@ webinos.message.onMessageReceived = function(message, sessionid){
     //regid.join("->");  
     //regid.join("+");
     regid.join("and"); 
-    console.log("Message: regid = " + regid);
 
     //this is a register message, associate the address, with session id    
     if(sessionid)
@@ -200,7 +194,7 @@ webinos.message.onMessageReceived = function(message, sessionid){
       //console.log("Message: register session: clients[regid]=" + clients[regid]); 
     }
    
-    console.log("Message:  Message = " + message + ": clients[regid]" + clients[regid] );   
+    console.log("Message:  clients[regid]" + clients[regid] );   
     //logObj(message, "register Message");
     return; 
   }
@@ -210,7 +204,6 @@ webinos.message.onMessageReceived = function(message, sessionid){
     // get own id?
     //self = getownid();
     self = getownid;
-    console.log("Message: Get own ID:" + self);
 
     //check if a session with destination has been stored 
     if(message.to !== self) 
@@ -220,14 +213,14 @@ webinos.message.onMessageReceived = function(message, sessionid){
       //if no session is available for the destination, forward to the hop nearest, 
       //i.e A->D, if session for D is not reachable, check C, then check B if C is not reachable
       //if(!clients[message.to])
-      console.log("Message: self:", self);
+     // console.log("Message: self:", self);
       var to = message.to;
       var session1 = [to, self];
       session1.join("->");
-      console.log("Message: session1:" + session1);
+      //console.log("Message: session1:" + session1);
       var session2 = [self, to];
       session2.join("->");
-      console.log("Message: session2:" + session2);
+      //console.log("Message: session2:" + session2);
 
       if((!clients[session1]) && (!clients[session2]))  // not registered either way
       {
@@ -271,7 +264,7 @@ webinos.message.onMessageReceived = function(message, sessionid){
     else  //handle message on this server 
     {
      console.log("Message: message.to:" + message.to);
-     console.log("Message: message.resp_to:" + message.resp_to);
+     //console.log("Message: message.resp_to:" + message.resp_to);
   
      // if((message.type == "JSONRPC") && (message.payload))
       if(message.payload) 
@@ -280,26 +273,26 @@ webinos.message.onMessageReceived = function(message, sessionid){
         {   
           console.log(message.payload);
           console.log("Message: message is not to myself:" + JSON.stringify(message));
-          console.log("Message: message.id =  " + message.id);
-          console.log("Message: Forwarding to RPC Message handler: " + JSON.stringify(message));
+          //console.log("Message: message.id =  " + message.id);
+          //console.log("Message: Forwarding to RPC Message handler: " + JSON.stringify(message));
           var resp = message.resp_to;
           var msgid = message.id;
           rpc.handleMessage(message.payload, resp, msgid);
         } 
         else
         { 
-          console.log("Message: message comes back to me"); 
+          //console.log("Message: message comes back to me"); 
  
           //this is a message respnose to me 
           if(messageCallbacks[message.id])
           {
-            console.log(messageCallbacks[message.id]);
+            //console.log(messageCallbacks[message.id]);
             var tmp = JSON.parse(message.payload);
-            console.log(tmp);
+            //console.log(tmp);
             messageCallbacks[message.id].onSuccess(tmp.result);
           }
-	  else
-	    console.log("Message: messagecallbacks is not defined");
+	  //else
+	    //console.log("Message: messagecallbacks is not defined");
        } 
       }
       else

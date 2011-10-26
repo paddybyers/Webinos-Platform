@@ -53,6 +53,7 @@
 						var payload = {status: 'startPZP', 
 								servername: document.getElementById('pzpservername').value,
 								serverport: document.getElementById('pzpserverport').value,
+								pzpserverport: document.getElementById('pzpport').value,
 								value: config}; 
 						var options = {type: 'prop', payload: payload};
 						webinos.send(options);
