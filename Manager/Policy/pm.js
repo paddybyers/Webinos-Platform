@@ -1,4 +1,6 @@
 
+// This test works with the policy file called  "policy-test.xml"
+
 var pmlib;
 var res;
 var pm;
@@ -6,10 +8,10 @@ var pm;
 function runPolicyTest() {
 	try {
 		console.log("Loading policy module...");
-		pmlib = require('./build/default/pm.node');
+		pmlib = require('./policymanager.js');
 		
 		try {
-			pm = new pmlib.PolicyManagerInt();
+			pm = new pmlib.policyManager();
 			console.log("Load success...");
 		}
 		catch(e) {
