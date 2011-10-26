@@ -19,5 +19,11 @@ to Android 2.3.6.
 
 The video preview appears when you launch the app. This raises the 
 question of the user interface on the phone for the services it 
-exposes. 
+exposes.
+
+The installable APK file is bin/PZP-debug.apk
+
+You can copy it to your sdcard via USB and then install it e.g. with
+ES File Explorer.
+
 
