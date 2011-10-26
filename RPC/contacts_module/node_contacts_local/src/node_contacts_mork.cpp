@@ -16,17 +16,19 @@
 
 #include "node_contacts_mork.h"
 
-CLocalContacts::CLocalContacts() : is_open(false)
+CLocalContacts::CLocalContacts() :
+        is_open(false)
 {
-  mab = new MorkAddressBook();
-};
+    mab = new MorkAddressBook();
+}
+;
 
 CLocalContacts::~CLocalContacts()
 {
-  if (mab)
-    delete mab;
-};
-
+    if (mab)
+        delete mab;
+}
+;
 
 // @Node.js calls Init() when you load the extension through require()
 // Init() defines our constructor function and prototype methods
@@ -83,26 +85,27 @@ void CLocalContacts::Init(v8::Handle<v8::Object> target)
   return args.This();
 }
 
+
 // localcontacts.open(addressbook);
 // This is a method part of the constructor function's prototype
-v8::Handle<v8::Value> CLocalContacts::_Open(const v8::Arguments& args) 
+v8::Handle<v8::Value> CLocalContacts::_Open(const v8::Arguments& args)
 {
   v8::HandleScope scope;
-  
+
   if (args.Length()==0) //TODO raise exception - user must supply an addres book name
     return v8::Boolean::New(false);
   else
   {
     // Extract C++ object reference from "this" aka args.This() argument
     CLocalContacts* localContacts_instance = node::ObjectWrap::Unwrap<CLocalContacts>(args.This());
-    
+
     // Convert first argument to V8 String
     v8::String::Utf8Value addresBookPath(args[0]);
-    
+
     //TODO raise exception if no arguments
-    
+
     localContacts_instance->is_open = localContacts_instance->mab->openAddressBook(*addresBookPath);
-    
+
     // Return value
     return v8::Boolean::New(localContacts_instance->is_open);
   }
@@ -110,90 +113,212 @@ v8::Handle<v8::Value> CLocalContacts::_Open(const v8::Arguments& args)
 
 // localcontacts.isOpen();
 // This is a method part of the constructor function's prototype
-v8::Handle<v8::Value> CLocalContacts::_isOpen(const v8::Arguments& args) 
+v8::Handle<v8::Value> CLocalContacts::_isOpen(const v8::Arguments& args)
 {
   v8::HandleScope scope;
-  
+
     // Extract C++ object reference from "this" aka args.This() argument
     CLocalContacts* localContacts_instance = node::ObjectWrap::Unwrap<CLocalContacts>(args.This());
-    
+
     // Return value
     return v8::Boolean::New(localContacts_instance->is_open);
 }
 
 // localcontacts.getAB();
 // This is a method part of the constructor function's prototype
-v8::Handle<v8::Value> CLocalContacts::_getAB(const v8::Arguments& args) 
+v8::Handle<v8::Value> CLocalContacts::_getAB(const v8::Arguments& args)
 {
-  v8::HandleScope scope;
-  // Extract C++ object reference from "this" aka args.This() argument
-  CLocalContacts* localContacts_instance = node::ObjectWrap::Unwrap<CLocalContacts>(args.This());
-  
-  //Read contacts from instance
-  AbeMap ab=localContacts_instance->mab->getAB();
-  //Store number of contacts
-  uint num_of_cont = ab.size();
-  
-  v8::Local<v8::Array> ab_array = v8::Array::New(num_of_cont);
-  uint i=0;
-  //Iterate through the map and set new array entries
-  AbeMap::iterator iter;
-  for ( iter = ab.begin(); iter != ab.end(); iter++ )
-  {
-    v8::Local<v8::Object> _entry = v8::Object::New();
-    
-        /// Entry ID
-    _entry->Set(v8::String::New("id"), v8::String::New(iter->second.id.c_str()));
+    v8::HandleScope scope;
+    // Extract C++ object reference from "this" aka args.This() argument
+    CLocalContacts* localContacts_instance = node::ObjectWrap::Unwrap < CLocalContacts > (args.This());
 
-    /// Name
-    _entry->Set(v8::String::New("first_name"), v8::String::New(iter->second.first_name.c_str()));
-    _entry->Set(v8::String::New("last_name"), v8::String::New(iter->second.last_name.c_str()));
-    _entry->Set(v8::String::New("nick_name"), v8::String::New(iter->second.nick_name.c_str()));
+    //Read contacts from instance
+    W3CContacts contactVec = localContacts_instance->mab->getAB();
+    //Store number of contacts
+    uint num_of_cont = contactVec.size();
 
-    /// Telephones/Faxes
-    _entry->Set(v8::String::New("home_tel"), v8::String::New(iter->second.home_tel.c_str()));
-    _entry->Set(v8::String::New("mobile_tel"), v8::String::New(iter->second.mobile_tel.c_str()));
-    _entry->Set(v8::String::New("work_tel"), v8::String::New(iter->second.work_tel.c_str()));
-    _entry->Set(v8::String::New("fax"), v8::String::New(iter->second.fax.c_str()));
+    v8::Local < v8::Array > contacts_array = v8::Array::New(num_of_cont);
+    uint i = 0;
+    //Iterate through the map and set new array entries
+    W3CContacts::iterator v_iter;
+    for (v_iter = contactVec.begin(); v_iter != contactVec.end(); v_iter++)
+    {
+        v8::Local < v8::Object > _entry = v8::Object::New();
 
-    /// Addresses
-    _entry->Set(v8::String::New("address_work"), v8::String::New(iter->second.address_work.c_str()));
-    _entry->Set(v8::String::New("address_home"), v8::String::New(iter->second.address_home.c_str()));
+        //id
+        _entry->Set(v8::String::New("id"), v8::String::New(v_iter->id.c_str()));
 
-    /// Web Page
-    _entry->Set(v8::String::New("web_page"), v8::String::New(iter->second.web_page.c_str()));
+        //displayName
+        _entry->Set(v8::String::New("displayName"), v8::String::New(v_iter->displayName.c_str()));
 
-    /// Email
-    _entry->Set(v8::String::New("email"), v8::String::New(iter->second.email.c_str()));
-    
-    /// Notes
-    _entry->Set(v8::String::New("notes"), v8::String::New(iter->second.notes.c_str()));
-    
-    //TODO ask Paolo for final API look: following line is compatible with Google's "title" field, but should we better handle it in JS?
-//    _entry->Set(v8::String::New("title"), v8::String::New(std::string(iter->second.first_name+" "+iter->second.last_name).c_str()));
+        //name
+        v8::Local < v8::Object > _name = v8::Object::New();
+        //Iteration through ContactName map
+        std::map<std::string, std::string>::iterator name_it;
+        for (name_it = v_iter->name.begin(); name_it != v_iter->name.end(); name_it++)
+        {
+            _name->Set(v8::String::New(name_it->first.c_str()), v8::String::New(name_it->second.c_str()));
+        }
+        _entry->Set(v8::String::New("name"), _name);
 
-    //Store Entry to array
-    ab_array->Set(i++,_entry);   
-  }
-  
-  
-  
-  // Return value
-  return scope.Close(ab_array);
+        //nickname
+        _entry->Set(v8::String::New("nickname"), v8::String::New(v_iter->nickname.c_str()));
+
+        //phoneNumbers
+        v8::Local < v8::Array > _phoneNumbers_array = v8::Array::New(v_iter->phoneNumbers.size());
+        std::vector<std::map<std::string, std::string> >::iterator _pN_it;
+        uint j = 0;
+        for (_pN_it = v_iter->phoneNumbers.begin(); _pN_it != v_iter->phoneNumbers.end(); _pN_it++)
+        {
+            v8::Local < v8::Object > _phone = v8::Object::New();
+            std::map<std::string, std::string>::iterator phone_it;
+            for (phone_it = _pN_it->begin(); phone_it != _pN_it->end(); phone_it++)
+            {
+                _phone->Set(v8::String::New(phone_it->first.c_str()), v8::String::New(phone_it->second.c_str()));
+            }
+            _phoneNumbers_array->Set(j++, _phone);
+        }
+        _entry->Set(v8::String::New("phoneNumbers"), _phoneNumbers_array);
+
+        //emails
+        v8::Local < v8::Array > _emails_array = v8::Array::New(v_iter->emails.size());
+        std::vector<std::map<std::string, std::string> >::iterator _eM_it;
+        j = 0;
+        for (_eM_it = v_iter->emails.begin(); _eM_it != v_iter->emails.end(); _eM_it++)
+        {
+            v8::Local < v8::Object > _email = v8::Object::New();
+            std::map<std::string, std::string>::iterator email_it;
+            for (email_it = _eM_it->begin(); email_it != _eM_it->end(); email_it++)
+            {
+                _email->Set(v8::String::New(email_it->first.c_str()), v8::String::New(email_it->second.c_str()));
+            }
+            _emails_array->Set(j++, _email);
+        }
+        _entry->Set(v8::String::New("emails"), _emails_array);
+
+        //addresses
+        v8::Local < v8::Array > _addresses_array = v8::Array::New(v_iter->addresses.size());
+        std::vector<std::map<std::string, std::string> >::iterator _adD_it;
+        j = 0;
+        for (_adD_it = v_iter->addresses.begin(); _adD_it != v_iter->addresses.end(); _adD_it++)
+        {
+            v8::Local < v8::Object > _address = v8::Object::New();
+            std::map<std::string, std::string>::iterator address_it;
+            for (address_it = _adD_it->begin(); address_it != _adD_it->end(); address_it++)
+            {
+                _address->Set(v8::String::New(address_it->first.c_str()), v8::String::New(address_it->second.c_str()));
+            }
+            _addresses_array->Set(j++, _address);
+        }
+        _entry->Set(v8::String::New("addresses"), _addresses_array);
+
+        //ims
+        v8::Local < v8::Array > _ims_array = v8::Array::New(v_iter->ims.size());
+        std::vector<std::map<std::string, std::string> >::iterator _imS_it;
+        j = 0;
+        for (_imS_it = v_iter->ims.begin(); _imS_it != v_iter->ims.end(); _imS_it++)
+        {
+            v8::Local < v8::Object > _im = v8::Object::New();
+            std::map<std::string, std::string>::iterator im_it;
+            for (im_it = _imS_it->begin(); im_it != _imS_it->end(); im_it++)
+            {
+                _im->Set(v8::String::New(im_it->first.c_str()), v8::String::New(im_it->second.c_str()));
+            }
+            _ims_array->Set(j++, _im);
+        }
+        _entry->Set(v8::String::New("ims"), _ims_array);
+
+        //organizations
+        v8::Local < v8::Array > _organizations_array = v8::Array::New(v_iter->organizations.size());
+        std::vector<std::map<std::string, std::string> >::iterator _organizationS_it;
+        j = 0;
+        for (_organizationS_it = v_iter->organizations.begin(); _organizationS_it != v_iter->organizations.end(); _organizationS_it++)
+        {
+            v8::Local < v8::Object > _organization = v8::Object::New();
+            std::map<std::string, std::string>::iterator organization_it;
+            for (organization_it = _organizationS_it->begin(); organization_it != _organizationS_it->end(); organization_it++)
+            {
+                _organization->Set(v8::String::New(organization_it->first.c_str()), v8::String::New(organization_it->second.c_str()));
+            }
+            _organizations_array->Set(j++, _organization);
+        }
+        _entry->Set(v8::String::New("organizations"), _organizations_array);
+
+        //revision
+        _entry->Set(v8::String::New("revision"), v8::String::New(v_iter->revision.c_str()));
+
+        //birthday
+        _entry->Set(v8::String::New("birthday"), v8::String::New(v_iter->birthday.c_str()));
+
+        //gender
+        _entry->Set(v8::String::New("gender"), v8::String::New(""));
+
+        //note
+        _entry->Set(v8::String::New("note"), v8::String::New(v_iter->note.c_str()));
+
+        //photos
+//        _entry->Set(v8::String::New("photos"), v8::String::New(v_iter->photos.c_str()));
+        //urls
+        v8::Local < v8::Array > _photos_array = v8::Array::New(v_iter->photos.size());
+        std::vector<std::map<std::string, std::string> >::iterator _photoS_it;
+        j = 0;
+        for (_photoS_it = v_iter->photos.begin(); _photoS_it != v_iter->photos.end(); _photoS_it++)
+        {
+            v8::Local < v8::Object > _photo = v8::Object::New();
+            std::map<std::string, std::string>::iterator photo_it;
+            for (photo_it = _photoS_it->begin(); photo_it != _photoS_it->end(); photo_it++)
+            {
+                _photo->Set(v8::String::New(photo_it->first.c_str()), v8::String::New(photo_it->second.c_str()));
+            }
+            _photos_array->Set(j++, _photo);
+        }
+        _entry->Set(v8::String::New("photos"), _photos_array);
+
+
+        //categories
+        _entry->Set(v8::String::New("categories"), v8::Array::New());
+
+        //urls
+        v8::Local < v8::Array > _urls_array = v8::Array::New(v_iter->urls.size());
+        std::vector<std::map<std::string, std::string> >::iterator _urlS_it;
+        j = 0;
+        for (_urlS_it = v_iter->urls.begin(); _urlS_it != v_iter->urls.end(); _urlS_it++)
+        {
+            v8::Local < v8::Object > _url = v8::Object::New();
+            std::map<std::string, std::string>::iterator url_it;
+            for (url_it = _urlS_it->begin(); url_it != _urlS_it->end(); url_it++)
+            {
+                _url->Set(v8::String::New(url_it->first.c_str()), v8::String::New(url_it->second.c_str()));
+            }
+            _urls_array->Set(j++, _url);
+        }
+        _entry->Set(v8::String::New("urls"), _urls_array);
+
+        //timezone
+        _entry->Set(v8::String::New("timezone"), v8::String::New(""));
+
+        //Store Entry to array
+        contacts_array->Set(i++, _entry);
+    }
+
+    // Return value
+    return scope.Close(contacts_array);
 }
 
 // What follows is boilerplate code:
 
 /* Thats it for actual interfacing with v8, finally we need to let Node.js know how to dynamically load our code. 
-   Because a Node.js extension can be loaded at runtime from a shared object, we need a symbol that the dlsym function can find, 
-   so we do the following: */
+ Because a Node.js extension can be loaded at runtime from a shared object, we need a symbol that the dlsym function can find,
+ so we do the following: */
 // See https://www.cloudkick.com/blog/2010/aug/23/writing-nodejs-native-extensions/ & http://www.freebsd.org/cgi/man.cgi?query=dlsym
 // Cause of name mangling in C++, we use extern C here
 v8::Persistent<v8::FunctionTemplate> CLocalContacts::persistent_function_template;
-extern "C" {
-  static void init(v8::Handle<v8::Object> target) {
+extern "C"
+{
+static void init(v8::Handle<v8::Object> target)
+{
     CLocalContacts::Init(target);
-  }
-  // @see http://github.com/ry/node/blob/v0.2.0/src/node.h#L101
-  NODE_MODULE(localcontacts, init);
+}
+// @see http://github.com/ry/node/blob/v0.2.0/src/node.h#L101
+NODE_MODULE(localcontacts, init);
 }

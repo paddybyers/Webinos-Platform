@@ -19,8 +19,8 @@ var cm = require("contacts_module");
 
 var params = new Array(1);
 params[0] = {};
-params[0].usr = "gregg01";//"USER";
-params[0].pwd = "lazio000";//"PASSWORD";
+params[0].usr = "USER";
+params[0].pwd = "PASSWORD";
 params[0].type = "remote";
 
 cm.authenticate(params, function(res)
@@ -37,9 +37,8 @@ cm.getAllContacts(params, function(list)
 {
   console.log("Found ", list.length, "contacts");
   for ( var i = 0; i < list.length; i++)
-    console.log("getAllContacts res[", i, "].displayName = ", list[i].displayName, list[i].photos);
-  //console.log("getAllContacts res[",3,"] = ", list[3]);
-});
+    console.log("getAllContacts res[", i, "].displayName = ", list[i].displayName);
+ });
 console.log("\n");
 console.log("________________________________________________________________________");
 // This should be the way to pass params asynchronously... ????
@@ -52,9 +51,9 @@ function getFound(par)
 var fields =
 {
   "displayName" : "Lord Darth Skywalker Vader sith"
-}; //try also with: rossi, Rossi, Vader... ;)
+};
 console.log("\search for:", fields.displayName);
-cm.find(fields, function(pms)
+cm.find("remote",fields, function(pms) //or use cm.findContacts({"type":"remote","fields":fields}, function(pms)
 {
   found = getFound(pms);
 })
@@ -66,16 +65,13 @@ else
     console.log("[", i, "]: ", found[i].displayName);
 console.log("________________________________________________________________________");
 
-//var fields2 = {"name.familyName":"Paolo"};
-//console.log("FIELDS 2:",fields2["name.familyName"]);
-
 var fields1 =
 {
   "name" : "Paolo"
 };
 console.log("\nsearch for:", fields1["name"]);
 found = undefined;
-cm.find(fields1, function(pms)
+cm.find("remote",fields1, function(pms)
 {
   found = getFound(pms);
 })
@@ -94,7 +90,7 @@ var fields2 =
 }; //Date month is 0->11 so september is 8 !!!
 console.log("\nsearch for:", fields2);
 found = undefined;
-cm.find(fields2, function(pms)
+cm.find("remote",fields2, function(pms)
 {
   found = getFound(pms);
 })
@@ -112,7 +108,7 @@ var fields3 =
 };
 console.log("\nsearch for:", fields3["birthday"]);
 found = undefined;
-cm.find(fields3, function(pms)
+cm.find("remote",fields3, function(pms)
 {
   found = getFound(pms);
 })
@@ -124,13 +120,13 @@ else
     console.log("[", i, "]: ", found[i].displayName);
 console.log("________________________________________________________________________");
 
-var fields3 =
+var fields4 =
 {
   "emails" : "paolo.rossi@cheridere.it"
 };
-console.log("\nsearch for:", fields3["emails"]);
+console.log("\nsearch for:", fields4["emails"]);
 found = undefined;
-cm.find(fields3, function(pms)
+cm.find("remote",fields4, function(pms)
 {
   found = getFound(pms);
 })
@@ -148,7 +144,7 @@ var fields4 =
 };
 console.log("\nsearch for:", fields4["addresses"]);
 found = undefined;
-cm.find(fields4, function(pms)
+cm.find("remote",fields4, function(pms)
 {
   found = getFound(pms);
 })
@@ -163,20 +159,17 @@ else
     for ( var k = 0; k < found[i].addresses.length; k++)
     {
       console.log("\t" + found[i].addresses[k].toString());
-//      console.log("\t" + (found[i].addresses[k].pref ? "*" : "") +
-//        (found[i].addresses[k].type == "" ? "other" : found[i].addresses[k].type) + ": " +
-//        found[i].addresses[k].formatted + "\n");
     }
   }
 console.log("________________________________________________________________________");
 
-var fields4 =
+var fields5 =
 {
   "organizations" : "empire"
 };
-console.log("\nsearch for:", fields4["organizations"]);
+console.log("\nsearch for:", fields5["organizations"]);
 found = undefined;
-cm.find(fields4, function(pms)
+cm.find("remote",fields5, function(pms)
 {
   found = getFound(pms);
 })
@@ -188,41 +181,49 @@ else
     console.log("[", i, "]: ", found[i].displayName);
 console.log("________________________________________________________________________");
 
-// // TEST OF LOCAL CONTACTS API
-// console.log("Type:")
-// var cLocal = new cm.local.contacts();
-// console.log(typeof (cLocal));
-// console.log(cLocal);
-//
-// var addressbookName = "<path_to_thunderbird_address_book>/abook.mab"; //
-// history.mab";
-// var res1 = false;
-// res1 = cLocal.open(addressbookName);
-// console.log("open was succesfull: ", res1);
-//
-// var res2 = false;
-// res = cLocal.isOpen();
-// console.log("cLocal is open: ", res2);
-//
-// console.log("LOCAL ADDRESS BOOK");
-// console.log(cLocal.getAB());
-//
-// // TEST OF REMOTE (GMAIL) CONTACTS API
-// console.log("Type:")
-// var cRemote = new cm.remote.contacts();
-// console.log(typeof (cRemote));
-// console.log(cRemote);
-//
-// var def_usr = "<gmail_username>";
-// var def_pwd = "<gmail_password>";
-//
-// var res3 = false;
-// res3 = cRemote.logIn(def_usr, def_pwd);
-// console.log("log in was succesfull: ", res3);
-//
-// var res4 = false;
-// res4 = cRemote.isLoggedIn();
-// console.log("cRemote, is logged in: ", res4);
-//
-// console.log("REMOTE ADDRESS BOOK");
-// console.log(cRemote.getContacts());
+//  TEST OF LOCAL CONTACTS
+console.log("TEST OF LOCAL CONTACTS:")
+
+var addressbookName = "node_contacts_local/test/testAddressBook/abook.mab";
+ 
+params = new Array(1);
+params[0] = {};
+params[0].addressBookName = addressbookName;
+params[0].type = "local";
+
+cm.authenticate(params, function(res)
+{
+  console.log("Authenticate = " + (res ? "OK" : "ERROR"));
+});
+cm.isAlreadyAuthenticated(params, function(res)
+{
+  console.log("Already authenticated = " + (res ? "YES" : "NO"));
+});
+console.log("\n");
+
+cm.getAllContacts(params, function(list)
+{
+  console.log("Found ", list.length, "contacts");
+  for ( var i = 0; i < list.length; i++)
+    console.log("getAllContacts res[", i, "].displayName = ", list[i].displayName);
+ });
+console.log("\n");
+console.log("________________________________________________________________________");
+ 
+
+var fields6 =
+{
+  "displayName" : "gigio"
+};
+console.log("\search for:", fields6.displayName);
+found = undefined;
+cm.find("local",fields6, function(pms)
+{
+  found = getFound(pms);
+})
+console.log("FOUND:");
+if (found.length == 0)
+  console.log("      NOT FOUND!")
+else
+  for ( var i = 0; i < found.length; i++)
+    console.log("[", i, "]: ", found[i].displayName);

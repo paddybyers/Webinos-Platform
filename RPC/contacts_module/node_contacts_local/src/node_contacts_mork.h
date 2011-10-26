@@ -36,6 +36,7 @@ class CLocalContacts : node::ObjectWrap {
     
     ///True if current address book is already open
     bool is_open;
+
   public:
     ///class constructor
     CLocalContacts();

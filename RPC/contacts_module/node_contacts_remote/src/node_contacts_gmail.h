@@ -37,6 +37,7 @@ class CRemoteContacts : node::ObjectWrap {
     
     ///True if autenthication was performed
     bool is_logged_in;
+
   public:
     ///class constructor
     CRemoteContacts();

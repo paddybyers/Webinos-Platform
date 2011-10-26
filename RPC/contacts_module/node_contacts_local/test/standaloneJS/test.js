@@ -21,7 +21,7 @@ var localcontacts = require("localcontacts");
 console.log("localcontacts module OBJ: "+localcontacts);
 
 //default address book TODO add a sample .mab file
-var addressbookName="<path_to_thunderbird_address_book>/abook.mab"; //history.mab";
+var addressbookName= "/home/vito/.thunderbird/lbhzgow0.default/abook.mab"; //"<path_to_thunderbird_address_book>/abook.mab"; //history.mab";
 
 //TEST constructor
 var myContacts = new localcontacts.contacts();

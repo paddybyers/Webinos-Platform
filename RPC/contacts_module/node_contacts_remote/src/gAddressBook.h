@@ -88,7 +88,7 @@ private:
     gcal_t m_gcalToken;
 
     /**
-     Map a GCal contact to a RawContact
+     Map a GCal contact to a W3CContacts
      */
     void fromGCalContact(gcal_contact_t gContact, W3CContact &w3cContact);
 

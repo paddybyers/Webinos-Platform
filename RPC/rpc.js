@@ -63,7 +63,7 @@ webinos.rpc.setWriter = function (writer){
 /**
  * Handles a new JSON RPC message (as string)
  */
-webinos.rpc.handleMessage = function (message, responseto){
+webinos.rpc.handleMessage = function (message, responseto, msgid){
 	console.log("New websocket packet");
 	console.log("Message" + message);
 	console.log("Response to" + responseto);
@@ -135,7 +135,7 @@ webinos.rpc.handleMessage = function (message, responseto){
 							if (typeof result !== 'undefined') res.result = result;
 							else res.result = {};
 							res.id = id;						
-							webinos.rpc.executeRPC(res, responseto);
+							webinos.rpc.executeRPC(res, responseto, msgid);
 						},
 						function (error){
 							if (typeof id === 'undefined') return;
@@ -146,7 +146,7 @@ webinos.rpc.handleMessage = function (message, responseto){
 							res.error.code = 32000;  //webinos specific error code representing that an API specific error occured
 							res.error.message = "Method Invocation returned with error";
 							res.id = id;
-							webinos.rpc.executeRPC(res, responseto);
+							webinos.rpc.executeRPC(res, responseto, msgid);
 						}, 
 						myObject.fromObjectRef
 					);
@@ -162,7 +162,8 @@ webinos.rpc.handleMessage = function (message, responseto){
 							if (typeof result !== 'undefined') res.result = result;
 							else res.result = {};
 							res.id = id;
-							webinos.rpc.executeRPC(res, responseto);
+							//webinos.rpc.executeRPC(res, responseto);
+							webinos.rpc.executeRPC(res, null, null, responseto, msgid);
 							
 							// CONTEXT LOGGING HOOK
 							webinos.context.logContext(myObject,res);
@@ -176,7 +177,7 @@ webinos.rpc.handleMessage = function (message, responseto){
 							res.error.code = 32000;
 							res.error.message = "Method Invocation returned with error";
 							res.id = id;
-							webinos.rpc.executeRPC(res, responseto);
+							webinos.rpc.executeRPC(res, responseto, msgid);
 						}
 					);
 				}
@@ -214,7 +215,7 @@ webinos.rpc.handleMessage = function (message, responseto){
  * Executes the given RPC Request and registers an optional callback that
  * is invoked if an RPC response with same id was received
  */
-webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto) {
+webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto, msgid) {
     if (typeof callback === 'function'){
     	rpc.id = Math.floor(Math.random()*101);
 		var cb = {};
@@ -229,7 +230,7 @@ webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto) {
     //TODO check if rpc is request on a specific object (objectref) and get mapped responseto / destination session
     
     //TODO remove stringify when integrating with Message Routing/Ziran
-    write(JSON.stringify(rpc), responseto);
+    write(JSON.stringify(rpc), responseto, msgid);
    
 };
 
