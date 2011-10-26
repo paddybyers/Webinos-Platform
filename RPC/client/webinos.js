@@ -68,34 +68,34 @@
 			callback.onFound(tmp);
 			return;
 		}
-		if (serviceType == 'LocalFileSystem') {
-			webinos.ServiceDiscovery.registeredServices++;
-			return void (callback.onFound(new webinos.file.LocalFileSystem()));
-		}
-		
-		if (serviceType == 'Vehicle') {
-			webinos.ServiceDiscovery.registeredServices++;
-			return void (callback.onFound(new Vehicle()));
-		}
-		
+
 		function success(params) {
 			var baseServiceObj = params;
 			
 			console.log("servicedisco: service found.");
 			
 			var typeMap = {};
+			if (typeof webinos.file !== 'undefined' && typeof webinos.file.LocalFileSystem !== 'undefined')
+				typeMap['http://webinos.org/api/file'] = webinos.file.LocalFileSystem;
 			if (typeof WebinosFileReader !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/file.read'] = WebinosFileReader;
 			if (typeof WebinosFileSaverRetriever !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/file.save'] = WebinosFileSaverRetriever;
 			if (typeof WebinosFileWriterRetriever !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/file.write'] = WebinosFileWriterRetriever;
 			if (typeof TestModule !== 'undefined') typeMap['http://webinos.org/api/test'] = TestModule;
-			if (typeof TestModuleGeo !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/geolocation'] = TestModuleGeo;
+			if (typeof WebinosGeolocation !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/geolocation'] = WebinosGeolocation;
 			if (typeof Vehicle !== 'undefined') typeMap['http://webinos.org/api/vehicle'] = Vehicle;
 			if (typeof Sensor !== 'undefined') typeMap['http://webinos.org/api/sensors'] = Sensor;
 			if (typeof UserProfileIntModule !== 'undefined') typeMap['UserProfileInt'] = UserProfileIntModule;
 			if (typeof TVManager !== 'undefined') typeMap['http://webinos.org/api/tv'] = TVManager;
-			
+			if (typeof DeviceStatusManager !== 'undefined') typeMap['http://wacapps.net/api/devicestatus'] = DeviceStatusManager;
+			if (typeof Contacts !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/contacts'] = Contacts;
 			// elevate baseServiceObj to usable local WebinosService object
-			var tmp = new typeMap[baseServiceObj.api](baseServiceObj);
+			
+			if (baseServiceObj.api === 'http://webinos.org/api/sensors.temperature'){
+				var tmp = new typeMap['http://webinos.org/api/sensors'](baseServiceObj);
+			}
+			else{
+				var tmp = new typeMap[baseServiceObj.api](baseServiceObj);
+			}
 			webinos.ServiceDiscovery.registeredServices++;
 			callback.onFound(tmp);
 		}
@@ -565,16 +565,17 @@
 
 	///////////////////// GEOLOCATION INTERFACE ///////////////////////////////
 	
-	var webinosGeolocation;
+	var WebinosGeolocation;
 
-	webinosGeolocation = function () {
-		// this.objectRef = Math.floor(Math.random()*101);
+	WebinosGeolocation = function (obj) {
+		this.base = WebinosService;
+		this.base(obj);
 	};
 
-	webinosGeolocation.prototype = WebinosService.prototype;
+	WebinosGeolocation.prototype = new WebinosService;
 
-	webinosGeolocation.prototype.getCurrentPosition = function (PositionCB, PositionErrorCB, PositionOptions) {  // according to webinos api definition 
-			var rpc = webinos.rpc.createRPC("Geolocation", "getCurrentPosition", PositionOptions); // RPC service name, function, position options
+	WebinosGeolocation.prototype.getCurrentPosition = function (PositionCB, PositionErrorCB, PositionOptions) {  // according to webinos api definition 
+			var rpc = webinos.rpc.createRPC(this, "getCurrentPosition", PositionOptions); // RPC service name, function, position options
 			webinos.rpc.executeRPC(rpc,
 					function (position){  // this is called on success
 						PositionCB(position); 
@@ -585,8 +586,8 @@
 			);
 		};
 
-	webinosGeolocation.prototype.watchPosition = function (PositionCB, PositionErrorCB, PositionOptions) {   // not yet working
-			var rpc = webinos.rpc.createRPC("Geolocation", "watchPosition", PositionOptions); // RPC service name, function, options
+	WebinosGeolocation.prototype.watchPosition = function (PositionCB, PositionErrorCB, PositionOptions) {   // not yet working
+			var rpc = webinos.rpc.createRPC(this, "watchPosition", PositionOptions); // RPC service name, function, options
 			// rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
 			/* /create the result callback
 			callback = {};
@@ -609,8 +610,8 @@
 			return(watchId);
 		};
 
-	webinosGeolocation.prototype.clearWatch = function (watchId) {   // not yet working
-			var rpc = webinos.rpc.createRPC("Geolocation", "clearWatch", watchId); 
+	WebinosGeolocation.prototype.clearWatch = function (watchId) {   // not yet working
+			var rpc = webinos.rpc.createRPC(this, "clearWatch", watchId); 
 			webinos.rpc.executeRPC(rpc,
 					function (result){  // this is called on success
 						alert("successfully cleared watch");

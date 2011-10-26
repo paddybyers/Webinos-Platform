@@ -16,17 +16,11 @@
 #include <openssl/pem.h>
 #include <openssl/asn1.h>
 
-#include <sys/types.h>
 
 #include <string.h>
 #include <iostream>
-#include <sys/socket.h>
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <arpa/inet.h>
 #include <fstream>
 
-#include <stdio.h>
 #include <ifaddrs.h>
 
 using namespace node;

@@ -1,12 +1,45 @@
 //This RPC implementation should be compliant to JSON RPC 2.0
-//as specified @ http://groups.google.com/group/json-rpc/web/json-rpc-2-0
+//as specified @ http://jsonrpc.org/spec.html
 
 (function() {
-
+	if (typeof webinos === 'undefined')
+		webinos = {};
+	
+	if (typeof module !== 'undefined')
+		var utils = require('./webinos.utils.js');
+	else if (typeof webinos.utils !== 'undefined')
+		var utils = webinos.utils;
+	
+	if (typeof utils !== 'undefined')
+		utils.rpc = {
+			request: function (service, method, objectRef, successCallback, errorCallback) {
+				return function () {
+					var params = Array.prototype.slice.call(arguments);
+					var message = webinos.rpc.createRPC(service, method, params);
+					
+					if (objectRef)
+						message.fromObjectRef = objectRef;
+					
+					webinos.rpc.executeRPC(message, utils.callback(successCallback, this), utils.callback(errorCallback, this));
+				};
+			},
+			
+			notify: function (service, method, objectRef) {
+				return function () {
+					var params = Array.prototype.slice.call(arguments);
+					var message = webinos.rpc.createRPC(service, method, params);
+					
+					if (objectRef)
+						message.fromObjectRef = objectRef;
+					
+					webinos.rpc.executeRPC(message);
+				};
+			}
+		};
 
 write = null;
 
-webinos = {};
+
 webinos.rpc = {};
 webinos.rpc.awaitingResponse = {};
 webinos.rpc.objects = {};
@@ -30,7 +63,7 @@ webinos.rpc.setWriter = function (writer){
 /**
  * Handles a new JSON RPC message (as string)
  */
-webinos.rpc.handleMessage = function (message, responseto){
+webinos.rpc.handleMessage = function (message, responseto, msgid){
 	console.log("New websocket packet");
 	console.log("Message" + message);
 	console.log("Response to" + responseto);
@@ -57,7 +90,7 @@ webinos.rpc.handleMessage = function (message, responseto){
 		//TODO send back error if service and method is not webinos style
 		
 		if (typeof service !== 'undefined'){
-			console.log("Got message to invoke " + method + " on " + service + (serviceId ? "@" + serviceId : "") +" with params: " + myObject.params[0] );
+			console.log("Got message to invoke " + method + " on " + service + (serviceId ? "@" + serviceId : "") +" with params: " + myObject.params );
 		
 			var receiverObjs = webinos.rpc.objects[service];
 			if (!receiverObjs)
@@ -65,8 +98,13 @@ webinos.rpc.handleMessage = function (message, responseto){
 			var filteredRO = receiverObjs.filter(function(el, idx, array) {
 				return el.id === serviceId;
 			});
-			var includingObject = filteredRO[0]; // what if the array is empty? TODO
-			if (!includingObject) includingObject = receiverObjs[0]; // failsafe for line above. what if the array is empty? TODO
+			var includingObject = filteredRO[0]; 
+			if (typeof includingObject === 'undefined') includingObject = receiverObjs[0]; 
+			
+			if (typeof includingObject === 'undefined'){
+				console.log("No service found with id/type " + service);
+				return;
+			}
 			
 			//enable functions bound to attributes in nested objects, TODO
 			idx = myObject.method.lastIndexOf('.');
@@ -94,9 +132,10 @@ webinos.rpc.handleMessage = function (message, responseto){
 							if (typeof id === 'undefined') return;
 							var res = {};
 							rpc.jsonrpc = "2.0";
-							res.result = result;
+							if (typeof result !== 'undefined') res.result = result;
+							else res.result = {};
 							res.id = id;						
-							webinos.rpc.executeRPC(res, responseto);
+							webinos.rpc.executeRPC(res, responseto, msgid);
 						},
 						function (error){
 							if (typeof id === 'undefined') return;
@@ -107,7 +146,7 @@ webinos.rpc.handleMessage = function (message, responseto){
 							res.error.code = 32000;  //webinos specific error code representing that an API specific error occured
 							res.error.message = "Method Invocation returned with error";
 							res.id = id;
-							webinos.rpc.executeRPC(res, responseto);
+							webinos.rpc.executeRPC(res, responseto, msgid);
 						}, 
 						myObject.fromObjectRef
 					);
@@ -120,9 +159,14 @@ webinos.rpc.handleMessage = function (message, responseto){
 							if (typeof id === 'undefined') return;
 							var res = {};
 							res.jsonrpc = "2.0";
-							res.result = result;
+							if (typeof result !== 'undefined') res.result = result;
+							else res.result = {};
 							res.id = id;
-							webinos.rpc.executeRPC(res, responseto);
+							//webinos.rpc.executeRPC(res, responseto);
+							webinos.rpc.executeRPC(res, null, null, responseto, msgid);
+							
+							// CONTEXT LOGGING HOOK
+							webinos.context.logContext(myObject,res);
 						},
 						function (error){
 							if (typeof id === 'undefined') return;
@@ -133,7 +177,7 @@ webinos.rpc.handleMessage = function (message, responseto){
 							res.error.code = 32000;
 							res.error.message = "Method Invocation returned with error";
 							res.id = id;
-							webinos.rpc.executeRPC(res, responseto);
+							webinos.rpc.executeRPC(res, responseto, msgid);
 						}
 					);
 				}
@@ -171,7 +215,7 @@ webinos.rpc.handleMessage = function (message, responseto){
  * Executes the given RPC Request and registers an optional callback that
  * is invoked if an RPC response with same id was received
  */
-webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto) {
+webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto, msgid) {
     if (typeof callback === 'function'){
     	rpc.id = Math.floor(Math.random()*101);
 		var cb = {};
@@ -186,17 +230,17 @@ webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto) {
     //TODO check if rpc is request on a specific object (objectref) and get mapped responseto / destination session
     
     //TODO remove stringify when integrating with Message Routing/Ziran
-    write(JSON.stringify(rpc), responseto);
+    write(JSON.stringify(rpc), responseto, msgid);
    
 };
 
 
 /**
- * Creates a JSON RPC 2.0 compliant object
- * @param service The service Identifier (e.g., the file reader or the
- * 	      camera service) as string or an object reference as number
- * @param method The method that should be invoked on the service
- * @param an optional array of parameters to be used
+ * Creates a JSON RPC 2.0 compliant object.
+ * @param service The service (e.g., the file reader or the
+ * 	      camera service) as RPCWebinosService object instance.
+ * @param method The method that should be invoked on the service.
+ * @param params An optional array of parameters to be used.
  */
 webinos.rpc.createRPC = function (service, method, params) {
 	
@@ -216,16 +260,13 @@ webinos.rpc.createRPC = function (service, method, params) {
 	if (typeof params === 'undefined') rpc.params = [];
 	else rpc.params = params;
 	
-	//if (typeof id !== 'undefined') rpc.id = id;
-	//else rpc.id = Math.floor(Math.random()*101);
-	
 	return rpc;
-}
+};
 
 
 /**
  * Registers a Webinos service object as RPC request receiver.
- * @param callback the callback object the contains the methods available via RPC
+ * @param callback The callback object the contains the methods available via RPC.
  */
 webinos.rpc.registerObject = function (callback) {
 	if (typeof callback !== 'undefined') {
@@ -242,7 +283,7 @@ webinos.rpc.registerObject = function (callback) {
 			return el.id === callback.id;
 		});
 		if (filteredRO.length > 0)
-			throw new Error('cannot register, already got object with same id. try changing your service desc.')
+			throw new Error('cannot register, already got object with same id. try changing your service desc.');
 		
 		receiverObjs.push(callback);
 		webinos.rpc.objects[callback.api] = receiverObjs;
@@ -283,22 +324,79 @@ webinos.rpc.unregisterObject = function (callback) {
 		});
 		webinos.rpc.objects[callback.api] = filteredRO;
 	}
-}
+};
 
 /**
  * 
  */
 webinos.rpc.findServices = function (serviceType) {
-	console.log("findService: looking for serviceType: " + serviceType.api);
-	
-	for (var i in webinos.rpc.objects) {
-		if (i === serviceType.api) {
-			console.log("findService: found matching service(s) for ServiceType: " + serviceType.api);
-			return webinos.rpc.objects[i];
+	results = new Array();
+	var cstar = serviceType.api.indexOf("*");
+	if(cstar !== -1){
+		//*c*
+		if(serviceType.api.lastIndexOf("*") !== 0){
+			var len = serviceType.api.length - 1;
+			var midString = serviceType.api.substring(1, len);
+			for (var i in webinos.rpc.objects){
+				if(i.indexOf(midString) != -1) {
+					for( var j = 0; j <webinos.rpc.objects[i].length; j++){
+						results.push(webinos.rpc.objects[i][j]);
+					}
+				}
+			}
+		return results;
 		}
+		//*, *c
+		else {
+			if(serviceType.api.length == 1) {
+				logObj(webinos.rpc.objects,"services");
+				for (var i in webinos.rpc.objects){
+					for( var j = 0; j <webinos.rpc.objects[i].length;j++){ 
+						results.push(webinos.rpc.objects[i][j]);
+					}
+				}
+                return results; 		
+			}
+			else {
+				var restString = serviceType.api.substr(1);
+ 				for (var i in webinos.rpc.objects) {
+ 					if(i.indexOf(restString, i.length - restString.length) !== -1)	{
+ 						for( var j = 0; j <webinos.rpc.objects[i].length; j++){
+ 							results.push(webinos.rpc.objects[i][j]);
+ 						}
+ 					}
+ 				}
+ 				return results;
+			}
+		}
+      
+	}
+	else {
+		for (var i in webinos.rpc.objects) {
+			if (i === serviceType.api) {
+				console.log("findService: found matching service(s) for ServiceType: " + serviceType.api);
+				return webinos.rpc.objects[i];
+			}
+		} 
 	}
 };
 
+/**
+ * RPCWebinosService object to be registered as RPC module.
+ * 
+ * The RPCWebinosService has fields with information about a Webinos service.
+ * It is used for three things:
+ * 1) For registering a webinos service as RPC module.
+ * 2) The service discovery module passes this into the constructor of a
+ *    webinos service on the client side.
+ * 3) For registering a RPC callback object on the client side using ObjectRef
+ *    as api field.
+ * When registering a service the constructor should be called with an object
+ * that has the following three fields: api, displayName, description. When
+ * used as RPC callback object, it is enough to specify the api field and set
+ * that to ObjectRef.
+ * @param obj Object with fields describing the service.
+ */
 this.RPCWebinosService = function (obj) {
 	if (!obj) {
 		this.id = '';
@@ -340,19 +438,33 @@ if (typeof exports !== 'undefined'){
 
 	// none webinos modules
 	var md5 = require('./md5.js');
+
+	require('./rpc_servicedisco.js');
+
 	
 	//add your RPC Implementations here!
-	require('./rpc_servicedisco.js');
-	require('./rpc_test2.js');
-	require('./rpc_test.js');
-	require('./rpc_file.js');
-	require('./webinos.rpc.file.js');
-	require('./rpc_geolocation.js');
-	require('./rpc_vehicle.js');
-	require('./rpc_sensors.js');
-	require('./UserProfile/Server/UserProfileServer.js');
-	require('./tv/provider/webinos.rpc.tv.js');
+	var modules = [
+	            './rpc_test2.js',
+	            './rpc_test.js',
+	           	'./rpc_file.js',
+				'./webinos.rpc.file.js',
+				'./rpc_geolocation.js',
+				'./rpc_vehicle.js',
+				'./rpc_sensors.js',
+				'../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
+				'./UserProfile/Server/UserProfileServer.js',
+				'./tv/provider/webinos.rpc.tv.js',
+				'./../Manager/Context/Interception/contextInterception.js',
+				'./rpc_contacts.js'
+	               ];
+	
+	for (var i = 0; i <modules.length; i++){
+		try{
+			require(modules[i]);
+		}
+		catch (error){
+			console.log("Could not load module " + modules[i] + " with message: " + error );
+		}
+	}
 }
-
-
-}());
+})();

@@ -1,0 +1,351 @@
+<html>
+<head>
+<title>webinos rpc</title>
+<script type="text/javascript" src="/webinos.utils.js"></script>
+<script type="text/javascript" src="/rpc.js"></script>
+<script type="text/javascript" src="/client/webinos.js"></script>
+<script type="text/javascript" src="/client/webinos.file.js"></script>
+<script type="text/javascript"
+	src="http://code.jquery.com/jquery-1.5.2.js"></script>
+<script type="text/javascript"
+	src="http://ajax.googleapis.com/ajax/libs/dojo/1.6.1/dojo/dojo.xd.js"></script>
+<script type="text/javascript">
+            $(document).ready(function() {
+            		var reader = null;
+            	    var fileSaver = null;
+            	    var fileWriter = null;
+            	    var test = [];
+            	    var geoLocationService = null;
+            	    
+                    $('#findService').bind('click', function() {
+                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/file.read'), {onFound: function (service) {
+                	    	reader = service;
+                	    }});
+                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/file.save'), {onFound: function (service) {
+                	    	fileSaver = service;
+                	    }});
+                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/file.write'), {onFound: function (service) {
+                	    	fileWriter = service;
+                	    }});
+                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/test'), {onFound: function (service) {
+                	    	test.push(service);
+                	    }});
+                    });
+                    
+                    $('#get42').bind('click', function() {
+                    	for (var i=0; i<test.length; i++) {
+	                    	test[i].get42(function (result){
+    	                		alert(result);
+        	            		alert(test[i].testAttr);
+            	        	});
+                    	}
+                    }); 
+                    
+                    $('#echo').bind('click', function() {
+                    	for (var i=0; i<test.length; i++) {
+	                    	test[i].echoAttr.echo(document.getElementById("fileContent").value, function (result){
+	                    		alert(result);
+	                    	});
+                    	}
+                    }); 
+                    
+                    $('#cls').bind('click', function() {
+                    	document.getElementById("messages").innerHTML = "";
+                    	document.getElementById("fileContent").value = "";
+                    }); 
+                    
+                    $('#getFileContent').bind('click', function() {
+                       reader.bind(function () {
+                       //var reader = new webinos.WebinosFileReader();
+                       		reader.readAsText($('#messageText').val());
+                       		reader.onload = function (result) {
+                       			reader.unbind();
+            	    			//$('#messages').append('<li>Result: ' + result + '</li>');
+                       			document.getElementById("fileContent").value = result;
+                       			$('#messages').append('<li>Got Reader Result (see box)</li>');
+            	    		};
+                       		reader.onerror = function (error) {
+                       			reader.unbind();
+               	    			$('#messages').append('<li>Result: Error Code: ' +  error + '</li>');
+            	    		};
+            	    	
+                       });
+            	    	
+            	    	$('#messages').append('<li> Requesting file Read</li>');
+                    }); 
+                    
+                    
+                    $('#fileSaver').bind('click', function() {
+                       fileSaver.bind(function () {
+                    	   
+                    	   webinos.ServiceDiscovery.findServices("BlobBuilder", {onFound: function (service) {
+                    	   
+                    	   var fileName = $('#messageText').val();
+                    	   
+                    	   service.append(document.getElementById("fileContent").value);
+                    	   var tmp = fileSaver.saveAs(service.getBlob(),fileName);
+                    	   service.append(" Arbritrary appendix to given text.");
+                    	   //var tmp2 = fileSaver.saveAs(service.getBlob(),fileName + "2");
+                    	   
+                    	   tmp.onwriteend = function () {
+                    		   $('#messages').append('<li> Writing done.</li>'); 
+                    	   };
+                    	   /*
+                    	   tmp2.onwriteend = function () {
+                    		   $('#messages').append('<li> Writing done 2.</li>'); 
+                    	   };*/
+                    	   
+                    	   tmp.onwritestart = function () {
+                    		   $('#messages').append('<li> Write started.</li>');
+                    	   };
+                    	   
+                    	   tmp.onwrite = function () {
+                    		   $('#messages').append('<li> Writing...</li>');
+                    	   };
+                    	   
+                    	   tmp.onerror = function (error) {
+                    		   $('#messages').append('<li> Writing error! Code: ' + error.code + '</li>');
+                    	   };
+                    	   
+                    	   $('#messages').append('<li> Accessing FileSaver Constants (INIT, WRITING, DONE, readyState): '
+                    			   + tmp.INIT + ' '
+                    			   + tmp.WRITING + ' '
+                    			   + tmp.DONE + ' '
+                    			   + tmp.readyState + ' '
+                    			   + '</li>'); 
+                    	   }});
+                       });
+                    });
+                    
+                    $('#fileWriter').bind('click', function() {
+                    	fileWriter.bind(function () {
+                     	   
+                      	    webinos.ServiceDiscovery.findServices("BlobBuilder", {onFound: function (service) {
+                    	    
+                      	      var fileName = $('#messageText').val();
+                        	   
+                      	    service.append(document.getElementById("fileContent").value);
+                        	   var tmp = fileWriter.writeAs(fileName);
+                        	   
+                        	   tmp.onwriteend = function () {
+                        		   $('#messages').append('<li> Writing done.</li>'); 
+                        	   };
+                        	   
+                        	   tmp.onwritestart = function () {
+                        		   $('#messages').append('<li> Writing started.</li>');
+                        	   };
+                        	   
+                        	   tmp.onwrite = function () {
+                        		   $('#messages').append('<li> Writing...</li>');
+                        	   };
+                        	   
+                        	   tmp.onerror = function (error) {
+                        		   $('#messages').append('<li> Writing error! Code: ' + error.code + '</li>');
+                        	   };
+                        	   
+                        	   $('#messages').append('<li> Accessing FileWriter Constants (INIT, WRITING, DONE, readyState): '
+                        			   + tmp.INIT + ' '
+                        			   + tmp.WRITING + ' '
+                        			   + tmp.DONE + ' '
+                        			   + tmp.readyState + ' '
+                        			   + '</li>'); 
+                         	   
+                        	   tmp.write(service.getBlob());
+                    	    }});
+                        });
+                     }); 
+                    
+                    $('#fileWriterTruncate').bind('click', function() {
+                    	fileWriter.bind(function () {
+                     	   
+                      	    webinos.ServiceDiscovery.findServices("BlobBuilder", {onFound: function (service) {
+                    	    
+                      	      var fileName = $('#messageText').val();
+                        	   
+                      	    service.append(document.getElementById("fileContent").value);
+                        	  
+                      	    var tmp = fileWriter.writeAs(fileName);
+                        	   
+                        	   tmp.onwriteend = function () {
+                        		   $('#messages').append('<li> Truncate done.</li>'); 
+                        	   };
+                        	   
+                        	   tmp.onwritestart = function () {
+                        		   $('#messages').append('<li> Truncate started.</li>');
+                        	   };
+                        	   
+                        	   tmp.onwrite = function () {
+                        		   $('#messages').append('<li> Truncateing...</li>');
+                        	   };
+                        	   
+                        	   tmp.onerror = function (error) {
+                        		   $('#messages').append('<li> Truncate error: ' + error.target.error.name + '</li>');
+                        	   };
+                        	   
+                        	   tmp.truncate($('#truncate').val());
+                    	    }});
+                        });
+                     }); 
+            });
+        </script>
+<script type="text/javascript">
+	dojo.require("dojo.hash");
+
+	dojo.addOnLoad(function () {
+		var filesystem;
+
+		var path = dojo.byId('path');
+		var content = dojo.byId('content');
+		var save = dojo.byId('save');
+		var saveHandle = null;
+		
+		var cwd = dojo.byId('cwd');
+		var ls = dojo.byId('ls');
+
+		var update = function (hash) {
+			dojo.empty(ls);
+
+			var fullPath = dojo.queryToObject(hash).fullPath;
+
+			filesystem.root.getDirectory(fullPath, null, function (entry) {
+				cwd.innerHTML = entry.fullPath;
+
+				entry.getParent(function (parent) {
+					var item = dojo.create('li', null, ls);
+
+					dojo.create('a', {
+						href: '#' + dojo.objectToQuery({
+							fullPath: parent.fullPath
+						}),
+						innerHTML: '..'
+					}, item, 'first');
+					
+					var reader = entry.createReader();
+
+					var successCallback = function (entries) {
+						entries.forEach(function (entry) {
+							var item = dojo.create('li', null, ls);
+
+							if (entry.isFile) {
+								var link = dojo.create('a', {
+									href: '#' + dojo.hash(),
+									innerHTML: entry.name
+								}, item);
+								
+								dojo.connect(link, 'onclick', function () {					
+									entry.file(function (file) {
+										var reader = new webinos.file.FileReader(entry.filesystem);
+										
+										reader.onerror = function (evt) {
+											alert("Error reading file (#" + evt.targer.error.code + ")");
+										}
+										
+										reader.onload = function (evt) {
+											path.value = entry.fullPath;
+											content.value = evt.target.result;
+											
+											if (saveHandle !== null)
+												dojo.disconnect(saveHandle);
+											
+											saveHandle = dojo.connect(save, 'onclick', function () {
+												entry.createWriter(function (writer) {
+													var bb = new webinos.file.BlobBuilder();
+
+													bb.append(content.value);
+										
+													writer.onerror = function (evt) {
+														alert("Error writing file (#" + evt.targer.error.code + ")");
+													}
+													
+													writer.onwrite = function (evt) {
+														if (evt.target.length == 0)
+															evt.target.write(bb.getBlob());
+														else
+															alert("Successfully written");
+													}
+													
+													writer.truncate(0);
+												}, function (error) {
+													alert("Error retrieving file writer (#" + error.code + ")");
+												});
+											});
+										}
+										
+										reader.readAsText(file);
+									}, function (error) {
+										alert("Error retrieving file (#" + error.code + ")");
+									});
+								});
+							} else if (entry.isDirectory)
+								dojo.create('a', {
+									href: '#' + dojo.objectToQuery({
+										fullPath: entry.fullPath
+									}),
+									innerHTML: '> ' + entry.name
+								}, item);
+						});
+
+						if (entries.length > 0)
+							reader.readEntries(successCallback, errorCallback);
+					};
+
+					var errorCallback = function (error) {
+						alert("Error reading directory (#" + error.code + ")");
+					};
+
+					reader.readEntries(successCallback, errorCallback);
+				}, function (error) {
+					alert("Error retrieving parent directory (#" + error.code + ")");
+				});
+			}, function (error) {
+				alert("Error retrieving directory entry (#" + error.code + ")");
+			});
+		}
+
+		dojo.subscribe("/dojo/hashchange", update);
+
+		webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/file"), {
+			onFound: function (service) {
+				service.bind(function () {
+					service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 1024, function (_filesystem) {
+						filesystem = _filesystem;
+
+						if (dojo.hash() == '')
+							dojo.hash(dojo.objectToQuery({
+								fullPath: filesystem.root.fullPath
+							}));
+ 
+						update(dojo.hash());
+					}, function (error) {
+						alert("Error requesting filesystem (#" + error.code + ")");
+					});
+				});
+			}
+		});
+	});
+</script>
+</head>
+<body>
+	<table border="1" style="height: 100%; width: 100%;">
+		<tr valign="top">
+			<td width="50%">
+				<div>
+					<div>
+						<p>
+							<label for="path">Path</label><input type="text" id="path" readonly/><br/>
+							<label for="content">Content</label><br/>
+							<textarea rows="16" cols="64" id="content"></textarea>
+							<button id="save">Save</button>
+						</p>
+					</div>
+				</div>
+			</td>
+			<td width="50%">
+				<div>
+					<p id="cwd"></p>
+					<ul id="ls"></ul>
+				</div></td>
+		</tr>
+	</table>
+</body>
+</html>

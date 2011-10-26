@@ -2,15 +2,15 @@
 <html>
   <head>
     <script src="jquery-1.6.4.min.js"></script>
- 
     <script type="text/javascript" src="../rpc.js"></script>
-	<script type="text/javascript" src="./webinos.js"></script>
+	<script type="text/javascript" src="webinos.js"></script>
        
     <script>
         jQuery(window).ready(function(){
             jQuery("#btnInit").click(initiate_geolocation);
             jQuery("#btnWatch").click(initiate_watch);  
             jQuery("#btnClear").click(clear_watch); 
+            jQuery("#btnFind").click(bindservice); 
         });
 
 		var geoLocationService = null;
@@ -18,7 +18,7 @@
 	
 		function bindservice() {
 		    // bind geolocation rpc service
-		    webinos.ServiceDiscovery.findServices("Geolocation", {onFound: function (service) {
+		    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
 		    	geoLocationService = service;
 		    	document.getElementById('position').innerHTML = "Geolocation rpc service found";   	
 		    }});	    
@@ -103,7 +103,7 @@
         
     </script>
   </head>
-  <body onload="bindservice();">
+  <body>
   	<p><div style="background-color:lightgray; border:1px solid black">
   		<input type="radio" name="locmethod" value="webinos" id="loc_webinos" checked="checked">webinos RPC geolocation</input> <br>
 		<input type="radio" name="locmethod" value="html5" id="loc_html5">HTML5 client-side navigator.geolocation</input>
@@ -121,6 +121,7 @@
   	</div></p>
   	
     <p><div>
+      <button id="btnFind" >Find Geolocation Service</button>
       <button id="btnInit" >Find my location</button>
       <button id="btnWatch" >Watch my location</button>
       <button id="btnClear" >Stop watching</button>

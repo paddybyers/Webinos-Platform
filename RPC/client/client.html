@@ -1,13 +1,11 @@
 <html>
 <head>
 <title>webinos rpc</title>
+	<script type="text/javascript" src="/webinos.utils.js"></script>
 	<script type="text/javascript" src="/rpc.js"></script>
 	<script type="text/javascript" src="/client/webinos.js"></script>
-	<script type="text/javascript" src="/webinos.utils.js"></script>
 	<script type="text/javascript" src="/client/webinos.file.js"></script>
 	<script type="text/javascript" src="/client/get42.js"></script>
-	<script type="text/javascript" src="/client/geolocation.js"></script>
-	<script type="text/javascript" src="/client/webinos.fs.js"></script>
 	<script type="text/javascript"
 		src="http://code.jquery.com/jquery-1.5.2.js"></script>
 	<script type="text/javascript"
@@ -33,14 +31,10 @@
                 	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/test'), {onFound: function (service) {
                 	    	test.push(service);
                 	    }});
-                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
-                	    	geoLocationService = service;
-                	    }});
-                	   
                     });
                     
                     $('#get42').bind('click', function() {
-                    	for (var i in test) {
+                    	for (var i=0; i<test.length; i++) {
 	                    	test[i].get42(function (result){
     	                		alert(result);
         	            		alert(test[i].testAttr);
@@ -49,21 +43,12 @@
                     }); 
                     
                     $('#echo').bind('click', function() {
-                    	for (var i in test) {
+                    	for (var i=0; i<test.length; i++) {
 	                    	test[i].echoAttr.echo(document.getElementById("fileContent").value, function (result){
 	                    		alert(result);
 	                    	});
                     	}
                     }); 
-
-                   $('#currentPositionButton').bind('click', function() {
-                    	geoLocationService.getCurrentPosition(function (result){
-                    		//var resarray = JSON.parse(result);
-                    		 var loc= 'Latitude = ' + result.coords.latitude + ', longitude = ' + result.coords.longitude;
-                    		alert(loc);
-                    	});
-                    }); 
-
                     
                     $('#cls').bind('click', function() {
                     	document.getElementById("messages").innerHTML = "";
@@ -267,7 +252,7 @@
 
 		dojo.subscribe("/dojo/hashchange", update);
 
-		webinos.ServiceDiscovery.findServices("LocalFileSystem", {
+		webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/file"), {
 			onFound: function (service) {
 				service.bind(function () {
 					service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 1024, function (_filesystem) {
@@ -298,7 +283,6 @@
 				<button id="findService">Find Service</button>
 				<button id="get42">get42</button>
 				<button id="echo">echo</button>
-				<button id="currentPositionButton">current pos</button>
 				<button id="cls">Clear</button>
 				<button id="getFileContent">Get File Content</button>
 		    	<button id="fileSaver">Save with FileSaver</button>

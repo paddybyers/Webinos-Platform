@@ -6,13 +6,9 @@ Files list:
 - rpc_auth.js
 The code about authentication.
 
-- old_securestore.js
-An old version of the John's secure store code.
-The newer version can't be used because it requires node.js version 0.4.
-
 -tools/secstore_open.js
 -tools/secstore_close.js
-Node.js scripts to manually open and close encrypted auth.zip file. They require old_securestore.js.
+Node.js scripts to manually open and close encrypted auth.zip file. They require securestore.js.
 Tho open command reads auth.zip and creates an authentication directory containing the password.txt and the authstatus.txt files.
 The close command creates the auth.zip file and removes authetication directory and contained files.
 
@@ -33,21 +29,16 @@ authstatus.txt contains data about authenticated users.
 
 How to run the test:
 
-1) Put in the root RPC directory the following files: rpc_auth.js, old_securestore.js, auth.zip.
+1) Put in the root RPC directory rpc_auth.js and auth.zip.
 
-2) Add to rpc.js (located in the RPC root directory) the line:
-require('./rpc_auth.js');
+2) Add to rpc.js (located in the RPC root directory) the element
+'./rpc_auth.js'
+in the modules list
 
 3) Put in the client directory auth.js and test_auth.html
 
-4) Add to webinos.js (located in the client directory) the following lines:
-if (type == "AuthenticationAPIs"){
-	var tmp = new authenticationAPIsModule();
-	tmp.origin = 'ws://127.0.0.1:8080';
-	webinos.ServiceDiscovery.registeredServices++;
-	callback.onFound(tmp);
-	return;
-}
+4) Add to webinos.js (located in the client directory) the following row:
+if (typeof AuthenticationModule !== 'undefined') typeMap['http://webinos.org/api/authentication'] = AuthenticationModule;
 
 5) execute the server
 # node websocketserver.js

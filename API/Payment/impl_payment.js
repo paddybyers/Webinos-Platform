@@ -103,6 +103,47 @@
     ShoppingBasket.prototype.addItem = function (successCallback, errorCallback, item) {
 
         console.log("Implementation of addItem called");
+        
+        // Some basic arror checking
+        // does item even exist?
+        if(item==null) {
+          error.code = PaymentError.prototype.PAYMENT_CHARGE_FAILED;
+          error.message = "No item provided to add";
+          errorCallback(error); 
+          return new PendingOperation();         
+        }
+        // do we have a description of the item?
+         if((item.description==null)||(item.description.length==0)) {
+          error.code = PaymentError.prototype.PAYMENT_CHARGE_FAILED;
+          error.message = "Item description is missing";
+          errorCallback(error); 
+          return new PendingOperation();         
+        }
+        // The item number should not be zero
+         if(item.itemCount==0) {
+          error.code = PaymentError.prototype.PAYMENT_CHARGE_FAILED;
+          error.message = "Item count must not be zero for an item";
+          errorCallback(error); 
+          return new PendingOperation();         
+        }
+        // Negative item count is only allowed if the same item has already been added and
+        // needs to be removed from bill.
+        if(item.itemCount<0) {
+           alreadyThere=0;
+           for (i=1;i<this.items.length;i++)
+            if(this.items[i].productID==item.productID)
+             alreadyThere=alreadyThere+this.items[i].itemCount;            
+           if((alreadyThere+item.itemCount)<0){
+              // no negative item number totals allowed.
+            error.code = PaymentError.prototype.PAYMENT_CHARGE_FAILED;
+            error.message = "You can only use negative items counts to remove identical items that are already there";
+            errorCallback(error); 
+            return new PendingOperation();         
+           }           
+        }
+
+
+        // error checks done, add item
         this.items[this.items.length]=item;
         
         // the following code adds up the items and adds 19% VAT.
@@ -169,19 +210,19 @@
         // looking for identical product codes in the list
         lookAgain=1;
         while (lookAgain==1){
-        	lookAgain=0;
-        	for (i=1;i<this.items.length;i++)
-        	  for(j=0;j<i;j++){
-        	  if(this.items[i].productID==this.items[j].productID){
-        	  	this.items[j].itemCount=this.items[i].itemCount+this.items[j].itemCount;
-        	  	this.items[j].itemsPrice=this.items[j].itemPrice*this.items[j].itemCount;
-        	  	lookAgain=1;
-        	  	this.items.splice(i,1);
-        	  	// poor man's break statement...
-        	  	i=this.items.length+1;
-        	  	j=this.items.length+1;
-        	  }
-        	  }
+                lookAgain=0;
+                for (i=1;i<this.items.length;i++)
+                  for(j=0;j<i;j++){
+                  if(this.items[i].productID==this.items[j].productID){
+                        this.items[j].itemCount=this.items[i].itemCount+this.items[j].itemCount;
+                        this.items[j].itemsPrice=this.items[j].itemPrice*this.items[j].itemCount;
+                        lookAgain=1;
+                        this.items.splice(i,1);
+                        // poor man's break statement...
+                        i=this.items.length+1;
+                        j=this.items.length+1;
+                  }
+                  }
         }
         
         
@@ -241,7 +282,7 @@
      * 
      */
     ShoppingBasket.prototype.release = function () {
-    	 console.log("Implementation of release called");
+         console.log("Implementation of release called");
         self=null;
         return;
     };
@@ -433,7 +474,7 @@
      * Bill is not open
      *
      */
-    PaymentError.prototype.PAYMENT_SHOPPING_BASKET_NOT_OPEN_ERROR = 2;
+     PaymentError.prototype.PAYMENT_SHOPPING_BASKET_NOT_OPEN_ERROR = 2;
 
     /**
      * Charging operation failed, the charge was not applied
@@ -509,12 +550,33 @@
      *
      */
     webinos.payment.createShoppingBasket = function (successCallback, errorCallback, serviceProviderID, customerID, shopID) {
-		console.log("Implementation of createshoppingbasket called");
+                console.log("Implementation of createshoppingbasket called");
 
       implServiceProviderID = serviceProviderID;
       implCustomerID = customerID;
       implShopID = shopID; 
-    
+     
+      // cover a number of possible error conditions
+      error = {};
+      if((serviceProviderID==null)||(serviceProviderID.length==0)) {
+         error.code = PaymentError.prototype.PAYMENT_AUTHENTICATION_FAILED;
+         error.message = "Failed to provide service provider ID";
+         errorCallback(error); 
+         return new PendingOperation();         
+      }
+      if((customerID==null)||(customerID==0)) {
+         error.code = PaymentError.prototype.PAYMENT_AUTHENTICATION_FAILED;
+         error.message = "Failed to provide customer ID";
+         errorCallback(error); 
+         return new PendingOperation();         
+      }
+      if((shopID==null)||(shopID==0)) {
+         error.code = PaymentError.prototype.PAYMENT_AUTHENTICATION_FAILED;
+         error.message = "Failed to provide shop ID";
+         errorCallback(error); 
+         return new PendingOperation();         
+      }
+      // Everything is fine - create the shopping basket.           
         basket = new ShoppingBasket();
         successCallback(basket);
         return new PendingOperation();

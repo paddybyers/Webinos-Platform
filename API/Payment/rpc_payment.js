@@ -97,10 +97,15 @@ function release( params, successCallback,  errorCallback){
           successCallback(basket);
 }    
     
-paymentModule = {};
+var paymentModule = new RPCWebinosService({
+        api:'http://webinos.org/api/payment',
+        displayName:'Payment',
+        description:'Payment API Module'
+});
+
 paymentModule.createShoppingBasket = createShoppingBasket;
 paymentModule.addItem = addItem;
 paymentModule.update = update;
 paymentModule.checkout = checkout;
 paymentModule.release = release;
-webinos.rpc.registerObject("Payment", paymentModule);
+webinos.rpc.registerObject(paymentModule);
