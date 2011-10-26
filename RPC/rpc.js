@@ -330,13 +330,54 @@ webinos.rpc.unregisterObject = function (callback) {
  * 
  */
 webinos.rpc.findServices = function (serviceType) {
-	console.log("findService: looking for serviceType: " + serviceType.api);
-	
-	for (var i in webinos.rpc.objects) {
-		if (i === serviceType.api) {
-			console.log("findService: found matching service(s) for ServiceType: " + serviceType.api);
-			return webinos.rpc.objects[i];
+	results = new Array();
+	var cstar = serviceType.api.indexOf("*");
+	if(cstar !== -1){
+		//*c*
+		if(serviceType.api.lastIndexOf("*") !== 0){
+			var len = serviceType.api.length - 1;
+			var midString = serviceType.api.substring(1, len);
+			for (var i in webinos.rpc.objects){
+				if(i.indexOf(midString) != -1) {
+					for( var j = 0; j <webinos.rpc.objects[i].length; j++){
+						results.push(webinos.rpc.objects[i][j]);
+					}
+				}
+			}
+		return results;
 		}
+		//*, *c
+		else {
+			if(serviceType.api.length == 1) {
+				logObj(webinos.rpc.objects,"services");
+				for (var i in webinos.rpc.objects){
+					for( var j = 0; j <webinos.rpc.objects[i].length;j++){ 
+						results.push(webinos.rpc.objects[i][j]);
+					}
+				}
+                return results; 		
+			}
+			else {
+				var restString = serviceType.api.substr(1);
+ 				for (var i in webinos.rpc.objects) {
+ 					if(i.indexOf(restString, i.length - restString.length) !== -1)	{
+ 						for( var j = 0; j <webinos.rpc.objects[i].length; j++){
+ 							results.push(webinos.rpc.objects[i][j]);
+ 						}
+ 					}
+ 				}
+ 				return results;
+			}
+		}
+      
+	}
+	else {
+		for (var i in webinos.rpc.objects) {
+			if (i === serviceType.api) {
+				console.log("findService: found matching service(s) for ServiceType: " + serviceType.api);
+				return webinos.rpc.objects[i];
+			}
+		} 
 	}
 };
 
