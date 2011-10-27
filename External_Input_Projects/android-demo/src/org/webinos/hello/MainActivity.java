@@ -30,8 +30,6 @@ import java.net.*;
 
 public class MainActivity extends Activity
 {
-  MulticastSocket socket;
-  InetAddress group;
   AdvertiseTask upnp;
   WebServerTask server;
   Preview preview;
@@ -71,40 +69,52 @@ public class MainActivity extends Activity
   /** activity is "visible" although not necessarily in foreground */
   public void onStart()
   {
+    String address;
+    String port = "8888";
+
     super.onStart();
     log("on start ...");
 
     // prepare multicast socket and send advertisements
     try
     {
-      group = InetAddress.getByName("239.255.255.250");
-      socket = new MulticastSocket(1900);
-      socket.setReuseAddress(true);
-      socket.joinGroup(group);
-
-      log("prepared multicast socket");
-
       WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
       WifiInfo wifiInfo = wifiManager.getConnectionInfo();
       int ipAddress = wifiInfo.getIpAddress();
-      String address = Formatter.formatIpAddress(ipAddress);
+      address = Formatter.formatIpAddress(ipAddress);
 
       log("My WiFi address is " + address);
-      String port = "8888";
 
       upnp = new AdvertiseTask();
       upnp.execute(new String[] { address, port });
+    }
+    catch (Exception e)
+    {
+      log("couldn't prepare multicast socket: " + e.toString());
+      upnp = null;
+    }
 
+    try
+    {
       server = new WebServerTask(this); 
       server.execute(new String[] { port });
+    }
+    catch (Exception e)
+    {
+      log("couldn't prepare web server: " + e.toString());
+      server = null;
+    }
 
+    try
+    {
       // initialize camera preview
       preview = new Preview(this);
       ((FrameLayout) findViewById(R.id.preview)).addView(preview);
     }
     catch (Exception e)
     {
-      log("couldn't prepare multicast socket: " + e.toString());
+      log("couldn't prepare camera preview: " + e.toString());
+      preview = null;
     }
   }
 
@@ -142,16 +152,6 @@ public class MainActivity extends Activity
 
     ((FrameLayout) findViewById(R.id.preview)).removeView(preview);
     preview = null;
-
-    // finish with multicast socket
-    try
-    {
-      socket.leaveGroup(group);
-    }
-    catch (IOException e)
-    {
-      log("couldn't leave multicast group: " + e.toString());
-    }
 
     // ensure server is shut down
     if (server != null)
@@ -194,34 +194,28 @@ public class MainActivity extends Activity
   {
     public void onPictureTaken(byte[] data, Camera camera)
     {
-/*
-      FileOutputStream outStream = null;
-      try
-      {
-        // write to local sandbox file system
-        // outStream =
-        // CameraDemo.this.openFileOutput(String.format("%d.jpg",
-        // System.currentTimeMillis()), 0);
-        // Or write to sdcard
-        outStream = new FileOutputStream(String.format(
-            "/sdcard/%d.jpg", System.currentTimeMillis()));
-        outStream.write(data);
-        outStream.close();
-      }
-      catch (FileNotFoundException e)
-      {
-        e.printStackTrace();
-      }
-      catch (IOException e)
-      {
-        e.printStackTrace();
-      }
-*/
     }
   };
 
+  // sends periodic SSDP advertisements over multicast
+  // needs to be extended to listen for SSDP queries
   private class AdvertiseTask extends AsyncTask<String, Void, String>
   {
+    private MulticastSocket socket;
+    private InetAddress group;
+
+    public AdvertiseTask() throws UnknownHostException, SocketException, IOException
+    {
+      super();
+
+      group = InetAddress.getByName("239.255.255.250");
+      socket = new MulticastSocket(1900);
+      socket.setReuseAddress(true);
+      socket.setSoTimeout(1000);
+      socket.setTimeToLive(1);
+      socket.joinGroup(group);
+    }
+
     // called in new Thread (not the UI thread)
     @Override
     protected String doInBackground(String... params)
@@ -259,6 +253,20 @@ public class MainActivity extends Activity
       }
 
       return "";
+    }
+
+    protected void onPostExecute(Long result)
+    {
+      // finish with multicast socket
+      try
+      {
+        socket.leaveGroup(group);
+        socket = null;
+      }
+      catch (IOException e)
+      {
+        log("couldn't leave multicast group: " + e.toString());
+      }
     }
   }
 
