@@ -140,7 +140,7 @@ public class MainActivity extends Activity
     upnp.cancel(true);
     log("cancelled UPnP task");
 
-    //preview.suspend();
+    ((FrameLayout) findViewById(R.id.preview)).removeView(preview);
     preview = null;
 
     // finish with multicast socket

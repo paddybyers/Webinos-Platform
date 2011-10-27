@@ -27,7 +27,7 @@ class Preview extends SurfaceView implements SurfaceHolder.Callback, PreviewCall
   MainActivity activity;
   SurfaceHolder holder;  
   Camera camera;
-  boolean paused; 
+  boolean paused = false; 
   
   //This variable is responsible for getting and setting the camera settings  
   private Parameters parameters;  
