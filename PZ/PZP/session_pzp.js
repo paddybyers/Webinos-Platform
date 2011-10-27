@@ -85,6 +85,7 @@ pzp.prototype.sendMessage = function(message, address) {
 	} else if (address === self.serverName) { 
 		// This is for communicating with PZH
 		webinos.session.common.debug("PZP ("+self.config.sessionId+")  Message Addressed to PZH");
+		webinos.session.common.debug(message);
 		self.clientSocket.write(JSON.stringify(message));
 	} else { 
 		webinos.session.common.debug('PZP ('+self.config.sessionId+') No where to send sending to PZH');
@@ -318,15 +319,18 @@ pzp.prototype.connect = function (options, callback) {
 					webinos.message.setSend(webinos.session.pzp.send);
 					
 					self.startServer(function() {
-						msg = { 'type': 'prop', 'from' : self.sessionId, 'to': self.serverName, 
-								'payload': {'status': 'pzpDetails', 
-											'port': self.pzp_serverPort, 
-											'object':webinos.rpc.object}
+						msg = { "type": "prop", "from": self.sessionId, "to": self.serverName, 
+								"payload": {"status": "pzpDetails", 
+											"port": self.pzp_serverPort, 
+											"object":""/*webinos.rpc.object*/}
 						};
 						self.sendMessage(msg, self.serverName);
 			
-						msg = webinos.message.registerSender(self.sessionId, self.serverName);
-						self.sendMessage(msg, self.serverName);
+						setTimeout(function() {
+							msg = webinos.message.registerSender(self.sessionId, self.serverName);
+							self.sendMessage(msg, self.serverName);
+						}, 500);
+						
 					});
 		} // It is signed client certificate by PZH
 		else if(data1.type === 'prop' && 
