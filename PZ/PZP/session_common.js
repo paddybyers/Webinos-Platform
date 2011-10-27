@@ -20,8 +20,9 @@ exports.getId = function (self, callback) {
 			id = stdout.split('\n');
 			if (error !== null) {
 				console.log('PZ Common: GetID exec error: ' + error);
-			};
-			callback.call(self, id[0]);	
+			} else {
+				callback.call(self, id[0]);
+			}	
 		});
 	} else if (process.platform === 'linux') {
 		var req = "ifconfig | grep HWaddr | tr -s \' \' | cut -d \' \' -f5";
@@ -31,10 +32,21 @@ exports.getId = function (self, callback) {
 			id = stdout.split('\n');
 			if (error !== null) {
 				console.log('PZ Common: GetID exec error: ' + error);
-			};
-			callback.call(self, id[0]);	
+			} else {
+				callback.call(self, id[0]);
+			}	
+		});
+	} else if(process.platform === 'darwin') {
+		var req = "ifconfig en1 | grep ether | tr -s \' \'|cut -d \' \' -f2"
+		child_process.exec(req, function(err, stdout, stderr) {
+			var id = stdout.split('\n');
+			if(err !== null)
+				console.log('PZ common: GetID exec error: ' + err);
+			else 
+				callback.call(self, id[0]); 
 		});
 	}
+	
 }
 
 /* generate self signed certificates if certificates are not present. 
@@ -101,15 +113,20 @@ exports.generateServerCertifiedCert = function(self, config, callback) {
  * This results in native code call.
  */
 exports.generateClientCertifiedCert = function(certname, self, callback) {
+	var days = self.config.days;
+	var keyname = self.config.masterkeyname;
+	console.log(self.config);
+	console.log(keyname);
 	var req = 'openssl x509 -req -days ' + self.config.days + ' -in ' + certname + ' -CAcreateserial -CAkey ' +
-			self.config.masterkeyname + ' -CA ' + self.config.mastercertname + ' -out ' + self.config.clientcert;
-	//console.log('PZ Common : Client Cert ' +  req);
+		keyname + ' -CA ' + self.config.mastercertname + ' -out ' + self.config.clientcert;
+	console.log('PZ Common : Client Cert ' +  req);
 	child_process.exec(req, function (error, stdout, stderr) {
-		//console.log('PZ Common: Server Certified Client Cert stderr: ' + stderr);
+		console.log('PZ Common: Server Certified Client Cert stderr: ' + stderr);
 		if (error !== null) {
 		  console.log('PZ Common: Server Certified Client Cert Exec error: ' + error);
-		};
-		callback.call(self, 'done');
+		} else {
+			callback.call(self, 'done');
+		}
 
 	});
 };

@@ -391,6 +391,8 @@ pzh.prototype.configurePZH = function(contents, callback) {
 			self.config.keyname = name+'_conn_key.pem';
 			self.config.certname = name+'_conn_cert.pem';
 			self.config.common = common;
+			self.config.days = 180;
+			self.config.masterkeyname = name+'_master_key.pem';
 			self.config.mastercertname = name+'_master_cert.pem';
 			callback.call(self,'file present');	
 		}			
