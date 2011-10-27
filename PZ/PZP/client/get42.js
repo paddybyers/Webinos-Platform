@@ -41,8 +41,10 @@
 		payload.id = 1;
 		var otherPZP;
 		for(var i in webinos.getOtherPZP()) {
+			console.log(webinos.getOtherPZP()[i]);
 			if(webinos.getOtherPZP()[i] !== webinos.getPZPId()) {
 				otherPZP = webinos.getOtherPZP()[i];
+				console.log('OTHERPZP '+webinos.getOtherPZP()[i]);
 			}
 		}	
 		var options = {register: false, type: "JSONRPC", id: 0,

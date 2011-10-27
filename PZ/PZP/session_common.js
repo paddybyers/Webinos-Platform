@@ -8,14 +8,16 @@ exports.debug = function(msg) {
 	if(debug === true)
 		console.log(msg);
 }
+
 // This is a device id through which we recognize device
+// TODO: For any device, currently only ethernet mac address is being used
 exports.getId = function (self, callback) {
 	var id;
 	console.log('PZ Common: Selected Platform - ' + process.platform);
 	if(process.platform === 'cygwin') {
 		var req = "getmac -V -FO CSV | awk -F \',\' \'{if(match($1, \"Local Area Connection\")) print $3;}\'";
 		child_process.exec(req, function (error, stdout, stderr) {
-			console.log('PZ Common: GetID stdout: ' + stdout);
+			//console.log('PZ Common: GetID stdout: ' + stdout);
 			//console.log('PZ Common: GetID stderr: ' + stderr);
 			id = stdout.split('\n');
 			if (error !== null) {
@@ -25,7 +27,7 @@ exports.getId = function (self, callback) {
 			}	
 		});
 	} else if (process.platform === 'linux') {
-		var req = "ifconfig | grep HWaddr | tr -s \' \' | cut -d \' \' -f5";
+		var req = "ifconfig eth0 | grep HWaddr | tr -s \' \' | cut -d \' \' -f5";
 		child_process.exec(req, function (error, stdout, stderr) {
 			//console.log('PZ Common: GetID stdout: ' + stdout);
 			//console.log('PZ Common: GetID stderr: ' + stderr);
@@ -42,8 +44,9 @@ exports.getId = function (self, callback) {
 			var id = stdout.split('\n');
 			if(err !== null)
 				console.log('PZ common: GetID exec error: ' + err);
-			else 
+			else {
 				callback.call(self, id[0]); 
+			}				
 		});
 	}
 	
@@ -80,9 +83,9 @@ exports.generateSelfSignedCert = function(self, callback) {
 				//console.log('PZ Common: Self Generated Cert 2 stderr: ' + stderr);
 				if (error !== null) {
 					console.log('PZ Common: Self Genereated Cert 2 Exec error: ' + error);
-				};
-		
-				callback.call(self, 'true');
+				} else {
+					callback.call(self, 'true');
+				}
 			});
 		});
 	});	
@@ -103,8 +106,9 @@ exports.generateServerCertifiedCert = function(self, config, callback) {
 		//console.log('PZ Common: Server Certified Cert stderr: ' + stderr);
 		if (error !== null) {
 		  console.log('PZ Common: Server Certified Cert exec error: ' + error);						
-		};
-		callback.call(self, 'done');
+		} else {
+			callback.call(self, 'done');
+		}
 	});
 };
 
@@ -115,11 +119,9 @@ exports.generateServerCertifiedCert = function(self, config, callback) {
 exports.generateClientCertifiedCert = function(certname, self, callback) {
 	var days = self.config.days;
 	var keyname = self.config.masterkeyname;
-	console.log(self.config);
-	console.log(keyname);
 	var req = 'openssl x509 -req -days ' + self.config.days + ' -in ' + certname + ' -CAcreateserial -CAkey ' +
 		keyname + ' -CA ' + self.config.mastercertname + ' -out ' + self.config.clientcert;
-	console.log('PZ Common : Client Cert ' +  req);
+	//console.log('PZ Common : Client Cert ' +  req);
 	child_process.exec(req, function (error, stdout, stderr) {
 		console.log('PZ Common: Server Certified Client Cert stderr: ' + stderr);
 		if (error !== null) {
