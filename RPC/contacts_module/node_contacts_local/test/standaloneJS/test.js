@@ -14,8 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-require.paths.unshift("../../build/default/"); // path to our extension
-var localcontacts = require("localcontacts");
+var localcontacts = require("../../build/default/localcontacts");
 
 //TEST module loaded ok
 console.log("localcontacts module OBJ: "+localcontacts);

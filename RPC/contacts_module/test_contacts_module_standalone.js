@@ -14,8 +14,8 @@
  * the License.
  ******************************************************************************/
 
-require.paths.unshift(".");
-var cm = require("contacts_module");
+//require.paths.unshift(".");
+var cm = require(__dirname+"/contacts_module");
 
 var params = new Array(1);
 params[0] = {};

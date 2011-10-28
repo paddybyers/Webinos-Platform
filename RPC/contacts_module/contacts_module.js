@@ -13,11 +13,11 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
-require.paths.unshift(__dirname + "/node_contacts_remote");
-var remote_contacts = require("remote_contacts");
+//require.paths.unshift(__dirname + "/node_contacts_remote");
+var remote_contacts = require(__dirname + "/node_contacts_remote/remote_contacts");
 
-require.paths.unshift(__dirname + "/node_contacts_local");
-var local_contacts = require("local_contacts");
+//require.paths.unshift(__dirname + "/node_contacts_local");
+var local_contacts = require(__dirname + "/node_contacts_local/local_contacts");
 
 /**
  * Instances of remote contacts and local contacts

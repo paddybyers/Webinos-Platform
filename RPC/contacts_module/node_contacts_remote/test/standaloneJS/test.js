@@ -14,8 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-require.paths.unshift("../../build/default/"); // path to our extension
-var remotecontacts = require("remotecontacts");
+var remotecontacts = require("../../build/default/remotecontacts");
 
 //TEST module loaded ok
 console.log("remotecontacts module OBJ: "+remotecontacts);
