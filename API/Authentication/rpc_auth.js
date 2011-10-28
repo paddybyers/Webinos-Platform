@@ -48,14 +48,14 @@ AuthErrorCB.prototype.onError = function (error) {
 };
 
 
-var WebinosAuthenticationInterface = function () {
-	this.authentication = new WebinosAuthentication();
+WebinosAuthentication = function () {
+	this.authentication = new WebinosAuthenticationInterface();
 };
 
-var WebinosAuthentication = function () {
+WebinosAuthenticationInterface = function () {
 };
 
-webinos.authentication = new WebinosAuthentication();
+webinos.authentication = new WebinosAuthenticationInterface();
 
 
 var password_filename = "./authentication/password.txt", authstatus_filename = "./authentication/authstatus.txt", sep = '|';
@@ -94,7 +94,14 @@ webinos.authentication.authenticate = function (params, successCB, errorCB, obje
 											if (err !== undefined && err !== null) {
 												console.log(err);
 											}
-											successCB("User authenticated");
+											else {
+												webinos.authentication.getAuthenticationStatus([username], function (authStatus) {
+													successCB("User authenticated\n" + authStatus);
+												},
+												function (err) {
+													errorCB(err);
+												});
+											}
 										});
 									});
 								}
@@ -312,7 +319,7 @@ webinos.authentication.getAuthenticationStatus = function (params, successCB, er
 		});
 	}
 	else {
-		successCB("Username is missing");
+		successCB("username is missing");
 	}
 };
 
