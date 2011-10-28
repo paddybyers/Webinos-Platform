@@ -69,7 +69,7 @@ public class MainActivity extends Activity
   /** activity is "visible" although not necessarily in foreground */
   public void onStart()
   {
-    String address;
+    String address = "127.0.0.1";
     String port = "8888";
 
     super.onStart();
@@ -83,10 +83,9 @@ public class MainActivity extends Activity
       int ipAddress = wifiInfo.getIpAddress();
       address = Formatter.formatIpAddress(ipAddress);
 
-      log("My WiFi address is " + address);
-
       upnp = new AdvertiseTask();
       upnp.execute(new String[] { address, port });
+      log("enabled multicast socket for UPnP");
     }
     catch (Exception e)
     {
@@ -98,6 +97,7 @@ public class MainActivity extends Activity
     {
       server = new WebServerTask(this); 
       server.execute(new String[] { port });
+      log("enabled server at http://"+ address + ":"+port+"/");
     }
     catch (Exception e)
     {
@@ -301,6 +301,12 @@ public class MainActivity extends Activity
     t.append("\n");
     t.append(msg);
 
+    // sadly this doesn't work :-(
+    // and scroll to bottom to ensure new text is visible
+    int delta = t.getMeasuredHeight() - t.getHeight();
+
+    if (delta > 0)
+      t.scrollTo(0, delta);
   }
 
   public void logException(String msg, Exception e)

@@ -7,6 +7,8 @@ package org.webinos.pzp;
 
 import android.app.Activity;
 import android.os.AsyncTask;
+import android.os.Vibrator;
+import android.content.Context;
 import android.content.res.AssetManager;
 import java.io.IOException;
 import java.lang.InterruptedException;
@@ -28,6 +30,19 @@ public class WebServerTask extends AsyncTask<String, String, String>
   public AssetManager assets()
   {
     return activity.getAssets();
+  }
+
+  public void vibrate()
+  {
+    try
+    {
+      Vibrator v = (Vibrator) activity.getSystemService(Context.VIBRATOR_SERVICE);
+      v.vibrate(1000);
+    }
+    catch (Exception e)
+    {
+      log(e.toString());
+    }
   }
 
   public void shutdown()

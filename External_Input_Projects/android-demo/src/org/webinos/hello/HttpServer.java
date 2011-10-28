@@ -110,6 +110,7 @@ public class HttpServer
     OutputStream out_stream = null;
     HttpMethod method = HttpMethod.UNKNOWN;
     String path;
+    String query;
     TreeMap<String, String> requestHeaders;
 
     HttpConnection(Socket socket, WebServerTask task) throws IOException, HttpException
@@ -142,7 +143,8 @@ public class HttpServer
 
           first = false;
           String address = socket.getInetAddress().getHostAddress();
-          task.log(address + " " + method + " " + path);
+
+          task.log(address + " " + method + " " + path + (query != null ? "?" + query : ""));
         }
         else if (line.length() > 0)
           parseHttpRequestHeader(line);
@@ -169,6 +171,8 @@ public class HttpServer
       {
         if (path.equals("/photo"))
           sendPhoto();
+        else if (path.equals("/vibrate"))
+          vibrate();
       }
       else
       {
@@ -268,7 +272,9 @@ public class HttpServer
       {
         httpResponsePreamble("200 Okay");
         out.print("Content-Type: image/jpeg\r\n");
-        out.print("Connection: close\r\n\r\n");
+        out.print("Connection: close\r\n");
+        out.print("Pragma: no-cache\r\n");
+        out.print("\r\n");
         out.flush();
         task.activity.preview.sendFrame(out_stream);
       }
@@ -282,6 +288,28 @@ public class HttpServer
       }
     }
 
+    private void vibrate()
+    {
+      try
+      {
+        httpResponsePreamble("200 Okay");
+        out.print("Content-Type: text/plain\r\n");
+        out.print("Connection: close\r\n");
+        out.print("Pragma: no-cache\r\n");
+        out.print("\r\n");
+        out.print("vibrate command acccepted\r\n");
+
+        task.vibrate();
+      }
+      catch (Exception e)
+      {
+        httpResponsePreamble("500 Internal Server Error");
+        out.print(
+           "Content-Type: text/plain; charset=UTF-8\r\n" +
+           "Connection: close\r\n\r\n" +
+           "500 Internal Server Error\r\n");
+      }
+    }
     // CORS header to allow access by scripts from other sites
     private void httpResponsePreamble(String status)
     {
@@ -326,6 +354,18 @@ public class HttpServer
         method = HttpMethod.POST;
 
       path = parts[1];
+      query = null;
+
+      int q = path.indexOf("?");
+
+      if (q == 0)
+         throw new HttpException("missing path \"" + path + "\"");
+
+      if (q > 0)
+      {
+        query = path.substring(q+1);
+        path = path.substring(0, q);
+      }
     }
 
     private void parseHttpRequestHeader(String line)

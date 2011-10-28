@@ -27,14 +27,15 @@ class Preview extends SurfaceView implements SurfaceHolder.Callback, PreviewCall
   MainActivity activity;
   SurfaceHolder holder;  
   Camera camera;
-  boolean paused = false; 
+  boolean paused;
+  boolean frame_ready;
   
-  //This variable is responsible for getting and setting the camera settings  
+  // for getting and setting the camera settings  
   private Parameters parameters;  
-  //this variable stores the camera preview size  
+  // stores the camera preview size  
   private Size previewSize;  
-  //this array stores the pixels as hexadecimal pairs  
-  private int[] pixels;  
+  // stores the pixels as hexadecimal pairs  
+  private int[] pixels;
   
   Preview(MainActivity activity)
   {  
@@ -42,8 +43,8 @@ class Preview extends SurfaceView implements SurfaceHolder.Callback, PreviewCall
     this.activity = activity;
     paused = false; 
   
-    // Install a SurfaceHolder.Callback so we get notified when the  
-    // underlying surface is created and destroyed.  
+    // install a SurfaceHolder.Callback so we get notified 
+    // when the underlying surface is created and destroyed
     holder = getHolder();  
     holder.addCallback(this);  
     holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);  
@@ -65,8 +66,20 @@ class Preview extends SurfaceView implements SurfaceHolder.Callback, PreviewCall
 
   public void sendFrame(OutputStream out)
   {
-    // stop preview to ensure we get complete frame
-    camera.stopPreview();
+    // tell camera to give us a frame
+    frame_ready = false;
+    camera.setOneShotPreviewCallback(this);
+
+    // pause the server thread until frame is available
+
+    try
+    {
+      while (!frame_ready)
+        Thread.sleep(100);
+    }
+    catch (java.lang.InterruptedException e)
+    {
+    }
 
     // create a bitmap object from the pixel data
     Bitmap bmp = Bitmap.createBitmap(pixels, previewSize.width,
@@ -74,9 +87,6 @@ class Preview extends SurfaceView implements SurfaceHolder.Callback, PreviewCall
 
     // and convert to jpg and post to stream
     bmp.compress(Bitmap.CompressFormat.JPEG, 100, out);
-
-    // restart preview after sending the frame
-    camera.startPreview();
   }
 
   private Camera openFrontFacingCameraGingerbread() throws RuntimeException
@@ -109,7 +119,7 @@ class Preview extends SurfaceView implements SurfaceHolder.Callback, PreviewCall
       camera.setPreviewDisplay(holder);  
   
       //sets the camera callback to be the one defined in this class  
-      camera.setPreviewCallback(this);
+      //camera.setPreviewCallback(this);
   
       ///initialize the variables  
       parameters = camera.getParameters();  
@@ -172,7 +182,10 @@ class Preview extends SurfaceView implements SurfaceHolder.Callback, PreviewCall
   public void onPreviewFrame(byte[] data, Camera camera)
   {
     // transforms NV21 pixel data into RGB pixels  
-    decodeYUV420SP(pixels, data, previewSize.width,  previewSize.height);  
+    decodeYUV420SP(pixels, data, previewSize.width,  previewSize.height);
+
+    // wake up server thread to send the data
+    frame_ready = true;
   }  
   
   // Method from Ketai project! Not mine! See below...  

@@ -9,6 +9,7 @@ This experimental Android app supports:
    -  /phone.xml for the device/service description (faked)
    -  /favicon.ico  (will try to get this to be the webinos one)
    -  GET or POST /photo to grab frame from video preview of front camera
+   -  POST /vibrate to vibrate the phone
    -  support for GET foo.html on files in sdcard/web/foo.html
    -  CORS header to allow access by scripts from other "sites"
 
