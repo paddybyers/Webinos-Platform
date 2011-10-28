@@ -11,15 +11,17 @@ if (typeof exports !== "undefined") {
 	//webinos.session = require('../../Manager/Session/session_pzp.js');
 	webinos.session = require('./session_pzp.js');
 } 
-var servername = ' ', port = 0, serverPort = 0, webServerPort = 0, webSocketServer = false;
+var servername = ' ', hostname = '' , port = 0, serverPort = 0, webServerPort = 0, webSocketServer = false;
 process.argv.forEach(function(val, index, array) {
 	if(index === 2) 
+		hostname = val;
+	else if (index === 3)
 		serverPort = val;
-	if(index === 3)
+	else if(index === 4)
 		webServerPort = val;
 });
 
-webinos.session.pzp.startWebSocketServer(serverPort, webServerPort); 
+webinos.session.pzp.startWebSocketServer(hostname, serverPort, webServerPort); 
 /*process.argv.forEach(function(val, index, array) {
 	if(index === 2) 
 		servername = val;
