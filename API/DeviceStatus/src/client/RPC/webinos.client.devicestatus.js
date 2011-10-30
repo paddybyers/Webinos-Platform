@@ -29,7 +29,7 @@
 		var rpc = webinos.rpc.createRPC(this, "devicestatus.getPropertyValue", arguments);
 		webinos.rpc.executeRPC(rpc, 
 			function (params) { successCallback(params); },
-			function (error) {});
+			errorCallback);
 		return;
 	};
 

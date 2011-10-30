@@ -2,8 +2,21 @@
 	"use strict";
 
 	var DeviceapisDeviceStatusManager, DeviceStatusManager, PropertyValueSuccessCallback, ErrorCallback, DeviceAPIError, PropertyRef,
-	nativeDeviceStatus = require("./nativedevicestatus");
-	
+	nativeDeviceStatus = require("../cc/build/default/nativedevicestatus"),
+	pmlib = require("../../../../../Manager/Policy/policymanager.js"),
+	policyManager,
+	exec = require('child_process').exec; // this line should be moved in the policy manager
+
+//Regular policyManger lib loading.. the library currently is loaded inside the getPropertyValue method
+//to recognize real-time changes in the policy, (we need a method to sync the policy) 
+/*	try {
+		policyManager = new pmlib.policyManager();
+	}
+	catch(e) {
+		console.log("Load error: "+e.message);
+		return;
+	}
+*/
 	DeviceapisDeviceStatusManager = function () {
 		this.devicestatus = new DeviceStatusManager();
 	};
@@ -13,7 +26,40 @@
 	DeviceStatusManager = function () {};
 
 	DeviceStatusManager.prototype.getPropertyValue = function (successCallback, errorCallback, prop) {
-		successCallback(nativeDeviceStatus.getPropertyValue(prop));
+		var res,
+		request = {},
+		subjectInfo = {},
+		resourceInfo = {};
+
+		subjectInfo.userId = "user1";
+		request.subjectInfo = subjectInfo;
+
+		resourceInfo.apiFeature = "http://wacapps.net/api/devicestatus";
+		request.resourceInfo = resourceInfo;
+		res = policyManager.enforceRequest(request);
+
+		console.log("policyManager says:" + res);
+		
+
+		//This part should be moved to the policy manager module 
+		if (res == 0) { //PERMIT
+			successCallback(nativeDeviceStatus.getPropertyValue(prop));
+		}
+		else if (res == 1) { //DENY
+			errorCallback("SECURITY_ERR:"+ res);
+		}
+		else //PROMPT
+		{
+			var child = exec("xmessage -buttons allow,deny -print 'Access request to " + prop.property + " info'", function (error, stdout, stderr) {
+					
+				if (stdout == "allow\n") {
+					successCallback(nativeDeviceStatus.getPropertyValue(prop));
+				}
+				else{
+					errorCallback("SECURITY_ERR:"+ res);
+				}
+			});
+		}
 	};
 
 	PropertyValueSuccessCallback = function () {};

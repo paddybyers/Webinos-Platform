@@ -1,7 +1,8 @@
 #include <cstring>
-
+#include <string>
 #include <v8.h>
 #include <node.h>
+#include "battery.h"
 
 using namespace v8;
 using namespace node;
@@ -11,10 +12,9 @@ namespace nativedevicestatus_v8 {
 Handle<Value> getPropertyValue( const Arguments &args )
 {
   HandleScope scope;
-
-  char str[]="foo";
-
-  return String::New(str, strlen(str));
+  std::string res = batteryLevel();
+  return String::New(res.c_str(), res.length());
+  //return batteryLevel();
 }
 
 }

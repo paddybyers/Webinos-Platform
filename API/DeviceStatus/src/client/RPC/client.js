@@ -12,13 +12,14 @@ $(document).ready(
 			}
 		);
 
-		$('#getProp').click(
+		$('#getBattery').click(
 			function () {
 		
-				var prop = {component: "component_value", aspect: "aspect_value", property: "property_value"},
-				successCB = function (value) { alert(value); };
+				var prop = {component: "_default", aspect: "Battery", property: "batteryLevel"},
+				successCB = function (value) { alert("Success => BatteryLevel (%): " + value ); };
+				errorCB = function (value) { alert("Error: " + value); };
 
-				devicestatusservice.getPropertyValue(prop, successCB, null);
+				devicestatusservice.getPropertyValue(prop, successCB, errorCB);
 			}
 		);
 

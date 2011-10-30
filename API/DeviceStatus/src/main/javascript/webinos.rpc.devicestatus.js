@@ -15,7 +15,7 @@
 				function (prop) {
 					successCallback(prop);
 				},
-				function () {},
+				function (err) {errorCallback(err)},
 				params[0]
 			);
 		};
