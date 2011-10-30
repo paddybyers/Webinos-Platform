@@ -7,20 +7,20 @@
 
 	var rpc = require('./rpc.js');
 	
-	// TODO Extract (to somewhere else).
+	// TODO Extract (to somewhereoever else).
 	rpc.events = {};
 	
 	rpc.events.Event = {
-			serialize: function (event) {
-				return {
-					type: event.type,
-					eventPhase: event.eventPhase,
-					bubbles: event.bubbles,
-					cancelable: event.cancelable,
-					timeStamp: event.timeStamp
-				};
-			}
-		};
+		serialize: function (event) {
+			return {
+				type: event.type,
+				eventPhase: event.eventPhase,
+				bubbles: event.bubbles,
+				cancelable: event.cancelable,
+				timeStamp: event.timeStamp
+			};
+		}
+	};
 	
 	rpc.events.ProgressEvent = {
 		serialize: function (event) {

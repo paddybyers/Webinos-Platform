@@ -162,13 +162,8 @@
 				this.readyState = params[0].readyState;
 				this.result = params[0].result;
 				this.error = params[0].error ? file.FileError.deserialize(params[0].error) : null;
-						
-				var event = params[1];
 				
-				event.target = this;
-				event.currentTarget = this;
-				
-				attributeFun.call(this)(event);
+				attributeFun.call(this)(rpc.events.ProgressEvent.deserialize(params[1], this));
 			};
 		};
 		
@@ -260,13 +255,8 @@
 				this.position = params[0].position;
 				this.length = params[0].length;
 				this.error = params[0].error ? file.FileError.deserialize(params[0].error) : null;
-						
-				var event = params[1];
 				
-				event.target = this;
-				event.currentTarget = this;
-				
-				attributeFun.call(this)(event);
+				attributeFun.call(this)(rpc.events.ProgressEvent.deserialize(params[1], this));
 			};
 		};
 		
@@ -326,13 +316,8 @@
 				this.position = params[0].position;
 				this.length = params[0].length;
 				this.error = params[0].error ? file.FileError.deserialize(params[0].error) : null;
-						
-				var event = params[1];
 				
-				event.target = this;
-				event.currentTarget = this;
-				
-				attributeFun.call(this)(event);
+				attributeFun.call(this)(rpc.events.ProgressEvent.deserialize(params[1], this));
 			};
 		};
 		
