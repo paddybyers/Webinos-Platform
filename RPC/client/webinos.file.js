@@ -559,12 +559,12 @@
 		this.__entry = entry;
 	}
 
-	file.DirectoryReader.prototype.__begin = 0;
+	file.DirectoryReader.prototype.__start = 0;
 	file.DirectoryReader.prototype.__length = 10;
 
 	file.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
 		utils.bind(utils.rpc.request(this.__entry.filesystem.__service, 'readEntries', null, function (result) {
-			this.__begin = result.__begin;
+			this.__start = result.__start;
 			this.__length = result.__length;
 
 			utils.callback(successCallback, this)(result.entries.map(function (object) {
@@ -572,7 +572,7 @@
 			}, this));
 		}, function (error) {
 			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
-		}), this)(file.Entry.serialize(this.__entry), this.__begin, this.__length);
+		}), this)(file.Entry.serialize(this.__entry), this.__start, this.__length);
 	}
 
 	file.FileEntry = function (filesystem, fullPath) {

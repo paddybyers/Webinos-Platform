@@ -313,12 +313,12 @@
 		readEntries: function (params, successCallback, errorCallback) {
 			var __object = rpc.file.Entry.deserialize(params[0]).createReader();
 	
-			__object.__begin = params[1];
+			__object.__start = params[1];
 			__object.__length = params[2];
 	
 			__object.readEntries(function (entries) {
 				successCallback({
-					__begin: __object.__begin,
+					__start: __object.__start,
 					__length: __object.__length,
 					entries: entries.map(rpc.file.Entry.serialize)
 				});

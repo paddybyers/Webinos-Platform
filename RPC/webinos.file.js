@@ -156,7 +156,7 @@
 				return new file.DirectoryEntrySync(utils.file.sync(object.filesystem), object.fullPath);
 			else if (object instanceof file.DirectoryReader) {
 				var reader = new file.DirectoryReaderSync(utils.file.sync(object.__entry));
-				reader.__begin = object.__begin;
+				reader.__start = object.__start;
 				reader.__length = object.__length;
 				
 				return reader;
@@ -175,7 +175,7 @@
 				return new file.DirectoryEntry(utils.file.async(object.filesystem), object.fullPath);
 			else if (object instanceof file.DirectoryReaderSync) {
 				var reader = new file.DirectoryReader(utils.file.async(object.__entry));
-				reader.__begin = object.__begin;
+				reader.__start = object.__start;
 				reader.__length = object.__length;
 				
 				return reader;
@@ -832,7 +832,7 @@
 		this.__entry = entry;
 	}
 
-	file.DirectoryReaderSync.prototype.__begin = 0;
+	file.DirectoryReaderSync.prototype.__start = 0;
 	file.DirectoryReaderSync.prototype.__length = 10;
 	file.DirectoryReaderSync.prototype.__children = undefined;
 	
@@ -842,11 +842,11 @@
 
 		var entries = [];
 		
-		for (var i = this.__begin; i < Math.min(this.__begin + this.__length, this.__children.length); i++)
+		for (var i = this.__start; i < Math.min(this.__start + this.__length, this.__children.length); i++)
 			entries.push(file.EntrySync.create(this.__entry.filesystem,
 					utils.path.join(this.__entry.fullPath, this.__children[i])));
 		
-		this.__begin += entries.length;
+		this.__start += entries.length;
 		
 		return entries;
 	}
@@ -1008,7 +1008,7 @@
 		this.__entry = entry;
 	}
 
-	file.DirectoryReader.prototype.__begin = 0;
+	file.DirectoryReader.prototype.__start = 0;
 	file.DirectoryReader.prototype.__length = 10;
 
 	file.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
@@ -1016,7 +1016,7 @@
 
 		utils.bind(utils.file.schedule(utils.bind(file.DirectoryReaderSync.prototype.readEntries, sync),
 				function (entries) {
-					this.__begin = sync.__begin;
+					this.__start = sync.__start;
 					this.__length = sync.__length; 
 		
 					utils.callback(successCallback, this)(entries.map(utils.file.async));
