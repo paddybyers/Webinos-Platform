@@ -38,14 +38,14 @@
 	
 	rpc.file.Blob = {
 		serialize: function (blob) {
-			if (blob instanceof file.Text) {
+			if (blob instanceof file.Text)
 				return {
 					__type: 'text',
 					size: blob.size,
 					type: blob.type,
 					__text: blob.__text
 				};
-			} else if (blob instanceof file.File) {
+			else if (blob instanceof file.File)
 				return {
 					__type: 'file',
 					name: blob.name,
@@ -53,31 +53,16 @@
 					type: blob.type,
 					lastModifiedDate: blob.lastModifiedDate,
 					__entry: rpc.file.Entry.serialize(blob.__entry),
-					__offset: blob.__offset
+					__start: blob.__start
 				};
-			}
 		},
 		
 		deserialize: function (object) {
-			if (object.__type == 'text') {
-				var blob = new file.Text();
-				
-				blob.size = object.size;
-				blob.type = object.type;
-				
-				blob.__text = object.__text;
-			} else if (object.__type == 'file') {
-				var blob = new file.File(rpc.file.Entry.deserialize(object.__entry));
-				
-				blob.name = object.name;
-				blob.size = object.size;
-				blob.type = object.type;
-				blob.lastModifiedDate = object.lastModifiedDate;
-				
-				blob.__offset = object.__offset;
-			}
-			
-			return blob;
+			if (object.__type == 'text')
+				return new file.Text(object.__text, object.type);
+			else if (object.__type == 'file')
+				return new file.File(rpc.file.Entry.deserialize(object.__entry),
+						object.type, object.__start, object.size);
 		}
 	};
 	
@@ -125,7 +110,7 @@
 		deserialize: function (object) {
 			var writer = new file.FileWriter(rpc.file.Entry.deserialize(object.__entry));
 			
-			//writer.readyState = object.readyState;
+			// writer.readyState = object.readyState;
 			writer.position = object.position;
 			writer.length = object.length;
 			writer.error = object.error;

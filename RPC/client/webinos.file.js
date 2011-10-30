@@ -39,14 +39,14 @@
 	}
 	
 	file.Blob.serialize = function (blob) {
-		if (blob instanceof file.Text) {
+		if (blob instanceof file.Text)
 			return {
 				__type: 'text',
 				size: blob.size,
 				type: blob.type,
 				__text: blob.__text
 			};
-		} else if (blob instanceof file.File) {
+		else if (blob instanceof file.File)
 			return {
 				__type: 'file',
 				name: blob.name,
@@ -54,33 +54,23 @@
 				type: blob.type,
 				lastModifiedDate: blob.lastModifiedDate,
 				__entry: file.Entry.serialize(blob.__entry),
-				__offset: blob.__offset
+				__start: blob.__start
 			};
-		}
 	}
 	
 	file.Blob.deserialize = function (service, object) {
-		if (object.__type == 'text') {
-			var blob = new file.Text();
+		if (object.__type == 'text')
+			return new file.Text(object.__text, object.type);
+		else if (object.__type == 'file') {
+			var blob = new file.File(file.Entry.deserialize(service, object.__entry),
+					object.type, object.__start, object.size);
 			
-			blob.size = object.size;
-			blob.type = object.type;
-			
-			blob.__text = object.__text;
-		} else if (object.__type == 'file') {
-			var blob = new file.File(file.Entry.deserialize(service, object.__entry));
-			
-			blob.name = object.name;
-			blob.size = object.size;
-			blob.type = object.type;
 			blob.lastModifiedDate = object.lastModifiedDate;
 			
-			blob.__offset = object.__offset;
+			return blob;
 		}
-		
-		return blob;
 	}
-
+	
 	file.Blob.prototype.size = 0;
 	file.Blob.prototype.type = '';
 	
@@ -89,30 +79,27 @@
 	
 	file.BlobBuilder.prototype.__text = '';
 	
+	// TODO Add support for Blob and ArrayBuffer(?).
 	file.BlobBuilder.prototype.append = function (data) {
 		if (typeof data === 'string')
 			this.__text += data;
 	}
 	
 	file.BlobBuilder.prototype.getBlob = function (contentType) {
-		var blob = new file.Text();
-		
-		blob.size = this.__text.length;
-		blob.type = contentType || blob.type;
-		
-		blob.__text = this.__text;
-		
-		return blob;
+		return new file.Text(this.__text, contentType);
 	}
 	
-	// TODO Think about this constructor.
-	file.Text = function () {
+	file.Text = function (text, type) {
+		file.Blob.call(this);
+		
+		this.size = text ? text.length : 0;
+		this.type = type || this.type;
+		
+		this.__text = text || '';
 	}
 	
 	file.Text.prototype = new file.Blob();
 	file.Text.prototype.constructor = file.Text;
-
-	file.Text.prototype.__text = '';
 	
 	file.Text.prototype.slice = function (start, length, contentType) {
 		if (start > this.size)
@@ -120,33 +107,23 @@
 		else if (start + length > this.size)
 			length = this.size - start;
 		
-		var newText = new file.Text();
-		
-		newText.size = length;
-		newText.type = contentType || this.type;
-		
-		// TODO Check the usage of start.
-		newText.__text = this.text.substr(start, length);
-
-		return newText;
+		return new file.Text(length > 0 ? this.__text.substr(start, length) : '', contentType || this.type);
 	}
 	
-	// TODO Think about this constructor.
-	file.File = function (entry) {
+	file.File = function (entry, type, start, length) {
 		file.Blob.call(this);
 
 		this.name = entry.name;
-		this.size = 0;
-		// this.type = ...;
+		this.size = length || 0;
+		this.type = type || this.type;
 		this.lastModifiedDate = 0;
 		
 		this.__entry = entry;
+		this.__start = start || 0;
 	}
 
 	file.File.prototype = new file.Blob();
 	file.File.prototype.constructor = file.File;
-
-	file.File.prototype.__offset = 0;
 
 	file.File.prototype.slice = function (start, length, contentType) {
 		if (start > this.size)
@@ -154,15 +131,7 @@
 		else if (start + length > this.size)
 			length = this.size - start;
 		
-		var newFile = new file.File(this.__entry);
-		
-		newFile.size = length;
-		newFile.type = contentType || this.type;
-		
-		// TODO Check this calculation.
-		newFile.__offset = this.__offset + start;
-
-		return newFile;
+		return new file.File(this.__entry, contentType || this.type, length > 0 ? this.__start + start : 0, length);
 	}
 	
 	file.FileReader = function (filesystem) {

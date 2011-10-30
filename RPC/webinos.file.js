@@ -8,10 +8,11 @@
  * 
  * @author Felix-Johannes Jendrusch <felix-johannes.jendrusch@fokus.fraunhofer.de>
  * 
- * TODO Use error/exception codes according to specification, e.g., use filesystem operation-dependent maps.
  * TODO Invalidate entries, e.g., after being (re)moved.
+ * TODO Handle multiple read calls to <pre>file.FileReader</pre> (see File API, W3C Working Draft, 20 October 2011).
+ * TODO Use error/exception codes according to specification, e.g., at <pre>utils.file.wrap</pre>.
  * TODO Respect encoding parameters, e.g., at <pre>file.Blob.prototype.type</pre>.
- * TODO Handle multiple read calls to <pre>file.FileReader</pre>.
+ * TODO Internalize (a)synchronization, i.e., move functions to separate internal namespace.
  */
 (function (exports) {
 	"use strict";
@@ -199,30 +200,27 @@
 	
 	file.BlobBuilder.prototype.__text = '';
 	
+	// TODO Add support for Blob and ArrayBuffer(?).
 	file.BlobBuilder.prototype.append = function (data) {
 		if (typeof data === 'string')
 			this.__text += data;
 	}
 	
 	file.BlobBuilder.prototype.getBlob = function (contentType) {
-		var blob = new file.Text();
-		
-		blob.size = this.__text.length;
-		blob.type = contentType || blob.type;
-		
-		blob.__text = this.__text;
-		
-		return blob;
+		return new file.Text(this.__text, contentType);
 	}
 	
-	// TODO Think about this constructor.
-	file.Text = function () {
+	file.Text = function (text, type) {
+		file.Blob.call(this);
+		
+		this.size = text ? text.length : 0;
+		this.type = type || this.type;
+		
+		this.__text = text || '';
 	}
 	
 	file.Text.prototype = new file.Blob();
 	file.Text.prototype.constructor = file.Text;
-
-	file.Text.prototype.__text = '';
 	
 	file.Text.prototype.slice = function (start, length, contentType) {
 		if (start > this.size)
@@ -230,35 +228,25 @@
 		else if (start + length > this.size)
 			length = this.size - start;
 		
-		var newText = new file.Text();
-		
-		newText.size = length;
-		newText.type = contentType || this.type;
-		
-		// TODO Check the usage of start.
-		newText.__text = this.text.substr(start, length);
-
-		return newText;
+		return new file.Text(length > 0 ? this.__text.substr(start, length) : '', contentType || this.type);
 	}
-	
-	// TODO Think about this constructor.
-	file.File = function (entry) {
+
+	file.File = function (entry, type, start, length) {
 		file.Blob.call(this);
 
 		var stats = utils.file.wrap(__fs.statSync)(entry.realize());
 
 		this.name = entry.name;
-		this.size = stats.size;
-		// this.type = ...;
+		this.size = length || start ? Math.max(0, stats.size - start) : stats.size;
+		this.type = type || this.type;
 		this.lastModifiedDate = 0;
 		
 		this.__entry = entry;
+		this.__start = start ? Math.min(stats.size, start) : 0;
 	}
 
 	file.File.prototype = new file.Blob();
 	file.File.prototype.constructor = file.File;
-
-	file.File.prototype.__offset = 0;
 
 	file.File.prototype.slice = function (start, length, contentType) {
 		if (start > this.size)
@@ -266,15 +254,7 @@
 		else if (start + length > this.size)
 			length = this.size - start;
 		
-		var newFile = new file.File(this.__entry);
-		
-		newFile.size = length;
-		newFile.type = contentType || this.type;
-		
-		// TODO Check this calculation.
-		newFile.__offset = this.__offset + start;
-
-		return newFile;
+		return new file.File(this.__entry, contentType || this.type, length > 0 ? this.__start + start : 0, length);
 	}
 	
 	file.FileReader = function () {
@@ -347,8 +327,8 @@
 				var stream = __fs.createReadStream(blob.__entry.realize(), {
 					encoding: 'utf8',
 					bufferSize: 1024,
-					start: blob.__offset,
-					end: blob.__offset + blob.size - 1
+					start: blob.__start,
+					end: blob.__start + blob.size - 1
 				});
 				
 				stream.on('open', utils.bind(function () {
@@ -462,7 +442,7 @@
 				this.length = Math.max(this.length, this.position);
 				
 				this.dispatchEvent(new events.ProgressEvent('progress', false, false, false, 0, 0));
-			} if (data instanceof file.File) {
+			} else if (data instanceof file.File) {
 				// TODO Use file.FileReader?
 				var input = utils.file.wrap(__fs.openSync)(data.__entry.realize(), 'r');
 				
@@ -488,7 +468,7 @@
 		}, function (error) {
 			this.readyState = file.FileWriter.DONE;
 
-			// TODO Map filesystem operation error codes to File API error codes.
+			// TODO Use error codes according to specification.
 			this.error = new file.FileError(file.FileError.SECURITY_ERR);
 			
 			this.dispatchEvent(new events.ProgressEvent('error', false, false, false, 0, 0));
@@ -530,7 +510,7 @@
 		}, function (error) {
 			this.readyState = file.FileWriter.DONE;
 
-			// TODO Map filesystem operation error codes to File API error codes.
+			// TODO Use error codes according to specification.
 			this.error = new file.FileError(file.FileError.SECURITY_ERR);
 
 			this.dispatchEvent(new events.ProgressEvent('error', false, false, false, 0, 0));
