@@ -26,6 +26,9 @@
 	DeviceStatusManager = function () {};
 
 	DeviceStatusManager.prototype.getPropertyValue = function (successCallback, errorCallback, prop) {
+		//the following line will be removed
+		policyManager = new pmlib.policyManager();
+		
 		var res,
 		request = {},
 		subjectInfo = {},
