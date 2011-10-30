@@ -529,7 +529,7 @@
 
 	// TODO Choose file system according to specification.
 	file.LocalFileSystemSync.prototype.requestFileSystem = function (type, size) {
-		return new file.FileSystemSync('default', process.cwd());
+		return new file.FileSystemSync('default', __path.join(process.cwd(), 'default'));
 	}
 
 	file.LocalFileSystemSync.prototype.resolveLocalFileSystemURL = function (url) {
