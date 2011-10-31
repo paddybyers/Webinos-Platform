@@ -119,7 +119,7 @@ webinos.rpc.handleMessage = function (message, responseto, msgid){
 			
 			//if (typeof webinos.rpc.objects[service] === 'object'){
 			if (typeof includingObject === 'object'){
-				id = myObject.id;
+				var id = myObject.id;
 				
 				if (typeof myObject.fromObjectRef !== 'undefined' && myObject.fromObjectRef != null) {
 				
@@ -131,7 +131,7 @@ webinos.rpc.handleMessage = function (message, responseto, msgid){
 						function (result) {
 							if (typeof id === 'undefined') return;
 							var res = {};
-							rpc.jsonrpc = "2.0";
+							res.jsonrpc = "2.0";
 							if (typeof result !== 'undefined') res.result = result;
 							else res.result = {};
 							res.id = id;						
@@ -140,7 +140,7 @@ webinos.rpc.handleMessage = function (message, responseto, msgid){
 						function (error){
 							if (typeof id === 'undefined') return;
 							var res = {};
-							rpc.jsonrpc = "2.0";
+							res.jsonrpc = "2.0";
 							res.error = {};
 							res.error.data = error;
 							res.error.code = 32000;  //webinos specific error code representing that an API specific error occured
