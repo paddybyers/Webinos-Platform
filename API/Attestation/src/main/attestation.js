@@ -26,7 +26,7 @@
 var path = require('path');
 var fs = require('fs');
 var x509 = require('./x509Reader.js');
-var tssBridge = require('./tssbridge');
+var tssBridge = require('./build/default/tssbridge');
 
 var UNKNOWN_ERROR = 0;
 var INVALID_ARGUMENT_ERROR = 1;

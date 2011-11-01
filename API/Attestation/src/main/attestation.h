@@ -37,8 +37,8 @@ TSS_RESULT createTpmKey(TSS_HKEY key, TSS_HKEY wrapKey, TSS_HPCRS pcrs);
 TSS_RESULT getSrk(TSS_HCONTEXT context, UINT32 secretMode, char* secret, UINT32 secretLen, TSS_HKEY* key);
 TSS_RESULT getKeyFromFile(TSS_HCONTEXT context, TSS_HKEY srk, char* filename, TSS_HKEY* key);
 TSS_RESULT createTpmKey2(TSS_HCONTEXT context, TSS_FLAG keyFlags, TSS_HKEY srk, TSS_HKEY * key );
-
-
+UINT32 pcrRead(int pcrNumber, BYTE* pcrRes);
+TSS_RESULT quote(char* srkPwd, char* aikfile, long pcrs[], int npcrs,BYTE nonce[], TSS_VALIDATION* valid, TPM_QUOTE_INFO* quoteInfo);
 
 /* The following method has this copyright notice */
 /*

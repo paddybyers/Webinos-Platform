@@ -258,3 +258,75 @@ TSS_RESULT createQuote(long pcrs[], int npcrs, BYTE nonce[],
 	Tspi_Context_FreeMemory(context, tmpbuf);
 	return result;
 }
+
+/*
+ * Read a pcr with the given number, and store it into the given BYTE array.
+ * Returns either  -1 on error, or the length of the pcr byte array.
+ */
+UINT32 pcrRead(int pcrNumber, BYTE* pcrRes) {
+	TSS_HCONTEXT context;
+	TSS_RESULT result;
+	TSS_HTPM tpm;
+	UINT32 pcrResLength;
+
+	result = createContext(&context);
+	if (result != 0)
+		return -1;
+	result = connectContext(context);
+	if (result != 0)
+		return -1;
+	result = getTpm(context, &tpm);
+	if (result != 0)
+		return -1;
+	result = getPcrs(tpm, pcrNumber, &pcrResLength, &pcrRes);
+	if (result != 0) {
+		printf("Could not read PCR %d\n", pcrNumber);
+		return -1;
+	}
+	return pcrResLength;
+}
+/*
+ * Creates a TPM quote and stores the output into "valid" and "quoteInfo"
+ * Returns either 0 (success) or another value on error.
+ *
+ * Needs an SRK Password char* array, a filename, a list of PCR indexs,
+ * the length of the PCR index, and a 20-byte nonce.
+ *
+ */
+TSS_RESULT quote(char* srkPwd, char* aikfile, long pcrs[], int npcrs,
+		BYTE nonce[], TSS_VALIDATION* valid, TPM_QUOTE_INFO* quoteInfo) {
+	TSS_HCONTEXT context;
+	TSS_RESULT result;
+	TSS_HTPM tpm;
+	TSS_HKEY srk;
+	TSS_HKEY aik;
+
+	UINT32 pcrResLength;
+	BYTE* pcrRes;
+
+	result = createContext(&context);
+	if (result != 0)
+		return result;
+	result = connectContext(context);
+	if (result != 0)
+		return result;
+	result = getTpm(context, &tpm);
+	if (result != 0)
+		return result;
+	result = getSrk(context, TSS_SECRET_MODE_PLAIN, srkPwd, strlen(srkPwd),
+			&srk);
+	if (result != 0)
+		return result;
+	result = getKeyFromFile(context, srk, aikfile, &aik);
+	if (result != 0)
+		return result;
+	result = createQuote(pcrs, 1, nonce, context, tpm, srk, aik, valid,
+			quoteInfo);
+	if (result != 0)
+		return result;
+	result = closeContext(context);
+	if (result != 0)
+		return result;
+
+	return result;
+}

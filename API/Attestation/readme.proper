@@ -27,32 +27,11 @@ src/compile.sh    - a script for compiling the C/C++ modules.
 -------------------------------------------------------------------------------
  COMPILATION
 -------------------------------------------------------------------------------
-There are a number of different files to compile, and it is entirely non-trivial to do so correctly.  Because I couldn't get node-waf to work, I've resorted to a simple shell script.
+Using node-waf.  Two steps:
 
-1) go to the src/main directory
+1) node-waf configure
+2) node-waf
 
-2) edit compile.sh, setting the paths appropriately.
-
-3) run "./compile.sh".  Ignore any "no such file" warnings, and one the cast warning.  
-   Expect:
-
-$ ./compile.sh 
-rm: cannot remove `./attestation.o': No such file or directory
-rm: cannot remove `./libattestation.so': No such file or directory
-rm: cannot remove `./tssbridge_1.o': No such file or directory
-rm: cannot remove `./tssbridge.node': No such file or directory
-attestation.c: In function ‘getErrorCode’:
-attestation.c:27:18: warning: cast to pointer from integer of different size
-
-new files:
-tssbridge_1.o
-libattestation.so
-attestation.o
-tssbridge.node 
- 
-4) set LD_LIBRARY_PATH to point to this directory
-
-export LD_LIBRARY_PATH=[insert path here]
 
 -------------------------------------------------------------------------------
  KEYS
@@ -102,8 +81,7 @@ bootlog: "[WEBINOS PATH]/API/Attestation/src/test/samplelogs/bootlog.txt"
 VERY limited test, and it probably wont work on your system.
 
 (1) go to src/test/
-(2) check that LD_LIBRARY_PATH has been set (see the last part of "COMPILATION")
-(3) run "node ./testAttestation.js"
+(2) run "node ./testAttestation.js"
 
 if you don't get an error, then it is working correctly.
 
