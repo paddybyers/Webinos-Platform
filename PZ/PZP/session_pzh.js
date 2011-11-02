@@ -220,8 +220,9 @@ pzh.prototype.connect = function () {
 		
 		conn.on('data', function(data) {
 			var payload = null;
-			webinos.session.common.debug('PZH ('+self.sessionId+') read bytes = ' + data.length);
-			var parse = JSON.parse(data);
+			webinos.session.common.debug('PZH ('+self.sessionId+') read bytes = ' + data.length );
+			
+			var parse = JSON.parse(data, data.length);
 			if(typeof parse.payload !== "undefined")
 				payload = parse.payload;
 			
@@ -438,7 +439,7 @@ webinos.session.pzh.startPZH = function(contents, server, port, callback) {
 };
 
 webinos.session.pzh.send = function (object, message, address) {
-	object.sendMessage(message, address);
+	object.sendMessage((message), address);
 }
 
 //webinos.session.pzh.startHttpsServer = function(args) {

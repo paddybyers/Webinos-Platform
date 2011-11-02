@@ -18,16 +18,17 @@
             	    var geoLocationService = null;
             	    
                     $('#findService').bind('click', function() {
-                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/file.read'), {onFound: function (service) {
+						var address = $('#pzh_pzp_list').val();
+                	    webinos.ServiceDiscovery.findServices(address,new ServiceType('http://www.w3.org/ns/api-perms/file.read'), {onFound: function (service) {
                 	    	reader = service;
                 	    }});
-                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/file.save'), {onFound: function (service) {
+                	    webinos.ServiceDiscovery.findServices(address,new ServiceType('http://www.w3.org/ns/api-perms/file.save'), {onFound: function (service) {
                 	    	fileSaver = service;
                 	    }});
-                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/file.write'), {onFound: function (service) {
+                	    webinos.ServiceDiscovery.findServices(address,new ServiceType('http://www.w3.org/ns/api-perms/file.write'), {onFound: function (service) {
                 	    	fileWriter = service;
                 	    }});
-                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/test'), {onFound: function (service) {
+                	    webinos.ServiceDiscovery.findServices(address,new ServiceType('http://webinos.org/api/test'), {onFound: function (service) {
                 	    	test.push(service);
                 	    }});
                     });

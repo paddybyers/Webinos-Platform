@@ -28,6 +28,7 @@
 	<body>
 	<h1>Webinos Discovery UI Prototype</h1>
 	<!--<p>Enter Service you are looking for:   </p>-->
+	<div> PZH PZP LIST : <select id="pzh_pzp_list"> <option> </option> </select> <br> </div>
 	
 	<p> <label>Search Service: </label> </p>
         <p> <input type="text" id="Service" /> <INPUT TYPE="submit" onclick="findservice()" name="FindService" VALUE="Start"></p>
@@ -103,9 +104,9 @@
 			
 			var val = document.getElementById('Service').value;
 			console.log("val:" + val); 
-			
+			var address = $('#pzh_pzp_list').val();
 			// "*", "*temper*", http://webinos.org/api/sensors.temperature
-			webinos.ServiceDiscovery.findServices(new ServiceType(val), {onFound: function (service) {
+			webinos.ServiceDiscovery.findServices(address, new ServiceType(val), {onFound: function (service) {
 			
 			emptyList(servicelist);
 			textarray.push(service.api);

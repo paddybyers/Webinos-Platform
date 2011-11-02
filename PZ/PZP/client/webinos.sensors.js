@@ -6,7 +6,7 @@
 	};
 	Sensor.prototype = new WebinosService;
 	
-	Sensor.prototype.bind = function(success) {
+	Sensor.prototype.bind = function(address, success) {
 		 	
 		var self = this;
 		
@@ -42,7 +42,7 @@
 							};
 							webinos.rpc.registerCallbackObject(callback);
 							
-							webinos.message_send(webinos.findServiceBindAddress(), rpc, callback );
+							webinos.message_send(address, rpc, callback );
 	
 					};
 	    	
@@ -50,8 +50,8 @@
 		};
 		errorCB = function (error){
 					
-		}
-		webinos.message_send(findServiceBindAddress, rpc, successCB, errorCB );
+		};
+		webinos.message_send(address, rpc, successCB, errorCB );
 		
 	};
 	

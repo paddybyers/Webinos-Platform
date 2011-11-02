@@ -30,7 +30,7 @@
 	}
 
 	webinos.session.pzp.send = function (object, message, address) {
-		object.sendMessage(message, address);
+		object.sendMessage((message), address);
 	};
 
 	var tls = require('tls'),
@@ -304,7 +304,7 @@
 
 		client.on('data', function(data) {
 			var data1, myKey;
-			data1 = JSON.parse(data);
+			data1 = JSON.parse(data, data.length);
 			webinos.session.common.debug('PZP ('+self.config.sessionId+') Received data ');
 			/* If sends the client certificate to get signed certificate from server. 
 			 * Payload message format {status: 'clientCert', message: certificate)

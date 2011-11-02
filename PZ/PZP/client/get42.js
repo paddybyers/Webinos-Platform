@@ -14,7 +14,7 @@
 		var that = this;
 		this.echoAttr.echo = function (attr, successCB) {
 			var payload = webinos.rpc.createRPC(that, "echoAttr.echo", [ attr]);				
-			webinos.message_send(webinos.findServiceBindAddress(), rpc, successCB);
+			webinos.message_send(webinos.findServiceBindAddress(), payload, successCB);
 		};
 
 	};
@@ -23,7 +23,7 @@
 	
 	TestModule.prototype.get42 = function (successCB) {
 		var payload = webinos.rpc.createRPC(this, "get42",  []);
-		webinos.message_send(webinos.findServiceBindAddress(), rpc, successCB);
+		webinos.message_send(webinos.findServiceBindAddress(), payload, successCB);
 	}
 	
 }());

@@ -16,8 +16,8 @@
 <script>
 	var init = function () {
 		$('button#init').attr('disabled', 'disabled');
-		
-		webinos.ServiceDiscovery.findServices(webinos.findServiceBindAddress(), new ServiceType("http://webinos.org/api/file"), {
+		var address = $('#pzh_pzp_list').val();
+		webinos.ServiceDiscovery.findServices(address, new ServiceType("http://webinos.org/api/file"), {
 			onFound: function (service) {
 				service.bind(function () {
 					service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 1024, function (filesystem) {
@@ -499,6 +499,7 @@ div#dialog-create, div#dialog-edit {
 	<p>This demo supports directory navigation, file modification,
 		entry copying (Drag &amp; Drop), entry moving (ALT + Drag &amp; Drop) and
 		entry removal.</p>
+	<div> PZH PZP LIST : <select id="pzh_pzp_list"> <option> </option> </select> <br> </div>
 	<div><button type="button" id="init">Initialize</button></div>
 	<table id="left">
 		<caption></caption>

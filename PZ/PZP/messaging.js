@@ -111,8 +111,9 @@ function write(rpc, respto, msgid){
         options.to = respto;
         options.resp_to = respto;
         options.id = msgid;
-
-	    options.payload = rpc;
+		console.log("MESSAGE WRITE");
+		console.log(rpc);
+	    options.payload = JSON.stringify(rpc);
 	    
 	    message = webinos.message.createMessage(options);
 
@@ -150,18 +151,18 @@ function write(rpc, respto, msgid){
                   console.log("Message: forwardto", forwardto);
                 }
 	       }
-		send(object, message,forwardto);
+		send(object, (message),forwardto);
 	    }
 	      else if(clients[session2])
               {
                 console.log("Message: clients[session2]:" + clients[session2]);
-		send(object, message, clients[session2]);
+		send(object, (message), clients[session2]);
               }
 	      else if(clients[session1])
               {
                 console.log("Message: clients[session1]:" + clients[session1]);
 
-		send(object, message, clients[session1]);
+		send(object, (message), clients[session1]);
               }
 
 }
@@ -171,6 +172,9 @@ rpc.setWriter(write);
 webinos.message.onMessageReceived = function(message, sessionid){
  
   message = JSON.parse(message);
+  console.log(message.payload);
+	//if(typeof message.payload === "object")
+	//	message.payload = JSON.stringify(message.payload);
   console.log('MESSAGE: '+JSON.stringify(message));
   if(message.hasOwnProperty("register") && message.register)
   { 
@@ -285,6 +289,7 @@ webinos.message.onMessageReceived = function(message, sessionid){
           if(messageCallbacks[message.id])
           {
             console.log(message);
+			message.payload = JSON.parse(message.payload);
 			if(typeof message.payload.method !== "undefined")
             {
 				console.log('Message: MSG forwarded to RPC to handle callback');
