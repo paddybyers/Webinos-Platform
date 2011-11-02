@@ -1,6 +1,11 @@
 
 
-For Bluetooth demo, please read ./Bluetooth_demo/readme_LocalDiscovery
+1. For Plugin demo, please read ./Plugins_demo/readme_LocalDiscovery
+
+2. For Full Bluetooth node.js extension demo, please read ./Bluetooth_discovery/demo_readme
+
+
+
 
 Contact ziran.sun@samsung.com if you need more information. 	     
 
