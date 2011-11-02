@@ -90,7 +90,7 @@ webinos.rpc.handleMessage = function (message, responseto, msgid){
 		
 		if (typeof service !== 'undefined'){
 			console.log("Got message to invoke " + method + " on " + service + (serviceId ? "@" + serviceId : "") +" with params: " + myObject.params );
-		
+	
 			var receiverObjs = webinos.rpc.objects[service];
 
 			if (!receiverObjs)
@@ -124,7 +124,7 @@ webinos.rpc.handleMessage = function (message, responseto, msgid){
 				if (typeof myObject.fromObjectRef !== 'undefined' && myObject.fromObjectRef != null) {
 				
 					webinos.rpc.responseToMapping[myObject.fromObjectRef] = responseto;
-				
+					
 					//webinos.rpc.objects[service][method](
 					includingObject[method](
 						myObject.params, 

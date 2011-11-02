@@ -7,7 +7,6 @@
 	<script type="text/javascript" src="/client/webinos.js"></script>
 	<script type="text/javascript" src="/client/webinos.file.js"></script>
 	<script type="text/javascript" src="/client/jsrender.js"></script>
-	<!--<script type="text/javascript" src="/client/contacts/contacts.js"></script>-->
 	<script type="text/javascript" src="/messaging.js"></script>
 	<script type="text/javascript" src="/client/get42.js"></script>
 	<script type="text/javascript" src="/client/contacts/contacts.js"></script>
@@ -21,20 +20,13 @@
 			var watchId = null;
             $(document).ready(function() {
 		            $("#tabs").tabs();
-		            jQuery("#btnAuthenticate").click(authenticate_cb);
-					jQuery("#btnContacts").click(get_contact_list_cb);
-					jQuery("#btnFindContacts").click(find_contacts_cb);
-				 	jQuery("#btnInit").click(initiate_geolocation);
-				    jQuery("#btnWatch").click(initiate_watch);  
-				    jQuery("#btnClear").click(clear_watch); 
+		          
 
             		var reader = null;
             	    var fileSaver = null;
             	    var fileWriter = null;
             	    var test = [];
-            	   // var geoLocationService = null;
-
-					
+		
             	    
             	    $('#startPZH').bind('click', function() {
 
@@ -88,44 +80,44 @@
                     	if (address === "null" || address === "undefined") {
                     		alert("Select from list which you node you want to  connect");
                     	} else {
-		            	    webinos.ServiceDiscovery.findServices(address, 
-		            	    	new ServiceType('http://www.w3.org/ns/api-perms/file.read'), 
-		            	    	{onFound: function (service) {
-		            	    		reader = service;
-		            	    		webinos.ServiceDiscovery.findServices(address, 
-		            	    			new ServiceType('http://www.w3.org/ns/api-perms/file.save'), 
-				            	    	{onFound: function (service) {
-				            	    		fileSaver = service;
-				            	    		 webinos.ServiceDiscovery.findServices(address, 
-				            	    		 	new ServiceType('http://www.w3.org/ns/api-perms/file.write'), 
-						            	    	{onFound: function (service) {
-		        					    	    	fileWriter = service;
-		        					    	    	webinos.ServiceDiscovery.findServices(address,
-		        					    	    		 new ServiceType('http://www.w3.org/ns/api-perms/contacts'), 
-								            	    	{onFound: function (service) {
-		            							    	   contacts = service;
-		            							    	   document.getElementById('html_contacts').innerHTML = 
-"<i><b>Contacts</b></i> webinos rpc service found!<br>Please select contacts type, fill the text areas then press <i>Authenticate</i> button above.";				
-										            	    webinos.ServiceDiscovery.findServices(address, 
-										            	    	new ServiceType('http://webinos.org/api/test'), 
+						webinos.ServiceDiscovery.findServices(address, 
+							new ServiceType('http://www.w3.org/ns/api-perms/file.read'), 
+							{onFound: function (service) {
+								reader = service;
+								webinos.ServiceDiscovery.findServices(address, 
+									new ServiceType('http://www.w3.org/ns/api-perms/file.save'), 
+									{onFound: function (service) {
+										fileSaver = service;
+										 webinos.ServiceDiscovery.findServices(address, 
+										 	new ServiceType('http://www.w3.org/ns/api-perms/file.write'), 
+											{onFound: function (service) {
+												fileWriter = service;
+												webinos.ServiceDiscovery.findServices(address,
+													 new ServiceType('http://www.w3.org/ns/api-perms/contacts'), 
+													{onFound: function (service) {
+													   contacts = service;
+													   document.getElementById('html_contacts').innerHTML = 
+						"<i><b>Contacts</b></i> webinos rpc service found!<br>Please select contacts type, fill the text areas then press <i>Authenticate</i> button above.";				
+														webinos.ServiceDiscovery.findServices(address, 
+															new ServiceType('http://webinos.org/api/test'), 
+															{onFound: function (service) {
+															test.push(service);
+															webinos.ServiceDiscovery.findServices(address,
+																new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), 
 																{onFound: function (service) {
-																test.push(service);
-																webinos.ServiceDiscovery.findServices(address,
-																	new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), 
-																	{onFound: function (service) {
-																		geoLocationService = service;
-																		document.getElementById('position').innerHTML = 
-																			"Geolocation rpc service found";   	
-																	}});	  
-															}});
-								            	    }});
-			        					    	    	
-		        				    	    }});
-				            	    		
-				            	    }});
-			           	    }});
-						}
-                    });
+																	geoLocationService = service;
+																	document.getElementById('position').innerHTML = 
+																		"Geolocation rpc service found";   	
+																}});	  
+														}});
+												}});
+									
+										}});
+					
+								}});
+						}});
+}
+});
                     
                       $('#get42PZP').bind('click', function() {                      	
 	                      for (var i=0; i<test.length; i++) {
@@ -286,232 +278,37 @@
                     	    }});
                         });
                      }); 
-                     
-                     	$('button#init').click(init);
-		
-						$('table#left button.createDirectory').click(function (event) {
-							var parent = $('table#left').data('directory');
-			
-							$('div#dialog-create').dialog({
-								buttons: {
-									'Ok': function () {
-										parent.getDirectory($('input#name').val(), {
-											create: true,
-											exclusive: true
-										}, webinos.utils.bind(function (entry) {
-											$(this).dialog('close');
-											$('input#name').val('');
-							
-											load($('table#left').data('directory'), 'table#left');
-										}, this), webinos.utils.bind(function (error) {
-											$(this).dialog('close');
-											$('input#name').val('');
-							
-											alert("Error creating directory (#" + error.code + ")");
-										}, this));
-									},
-									'Cancel': function () {
-										$(this).dialog('close');
-									}
-								},
-								modal: true,
-								title: 'Please enter a name'
-							})
-						});
-		
-						$('table#left button.createFile').click(function (event) {
-							var parent = $('table#left').data('directory');
-			
-							$('div#dialog-create').dialog({
-								buttons: {
-									'Ok': function () {
-										parent.getFile($('input#name').val(), {
-											create: true,
-											exclusive: true
-										}, webinos.utils.bind(function (entry) {
-											$(this).dialog('close');
-											$('input#name').val('');
-							
-											load($('table#left').data('directory'), 'table#left');
-										}, this), webinos.utils.bind(function (error) {
-											$(this).dialog('close');
-											$('input#name').val('');
-							
-											alert("Error creating file (#" + error.code + ")");
-										}, this));
-									},
-									'Cancel': function () {
-										$(this).dialog('close');
-									}
-								},
-								modal: true,
-								title: 'Please enter a name'
-							})
-						});
-		
-						$('table#right button.createDirectory').click(function (event) {
-							var parent = $('table#right').data('directory');
-			
-							$('div#dialog-create').dialog({
-								buttons: {
-									'Ok': function () {
-										parent.getDirectory($('input#name').val(), {
-											create: true,
-											exclusive: true
-										}, webinos.utils.bind(function (entry) {
-											$(this).dialog('close');
-											$('input#name').val('');
-							
-											load($('table#right').data('directory'), 'table#right');
-										}, this), webinos.utils.bind(function (error) {
-											$(this).dialog('close');
-											$('input#name').val('');
-							
-											alert("Error creating directory (#" + error.code + ")");
-										}, this));
-									},
-									'Cancel': function () {
-										$(this).dialog('close');
-									}
-								},
-								modal: true,
-								title: 'Please enter a name'
-							})
-						});
-		
-						$('table#right button.createFile').click(function (event) {
-							var parent = $('table#right').data('directory');
-			
-							$('div#dialog-create').dialog({
-								buttons: {
-									'Ok': function () {
-										parent.getFile($('input#name').val(), {
-											create: true,
-											exclusive: true
-										}, webinos.utils.bind(function (entry) {
-											$(this).dialog('close');
-											$('input#name').val('');
-							
-											load($('table#right').data('directory'), 'table#right');
-										}, this), webinos.utils.bind(function (error) {
-											$(this).dialog('close');
-											$('input#name').val('');
-							
-											alert("Error creating file (#" + error.code + ")");
-										}, this));
-									},
-									'Cancel': function () {
-										$(this).dialog('close');
-									}
-								},
-								modal: true,
-								title: 'Please enter a name'
-							})
-						});
-		
-						$('table#left button.reload').click(function (event) {
-							load($('table#left').data('directory'), 'table#left');
-						});
-		
-						$('table#right button.reload').click(function (event) {
-							load($('table#right').data('directory'), 'table#right');
-						});
-		
-						$('table#left').droppable({
-							activeClass: 'ui-state-active',
-							scope: 'right',
-							tolerance: 'pointer',
-							drop: function (event, ui) {
-								var parent = $('table#left').data('directory');
-								var entry = ui.draggable.parents('tr').data('entry');
-				
-								if (!event.altKey)
-									var fun = webinos.utils.bind(entry.copyTo, entry);
-								else
-									var fun = webinos.utils.bind(entry.moveTo, entry);
-				
-								async.series([
-									function (callback) {
-										fun(parent, undefined, function (entry) {
-											callback();
-										}, function (error) {
-											alert("Error copying/moving entry (#" + error.code + ")");
-										});
-									}, function (callback) {
-										load($('table#left').data('directory'), 'table#left', callback);
-									}, function (callback) {
-										load($('table#right').data('directory'), 'table#right', callback);
-									}
-								]);
-							}
-						});
-		
-						$('table#right').droppable({
-							activeClass: 'ui-state-active',
-							scope: 'left',
-							tolerance: 'pointer',
-							drop: function (event, ui) {
-								var parent = $('table#right').data('directory');
-								var entry = ui.draggable.parents('tr').data('entry');
-				
-								if (!event.altKey)
-									var fun = webinos.utils.bind(entry.copyTo, entry);
-								else
-									var fun = webinos.utils.bind(entry.moveTo, entry);
-				
-								async.series([
-									function (callback) {
-										fun(parent, null, function (entry) {
-											callback();
-										}, function (error) {
-											alert("Error copying/moving entry (#" + error.code + ")");
-										});
-									}, function (callback) {
-										load($('table#left').data('directory'), 'table#left', callback);
-									}, function (callback) {
-										load($('table#right').data('directory'), 'table#right', callback);
-									}
-								]);
-							}
-						});
+                $('#btnAuthenticate').bind('click', function() {
+			  		console.log('AUTH CB' + $("input[@name='contactType']:checked").val());
+					if (contacts)
+					{
+					  parameters = {};
+					  if ($("input[@name='contactType']:checked").val() === 'remote')
+					  {
+						usr = $('#usernameText').val();
+						pwd = $('#passwordText').val();
+						parameters.usr = usr;
+						parameters.pwd = pwd;
+						parameters.type = "remote";
 
-						$('#parent').template('parent');
-						$('#directory').template('directory');
-						$('#file').template('file');
-            });
+					  }
+					  else if ($("input[@name='contactType']:checked").val() === 'local')
+					  {
+						addressBookName = $('#addressBookNameText').val();
+						parameters.addressBookName = addressBookName;
+						parameters.type = "local";
+					  }
+					  contacts.authenticate(parameters, handle_authentication_query)
 
-            	function authenticate_cb()
-			  	{
-				if (contacts)
-				{
-				  parameters = {};
-				  if ($("input[@name='contactType']:checked").val() == 'remote')
-				  {
-					usr = $('#usernameText').val();
-					pwd = $('#passwordText').val();
-					parameters.usr = usr;
-					parameters.pwd = pwd;
-					parameters.type = "remote";
-
-				  }
-				  else if ($("input[@name='contactType']:checked").val() == 'local')
-				  {
-					addressBookName = $('#addressBookNameText').val();
-					parameters.addressBookName = addressBookName;
-					parameters.type = "local";
-				  }
-				  contacts.authenticate(parameters, handle_authentication_query)
-
-				}
-				else
-				{
-				  document.getElementById('html_contacts').innerHTML = "PROBLEM: Service unreachable";
-				}
-			  }
-
-			  function get_contact_list_cb()
-			  {
-				parameters = {};
+					}
+					else
+					{
+					  document.getElementById('html_contacts').innerHTML = "PROBLEM: Service unreachable";
+					}
+			  });
+			  
+			  $('#btnContacts').bind('click', function() {
+			 	parameters = {};
 				var result = false;
 				if (contacts)
 				{
@@ -532,11 +329,11 @@
 					});
 				  }
 				}
-			  }
+			  });
+            
 
-			  function find_contacts_cb()
-			  {
-				parameters = {};
+			  $('#btnFindContacts').bind('click', function() {
+			  	parameters = {};
 				var result = false;
 				if (contacts)
 				{
@@ -570,9 +367,43 @@
 					});
 				  }
 				}
-			  }
+			  });
+			  
+					  			    			  
+				 $('#btnInit').bind('click', function() {       	
+					var PositionOptions = {};
+				 	if (document.getElementById('acc_high').checked) PositionOptions.enableHighAccuracy = true;
+				 	PositionOptions.maximumAge = document.getElementById('freshness').value
+				 	PositionOptions.timeout = document.getElementById('timeout').value
+					
+					document.getElementById('debug').innerHTML = JSON.stringify(PositionOptions); // for debug
 
-			  function handle_authentication_query(status) // see function
+				   	if ($("input[@name='locmethod']:checked").val() == 'webinos') {    
+			    	if (geoLocationService)	{
+			       		geoLocationService.getCurrentPosition(handle_geolocation_query, handle_errors, PositionOptions); // webinos rpc geolocation:
+		    	   	}             	
+		        }
+		        else 	if ($("input[@name='locmethod']:checked").val() == 'html5') {    
+			        navigator.geolocation.getCurrentPosition(handle_geolocation_query, handle_errors, PositionOptions); // HTML5 client side geolocation                      
+		        }
+			});
+			 		 $('#btnWatch').bind('click', function() {
+		    	var PositionOptions = {};
+		     	if (document.getElementById('acc_high').checked) PositionOptions.enableHighAccuracy = true;
+		     	PositionOptions.maximumAge = document.getElementById('freshness').value
+		     	PositionOptions.timeout = document.getElementById('timeout').value
+		    	
+		    	document.getElementById('debug').innerHTML = JSON.stringify(PositionOptions); // for debug
+		    	
+		    	geoLocationService.watchPosition(handle_geolocation_query, handle_errors, PositionOptions);  
+	 		});
+		
+			$('#btnClear').bind('click', function() {
+		   		geoLocationService.clearWatch(watchId);   // webinos rpc geolocation:
+			});
+			 
+		});
+  			function handle_authentication_query(status) // see function
 			  {
 				if (status)
 				{
@@ -585,7 +416,7 @@
 				else
 				  document.getElementById('authStatus').innerHTML = "<font color='#FF0000'><b><u>" + "CANNOT" + "</u>"
 					+ "Authenticate: check GMail username and password or address book file name" + "</b></font>";
-			  }
+			  };
 
 			  // Print a contact list to HTML document
 			  function print_contact_list(list)
@@ -668,26 +499,8 @@
 				}
 				else
 				  $('#contactList').append("<font color='#FF0000'><b>NO CONTACTS!</b></font>");
-			  }
-			  
-		function initiate_geolocation() {       	
-        	var PositionOptions = {};
-         	if (document.getElementById('acc_high').checked) PositionOptions.enableHighAccuracy = true;
-         	PositionOptions.maximumAge = document.getElementById('freshness').value
-         	PositionOptions.timeout = document.getElementById('timeout').value
-        	
-        	document.getElementById('debug').innerHTML = JSON.stringify(PositionOptions); // for debug
-
-           	if ($("input[@name='locmethod']:checked").val() == 'webinos') {    
-	        	if (geoLocationService)	{
-    	       		geoLocationService.getCurrentPosition(handle_geolocation_query, handle_errors, PositionOptions); // webinos rpc geolocation:
-        	   	}             	
-            }
-            else 	if ($("input[@name='locmethod']:checked").val() == 'html5') {    
-	            navigator.geolocation.getCurrentPosition(handle_geolocation_query, handle_errors, PositionOptions); // HTML5 client side geolocation                      
-            }
-		}
-		
+			  };
+	
 		
         function handle_errors(error)
         {
@@ -706,7 +519,7 @@
                 break;
             }
         }
- 
+
 		function handle_geolocation_query(position)
 		{
 		    var image_url = "http://maps.google.com/maps/api/staticmap?sensor=false&center=" + position.coords.latitude + "," +
@@ -729,291 +542,8 @@
 		        jQuery(document.createElement("img")).attr("src", image_url).attr('id','map')
 		    );
 		}        
-
-        function initiate_watch() { 
-        	var PositionOptions = {};
-         	if (document.getElementById('acc_high').checked) PositionOptions.enableHighAccuracy = true;
-         	PositionOptions.maximumAge = document.getElementById('freshness').value
-         	PositionOptions.timeout = document.getElementById('timeout').value
-        	
-        	document.getElementById('debug').innerHTML = JSON.stringify(PositionOptions); // for debug
-        	
-        	geoLocationService.watchPosition(handle_geolocation_query, handle_errors, PositionOptions);  
- 		}
-
-        function clear_watch() { 
-       		geoLocationService.clearWatch(watchId);   // webinos rpc geolocation:
-		}
-        
-        
-        
-        // FILE API
-       	var load = function (directory, table, superCallback) {
-			$(table).data('directory', directory);
-
-			$(table).find('caption').text(directory.fullPath);
-			$(table).find('tbody').empty();
-		
-			async.series([
-				function (callback) {
-					loadParent(directory, table, callback);
-				}, function (callback) {
-					loadChildren(directory, table, callback);
-				}
-			], function (error, results) {
-				webinos.utils.callback(superCallback)();
-			});
-		}
-	
-	var loadParent = function (directory, table, superCallback) {
-		directory.getParent(function (parent) {
-			$(table).find('tbody').prepend(renderParent(parent, table));
-			
-			webinos.utils.callback(superCallback)();
-		}, function (error) {
-			alert("Error retrieving parent (#" + error.code + ")");
-			
-			webinos.utils.callback(superCallback)();
-		});
-	}
-	
-	var loadChildren = function (directory, table, superCallback) {
-		var reader = directory.createReader();
-		
-		var successCallback = function (entries) {
-			entries.forEach(function (entry) {
-				if (entry.isDirectory)
-					var renderFun = renderDirectory;
-				else if (entry.isFile)
-					var renderFun = renderFile;
-
-				var row = renderFun(entry, table);
-				
-				row.data('entry', entry);
-				
-				$(table).find('tbody').append(row);
-			});
-			
-			if (entries.length > 0)
-				reader.readEntries(successCallback, errorCallback);
-			else
-				webinos.utils.callback(superCallback)();
-		};
-
-		var errorCallback = function (error) {
-			alert("Error reading directory (#" + error.code + ")");
-			
-			webinos.utils.callback(superCallback)();
-		};
-
-		reader.readEntries(successCallback, errorCallback);
-	}
-	
-	var renderCaption = function (directory, table) {
-		var caption = $($.render('caption', {
-			pwd: directory.fullPath
-		}));
-
-		caption.click(function (event) {
-			load(directory, table);
-			
-			return false;
-		});
-		
-		return caption;
-	}
-	
-	var renderParent = function (parent, table) {
-		var row = $($.render('parent', {
-			name: '..'
-		}));
-		
-		row.find('a.link').click(function (event) {
-			load(parent, table);
-			
-			return false;
-		});
-		
-		return row;
-	}
-	
-	var renderDirectory = function (directory, table) {
-		var row = $($.render('directory', {
-			name: directory.name
-		}));
-		
-		var link = row.find('a.link');
-		
-		link.click(function (event) {
-			load(directory, table);
-			
-			return false;
-		});
-		
-		link.draggable({
-			helper: 'clone',
-			opacity: 0.5,
-			revert: true,
-			revertDuration: 0,
-			scope: (table == 'table#left' ? 'left' : 'right')
-		});
-		
-		row.find('button.remove').click(function (event) {
-			directory.removeRecursively(function () {
-				row.remove();
-			}, function (error) {
-				alert("Error (recursively) removing directory (#" + error.code + ")");
-			});
-			
-			return false;
-		});
-		
-		return row;
-	}
-	
-	var renderFile = function (file, table) {
-		var row = $($.render('file', {
-			name: file.name
-		}));
-		
-		var link = row.find('a.link');
-		
-		link.click(function (event) {
-			var entry = file;
-			
-			$('div#dialog-edit').dialog({
-				buttons: {
-					'Save': function () {
-						entry.createWriter(function (writer) {
-							var bb = new webinos.file.BlobBuilder();
-
-							bb.append($('textarea#content').val());
-				
-							writer.onerror = function (evt) {
-								$('div#dialog-edit').dialog('close');
-								$('textarea#content').val('');
-								
-								alert("Error writing file (#" + evt.targer.error.code + ")");
-							}
-							
-							writer.onwrite = function (evt) {
-								if (evt.target.length == 0)
-									evt.target.write(bb.getBlob());
-								else {
-									$('div#dialog-edit').dialog('close');
-									$('textarea#content').val('');
-								}
-							}
-							
-							writer.truncate(0);
-						}, function (error) {
-							$('div#dialog-edit').dialog('close');
-							$('textarea#content').val('');
-							
-							alert("Error retrieving file writer (#" + error.code + ")");
-						});
-					},
-					'Cancel': function () {
-						$('div#dialog-edit').dialog('close');
-						$('textarea#content').val('');
-					}
-				},
-				modal: true,
-				title: 'Editor',
-				open: function () {
-					entry.file(function (file) {
-						var reader = new webinos.file.FileReader(entry.filesystem);
-						
-						reader.onerror = function (evt) {
-							$(this).dialog('close');
-							$('textarea#content').val('');
-							
-							alert("Error reading file (#" + evt.targer.error.code + ")");
-						}
-						
-						reader.onload = function (evt) {
-							$('textarea#content').val(evt.target.result);
-						}
-						
-						reader.readAsText(file);
-					}, function (error) {
-						alert("Error retrieving file (#" + error.code + ")");
-					});
-				}
-			});
-			
-			return false;
-		});
-		
-		link.draggable({
-			helper: 'clone',
-			opacity: 0.5,
-			revert: true,
-			revertDuration: 0,
-			scope: (table == 'table#left' ? 'left' : 'right')
-		});
-		
-		row.find('button.remove').click(function (event) {
-			file.remove(function () {
-				row.remove();
-			}, function (error) {
-				alert("Error removing file (#" + error.code + ")");
-			});
-			
-			return false;
-		});
-		
-		return row;
-	}
-	
-	
-	
-        </script>
-	 <link type="text/css"
-		href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css"
-		rel="stylesheet" />
-	<style type="text/css">
-	table#left {
-		width: 50%;
-		float: left;
-	}
-
-	table#right {
-		width: 50%;
-		float: right;
-	}
-
-	div#dialog-create, div#dialog-edit {
-		display: none;
-	}
-
-	.link {
-		text-decoration: underline;
-		color: #0000ff;
-		cursor: pointer
-	}
-	</style>
-	<script id="parent" type="text/x-jquery-tmpl">
-				<tr class="parent">
-					<td class="type">Parent</td>
-					<td class="name"><a class="link">{{=name}}</a></td>
-					<td class="actions"></td>
-				</tr>
-	</script>
-	<script id="directory" type="text/x-jquery-tmpl">
-				<tr class="child directory">
-					<td class="type">Directory</td>
-					<td class="name"><a class="link">{{=name}}</a></td>
-					<td class="actions"><button type="button" class="remove">Remove (recursively)</button></td>
-				</tr>
-	</script>
-	<script id="file" type="text/x-jquery-tmpl">
-				<tr class="child file">
-					<td class="type">File</td>
-					<td class="name"><a class="link">{{=name}}</a></td>
-					<td class="actions"><button type="button" class="remove">Remove</button></td>
-				</tr>
-	</script>
+		</script>
+	 
 </head>
 <body>
 
@@ -1025,7 +555,7 @@
 		<li> <a href="#example"> Example </a> </li>
 		<li> <a href="#contact"> Contact </a> </li>
 		<li> <a href="#geolocation"> GeoLocation </a> </li>
-		<li> <a href="#file-api"> FileAPI </a> </li>
+
 	</ul>
 
 	<div id = "pzh">
@@ -1104,7 +634,83 @@
 				 </td> </tr>
 		</table>
 	</div>	
-	<div id = "geolocation">
+	 
+	<div id = "contact">
+		<table border="1" style="height: 100%; width: 100%;">
+		<tr valign="top">
+		  <td width="50%">
+		    <div>
+		      <div>
+		        <p>
+		          <input type="radio" name="contactType" value="remote"
+		            id="cnt_remote" checked="checked"">Remote
+		          Contacts (GMail) </input> <br> <input type="radio"
+		            name="contactType" value="local" id="cnt_local"">Local
+		          Contacts (Thunderbird) </input> <br> 
+
+	<!--	     <label for="addressBookNameText">Local Address Book: </label>-->
+		          <!-- We'd better put an "open file" form -->
+	<!--              <input type="text" id="addressBookNameText" size="40"
+		            placeholder="<path_to_your_Thunderbird_.mab file>" />
+
+		          <!-- But it uses C:\fakepath :( ==> no way to get full path <input type="file" id="getAddressBook" accept=".mab">-->
+	<!--		         <br> <label for="usernameText">Username: </label> <input
+		            type="text" id="usernameText"
+		            placeholder="enter username" /> <br> <label
+		            for="passwordText">Password: </label> <input
+		            type="password" id="passwordText"
+		            placeholder="enter password" /> <br>              -->
+		        </p>
+		      </div>
+		      <!--   <p> -->
+		      <div>
+		        <button id="btnAuthenticate">Authenticate/Open</button>
+		        <br>
+		        <button id="btnContacts">Get All Contacts List</button>
+		        <button id="btnFindContacts">Find Contact!</button>
+		      </div>
+		      <div id="html_contacts">
+				<script>
+		            document.write("NO SERVICE");
+		        </script>
+		     </div>
+		      <div id="authStatus">
+		        <script>
+		          document.write("NOT YET AUTHENTICATED");
+		         </script>
+		      </div>		   
+		  </td>
+		  <!--Right part of the table-->
+		  <td width="50%">
+		    <div>
+		      <!--<p id="cwd"></p>
+		      <ul id="ls"></ul> -->
+		      <div id="find_contacts">
+		        <p>
+		          <label for="findContactName">Name: </label> <input
+		            type="text" id="findContactName" placeholder="Name" /><br>
+		          <label for="findContactEmail">Email: </label> <input
+		            type="text" id="findContactEmail"
+		            placeholder="Email Address" /><br> <label
+		            for="findContactPhone:">Phone: </label> <input
+		            type="text" id="findContactPhone" placeholder="Phone" /><br>
+		          <label for="findContactEmail">Address: </label> <input
+		            type="text" id="findContactAddress"
+		            placeholder="Address" /><br>
+		        </p>
+		      </div>
+		      <div id="contactList">
+		        <script>
+		                      document.write("");
+		                    </script>
+		      </div>
+		    </div>
+
+			  </td>
+			</tr>
+		  </table>
+	</div>
+<div id = "geolocation">
 		<p><div style="background-color:lightgray; border:1px solid black">
 	  		<input type="radio" name="locmethod" value="webinos" id="loc_webinos" checked="checked">webinos RPC geolocation</input> <br>
 			<input type="radio" name="locmethod" value="html5" id="loc_html5">HTML5 client-side navigator.geolocation</input>
@@ -1121,7 +727,7 @@
 	  		debug info
 	  	</div></p>
 	  	
-		<p><div>
+		<p><div> 
 		 <!-- <button id="btnFind" >Find Geolocation Service</button>-->
 		  <button id="btnInit" >Find my location</button>
 		  <button id="btnWatch" >Watch my location</button>
@@ -1132,157 +738,7 @@
 		        document.write("undefined");
 	 		</script>
 	    </div></p>
-	 </div>
-	<div id = "contact">
-	<table border="1" style="height: 100%; width: 100%;">
-    <tr valign="top">
-      <td width="50%">
-        <div>
-          <div>
-            <p>
-              <input type="radio" name="contactType" value="remote"
-                id="cnt_remote" checked="checked"">Remote
-              Contacts (GMail) <br> <input type="radio"
-                name="contactType" value="local" id="cnt_local"">Local
-              Contacts (Thunderbird) <br> 
-
-<!--	     <label for="addressBookNameText">Local Address Book: </label>-->
-              <!-- We'd better put an "open file" form -->
-<!--              <input type="text" id="addressBookNameText" size="40"
-                placeholder="<path_to_your_Thunderbird_.mab file>" />
-              <!-- But it uses C:\fakepath :( ==> no way to get full path <input type="file" id="getAddressBook" accept=".mab">-->
-<!--	             <br> <label for="usernameText">Username: </label> <input
-                type="text" id="usernameText"
-                placeholder="enter username" /> <br> <label
-                for="passwordText">Password: </label> <input
-                type="password" id="passwordText"
-                placeholder="enter password" /> <br> -->
-              <!--     <label for="fileContent">File Content</label> <br>
-    <textarea rows='8' size=500 id="fileContent"></textarea> -->
-            </p>
-          </div>
-          <!--   <p> -->
-          <div>
-            <button id="btnAuthenticate">Authenticate/Open</button>
-            <br>
-            <button id="btnContacts">Get All Contacts List</button>
-            <button id="btnFindContacts">Find Contact!</button>
-          </div>
-          <!--   </p> -->
-
-          <div id="html_contacts">
-
-            <script>
-                          document.write("NO SERVICE");
-                        </script>
-          </div>
-          <div id="authStatus">
-            <script>
-                          document.write("NOT YET AUTHENTICATED");
-                        </script>
-          </div>
-          <!--           <div id="contactList">
-            <script>
-                          document.write("");
-                        </script>
-
-                        <div>
-              <ul id="list"></ul>
-            </div>
-          </div>
-          </div> -->
-      </td>
-      <!--Right part of the table-->
-      <td width="50%">
-        <div>
-          <!--           <p id="cwd"></p>
-          <ul id="ls"></ul> -->
-          <div id="find_contacts">
-            <p>
-              <label for="findContactName">Name: </label> <input
-                type="text" id="findContactName" placeholder="Name" /><br>
-              <label for="findContactEmail">Email: </label> <input
-                type="text" id="findContactEmail"
-                placeholder="Email Address" /><br> <label
-                for="findContactPhone:">Phone: </label> <input
-                type="text" id="findContactPhone" placeholder="Phone" /><br>
-              <label for="findContactEmail">Address: </label> <input
-                type="text" id="findContactAddress"
-                placeholder="Address" /><br>
-            </p>
-          </div>
-          <div id="contactList">
-            <script>
-                          document.write("");
-                        </script>
-          </div>
-        </div>
-
-		  </td>
-		</tr>
-	  </table>
-	</div>
-	<div id="file-api">
-		<h1>webinos: File API</h1>
-		<p>This demo supports directory navigation, file modification,
-			entry copying (Drag &amp; Drop), entry moving (ALT + Drag &amp; Drop) and
-			entry removal.</p>
-		<div><button type="button" id="init">Initialize</button></div>
-		<table id="left">
-			<caption></caption>
-			<colgroup>
-				<col width="25%"/>
-				<col width="50%"/>
-				<col width="25%"/>
-			</colgroup>
-			<thead>
-				<tr>
-					<th>Type</th>
-					<th>Name</th>
-					<th>Action(s)</th>
-				</tr>
-			</thead>
-			<tbody>
-			</tbody>
-			<tfoot>
-				<tr>
-					<td colspan="3">
-						<button type="button" class="createDirectory">Create directory</button>
-						<button type="button" class="createFile">Create file</button>
-						<button type="button" class="reload">Reload</button>
-					</td>
-				</tr>
-			</tfoot>
-		</table>
-		<table id="right">
-			<caption></caption>
-			<colgroup>
-				<col width="25%"/>
-				<col width="50%"/>
-				<col width="25%"/>
-			</colgroup>
-			<thead>
-				<tr>
-					<th>Type</th>
-					<th>Name</th>
-					<th>Action(s)</th>
-				</tr>
-			</thead>
-			<tbody>
-			</tbody>
-					<tfoot>
-				<tr>
-					<td colspan="3">
-						<button type="button" class="createDirectory">Create directory</button>
-						<button type="button" class="createFile">Create file</button>
-						<button type="button" class="reload">Reload</button>
-					</td>
-				</tr>
-			</tfoot>
-		</table>
-		<div id="dialog-create"><input type="text" id="name"/></div>
-		<div id="dialog-edit"><textarea id="content"></textarea></div>
-	</div>
+	 </div> 
 </div>
 </body>
 </html>
