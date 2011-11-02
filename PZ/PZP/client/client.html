@@ -81,27 +81,38 @@
                     	if (address === "null" || address === "undefined") {
                     		alert("Select from list which you node you want to  connect");
                     	} else {
-		            	    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://www.w3.org/ns/api-perms/file.read'), 
+		            	    webinos.ServiceDiscovery.findServices(address, 
+		            	    	new ServiceType('http://www.w3.org/ns/api-perms/file.read'), 
 		            	    	{onFound: function (service) {
 		            	    		reader = service;
+		            	    		webinos.ServiceDiscovery.findServices(address, 
+		            	    			new ServiceType('http://www.w3.org/ns/api-perms/file.save'), 
+				            	    	{onFound: function (service) {
+				            	    		fileSaver = service;
+				            	    		 webinos.ServiceDiscovery.findServices(address, 
+				            	    		 	new ServiceType('http://www.w3.org/ns/api-perms/file.write'), 
+						            	    	{onFound: function (service) {
+		        					    	    	fileWriter = service;
+		        					    	    	webinos.ServiceDiscovery.findServices(address,
+		        					    	    		 new ServiceType('http://www.w3.org/ns/api-perms/contacts'), 
+								            	    	{onFound: function (service) {
+		            							    	   contacts = service;
+		            							    	   document.getElementById('html_contacts').innerHTML = 
+"<i><b>Contacts</b></i> webinos rpc service found!<br>Please select contacts type, fill the text areas then press <i>Authenticate</i> button above.";				
+										            	    webinos.ServiceDiscovery.findServices(address, 
+										            	    	new ServiceType('http://webinos.org/api/test'), 
+																{onFound: function (service) {
+																test.push(service);
+															}});
+								            	    }});
+			        					    	    	
+		        				    	    }});
+				            	    		
+				            	    }});
 			           	    }});
-		            	    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://www.w3.org/ns/api-perms/file.save'), 
-		            	    	{onFound: function (service) {
-		            	    		fileSaver = service;
-		            	    }});
-		            	    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://www.w3.org/ns/api-perms/file.write'), 
-		            	    	{onFound: function (service) {
-		            	    	fileWriter = service;
-		            	    }});
-		            	    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://www.w3.org/ns/api-perms/contacts'), 
-		            	    	{onFound: function (service) {
-		            	    	   contacts = service;
-		            	    	   document.getElementById('html_contacts').innerHTML = "<i><b>Contacts</b></i> webinos rpc service found!<br>Please select contacts type, fill the text areas then press <i>Authenticate</i> button above.";
-		            	    }});
-		            	    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://webinos.org/api/test'), 
-		            	    	{onFound: function (service) {
-		            	    	test.push(service);
-		            	    }});
+		            	    
+		            	   
+		            	    
 						}
                     });
                     

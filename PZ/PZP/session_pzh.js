@@ -48,7 +48,8 @@ pzh.prototype.sendMessage = function(message, address) {
 	"use strict";
 	var socket = ' ', i;
 	var self = this;
-	webinos.session.common.debug('PZH ('+self.sessionId+') SendMessage to address ' + address + ' Message ' + JSON.stringify(message));
+	webinos.session.common.debug('PZH ('+self.sessionId+') SendMessage to address ' 
+	+ address + ' Message ' + JSON.stringify(message));
 	if (self.connected_pzh[address]) {
 		webinos.session.common.debug('PZH ('+self.sessionId+') Connected PZH ');
 		self.connected_pzh[address].write(JSON.stringify(message));
@@ -218,10 +219,11 @@ pzh.prototype.connect = function () {
 		});
 		
 		conn.on('data', function(data) {
+			var payload = null;
 			webinos.session.common.debug('PZH ('+self.sessionId+') read bytes = ' + data.length);
-			console.log(data);
-			debugger;
-			parse = JSON.parse(data);
+			var parse = JSON.parse(data);
+			if(typeof parse.payload !== "undefined")
+				payload = parse.payload;
 			
  			/* Using contents of client certificate, a new certificate is created with issuer
 			 * part of the certificate and signing part of the certificate is updated.
@@ -230,7 +232,7 @@ pzh.prototype.connect = function () {
 			 * certificate and server signing certificate.
 			 * PZP connects again to PZH with new certificates.
 			 */
-			if(parse.type === 'prop' && parse.payload.status === 'clientCert' ) {
+			if(parse.type === 'prop' && payload.status === 'clientCert' ) {
 				var signingcert = (fs.readFileSync(self.config.mastercertname).toString());
 				var i, id, id1=0;
 				fs.readdir(__dirname, function(err, files) {
@@ -246,7 +248,7 @@ pzh.prototype.connect = function () {
 					self.config.tempcsr = name+'_client_temp.csr';
 					self.config.clientcert = name+'_client_certified.pem';
 
-					fs.writeFile(self.config.tempcsr, parse.payload.message, function(err) {
+					fs.writeFile(self.config.tempcsr, payload.message, function(err) {
 						if(err) throw err;
 						// If we could get this setSendinformation from within key exchange in openssl,
 						// it would not require certificate
@@ -269,10 +271,10 @@ pzh.prototype.connect = function () {
 					});
 				});
 			} else if (parse.type === 'prop' && 
-				parse.payload.status === 'pzpDetails') {
+				payload.status === 'pzpDetails') {
 					if(self.connected_pzp[parse.from]) {
-						self.connected_pzp[parse.from].port = parse.payload.port;
-						self.connected_pzp[parse.from].object = parse.payload.object;
+						self.connected_pzp[parse.from].port = payload.port;
+						self.connected_pzp[parse.from].object = payload.object;
 						var otherPZP = [];
 						for(var i in self.connected_pzp) {
 							otherPZP.push({'port': self.connected_pzp[i].port, 
@@ -294,10 +296,12 @@ pzh.prototype.connect = function () {
 							' which is not registered : ' + parse.from);
 					}
 			} else { // Message is forwarded to Message handler function, onMessageReceived
-				webinos.session.common.debug('PZH ('+self.sessionId+') Received data : '+JSON.stringify(parse));
+				webinos.session.common.debug('PZH ('+self.sessionId+') Received data : '+JSON.stringify(payload));
 				webinos.message.setGet(self.sessionId);
 				webinos.message.setSend(webinos.session.pzh.send);
 				webinos.message.setObject(self);
+				if(payload !== null) 
+					parse.payload = payload;
 				webinos.message.onMessageReceived(JSON.stringify(parse));
 			}
 		});

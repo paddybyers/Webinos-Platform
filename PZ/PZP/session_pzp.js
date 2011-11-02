@@ -12,7 +12,7 @@
 		*/
 		
 	}
-
+	var sendDataStatus = true;
 	webinos.session = {};
 	/* This is base object for webinos.session.pzh
 	*/
@@ -78,7 +78,7 @@
 	 */
 	Pzp.prototype.sendMessage = function (message, address) {
 		var self = this;
-
+		
 		if (self.connected_app[address]) { // it should be for the one of the apps connected.
 			webinos.session.common.debug("PZP (" + self.config.sessionId +
 				")  Message forwarded to connected app on websocket server ");
@@ -93,14 +93,20 @@
 			self.connected_pzp[address].socket.write(JSON.stringify(message));
 		} else if (address === self.serverName) {
 			// This is for communicating with PZH
-			webinos.session.common.debug("PZP (" + self.config.sessionId +
-				")  Message Addressed to PZH");
-			self.clientSocket.write(JSON.stringify(message));
+			if(sendDataStatus) {
+				webinos.session.common.debug("PZP (" + self.config.sessionId +
+					")  Message Addressed to PZH");
+				sendDataStatus = self.clientSocket.write(JSON.stringify(message));
+			}			
+
 		} else {
-			webinos.session.common.debug("PZP (" + self.config.sessionId +
-				") No where to send sending to PZH");
-			self.clientSocket.write(JSON.stringify(message));
+			if(sendDataStatus) {
+				webinos.session.common.debug("PZP (" + self.config.sessionId +
+					") No where to send sending to PZH");
+				sendDataStatus = self.clientSocket.write(JSON.stringify(message));
+			}
 		}
+
 	};
 
 	Pzp.prototype.setServiceSessionId = function () {
@@ -403,6 +409,10 @@
 		client.on('close', function () {
 			webinos.session.common.debug('PZP ('+self.config.sessionId+') Connection closed by PZH');
 		});
+		
+		client.on('drain', function() {
+			sendDataStatus = true;
+		});
 	};
 
 	Pzp.prototype.configurePZP = function(contents, callback) {
@@ -570,13 +580,15 @@
 			if (err.code === 'EADDRINUSE') {
 				serverPort = parseInt(serverPort, 10) +1; 
 				httpserver.listen(serverPort, hostname, function(){
-					webinos.session.common.debug("PZP Websocket Server: is listening on port "+serverPort);
+					webinos.session.common.debug("PZP Websocket Server: is listening on port "
+					+ serverPort +" and hostname " + hostname);
 				});
 			}
 		});
 
 		httpserver.listen(serverPort, hostname, function() {
-			webinos.session.common.debug("PZP Websocket Server: Listening on port "+serverPort);
+			webinos.session.common.debug("PZP Websocket Server: Listening on port "+serverPort + 
+				" and hostname "+hostname);
 
 		});
 

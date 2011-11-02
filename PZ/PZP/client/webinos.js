@@ -65,7 +65,7 @@
 	 */
 	 function createCommChannel(successCB) {
 		try{
-			channel  = new WebSocket('ws://127.0.0.1:8081');
+			channel  = new WebSocket('ws://106.1.8.229:8081');
 		} catch(e) {
 			channel  = new MozWebSocket('ws://127.0.0.1:8080');
 		}
