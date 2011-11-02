@@ -1,0 +1,122 @@
+Webinos Discovery Plugin
+========================
+
+This is an early demo of enabling web page scripts to discover 
+devices and services on local networks, Bluetooth and USB. For 
+local networks, three different discovery protocols are supported:
+multicast DNS, SSDP and SLP. The demo uses a NPAPI plugin that
+exposes the following methods: 
+
+   scan_mdns(obj)
+   scan_ssdp(obj)
+   scan_slp(obj)
+   scan_bluetooth(obj)
+   scan_usb(obj)
+
+These respectively call back to the following methods on the object
+passed to the scan methods:
+
+   mdns(name, type, iface, address, port)
+   ssdp(address, port, description)
+   slp(description)
+   bluetooth(address, name, devclass)
+   usb(address, devclass, description)
+
+The demo maps the Bluetooth device class fields to human friendly
+names using a javascript. The usb scan does this internally based
+upon the vendor and product identifiers using a copy of the list
+maintained by Stephen Gowdy (see usb.ids).
+
+Future work will add a second argument to the scan methods for
+searching for specific classes of device/service. Each discovery
+mechanism has its own vocabulary, and an overarching taxonomy would
+help web page developers by shielding them from unnecessary details
+by enabling a higher level discovery interface.
+
+The discovery mechanisms vary in their responsiveness. USB is very
+fast. Multicast DNS is also fast as it makes use of a local mDNS
+agent (the Avahi daemon). The SSDP code sends a search probe and
+listens for unicast responses and background multicast notifications.
+Improvements in responsiveness are anticipated as we learn more
+about the internals of each library.
+
+Devices willingly participate in the discovery process, and in most
+cases it is possible to disable discovery. As an example a printer
+may offer a web page that allows users to enable or disable
+discovery for various protocols.
+
+Having discovered a given device/service, you may need a specific
+driver to access it. We are working on a generic mechanism to
+identify, download and install drivers from trusted sources.
+This will be subject to user approval as will a request by a web
+application to make use of a given device/service.
+
+The demo is currently limited to Linux and relies on the following
+libraries:
+
+  * Avahi for multicast DNS
+  * OpenSLP for SLP
+  * BlueZ for Bluetooth
+  * Pthreads for threading
+
+The Makefile copies the plugin to ~/.mozilla/plugins/ for use with
+Firefox. To load the plugin in chrome, start the browser and use
+the following menu:
+
+ Tools -> Extensions -> Load unpacked extensions ->
+    Select directory .mozilla/plugins/
+
+To run the demo load test.html.
+
+This work has been funded by the European Commission as part of 
+the FP7 project "webinos" which seeks to provide a secure web 
+platform for applications running on mobile, desktop, home
+entertainment systems, e.g. TV, and infotainment/head units in 
+cars. For more details, see: 
+
+   http://webinos.org/
+
+The demo is available as open source under the Apache2 license
+and was created by Dave Raggett (W3C) and Ziran Sun (Samsung). 
+
+If you have any questions please contact:
+
+   Dave Raggett at <dsr@w3.org>
+
+-----
+
+Here is a transcript from test run:
+
+
+The following services were found with multicast DNS:
+
+ Web Site: Samsung CLP-310 Series, wlan0: 192.168.1.2:80
+ Internet Printer: Samsung CLP-310 Series, wlan0: 192.168.1.2:631
+ Workstation: ivy, wlan0: 192.168.1.3:9
+ Workstation: ivy, wlan0: fe80::221:6aff:fe2f:97d4:9
+
+The following services were found with SSDP (UPnP):
+
+ InternetGatewayDevice: Belkin N Wireless ADSL Modem Router, 192.168.1.1:80
+ Printer: Samsung CLP-310 Series (192.168.1.2), 192.168.1.2:5200
+
+The following services were found with SLP:
+
+ service:printer:ipp://192.168.1.2
+ service:printer:lpr://192.168.1.2
+ service:printer:raw-tcp://192.168.1.2
+
+The following services were found with Bluetooth:
+
+ SGH-D900, 00:1A:8A:C3:1F:B9 capture, object transfer, phone, cellular
+
+The following services were found with USB:
+
+ 0c45:63f8 239Sonix Integrated Webcam
+ 413c:8157 0Integrated Keyboard
+ 413c:8158 0Integrated Touchpad / Trackstick
+ 413c:8156 224Wireless 370 Bluetooth Mini-card
+ 0a5c:4500 9BCM2046B1 USB 2.0 Hub (part of BCM2046 Bluetooth)
+ 0a5c:5800 0BCM5880 Secure Applications Processor
+ 1267:0201 0A4Tech SWOP-3 Mouse
+
