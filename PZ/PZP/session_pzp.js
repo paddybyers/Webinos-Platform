@@ -12,8 +12,7 @@
 		*/
 		
 	}
-	
-	
+
 	webinos.session = {};
 	/* This is base object for webinos.session.pzh
 	*/
@@ -24,6 +23,7 @@
 	/* 
 	*/
 	webinos.session.common = require('./session_common.js');
+
 	
 	if (typeof exports !== "undefined") {
 		webinos.message = require("./messaging.js");
@@ -281,7 +281,7 @@
 		server.listen(self.pzp_serverPort);
 	};
 	/* It is responsible for connecting with PZH and handling events.
-	 * It does JSON parsing of received message
+	 * It does JSON parsing of received message../../RPC/contacts_module/node_contacts_remote/build/config.log
 	 */
 	Pzp.prototype.connect = function (options, callback) {
 		var self, client, msg = {};
@@ -360,6 +360,7 @@
 											callback.call(self, 'connectPZHAgain');
 										}
 									});
+
 							});
 			} // This is update message about other connected PZP
 			else if(data1.type === 'prop' && 
