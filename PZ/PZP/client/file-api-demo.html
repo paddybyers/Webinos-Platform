@@ -12,11 +12,12 @@
 <script type="text/javascript" src="/rpc.js"></script>
 <script type="text/javascript" src="/client/webinos.js"></script>
 <script type="text/javascript" src="/client/webinos.file.js"></script>
+<script type="text/javascript" src="/messaging.js"></script>
 <script>
 	var init = function () {
 		$('button#init').attr('disabled', 'disabled');
 		
-		webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/file"), {
+		webinos.ServiceDiscovery.findServices(webinos.findServiceBindAddress(), new ServiceType("http://webinos.org/api/file"), {
 			onFound: function (service) {
 				service.bind(function () {
 					service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 1024, function (filesystem) {
