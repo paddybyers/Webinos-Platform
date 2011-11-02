@@ -30,6 +30,18 @@
 						$('#info').append("<p>Range " 	+ data.range +"</p>");
 						
 					}
+					
+					
+					var handleParkSensorsData = function(data){
+						postMessage("info","new ParkSensorsData received for position: " + data.position);
+						$('#info').empty();
+						$('#info').append("<p>Position: "+ data.position +"</p>");
+						$('#info').append("<p>Left: "+ data.left +"</p>");
+						$('#info').append("<p>Middle Left: "+ data.midLeft +"</p>");
+						$('#info').append("<p>Middle Right: "+ data.midRight +"</p>");
+						$('#info').append("<p>Right: "+ data.right +"</p>");
+						
+					}
 						
 					var errorCB = function(error){
 						postMessage('error', "ERROR:" + error.message);
@@ -56,9 +68,31 @@
 					});
 					
 					
+					
 					$('#getData').bind('click', function(){
 						vehicle.get($('#vehicleDataId').val(), getMessageHandler($('#vehicleDataId').val()) ,errorCB);
 						});
+						
+						
+					$('#init').click(function(e) {
+                           webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
+                	    	
+							console.log("service found...");
+							
+							vehicle = service;
+							postMessage("Connected Vehicle System. Please choose a function");
+							$('#addListener').removeAttr('disabled');
+							$('#getData').removeAttr('disabled');
+							$('#vehicleDataId').removeAttr('disabled');
+							//$('#requestGuidance').removeAttr('disabled');
+							
+							$('#info').html("<img src='ajaxloader.gif'>");
+							
+							$('#findService').attr('disabled', 'true');
+							$('#findService').val('Vehicle found');
+						
+                	}});
+                    });
 					
 					$('#addListener').bind('click', function(){
 						
@@ -108,26 +142,19 @@
 							case "tripcomputer":
 								return handleTripData;
 								break;
+							case "parksensors-front":
+								return handleParkSensorsData;
+								break;
+							case "parksensors-rear":
+								return handleParkSensorsData;
+								break;
 							default:
 								return handleShiftData;
 						}						
 					}
-					
-                	webinos.ServiceDiscovery.findServices("Vehicle", {onFound: function (service) {
-                	    	vehicle = service;
-							postMessage("Connected Vehicle System. Please choose a function");
-							$('#addListener').removeAttr('disabled');
-							$('#getData').removeAttr('disabled');
-							$('#vehicleDataId').removeAttr('disabled');
-							//$('#requestGuidance').removeAttr('disabled');
-							
-							$('#info').html("<img src='ajaxloader.gif'>");
-							
-							$('#findService').attr('disabled', 'true');
-							$('#findService').val('Vehicle found');
-						
-                	}});
-                	    
+				
+		
+				         	    
 					for(i=0; i < _vehicleDataIds.length; i++){
 						$('#vehicleDataId').append(new Option(_vehicleDataIds[i],_vehicleDataIds[i],true,true));
 					}				
@@ -147,6 +174,7 @@
         <p><input type="button" id="findService" value="initialize" class="button"/></p>  -->
 		<h3>Access vehicle data</h3>
         <p>
+            <input type="button" id="init" value="initialize System" class="button"/><br />
             <select id="vehicleDataId" disabled>
             </select><br/>
             <input type="button" id="getData" value="get Data" disabled class="button"/><br />

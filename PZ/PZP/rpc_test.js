@@ -11,13 +11,17 @@ function echo (params, successCB, errorCB, objectRef){
 	successCB("Hello " + params[0]);
 }
 
-testAttr = "Hello Attribute";
+var testAttr = "Hello Attribute";
 
-echoAttr = {};
+var echoAttr = {};
 echoAttr.echo = echo;
 
-testModule = {};
+var testModule = new RPCWebinosService({
+	api:'http://webinos.org/api/test',
+	displayName:'Test',
+	description:'Test Module with the life answer.'
+});
 testModule.get42 = get42;
 testModule.testAttr = testAttr;
 testModule.echoAttr = echoAttr;
-webinos.rpc.registerObject("Test", testModule);
+webinos.rpc.registerObject(testModule);

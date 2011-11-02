@@ -1,43 +1,51 @@
 <html>
 <head>
-<title>webinos session messaging rpc</title>
-	<script type="text/javascript" src="/rpc.js"></script>
-	<link rel="stylesheet" type="text/css" href="/jquery-ui-1.8.16.custom.css"/>
-	<script type="text/javascript" src="/jquery.js"></script>
-	<script type="text/javascript" src="/jquery-ui.js"></script>
-	<!--<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>-->
-	<script type="text/javascript" src="/client/webinos.js"></script>
+<title>webinos rpc</title>
 	<script type="text/javascript" src="/webinos.utils.js"></script>
+	<script type="text/javascript" src="/rpc.js"></script>
+	<script type="text/javascript" src="/client/webinos.js"></script>
 	<script type="text/javascript" src="/client/webinos.file.js"></script>
+	<!--<script type="text/javascript" src="/client/contacts/contacts.js"></script>-->
 	<script type="text/javascript" src="/messaging.js"></script>
 	<script type="text/javascript" src="/client/get42.js"></script>
-	<!--<script type="text/javascript" src="/jquery.js"></script>-->
-	<script type="text/javascript" src="/dojo.js"></script>
-
+	<script type="text/javascript" src="/client/contacts/contacts.js"></script>
+	<link rel="stylesheet" type="text/css" href="/client/jquery-ui-1.8.16.custom.css"/>
+	<script type="text/javascript" src="/client/jquery.js"></script>
+	<script type="text/javascript" src="/client/jquery-ui.js"></script>
+	<script type="text/javascript" src="/client/dojo.js"></script>
 	<script type="text/javascript">
-		$(document).ready(function() {
-			$("#tabs").tabs();
-        	var reader = null;
-            var fileSaver = null;
-            var fileWriter = null;
-            var test = null;
-            var geoLocationService = null;
-            $('#startPZH').bind('click', function() {
-				var config = 'country='+ document.getElementById('country').value + '\n' +
-						'state='+ document.getElementById('state').value + '\n' +
-						'city='+ document.getElementById('city').value + '\n' +
-						'organization='+ document.getElementById('org').value + '\n' +
-						'organizationUnit='+ document.getElementById('orgunit').value + '\n' +
-						'common='+ document.getElementById('common').value + '\n' +
-						'email='+ document.getElementById('email').value + '\n' +
-						'days='+ document.getElementById('days').value + '\n';
-				var payload = {status: 'startPZH', 
-							servername: document.getElementById('servername').value, 
-							serverport: document.getElementById('serverport').value, 
-							httpserver: document.getElementById('httpport').value,
-							value: config}; 
+      	    var contacts = null;
+            $(document).ready(function() {
+		            $("#tabs").tabs();
+		            jQuery("#btnAuthenticate").click(authenticate_cb);
+					jQuery("#btnContacts").click(get_contact_list_cb);
+					jQuery("#btnFindContacts").click(find_contacts_cb);
+		
+            		var reader = null;
+            	    var fileSaver = null;
+            	    var fileWriter = null;
+            	    var test = [];
+            	    var geoLocationService = null;
+
+					
+            	    
+            	    $('#startPZH').bind('click', function() {
+
+						var config = 'country='+ document.getElementById('country').value + '\n' +
+								'state='+ document.getElementById('state').value + '\n' +
+								'city='+ document.getElementById('city').value + '\n' +
+								'organization='+ document.getElementById('org').value + '\n' +
+								'organizationUnit='+ document.getElementById('orgunit').value + '\n' +
+								'common='+ document.getElementById('common').value + '\n' +
+								'email='+ document.getElementById('email').value + '\n' +
+								'days='+ document.getElementById('days').value + '\n';
+						var payload = {status: 'startPZH', 
+									servername: document.getElementById('servername').value, 
+									serverport: document.getElementById('serverport').value, 
+									httpserver: document.getElementById('httpport').value,
+									value: config}; 
 						var options = {type: 'prop', payload: payload};
-						webinos.send(options);                	   
+						webinos.message_send(null, options, null, null);                	   
                     });
 
                    $('#startPZP').bind('click', function() {
@@ -56,93 +64,65 @@
 								pzpserverport: document.getElementById('pzpport').value,
 								value: config}; 
 						var options = {type: 'prop', payload: payload};
-						webinos.send(options);
-                    });
+						webinos.message_send(null, options, null, null);
 
-                    $('#registerBrowser').bind('click', function() {
-						var payload = {status: 'registerBrowser'}; 
-						var options = {type: 'prop', payload: payload};
-						webinos.send(options);   
-                    });
+						
+                    });                   
 		  
 				   $('#otherPZH').bind('click', function() {
 						var payload = {status: 'otherPZH', 
 								servername: document.getElementById('otherpzhservername').value,
 								serverport: document.getElementById('otherpzhserverport').value}; 
 						var options = {type: 'prop', payload: payload};
-						webinos.send(options);
+						webinos.send(null, options, null, null);
                     });
-		  
                     $('#findService').bind('click', function() {
-                	    webinos.ServiceDiscovery.findServices("FileReader", {onFound: function (service) {
-                	    	reader = service;
-                	    }});
-                	    webinos.ServiceDiscovery.findServices("FileSaver", {onFound: function (service) {
-                	    	fileSaver = service;
-                	    }});
-                	    webinos.ServiceDiscovery.findServices("FileWriter", {onFound: function (service) {
-                	    	fileWriter = service;
-                	    }});
-                	    webinos.ServiceDiscovery.findServices("Test", {onFound: function (service) {
-                	    	test = service;
-                	    }});
-                	    webinos.ServiceDiscovery.findServices("Geolocation", {onFound: function (service) {
-                	    	geoLocationService = service;
-                	    }});
-                	   
+                    	var address = $('#pzh_pzp_list').val();
+                    	if (address === "null" || address === "undefined") {
+                    		alert("Select from list which you node you want to  connect");
+                    	} else {
+		            	    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://www.w3.org/ns/api-perms/file.read'), 
+		            	    	{onFound: function (service) {
+		            	    		reader = service;
+			           	    }});
+		            	    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://www.w3.org/ns/api-perms/file.save'), 
+		            	    	{onFound: function (service) {
+		            	    		fileSaver = service;
+		            	    }});
+		            	    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://www.w3.org/ns/api-perms/file.write'), 
+		            	    	{onFound: function (service) {
+		            	    	fileWriter = service;
+		            	    }});
+		            	    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://www.w3.org/ns/api-perms/contacts'), 
+		            	    	{onFound: function (service) {
+		            	    	   contacts = service;
+		            	    	   document.getElementById('html_contacts').innerHTML = "<i><b>Contacts</b></i> webinos rpc service found!<br>Please select contacts type, fill the text areas then press <i>Authenticate</i> button above.";
+		            	    }});
+		            	    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://webinos.org/api/test'), 
+		            	    	{onFound: function (service) {
+		            	    	test.push(service);
+		            	    }});
+						}
                     });
                     
-                    $('#get42PZP').bind('click', function() {
-                    	test.get42PZP(function (result){
-                    		alert('result '+result);
-                    		alert('test '+test.testAttr);
-                    	});
+                      $('#get42PZP').bind('click', function() {                      	
+	                      for (var i=0; i<test.length; i++) {
+	                    	test[i].get42(function (result){
+    	                		alert(result);
+        	            		alert(test[i].testAttr);
+    	        	        	});
+                    	}
+                    	
                     }); 
                      
-					$('#get42PZPtoPZH').bind('click', function() {
-                    	test.get42PZPtoPZH(function (result){
-                    		alert('result '+result);
-                    		alert('test '+test.testAttr);
-                    	});
-                    });                     
-                    
-					$('#get42PZPtoPZHtoPZP').bind('click', function() {
-                    	test.get42PZPtoPZHtoPZP(function (result){
-                    		alert('result '+result);
-                    		alert('test '+test.testAttr);
-                    	});
-                    });
-
-				   $('#get42PZPtoPZHtoPZH').bind('click', function() {
-								test.get42PZPtoPZHtoPZH(function (result){
-									alert('result '+result);
-									alert('test '+test.testAttr);
-								});
-							});
-				 
-				   $('#get42PZPtoPZHtoPZHtoPZP').bind('click', function() {
-								test.get42PZPtoPZHtoPZHtoPZP(function (result){
-									alert('result '+result);
-									alert('test '+test.testAttr);
-								});
-							});
-						   
-					});
-			
+					
                     $('#echo').bind('click', function() {
-                    	test.echoAttr.echo(document.getElementById("fileContent").value, function (result){
-                    		alert(result);
-                    	});
+                    	for (var i=0; i<test.length; i++) {
+	                    	test[i].echoAttr.echo(document.getElementById("fileContent").value, function (result){
+	                    		alert(result);
+	                    	});
+                    	}
                     }); 
-
-                   $('#currentPositionButton').bind('click', function() {
-                    	geoLocationService.getCurrentPosition(function (result){
-                    		//var resarray = JSON.parse(result);
-                    		// var loc= 'Latitude = ' + resarray['latitude'] + ', longitude = ' + resarray['longitude'];
-                    		alert(result);
-                    	});
-                    }); 
-
                     
                     $('#cls').bind('click', function() {
                     	document.getElementById("messages").innerHTML = "";
@@ -281,102 +261,209 @@
                     	    }});
                         });
                      }); 
-            
+            });
 
+            function authenticate_cb()
+			  {
+				if (contacts)
+				{
+				  parameters = {};
+				  if ($("input[@name='contactType']:checked").val() == 'remote')
+				  {
+					usr = $('#usernameText').val();
+					pwd = $('#passwordText').val();
+					parameters.usr = usr;
+					parameters.pwd = pwd;
+					parameters.type = "remote";
+
+				  }
+				  else if ($("input[@name='contactType']:checked").val() == 'local')
+				  {
+					addressBookName = $('#addressBookNameText').val();
+					parameters.addressBookName = addressBookName;
+					parameters.type = "local";
+				  }
+				  contacts.authenticate(parameters, handle_authentication_query)
+
+				}
+				else
+				{
+				  document.getElementById('html_contacts').innerHTML = "PROBLEM: Service unreachable";
+				}
+			  }
+
+			  function get_contact_list_cb()
+			  {
+				parameters = {};
+				var result = false;
+				if (contacts)
+				{
+				  if ($("input[@name='contactType']:checked").val() == 'remote')
+				  {
+					parameters.type = "remote";
+					contacts.isAlreadyAuthenticated(parameters, function(result)
+					{
+					  contacts.getAllContacts(parameters, print_contact_list);
+					});
+				  }
+				  else if ($("input[@name='contactType']:checked").val() == 'local')
+				  {
+					parameters.type = "local";
+					contacts.isAlreadyAuthenticated(parameters, function(result)
+					{
+					  contacts.getAllContacts(parameters, print_contact_list);
+					});
+				  }
+				}
+			  }
+
+			  function find_contacts_cb()
+			  {
+				parameters = {};
+				var result = false;
+				if (contacts)
+				{
+					parameters.fields = {};
+					if ($('#findContactName').val() != "")
+					  parameters.fields["name"] = $('#findContactName').val();
+					if ($('#findContactEmail').val() != "")
+					  parameters.fields["emails"] = $('#findContactEmail').val();
+					if ($('#findContactAddress').val() != "")
+					  parameters.fields["addresses"] = $('#findContactAddress').val();
+					if ($('#findContactPhone').val() != "")
+					  parameters.fields["phoneNumbers"] = $('#findContactPhone').val();
+					  
+				  if ($("input[@name='contactType']:checked").val() == 'remote')
+				  {
+					parameters.type = "remote";
+					//TODO set parameters.fields!!!!
+
+					contacts.isAlreadyAuthenticated(parameters, function(result)
+					{
+					  contacts.find(parameters, print_contact_list);
+					});
+				  }
+				  else if ($("input[@name='contactType']:checked").val() == 'local')
+				  {
+					parameters.type = "local";
+	
+					contacts.isAlreadyAuthenticated(parameters, function(result)
+					{
+					  contacts.find(parameters, print_contact_list);
+					});
+				  }
+				}
+			  }
+
+			  function handle_authentication_query(status) // see function
+			  {
+				if (status)
+				{
+				  if ($("input[@name='contactType']:checked").val() == 'remote')
+					document.getElementById('authStatus').innerHTML = "<font color='#00CC00'>" + "Logged in GMail" + "</font>";
+				  else if ($("input[@name='contactType']:checked").val() == 'local')
+					document.getElementById('authStatus').innerHTML = "<font color='#AACC00'>" + "Thunderbird Address Book Open"
+					  + "</font>";
+				}
+				else
+				  document.getElementById('authStatus').innerHTML = "<font color='#FF0000'><b><u>" + "CANNOT" + "</u>"
+					+ "Authenticate: check GMail username and password or address book file name" + "</b></font>";
+			  }
+
+			  // Print a contact list to HTML document
+			  function print_contact_list(list)
+			  {
+				//alert("contact list size " + list.length)
+				//clean then write
+				document.getElementById('contactList').innerHTML = "";
+				if (list.length > 0)
+				{
+				  for ( var i = 0; i < list.length; i++)
+				  {
+					//        console.log(list[i]);
+					var contactString = (list[i].displayName == "" ? "<b>Anonymous</b></br>" : "<b>Name: </b>" +
+					  list[i].displayName + "<br>");
+					contactString += ((list[i].nickname == undefined || list[i].nickname == "") ? "" : "<b>Nickname: </b>" +
+					  list[i].nickname + "<br>");
+
+					if ((list[i].emails instanceof Array) && list[i].emails.length > 0)
+					{
+					  contactString += "<b>Emails:</b><br>";
+					  for ( var j = 0; j < list[i].emails.length; j++)
+						contactString += "&nbsp;&nbsp;" + (list[i].emails[j].pref ? "* " : "&nbsp;&nbsp;") +
+						  list[i].emails[j].type + ": <a href=\"mailto:" + list[i].emails[j].value + "\">" +
+						  list[i].emails[j].value + "</a><br>";
+					}
+					if ((list[i].addresses instanceof Array) && list[i].addresses.length > 0)
+					{
+					  contactString += "<b>Addresses:</b><br>";
+					  for ( var j = 0; j < list[i].addresses.length; j++)
+						contactString += "&nbsp;&nbsp;" + (list[i].addresses[j].pref ? "* " : "&nbsp;&nbsp;") +
+						  (list[i].addresses[j].type == "" ? "other" : list[i].addresses[j].type) + ": " +
+						  list[i].addresses[j].formatted + "<br>";
+					}
+					if ((list[i].phoneNumbers instanceof Array) && list[i].phoneNumbers.length > 0)
+					{
+					  contactString += "<b>Phones:</b><br>";
+					  for ( var j = 0; j < list[i].phoneNumbers.length; j++)
+						contactString += "&nbsp;&nbsp;" + (list[i].phoneNumbers[j].pref ? "* " : "&nbsp;&nbsp;") +
+						  list[i].phoneNumbers[j].type + ": " + list[i].phoneNumbers[j].value + "<br>";
+					}
+					if ((list[i].ims instanceof Array) && list[i].ims.length > 0)
+					{
+					  contactString += "<b>Messengers:</b><br>";
+					  for ( var j = 0; j < list[i].ims.length; j++)
+						contactString += "&nbsp;&nbsp;" + (list[i].ims[j].pref ? "* " : "&nbsp;&nbsp;") + list[i].ims[j].type +
+						  ": " + list[i].ims[j].value + "<br>";
+					}
+					if ((list[i].organizations instanceof Array) && list[i].organizations.length > 0)
+					{
+					  contactString += "<b>Organizations:</b><br>";
+					  for ( var j = 0; j < list[i].organizations.length && list[i].organizations[j].name != undefined; j++)
+						contactString += "&nbsp;&nbsp;" + (list[i].organizations[j].pref ? "* " : "&nbsp;&nbsp;") +
+						  list[i].organizations[j].type + ": " + list[i].organizations[j].name + "<br>";
+					}
+
+					if ((list[i].photos instanceof Array) && list[i].photos.length > 0)
+					{
+					  contactString += "<b>Picture:</b><br>";
+					  for ( var j = 0; j < list[i].photos.length; j++)
+					  {
+						if(list[i].photos[j].type=="file") //is base64 string
+							contactString+="<img src=\"data:image/png;base64,"+list[i].photos[j].value+"\" alt=\"Image\"><br>";
+						else if(list[i].photos[j].type=="url") //is an URL
+							contactString+="<img src=\""+list[i].photos[j].value+"\" alt=\"Image\"><br>";
+					  }
+					}
+
+					if ((list[i].urls instanceof Array) && list[i].urls.length > 0)
+					{
+					  contactString += "<b>Websites:</b><br>";
+					  for ( var j = 0; j < list[i].urls.length; j++)
+						contactString += "&nbsp;&nbsp;" + (list[i].urls[j].pref ? "* " : "&nbsp;&nbsp;") + list[i].urls[j].type +
+						  ": <a href=\"" + list[i].urls[j].value + "\">" + list[i].urls[j].value + "</a><br>";
+					}
+
+					contactString += "<br>"
+					$('#contactList').append(contactString);
+					$('#contactList').append("<br>");
+				  }
+				}
+				else
+				  $('#contactList').append("<font color='#FF0000'><b>NO CONTACTS!</b></font>");
+			  }
         </script>
-        <script type="text/javascript">
-	dojo.require("dojo.hash");
-
-	dojo.addOnLoad(function () {
-		var filesystem;
-
-		var cwd = dojo.byId('cwd');
-		var ls = dojo.byId('ls');
-
-		var update = function (hash) {
-			dojo.empty(ls);
-
-			var fullPath = dojo.queryToObject(hash).fullPath;
-
-			filesystem.root.getDirectory(fullPath, null, function (entry) {
-				cwd.innerHTML = entry.fullPath;
-
-				entry.getParent(function (parent) {
-					var item = dojo.create('li', null, ls);
-
-					dojo.create('a', {
-						href: '#' + dojo.objectToQuery({
-							fullPath: parent.fullPath
-						}),
-						innerHTML: '..'
-					}, item, 'first');
-					
-					var reader = entry.createReader();
-
-					var successCallback = function (entries) {
-						entries.forEach(function (entry) {
-							var item = dojo.create('li', null, ls);
-
-							if (entry.isFile)
-								item.innerHTML = entry.name;
-							else if (entry.isDirectory)
-								dojo.create('a', {
-									href: '#' + dojo.objectToQuery({
-										fullPath: entry.fullPath
-									}),
-									innerHTML: entry.name
-								}, item);
-						});
-
-						if (entries.length > 0)
-							reader.readEntries(successCallback, errorCallback);
-					};
-
-					var errorCallback = function (error) {
-						alert("Error reading directory (#" + error.code + ")");
-					};
-
-					reader.readEntries(successCallback, errorCallback);
-				}, function (error) {
-					alert("Error retrieving parent directory (#" + error.code + ")");
-				});
-			}, function (error) {
-				alert("Error retrieving directory entry (#" + error.code + ")");
-			});
-		}
-
-		dojo.subscribe("/dojo/hashchange", update);
-
-		webinos.ServiceDiscovery.findServices("LocalFileSystem", {
-			onFound: function (service) {
-				service.bind(function () {
-					/*service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 1024, function (_filesystem) {
-						filesystem = _filesystem;
-
-						if (dojo.hash() == '')
-							dojo.hash(dojo.objectToQuery({
-								fullPath: filesystem.root.fullPath
-							}));
-
-						update(dojo.hash());
-					}, function (error) {
-						alert("Error requesting filesystem (#" + error.code + ")");
-					});*/
-				});
-			}
-		});
-	});
-</script>
-
-
+   
 </head>
 <body>
+
 <div class="pzh-pzp">
 <div id = "tabs">
 	<ul>
 		<li> <a href="#pzh"> PZH </a> </li>
 		<li> <a href="#pzp"> PZP </a> </li>
 		<li> <a href="#example"> Example </a> </li>
+		<li> <a href="#contact"> Contact </a> </li>
 	</ul>
 
 	<div id = "pzh">
@@ -422,19 +509,133 @@
 
 	<div id = "example">
 		<table>
-			<tr>
-				<td>
-					<button id="registerBrowser">Register Browser </button>
-					<button id="findService">Find Service</button>
+				<tr> <td>
+					Select from the list Available PZP & PZH to find Service
+					<select id="pzh_pzp_list"> <option> </option> </select>
+					<button id="findService">Find Service</button> </td></tr>
+					<tr> <td><p><i> Find Service will determine where your code will be executed</i></p> 
+				</td> </tr>
+				<tr> <td>
 					<button id="get42PZP">get42PZP</button>
 					<button id="get42PZPtoPZH">get42PZPtoPZH</button>
 					<button id="get42PZPtoPZHtoPZP">get42PZPtoPZHtoPZP</button>
 					<button id="get42PZPtoPZHtoPZH">get42PZPtoPZHtoPZH</button>
 					<button id="get42PZPtoPZHtoPZHtoPZP">get42PZPtoPZHtoPZHtoPZP</button>
-				</td>
-			</tr>
+				</td> </tr>
+				<tr> <td>
+					<button id="echo">echo</button>
+					<button id="cls">Clear</button>
+					<button id="getFileContent">Get File Content</button>
+					<button id="fileSaver">Save with FileSaver</button>
+					<button id="fileWriter">Save with FileWriter</button>
+					
+				 	<p> 
+				 		<input type="text" id="truncate" /> 
+				 		<button id="fileWriterTruncate">Truncate</button> 
+				 	</p>
+			     </td> </tr>
+			     <tr> <td>
+				 	<tr> <td>
+				 	<label for="messageText">File Name</label> <input type="text"
+						id=" <label for="fileContent">File Content</label> 
+					<textarea rows='8' size = 500 id="fileContent"></textarea> 
+					</td> </tr>
+			     </td> </tr>
+			     <tr> <td>
+		     		<ul id="messages">
+				 	<p id="cwd"></p>
+					<ul id="ls"></ul>
+				 </td> </tr>
 		</table>
-	</div>	
+	</div>
+	
+	<div id = "contact">
+	<table border="1" style="height: 100%; width: 100%;">
+    <tr valign="top">
+      <td width="50%">
+        <div>
+          <div>
+            <p>
+              <input type="radio" name="contactType" value="remote"
+                id="cnt_remote" checked="checked"">Remote
+              Contacts (GMail) <br> <input type="radio"
+                name="contactType" value="local" id="cnt_local"">Local
+              Contacts (Thunderbird) <br> <label
+                for="addressBookNameText">Local Address Book: </label>
+              <!-- We'd better put an "open file" form -->
+              <input type="text" id="addressBookNameText" size="40"
+                placeholder="<path_to_your_Thunderbird_.mab file>" />
+              <!-- But it uses C:\fakepath :( ==> no way to get full path <input type="file" id="getAddressBook" accept=".mab">-->
+              <br> <label for="usernameText">Username: </label> <input
+                type="text" id="usernameText"
+                placeholder="enter username" /> <br> <label
+                for="passwordText">Password: </label> <input
+                type="password" id="passwordText"
+                placeholder="enter password" /> <br>
+              <!--     <label for="fileContent">File Content</label> <br>
+    <textarea rows='8' size=500 id="fileContent"></textarea> -->
+            </p>RPCWebinosService
+          </div>
+          <!--   <p> -->
+          <div>
+            <button id="btnAuthenticate">Authenticate/Open</button>
+            <br>
+            <button id="btnContacts">Get All Contacts List</button>
+            <button id="btnFindContacts">Find Contact!</button>
+          </div>
+          <!--   </p> -->
+
+          <div id="html_contacts">
+
+            <script>
+                          document.write("NO SERVICE");
+                        </script>
+          </div>
+          <div id="authStatus">
+            <script>
+                          document.write("NOT YET AUTHENTICATED");
+                        </script>
+          </div>
+          <!--           <div id="contactList">
+            <script>
+                          document.write("");
+                        </script>
+
+                        <div>
+              <ul id="list"></ul>
+            </div>
+          </div>
+          </div> -->
+      </td>
+      <!--Right part of the table-->
+      <td width="50%">
+        <div>
+          <!--           <p id="cwd"></p>
+          <ul id="ls"></ul> -->
+          <div id="find_contacts">
+            <p>
+              <label for="findContactName">Name: </label> <input
+                type="text" id="findContactName" placeholder="Name" /><br>
+              <label for="findContactEmail">Email: </label> <input
+                type="text" id="findContactEmail"
+                placeholder="Email Address" /><br> <label
+                for="findContactPhone:">Phone: </label> <input
+                type="text" id="findContactPhone" placeholder="Phone" /><br>
+              <label for="findContactEmail">Address: </label> <input
+                type="text" id="findContactAddress"
+                placeholder="Address" /><br>
+            </p>
+          </div>
+          <div id="contactList">
+            <script>
+                          document.write("");
+                        </script>
+          </div>
+        </div>
+
+      </td>
+    </tr>
+  </table>
 </div>
 </div>
 </body>

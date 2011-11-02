@@ -219,6 +219,8 @@ pzh.prototype.connect = function () {
 		
 		conn.on('data', function(data) {
 			webinos.session.common.debug('PZH ('+self.sessionId+') read bytes = ' + data.length);
+			console.log(data);
+			debugger;
 			parse = JSON.parse(data);
 			
  			/* Using contents of client certificate, a new certificate is created with issuer

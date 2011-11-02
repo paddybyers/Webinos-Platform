@@ -5,13 +5,11 @@
  */
 if (typeof webinos === "undefined") {
 	webinos = {};
+	webinos.session = {};
 }
+webinos.session.pzp = require('./session_pzp.js');
 
-if (typeof exports !== "undefined") {
-	//webinos.session = require('../../Manager/Session/session_pzp.js');
-	webinos.session = require('./session_pzp.js');
-} 
-var servername = ' ', hostname = '' , port = 0, serverPort = 0, webServerPort = 0, webSocketServer = false;
+var hostname = '' , serverPort = 0, webServerPort = 0;
 process.argv.forEach(function(val, index, array) {
 	if(index === 2) 
 		hostname = val;
@@ -22,34 +20,3 @@ process.argv.forEach(function(val, index, array) {
 });
 
 webinos.session.pzp.startWebSocketServer(hostname, serverPort, webServerPort); 
-/*process.argv.forEach(function(val, index, array) {
-	if(index === 2) 
-		servername = val;
-	if(index === 3)
-		port = val;
-	if(index === 4)
-		webSocketServer = val;
-	if(index === 5)
-		serverPort = val;
-	if(index === 6)
-		webServerPort = val;	
-});
-
-if (servername === ' ' || port < 0) {
-	console.log("PZP: Missing Details of server and port, enter node.js localhost 443");
-} else {
-	var client = webinos.session.pzp.startPZP(servername, port);
-	
-	client.on('startedPZP', function() {
-		if(webSocketServer === 'true') {
-			if (serverPort === 0 || webServerPort === 0) {
-				console.log('PZP: Missing port number');
-			} else {
-				console.log('PZP: Starting WebSocket Server');
-				webinos.session.pzp.startWebSocketServer(serverPort, webServerPort); 
-			}
-		}
-			
-	});
-}
-*/

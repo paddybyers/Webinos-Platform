@@ -23,6 +23,15 @@ function TripComputerEvent(avgCon1, avgCon2, avgSpeed1, avgSpeed2, tripDistance,
 }
 
 
+function ParkSensorEvent(position, left, midLeft, midRight, right){
+	this.position = position;
+	this.left = left;
+	this.midLeft = midLeft;
+	this.midRight = midRight
+	this.right = right;
+}
+
+
 function VehicleError(message){
 	this.message = message;
 }
@@ -35,13 +44,13 @@ function get(vehicleDataId, vehicleDataHandler, errorCB){
 		vehicleDataHandler(generateGearEvent());
 	  break;
 	case "tripcomputer":
-	vehicleDataHandler(generateTripComputerEvent());
+		vehicleDataHandler(generateTripComputerEvent());
 	  break;
-	case "parksensonrs-front":
-		console.log("Parksensors in the front");
+	case "parksensors-front":
+		vehicleDataHandler(generateParkSensorsEvent(vehicleDataId[0]));
 		break;
 	case "parksensors-rear":
-		console.log("Parksensors in the rear");
+		vehicleDataHandler(generateParkSensorsEvent(vehicleDataId[0]));
 		break;	
 	default:
 	  errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
@@ -55,6 +64,8 @@ var objectRefs = new Array();
 //BOOLs for handling listeners (are there active listeners)
 var listeningToGear = false;
 var listeningToTripComputer = false;
+var listeningToParkSensorsFront = false;
+var listeningToParkSensorsRear = false;
 
 function addEventListener(vehicleDataId, successHandler, errorHandler, objectRef){
 	
@@ -74,7 +85,21 @@ function addEventListener(vehicleDataId, successHandler, errorHandler, objectRef
 					handleTripComputerEvents();	
 					
 				}
-				break;	
+				break;
+			case "parksensors-front":
+				objectRefs.push([objectRef, vehicleDataId]);
+				if(!listeningToParkSensorsFront){
+					listeningToParkSensorsFront = true;
+					handleParkSensorsEvents(vehicleDataId);	
+				}
+				break;
+			case "parksensors-rear":
+				objectRefs.push([objectRef, vehicleDataId]);
+				if(!listeningToParkSensorsRear){
+					listeningToParkSensorsRear = true;
+					handleParkSensorsEvents(vehicleDataId);	
+				}
+				break;
 			default:
 				console.log('nothing to do: Errors...');
 			
@@ -110,6 +135,14 @@ function removeEventListener(arguments){
 				listeningToTripComputer = false;
 				console.log('disabling tripcomputer event generation')
 				break;
+			case "parksensors-front":
+				listeningToParkSensorsFront = false;
+				console.log('disabling ps front event generation')
+				break;
+			case "parksensors-rear":
+				listeningToParkSensorsFront = false;
+				console.log('disabling ps rear event generation')
+				break;		
 			default:
 				console.log("nothing found");
 		
@@ -141,10 +174,8 @@ function handleTripComputerEvents(){
 	    var randomTime = Math.floor(Math.random()*1000*10);
 		console.log("random tcData:" + tcEvent);
         console.log("random Time:" + randomTime);
-
         var json = null;
         for(i = 0; i < objectRefs.length; i++){
-			
 				if(objectRefs[i][1] == "tripcomputer"){
                 	json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", tcEvent);
                  	webinos.rpc.executeRPC(json);
@@ -153,7 +184,29 @@ function handleTripComputerEvents(){
         if(listeningToTripComputer){
                 setTimeout(function(){ handleTripComputerEvents(); }, randomTime);        
         }
-	
+}
+
+function handleParkSensorsEvents(position){
+	var randomTime = Math.floor(Math.random()*1000*10);
+	for(i = 0; i < objectRefs.length; i++){
+			if(objectRefs[i][1] == "parksensors-front"){
+                	var psEvent = generateParkSensorsEvent(position);
+					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", psEvent);
+                 	webinos.rpc.executeRPC(json);
+			}
+			if(objectRefs[i][1] == "parksensors-rear"){
+                	var psEvent = generateParkSensorsEvent(position);
+					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", psEvent);
+                 	webinos.rpc.executeRPC(json);
+			}
+    }
+	if(listeningToParkSensorsFront || listeningToParkSensorsRear){
+		setTimeout(function(){ handleParkSensorsEvents(position); }, randomTime);  
+	}
+}
+
+function generateParkSensorsEvent(position){
+	return new ParkSensorEvent(position, Math.floor(Math.random()*255), Math.floor(Math.random()*255), Math.floor(Math.random()*255), Math.floor(Math.random()*255));
 }
 
 function generateGearEvent(){
@@ -174,9 +227,12 @@ function generateTripComputerEvent(){
 }
 
 
-
-Vehicle = {};
-Vehicle.get = get;
-Vehicle.addEventListener = addEventListener;
-Vehicle.removeEventListener = removeEventListener;
-webinos.rpc.registerObject("Vehicle", Vehicle);
+var module = new RPCWebinosService({
+	api:'http://webinos.org/api/vehicle',
+	displayName:'Vehicle',
+	description:'Webinos simulated vehicle.'
+});
+module.get = get;
+module.addEventListener = addEventListener;
+module.removeEventListener = removeEventListener;
+webinos.rpc.registerObject(module);

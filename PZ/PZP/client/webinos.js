@@ -1,13 +1,43 @@
 (function() {
+
 	var channel = null;
 	var sessionid = null;
 	var pzpid = null;
 	var pzhid = null;
-	var otherpzp = null;
-	webinos.send = function(text) {
-		console.log('WebSocket Client: Message Sent');
-		console.log(text);
-		channel.send(JSON.stringify(text));
+	var connected_pzp = null;
+	var connected_pzh = null;
+	var findServiceBindAddress = null;
+	webinos.message_send = function(to, rpc, successCB, errorCB) {
+		var type, id = 0;	
+		if(rpc.type !== undefined && rpc.type === "prop") {
+			type = "prop";
+			rpc = rpc.payload;	
+		} else {
+			type = "JSONRPC";
+		}
+		if(rpc.fromObjectRef === undefined)
+			rpc.fromObjectRef = Math.floor(Math.random()*1001);
+		if(rpc.id === undefined)
+			rpc.id = Math.floor(Math.random()*1001);
+		
+		if(typeof rpc.method !== undefined && rpc.method === 'ServiceDiscovery.findServices')
+			id = rpc.params[2];
+			
+		var options = {"type": type, 
+						"id": id, 
+						"from": sessionid, 
+						"to": to, 
+						"resp_to": sessionid, 
+						"payload": rpc
+						};
+		if(rpc.register !== "undefined" && rpc.register === true) {
+			channel.send(JSON.stringify(rpc));
+		} else {
+			webinos.message.createMessageId(options, successCB, errorCB);
+			console.log('WebSocket Client: Message Sent');
+			console.log(options);
+			channel.send(JSON.stringify(options));
+		}
 	}
 	webinos.getSessionId = function() {
 		return sessionid;
@@ -21,13 +51,19 @@
 	webinos.getOtherPZP = function() {
 		return otherpzp;
 	}
+	webinos.findServiceBindAddress = function() {
+		return findServiceBindAddress;
+	}
+	
+
+	
 	/**
 	 * Creates the socket communication channel
 	 * for a locally hosted websocket server at port 8080
 	 * for now this channel is used for sending RPC, later the webinos
 	 * messaging/eventing system will be used
 	 */
-	function createCommChannel(successCB) {
+	 function createCommChannel(successCB) {
 		try{
 			channel  = new WebSocket('ws://127.0.0.1:8081');
 		} catch(e) {
@@ -40,12 +76,26 @@
 			var data = JSON.parse(ev.data);
 			if(data.type === "prop" && data.payload.status === 'registeredBrowser') {
 				sessionid = data.to;
-				pzpid = data.from;
-				pzhid = data.resp_to;
-				otherpzp = data.payload.message;
+				pzpid = data.from;				
+				pzhid = data.payload.pzh;
+				connected_pzp = data.payload.connected_pzp;
+				connected_pzh = data.payload.connected_pzh;
+				$("<optgroup label = 'PZP' >").appendTo("#pzh_pzp_list");
+				var i;
+				for(i =0; i < connected_pzp.length; i++) {
+					$("<option value=" + connected_pzp[i] + " >" +connected_pzp[i] + "</option>").appendTo("#pzh_pzp_list");					
+				}
+				$("<option value="+pzpid+" >" + pzpid+ "</option>").appendTo("#pzh_pzp_list");						
+				$("</optgroup>").appendTo("#pzh_pzp_list");
+				$("<optgroup label = 'PZH' >").appendTo("#pzh_pzp_list");
+				for(i =0; i < connected_pzh.length; i++) {
+					$("<option value=" + connected_pzh[i] + " >" + + "</option>").appendTo("#pzh_pzp_list");					
+				}
+				$("<option value="+pzhid+" >" + pzhid+ "</option>").appendTo("#pzh_pzp_list");						
+				$("</optgroup>").appendTo("#pzh_pzp_list");
 				webinos.message.setGet(sessionid);
-				var msg = webinos.message.registerSender(sessionid,pzpid);
-				webinos.send(msg);
+				var msg = webinos.message.registerSender(sessionid , pzpid);
+				webinos.message_send(pzpid, msg, null, null);
 			}
 			else {
 				webinos.message.onMessageReceived(JSON.stringify(data));
@@ -53,122 +103,104 @@
 		};
 	}
 	createCommChannel ();
-			
+	
 	if (typeof webinos === 'undefined') webinos = {}; 
 	
 	///////////////////// WEBINOS INTERNAL COMMUNICATION INTERFACE ///////////////////////////////
+
+	
 	function logObj(obj, name){
 		for (var myKey in obj){
 			console.log(name + "["+myKey +"] = "+obj[myKey]);
 			if (typeof obj[myKey] == 'object') logObj(obj[myKey], name + "." + myKey);
 		}
 	}
+
 	///////////////////// WEBINOS DISCOVERY INTERFACE ///////////////////////////////
 	
 	webinos.ServiceDiscovery = {};
 	webinos.ServiceDiscovery.registeredServices = 0;
 	
-	webinos.ServiceDiscovery.findServices = function (type, callback) {
-		if (type == "FileReader"){
-			var tmp = new WebinosFileReader();
-			//some additional meta data that may be needed for a "real"
-			//discovery service
-			tmp.origin = 'ws://127.0.0.1:8080';
-			callback.onFound(tmp);
-			webinos.ServiceDiscovery.registeredServices++;
-			return;
-		}
-		if (type == "FileSaver"){
-			var tmp = new WebinosFileSaverRetriever();
-			tmp.origin = 'ws://127.0.0.1:8080';
-			webinos.ServiceDiscovery.registeredServices++;
-			callback.onFound(tmp);
-			return;
-		}
-		if (type == "FileWriter"){
-			var tmp = new WebinosFileWriterRetriever();
-			tmp.origin = 'ws://127.0.0.1:8080';
-			webinos.ServiceDiscovery.registeredServices++;
-			callback.onFound(tmp);
-			return;
-		}
-		if (type == "BlobBuilder"){
+	webinos.ServiceDiscovery.findServices = function (address, serviceType, callback) {
+		findServiceBindAddress = address;
+		// pure local services..
+		if (serviceType == "BlobBuilder"){
 			var tmp = new BlobBuilder();
-			tmp.origin = 'ws://127.0.0.1:8080';
-			webinos.ServiceDiscovery.registeredServices++;
-			callback.onFound(tmp);
-			return;
-		}
-		
-		if (type == "Test"){
-			var tmp = new TestModule();
-			tmp.origin = 'ws://127.0.0.1:8080';
-			webinos.ServiceDiscovery.registeredServices++;
-			callback.onFound(tmp);
-			return;
-		}
-		
-		if (type == "Vehicle"){
-			var tmp = new Vehicle();
-			tmp.origin = 'ws://127.0.0.1:8080';
 			webinos.ServiceDiscovery.registeredServices++;
 			callback.onFound(tmp);
 			return;
 		}
 
-		if (type == "Geolocation"){	// 'Geolocation' is registered rpc service name
-			var tmp = new webinosGeolocation();  // see below for geolocation api definition
-			tmp.origin = 'ws://127.0.0.1:8080';
-			webinos.ServiceDiscovery.registeredServices++;
-			callback.onFound(tmp);
-			return;
-		}
-		
-		if (type == 'LocalFileSystem') {
-			webinos.ServiceDiscovery.registeredServices++;
+		function success(params) {
+			var baseServiceObj = params;
 			
-			return void (callback.onFound(new webinos.file.LocalFileSystem()));
-		}
-		
-		if (type == 'Sensors') {
-			var sensor = new Sensor();
-			sensor.api = "SensorAPI" + Math.floor(Math.random()*101);
-			callback.onFound(sensor);
-			return;
-		}
-		
-		if (type == "UserProfileInt"){
-			var tmp = new UserProfileIntModule();
-			tmp.origin = 'ws://127.0.0.1:8080';
+			console.log("servicedisco: service found.");
+
+			var typeMap = {};
+			if (typeof webinos.file !== 'undefined' && typeof webinos.file.LocalFileSystem !== 'undefined')
+				typeMap['http://webinos.org/api/file'] = webinos.file.LocalFileSystem;
+			if (typeof WebinosFileReader !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/file.read'] = WebinosFileReader;
+			if (typeof WebinosFileSaverRetriever !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/file.save'] = WebinosFileSaverRetriever;
+			if (typeof WebinosFileWriterRetriever !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/file.write'] = WebinosFileWriterRetriever;
+			if (typeof TestModule !== 'undefined') typeMap['http://webinos.org/api/test'] = TestModule;
+			if (typeof WebinosGeolocation !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/geolocation'] = WebinosGeolocation;
+			if (typeof Vehicle !== 'undefined') typeMap['http://webinos.org/api/vehicle'] = Vehicle;
+			if (typeof Sensor !== 'undefined') typeMap['http://webinos.org/api/sensors'] = Sensor;
+			if (typeof UserProfileIntModule !== 'undefined') typeMap['UserProfileInt'] = UserProfileIntModule;
+			if (typeof TVManager !== 'undefined') typeMap['http://webinos.org/api/tv'] = TVManager;
+			if (typeof DeviceStatusManager !== 'undefined') typeMap['http://wacapps.net/api/devicestatus'] = DeviceStatusManager;
+			if (typeof Contacts !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/contacts'] = Contacts;
+			// elevate baseServiceObj to usable local WebinosService object
+			
+			if (baseServiceObj.api === 'http://webinos.org/api/sensors.temperature'){
+				var tmp = new typeMap['http://webinos.org/api/sensors'](baseServiceObj);
+			}
+			else{
+				var tmp = new typeMap[baseServiceObj.api](baseServiceObj);
+			}
 			webinos.ServiceDiscovery.registeredServices++;
 			callback.onFound(tmp);
-			return;
 		}
 		
+		var id = Math.floor(Math.random()*1001);
+		var rpc = webinos.rpc.createRPC("ServiceDiscovery", "findServices", [serviceType, sessionid, id]);
+		rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID
 		
+		var callback2 = new RPCWebinosService({api:rpc.fromObjectRef});
+		callback2.onservicefound = function (params, successCallback, errorCallback, objectRef) {
+			// params
+			success(params);
+		};
+		webinos.rpc.registerCallbackObject(callback2);
 		
+		webinos.message_send(findServiceBindAddress, rpc, callback2);
+		return;
 	};
 	
 	///////////////////// WEBINOS SERVICE INTERFACE ///////////////////////////////
 	
-	WebinosService = function () {
-		this.id = Math.floor(Math.random()*101);
+	// TODO decide what to do with this class.
+	WebinosService = function (obj) {
+		this.base = RPCWebinosService;
+		this.base(obj);
 		
+//		this.id = Math.floor(Math.random()*101);
 	};
+	WebinosService.prototype = new RPCWebinosService;
 	
 	WebinosService.prototype.state = "";
     
 
-	WebinosService.prototype.api = "";
+//	WebinosService.prototype.api = "";
     
 
-	WebinosService.prototype.id = "";
+//	WebinosService.prototype.id = "";
     
 
-	WebinosService.prototype.displayName = "";
+//	WebinosService.prototype.displayName = "";
     
 
-	WebinosService.prototype.description = "";
+//	WebinosService.prototype.description = "";
     
 
 	WebinosService.prototype.icon = "";
@@ -279,26 +311,18 @@
 	///////////////////// FILEREADER INTERFACE ///////////////////////////////
 	var WebinosFileReader;
 	
-	WebinosFileReader = function () {
+	WebinosFileReader = function (obj) {
+		this.base = WebinosService;
+		this.base(obj);
+		
 		this.objectRef = Math.floor(Math.random()*101);
 	};
-	
-	WebinosFileReader.prototype = WebinosService.prototype;
+	WebinosFileReader.prototype = new WebinosService;
 	
 	WebinosFileReader.prototype.readAsText = function(blob, encoding) {
 		var self = this;
-		
-		var rpc = webinos.rpc.createRPC("FileReader", "readFileAsString", arguments);
-
-		webinos.rpc.executeRPC(
-				rpc, 
-				function (result){
-					self.onload(result);
-				},
-				function (error){
-					self.onerror(error);
-				}
-		);
+		var rpc = webinos.rpc.createRPC(this, "readFileAsString", arguments);
+		webinos.message_send(findServiceBindAddress, rpc, self.onload, self.onerror);
 	};
 	
 	WebinosFileReader.prototype.readAsDataURL = function () {
@@ -333,18 +357,20 @@
 	///////////////////// FILESAVER INTERFACE ///////////////////////////////
 	
 	var WebinosFileSaver, WebinosFileSaverRetriever;
-	
-	WebinosFileSaverRetriever = function () {
+	WebinosFileSaverRetriever = function(obj) {
+		this.base = WebinosService;
+		this.base(obj);
 		
+		this.objRefFileSaverRetr = obj;
 	};
 	
-	WebinosFileSaverRetriever.prototype = WebinosService.prototype;
+	WebinosFileSaverRetriever.prototype = new WebinosService;
 	
 	WebinosFileSaverRetriever.prototype.saveAs = function (blob, filename) {
 		
-		var fileSaver = new WebinosFileSaver();
+		var fileSaver = new WebinosFileSaver(this.objRefFileSaverRetr);
 		
-		callback = {};
+		var callback = new RPCWebinosService({api:fileSaver.objectRef});
 		callback.onwriteend = function (params, successCallback, errorCallback, objectRef) {
 			if (fileSaver.onwriteend != null){
 				fileSaver.readyState = fileWriter.DONE;
@@ -379,17 +405,17 @@
 				fileSaver.readyState = fileWriter.DONE;
 			}
 		};
-		webinos.rpc.registerObject(fileSaver.objectRef , callback);
-		
-		var rpc = webinos.rpc.createRPC("FileSaver", "saveAs", arguments);
-		rpc.fromObjectRef = fileSaver.objectRef;
-				
-		webinos.rpc.executeRPC(rpc);
+		webinos.rpc.registerCallbackObject(callback);
+		var rpc = webinos.rpc.createRPC(this, "saveAs", arguments);		
+		webinos.message_send(findServiceBindAddress, rpc, callback);
 		
 		return fileSaver;
 	};
 	
-	WebinosFileSaver = function () {
+	WebinosFileSaver = function (obj) {
+		this.base = WebinosService;
+		this.base(obj);
+		
 		this.objectRef = Math.floor(Math.random()*101);
 	};
 
@@ -412,19 +438,21 @@
 	
 	///////////////////// FILEWRITER INTERFACE ///////////////////////////////
 	var WebinosFileWriter, WebinosFileWriterRetriever;
-	
-	WebinosFileWriterRetriever = function () {
+	WebinosFileWriterRetriever = function(obj) {
+		this.base = WebinosService;
+		this.base(obj);
 		
+		this.objRefFileWriterRetr = obj;
 	};
 	
-	WebinosFileWriterRetriever.prototype = WebinosService.prototype;
+	WebinosFileWriterRetriever.prototype = new WebinosService;
 		
 	WebinosFileWriterRetriever.prototype.writeAs = function (filename) {
-		var fileWriter = new WebinosFileWriter();
+		var fileWriter = new WebinosFileWriter(this.objRefFileWriterRetr);
 		
 		fileWriter.fileName =filename;
 		
-		callback = {};
+		var callback = new RPCWebinosService({api:fileWriter.objectRef});
 		callback.onwriteend = function (params, successCallback, errorCallback, objectRef) {
 			if (fileWriter.onwriteend != null){
 				fileWriter.readyState = fileWriter.DONE;
@@ -459,12 +487,14 @@
 				fileWriter.readyState = fileWriter.DONE;
 			}
 		};
-		webinos.rpc.registerObject(fileWriter.objectRef , callback);
+		webinos.rpc.registerCallbackObject(callback);
 		
 		return fileWriter;
 	};
 	
-	WebinosFileWriter = function () {
+	WebinosFileWriter = function (obj) {
+		this.base = WebinosService;
+		this.base(obj);
 		this.objectRef = Math.floor(Math.random()*101);
 	};
 	
@@ -478,9 +508,12 @@
 		if (this.readyState == this.WRITING) throw ("INVALID_STATE_ERR");
 		
 		arguments[1] = this.fileName;
-		var rpc = webinos.rpc.createRPC("FileWriter", "write", arguments);
+		
+		var rpc = webinos.rpc.createRPC(this, "write", arguments);
 		rpc.fromObjectRef = this.objectRef;
-		webinos.rpc.executeRPC(rpc);
+
+		webinos.message_send(findServiceBindAddress, rpc);
+		
 	};
 	WebinosFileWriter.prototype.seek = function (offset) {
 		if (this.readyState == this.WRITING) throw ("INVALID_STATE_ERR");
@@ -494,9 +527,9 @@
 		this.readyState = this.WRITING;
 		
 		arguments[1] = this.fileName;
-		var rpc = webinos.rpc.createRPC("FileWriter", "truncate", arguments);
-		rpc.fromObjectRef = this.objectRef;
-		webinos.rpc.executeRPC(rpc);
+		
+		var rpc = webinos.rpc.createRPC(this, "truncate", arguments);
+		webinos.message_send(findServiceBindAddress, rpc);
 	};
 	
 	///////////////////// VEHICLE INTERFACE ///////////////////////////////
@@ -506,40 +539,33 @@
 	var _vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passenger-front', 'climate-passenger-rear-left','passenger-rear-right','lights-fog-front','lights-fog-rear','lights-signal-right','lights-signal-warn','lights-parking-hibeam','lights-head','lights-head','wiper-front-wash','wiper-rear-wash','wiper-automatic','wiper-front-once','wiper-rear-once','wiper-front-level1','wiper-front-level2','destination-reached','destination-changed','destination-cancelled','parksensors-front','parksensors-rear','shift','tripcomputer'); 
 	
 	
-	Vehicle = function(){} ;
-	Vehicle.prototype = WebinosService.prototype;
-	Vehicle.prototype.get = function(vehicleDataId, callOnSuccess, callOnError){	
-		
-		
-		arguments[0] = vehicleDataId;
-		var rpc = webinos.rpc.createRPC("Vehicle", "get", arguments);
-		
-		webinos.rpc.executeRPC(rpc,
-			function(result){
-					callOnSuccess(result);
-				},
-			function(error){
-					callOnError(error);
-				}
-		);
-		
-		
-		};
-	Vehicle.prototype.addEventListener = function(vehicleDataId, eventHandler, capture){
-		
-				
-		if(_vehicleDataIds.indexOf(vehicleDataId) != -1){	
-			var rpc = webinos.rpc.createRPC("Vehicle", "addEventListener", vehicleDataId);
-			rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
-			
+	Vehicle = function(obj) {
+		this.base = WebinosService;
+		this.base(obj);
+	};
+	Vehicle.prototype = new WebinosService;
+	
+	Vehicle.prototype.get = function(vehicleDataId, callOnSuccess, callOnError) {	
+		arguments[0] = vehicleDataId;		
+		var rpc = webinos.rpc.createRPC(this, "get", arguments);
+		webinos.message_send(findServiceBindAddress, rpc, callOnSuccess, callOnError);		
+	};
+	
+	Vehicle.prototype.addEventListener = function(vehicleDataId, eventHandler, capture) {
+		if(_vehicleDataIds.indexOf(vehicleDataId) != -1){
+			var rpc = webinos.rpc.createRPC(this, "addEventListener", vehicleDataId);
+			rpc.fromObjectRef = Math.floor(Math.random()*101);
 			_referenceMapping.push([rpc.fromObjectRef, eventHandler]);
 			console.log('# of references' + _referenceMapping.length);
-			callback = {};
+		
+			var callback = new RPCWebinosService({api:rpc.fromObjectRef});
 			callback.onEvent = function (vehicleEvent) {
 				eventHandler(vehicleEvent);
 			};
-			webinos.rpc.registerObject(rpc.fromObjectRef , callback);
-			webinos.rpc.executeRPC(rpc);
+			webinos.rpc.registerCallbackObject(callback);
+		
+			webinos.message_send(findServiceBindAddress, rpc, callback);
+	
 		}else{
 			console.log(vehicleDataId + ' not found');	
 		}
@@ -548,29 +574,21 @@
 		
 	Vehicle.prototype.removeEventListener = function(vehicleDataId, eventHandler, capture){
 		var refToBeDeleted = null;
-		for(i = 0; i < _referenceMapping.length; i++){
+		for(var i = 0; i < _referenceMapping.length; i++){
 			console.log("Reference" + i + ": " + _referenceMapping[i][0]);
 			console.log("Handler" + i + ": " + _referenceMapping[i][1]);
 			if(_referenceMapping[i][1] == eventHandler){
 					var arguments = new Array();
 					arguments[0] = _referenceMapping[i][0];
 					arguments[1] = vehicleDataId;
-					
-					
 					console.log("ListenerObject to be removed ref#" + refToBeDeleted);					
-					var rpc = webinos.rpc.createRPC("Vehicle", "removeEventListener", arguments);
-					webinos.rpc.executeRPC(rpc,
-					function(result){
-						callOnSuccess(result);
-					},
-					function(error){
-						callOnError(error);
-					}
-		);
-					break;			
+					var rpc = webinos.rpc.createRPC(this, "removeEventListener", arguments);
+					webinos.message_send(findServiceBindAddress, rpc, callOnSuccess, callOnError);
+					break;	
 			}	
 		}
 	};
+	
 	Vehicle.prototype.requestGuidance = function(successCB, errorCB, destinations){
 		console.log('request guidance');
 		
@@ -581,28 +599,22 @@
 
 	///////////////////// GEOLOCATION INTERFACE ///////////////////////////////
 	
-	var webinosGeolocation;
+	var WebinosGeolocation;
 
-	webinosGeolocation = function () {
-		// this.objectRef = Math.floor(Math.random()*101);
+	WebinosGeolocation = function (obj) {
+		this.base = WebinosService;
+		this.base(obj);
 	};
 
-	webinosGeolocation.prototype = WebinosService.prototype;
+	WebinosGeolocation.prototype = new WebinosService;
 
-	webinosGeolocation.prototype.getCurrentPosition = function (PositionCB, PositionErrorCB, PositionOptions) {  // according to webinos api definition 
-			var rpc = webinos.rpc.createRPC("Geolocation", "getCurrentPosition", PositionOptions); // RPC service name, function, position options
-			webinos.rpc.executeRPC(rpc,
-					function (position){  // this is called on success
-						PositionCB(position); 
-					},
-					function (error){ // this is called on error
-						PositionErrorCB(error);
-					}
-			);
+	WebinosGeolocation.prototype.getCurrentPosition = function (PositionCB, PositionErrorCB, PositionOptions) {  // according to webinos api definition 
+			var rpc = webinos.rpc.createRPC(this, "getCurrentPosition", PositionOptions);
+			webinos.message_send(findServiceBindAddress, rpc, PositionCB, PositionErrorCB );
 		};
 
-	webinosGeolocation.prototype.watchPosition = function (PositionCB, PositionErrorCB, PositionOptions) {   // not yet working
-			var rpc = webinos.rpc.createRPC("Geolocation", "watchPosition", PositionOptions); // RPC service name, function, options
+	WebinosGeolocation.prototype.watchPosition = function (PositionCB, PositionErrorCB, PositionOptions) {   // not yet working
+			var rpc = webinos.rpc.createRPC(this, "watchPosition", PositionOptions); // RPC service name, function, options
 			// rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
 			/* /create the result callback
 			callback = {};
@@ -614,27 +626,22 @@
 			//register the object as being remotely accessible
 			webinos.rpc.registerObject(rpc.fromObjectRef, callback);			
 			*/
-			var watchId = webinos.rpc.executeRPC(rpc,
-					function (position){  // this is called on success
-						PositionCB(position); 
-					},
-					function (error){ // this is called on error
-						PositionErrorCB(error);
-					}
-			);
-			return(watchId);
+			
+			var rpc = webinos.rpc.createRPC(this, "getCurrentPosition", PositionOptions);
+			webinos.message_send(findServiceBindAddress, rpc, PositionCB, PositionErrorCB );		
 		};
 
-	webinosGeolocation.prototype.clearWatch = function (watchId) {   // not yet working
-			var rpc = webinos.rpc.createRPC("Geolocation", "clearWatch", watchId); 
-			webinos.rpc.executeRPC(rpc,
-					function (result){  // this is called on success
-						alert("successfully cleared watch");
-					},
-					function (error){ // this is called on error
-						alert("error upon clearWatch: " + error);
-					}
-			);
+	WebinosGeolocation.prototype.clearWatch = function (watchId) {   // not yet working
+			successCB = function (result) {
+				alert("successfully cleared watch");
+			};
+		
+			errorCB = function (error) {
+				alert("error upon clearWatch: " + error);
+			};
+			var rpc = webinos.rpc.createRPC(this, "clearWatch", watchId);		
+			webinos.message_send(findServiceBindAddress, rpc, successCB, errorCB );
+		
 		};
 	
 	

@@ -1,0 +1,57 @@
+body
+{
+	background-color: #f2f2f2;
+}
+
+h1
+{
+	width: 676px;
+	color: purple;
+}	height: 32px;
+
+select
+{
+
+}
+p
+{
+	font-size: 20px;
+	width: 100%;
+	text-align: left;
+	color: green;
+
+}
+
+input {
+    border: 1px solid #006;
+   # background: #ffc;
+}
+button {
+    border: 1px solid #006;
+    background: #9cf;
+}
+label {
+    display: block;
+    width: 150px;
+    float: left;
+   # margin: 2px 4px 6px 4px;
+    #text-align: right;
+}
+br { clear: left; }
+
+
+footer
+{
+	font-size: 14px;
+	width: 100%;
+	text-align: left;
+}
+
+a
+{
+	text-decoration: none;
+}
+
+a, a:visited { color: #404040; }
+
+a:hover { color: #1358a5; }
