@@ -279,13 +279,19 @@ ContactOrganization.prototype.isEmpty = function()
  */
 this.authenticate = function(params, callback)
 {
+  var credentials = require(__dirname+"/fakeUserProfile");
+
   if (params[0]['type'] == "local")
   {
-    callback(LocalContacts.open(params[0]['addressBookName']));
+    callback(LocalContacts.open(credentials.addressBookName));
+    //callback(LocalContacts.open(params[0]['addressBookName']));
   }
   else if (params[0]['type'] == "remote")
   {
-  	callback(RemoteContacts.logIn(params[0]['usr'], params[0]['pwd']));  	
+	//console.log("<contacts_module>\n"+credentials.usr +" - "+ params[0]['usr'] + "\n" + credentials.pwd+""+" - "+params[0]['pwd'] + "\n</contacts_module>");
+	callback(RemoteContacts.logIn(credentials.usr, credentials.pwd));
+
+  	//callback(RemoteContacts.logIn(params[0]['usr'], params[0]['pwd']));  	
   }
 }
 
