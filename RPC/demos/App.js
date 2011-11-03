@@ -13,7 +13,9 @@ Ext.define('WebDemo.App', {
         return [
 	    new WebDemo.ContactsStore(),
 	    new WebDemo.ContactsWindow(),
-	    new WebDemo.ServicesWindow()
+	    new WebDemo.ServicesWindow(),
+	    new WebDemo.TVWindow(),
+	    new WebDemo.TVRemote()
         ];
     },
 
@@ -36,7 +38,7 @@ Ext.define('WebDemo.App', {
             }),
 
             wallpaper: 'wallpapers/webinos.jpg',
-            wallpaperStretch: false
+            wallpaperStretch: true
         });
     },
 

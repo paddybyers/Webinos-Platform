@@ -95,7 +95,7 @@ Ext.define('WebDemo.ServicesWindow', {
 				  handler: Abot.Contacts.bindservice,
 				  DoDisable: function(){
 				    this.disable();
-				    this.setText("Contacts module is enabled");
+				    this.setText("Contacts sevice is enabled");
 				  }
 			      },
 			      {
@@ -119,12 +119,21 @@ Ext.define('WebDemo.ServicesWindow', {
 		{
 		    xtype: 'button',
 		    height: 47,
-		    text: 'MyButton'
+		    id: 'cmdEnableTVService',
+		    text: 'Enable TV Service',
+		    disabled: !Abot.TV.isServiceDiscovered,
+		    handler: Abot.TV.bindservice,
+		    DoDisable: function(){
+			this.disable();
+			this.setText("TV service is enabled");
+		    }
 		}
 	    ]
 	});
 	  if (Abot.Contacts.contactsService!=null)
-	    win.items.items[0].DoDisable();
+	    win.items.items[0].dockedItems.items[0].DoDisable();
+	  if (Abot.TV.isServiceDiscovered())
+	    Ext.getCmp("cmdEnableTVService").DoDisable();
         }
         win.show();
         return win;

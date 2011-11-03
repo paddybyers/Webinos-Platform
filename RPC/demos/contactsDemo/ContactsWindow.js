@@ -65,7 +65,7 @@ Ext.define('WebDemo.ContactsWindow', {
                                 tplWriteMode: 'insertAfter',
                                 dataIndex: 'fldContactImage',
                                 text: 'Image',
-				width:96
+				width:110
                             },
                             {
                                 xtype: 'gridcolumn',
