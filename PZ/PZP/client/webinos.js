@@ -98,6 +98,9 @@
 				webinos.message.setGet(sessionid);
 				var msg = webinos.message.registerSender(sessionid , pzpid);
 				webinos.message_send(pzpid, msg, null, null);
+			} else if(data.type === "prop" && data.payload.status === "info") {
+               	//document.getElementById("message").innerHTML = "";
+				$('#message').append('<li>'+data.payload.message+'</li>');				
 			}
 			else {
 				webinos.message.onMessageReceived(JSON.stringify(data));
@@ -137,6 +140,7 @@
 			var baseServiceObj = params;
 			
 			console.log("servicedisco: service found.");
+			$('#message').append('<li> Found Service: '+baseServiceObj.api+'</li>');				
 
 			var typeMap = {};
 			if (typeof webinos.file !== 'undefined' && typeof webinos.file.LocalFileSystem !== 'undefined')

@@ -48,6 +48,9 @@ pzh.prototype.sendMessage = function(message, address) {
 	"use strict";
 	var socket = ' ', i;
 	var self = this;
+	//console.log(message);
+	//var buf = new Buffer(message, 'base64');
+	//console.log(buf);
 	webinos.session.common.debug('PZH ('+self.sessionId+') SendMessage to address ' 
 	+ address + ' Message ' + JSON.stringify(message));
 	if (self.connected_pzh[address]) {
@@ -126,7 +129,6 @@ pzh.prototype.connect = function () {
 
 	server = tls.createServer (options, function (conn) {
 		var data = {}, obj = {}, cn, found = false, msg, parse = null, payload = {}, msg = {}, sessionId;
-
 		/* If connection is authorized:
 		* SessionId is generated for PZP. Currently it is PZH's name and 
 		* PZP's CommonName and is stored in form of PZH::PZP.
@@ -136,6 +138,7 @@ pzh.prototype.connect = function () {
  		*/
 		if(conn.authorized) {
 			webinos.session.common.debug("PZH: Client Authenticated ");
+
 			cn = conn.getPeerCertificate().subject.CN;
 			var data = cn.split(':');
 			//server.addContext('localhost', {ca:fs.readFileSync('othercert.pem')});
@@ -219,13 +222,27 @@ pzh.prototype.connect = function () {
 		});
 		
 		conn.on('data', function(data) {
-			var payload = null;
+			var payload = null, parse;
+			var data1 = {}, open = 0, i = 0, close = 0;
 			webinos.session.common.debug('PZH ('+self.sessionId+') read bytes = ' + data.length);
-			//var data1 = conn.setEncoding('base64');
-			var parse = JSON.parse(data, data.length);
-			if(typeof parse.payload !== "undefined")
-				payload = parse.payload;
-			console.log(parse);
+			
+			try {
+				conn.pause();
+				parse = JSON.parse(data);
+				if(typeof parse.payload !== "undefined")
+					payload = parse.payload;
+			    process.nextTick(function () {
+				  conn.resume();
+				});
+	
+			} catch (err) {
+				console.log('PZH: Exception' + err);
+				console.log(err.code);
+				console.log(err.stack);
+				
+			}
+			
+			//console.log(parse);
  			/* Using contents of client certificate, a new certificate is created with issuer
 			 * part of the certificate and signing part of the certificate is updated.
 			 * Message is sent back to PZP, with its new certificate and server signing certificate. 

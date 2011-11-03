@@ -446,7 +446,7 @@ if (typeof exports !== 'undefined'){
 	
 	//add your RPC Implementations here!
 	var modules = [
-	            //'./rpc_test2.js',
+	            './rpc_test2.js',
 	            './rpc_test.js',
 	           	'./rpc_file.js',
 				'./webinos.rpc.file.js',

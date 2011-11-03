@@ -11,6 +11,7 @@
 	<script type="text/javascript" src="/client/get42.js"></script>
 	<script type="text/javascript" src="/client/contacts/contacts.js"></script>
 	<link rel="stylesheet" type="text/css" href="/client/jquery-ui-1.8.16.custom.css"/>
+	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
 	<script type="text/javascript" src="/client/jquery.js"></script>
 	<script type="text/javascript" src="/client/jquery-ui.js"></script>
 	<script type="text/javascript" src="/client/dojo.js"></script>
@@ -469,6 +470,7 @@
 </head>
 <body>
 
+<div id="header"> <h1><img src="testbed_logo.png"></h1> </div>
 <div class="pzh-pzp">
 <div id = "tabs">
 	<ul>
@@ -497,7 +499,7 @@
 			<tr><td>Server Name </td><td><input type="text" id="servername" value="localhost"/></td></tr>
 			<tr><td>Server Port </td><td><input type="text" id="serverport" value="442"/></td></tr>
 			<tr><td>HTTPS Server Port</td><td> <input type="text" id="httpport" value="8907"/></td></tr>
-			<tr><td><button id="startPZH">Start PZH </button></td></tr>
+			<tr><td><button id="startPZH" class="button">Start PZH </button></td></tr>
 		</table>
 	</div>
 	<div id = "pzp">	
@@ -518,38 +520,39 @@
 			<tr><td>PZH Address </td><td><input type="text" id="pzpservername" value="localhost"/></td>
 			<tr><td>PZH Port </td><td><input type="text" id="pzpserverport" value="442"/></td>
 			<tr><td>PZP Server Port Number</td><td><input type="text" id="pzpport" value="9002"/></td>
-			<tr><td><button id="startPZP">Start PZP </button></td></tr>
+			<tr><td><button id="startPZP" class="button">Start PZP </button></td></tr>
 		</table>
 	</div>
 
 	<div id = "example">
-		<table>
+		<table width=auto>
 				<tr> <td>
 					Select from the list Available PZP & PZH to find Service
 					<select id="pzh_pzp_list"> <option> </option> </select>
-					<button id="findService">Find Service</button> </td></tr>
+					<button id="findService" class="button">Find Service</button> </td></tr>
 					<tr> <td><p><i> Find Service will determine where your code will be executed</i></p> 
 				</td> </tr>
 				<tr> <td>
-					<button id="get42">get42PZP</button>
-					<button id="echo">echo</button>
-					<button id="cls">Clear</button>
-					<button id="getFileContent">Get File Content</button>
-					<button id="fileSaver">Save with FileSaver</button>
-					<button id="fileWriter">Save with FileWriter</button>
-					
-				 	<p> 
-				 		<input type="text" id="truncate" /> 
-				 		<button id="fileWriterTruncate">Truncate</button> 
-				 	</p>
-			     </td> </tr>
-			     <tr> <td>
-				 	<tr> <td>
-				 	<label for="messageText">File Name</label> <input type="text"
-						id=" <label for="fileContent">File Content</label> 
-					<textarea rows='8' size = 500 id="fileContent"></textarea> 
-					</td> </tr>
-			     </td> </tr>
+					<button id="get42" class="button">get42PZP</button>
+				</td> </tr>
+				<tr> <td> <button id="echo"  class="button">echo</button> 
+					<button id="cls"  class="button">Clear</button> 
+				</td> </tr>	
+				 <tr> <td>
+				 		<label> Truncate </label> </td>
+				 		<td> <input type="text" id="truncate"/> </td>
+				 		<td> <button id="fileWriterTruncate"  class="button">Truncate</button> 
+			 	</td> </tr>
+				<tr> <td>
+				 		<label for="messageText">File Name</label> </td>
+				 	   <td> <input type="text" id="fileContent"/> </td>
+				       <td> <button id="getFileContent"  class="button">Get File Content</button> </td>
+				       <td> <textarea rows='8' size = 500 id="fileContent"></textarea> <
+				</td> </tr>
+				<tr> <td>
+					<button id="fileSaver" class="button">Save with FileSaver</button>
+					<button id="fileWriter" class="button">Save with FileWriter</button>
+				 </td> </tr>
 			     <tr> <td>
 		     		<ul id="messages">
 				 	<p id="cwd"></p>
@@ -587,10 +590,10 @@
 		      </div>
 		      <!--   <p> -->
 		      <div>
-		        <button id="btnAuthenticate">Authenticate/Open</button>
+		        <button id="btnAuthenticate"  class="button">Authenticate/Open</button>
 		        <br>
-		        <button id="btnContacts">Get All Contacts List</button>
-		        <button id="btnFindContacts">Find Contact!</button>
+		        <button id="btnContacts"  class="button">Get All Contacts List</button>
+		        <button id="btnFindContacts"  class="button">Find Contact!</button>
 		      </div>
 		      <div id="html_contacts">
 				<script>
@@ -640,6 +643,9 @@
 		<a href="/client/file.html"> File </a> <br>
 		<a href="/client/file-api-demo.html"> FileAPI </a> <br>
 	</div>
+</div>
+
+<div id="status">STATUS: <span id="message"></span></div>
 </div>
 </body>
 </html>

@@ -302,21 +302,43 @@
 			function(conn) {
 				webinos.session.common.debug('PZP (' + self.config.sessionId +
 					') Connection to PZH status: ' + client.authorized);
+				//client.setEncoding('base64');	
 				self.clientSocket = client;
 			});
 
 		client.on('data', function(data) {
-			var data1 = {}, data2 = {}, myKey, i;
-			data2 = eval('('+data+')');
-			console.log(data2);
+			var  data2 = {}, myKey;
+			//console.log('in data');
+			//console.log(typeof data);
+			//data1 = new Buffer(data, 'base64');
+			//console.log(data1);
+			//if(Buffer.isBuffer(data)) {
+				//console.log("It is buffer");
+			//}
+			var data1 = {}, open = 0, i = 0, close = 0;
+			
+			try {
+				client.pause();
+				data2 = JSON.parse(data);
+				 process.nextTick(function () {
+				  client.resume();
+				});
+			} catch (err) {
+				console.log('PZP: Exception' + err);
+				console.log(err.code);
+				console.log(err.stack);
+				
+			}
+				
+			//console.log(data2);
 			//data2 = JSON.parse(data, reviewer);
 			
-			function reviewer(key, value) {
+			/*function reviewer(key, value) {
 				if(typeof value === "object") {
 					console.log(key);
 					console.log(value);						
 				}
-			}
+			}*/
 			webinos.session.common.debug('PZP ('+self.config.sessionId+') Received data ');
 			/* If sends the client certificate to get signed certificate from server. 
 			 * Payload message format {status: 'clientCert', message: certificate)
@@ -677,6 +699,8 @@
 						function(result) {
 							if(result === 'startedPZH') {
 								pzh.startHttpsServer(msg.payload.httpserver, msg.payload.servername);
+								var info = {"type":"prop", "payload":{"status": "info", "message":"PZH started"}}; 
+								connection.sendUTF(JSON.stringify(info));
 							}							
 						});
 				} else if(msg.type === 'prop' && msg.payload.status === 'startPZP') {
@@ -690,7 +714,8 @@
 							function(result) {
 								webinos.session.common.debug('PZP WebSocket Server: ' + result);
 								webinos.session.pzp.connected_session(connection);
-
+								var info = {"type":"prop", "payload":{"status": "info", "message":"PZP started"}}; 
+								connection.sendUTF(JSON.stringify(info));
 						});
 					}
 				} else if(msg.type === 'prop' && msg.payload.status === 'otherPZH') {
