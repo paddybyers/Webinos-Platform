@@ -220,12 +220,12 @@ pzh.prototype.connect = function () {
 		
 		conn.on('data', function(data) {
 			var payload = null;
-			webinos.session.common.debug('PZH ('+self.sessionId+') read bytes = ' + data.length );
-			
+			webinos.session.common.debug('PZH ('+self.sessionId+') read bytes = ' + data.length);
+			//var data1 = conn.setEncoding('base64');
 			var parse = JSON.parse(data, data.length);
 			if(typeof parse.payload !== "undefined")
 				payload = parse.payload;
-			
+			console.log(parse);
  			/* Using contents of client certificate, a new certificate is created with issuer
 			 * part of the certificate and signing part of the certificate is updated.
 			 * Message is sent back to PZP, with its new certificate and server signing certificate. 

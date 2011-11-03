@@ -231,7 +231,7 @@ webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto, msgid) {
     //TODO check if rpc is request on a specific object (objectref) and get mapped responseto / destination session
     
     //TODO remove stringify when integrating with Message Routing/Ziran
-    write(rpc, responseto, msgid);
+    write(JSON.stringify(rpc), responseto, msgid);
    
 };
 
@@ -446,7 +446,7 @@ if (typeof exports !== 'undefined'){
 	
 	//add your RPC Implementations here!
 	var modules = [
-	            './rpc_test2.js',
+	            //'./rpc_test2.js',
 	            './rpc_test.js',
 	           	'./rpc_file.js',
 				'./webinos.rpc.file.js',

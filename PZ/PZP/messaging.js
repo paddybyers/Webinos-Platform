@@ -290,6 +290,10 @@ webinos.message.onMessageReceived = function(message, sessionid){
           {
             console.log(message);
 			message.payload = JSON.parse(message.payload);
+			if(typeof message.payload === "string") {
+				message.payload = JSON.parse(message.payload);
+			}
+			debugger;
 			if(typeof message.payload.method !== "undefined")
             {
 				console.log('Message: MSG forwarded to RPC to handle callback');
