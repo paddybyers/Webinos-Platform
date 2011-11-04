@@ -51,6 +51,7 @@
 								servername: document.getElementById('pzpservername').value,
 								serverport: document.getElementById('pzpserverport').value,
 								pzpserverport: document.getElementById('pzpport').value,
+								ipaddr:document.getElementById('pzpipaddr').value,
 								value: config}; 
 						var options = {type: 'prop', payload: payload};
 						webinos.message_send(null, options, null, null);
@@ -150,6 +151,7 @@
 	
 			<tr><td>PZH Address </td><td><input type="text" id="pzpservername" value="localhost"/></td>
 			<tr><td>PZH Port </td><td><input type="text" id="pzpserverport" value="442"/></td>
+			<tr><td>PZP Server Address</td><td><input type="text" id="pzpipaddr" value="localhost"/></td>
 			<tr><td>PZP Server Port Number</td><td><input type="text" id="pzpport" value="9002"/></td>
 			<tr><td><button id="startPZP" class="button">Start PZP </button></td></tr>
 		</table>
