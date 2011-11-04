@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en-US">
+	<head>
+		<title>Webinos Local Discovery Prototype</title>
+		
+		<link rel="stylesheet" type="text/css" href="vehicle/style.css" media="screen"/>
+	    <script type="text/javascript" src="/rpc.js"></script>
+	    <script type="text/javascript" src="/client/webinos.js"></script>
+	    <script type="text/javascript" src="../bluetooth_module/bluetooth.rpc.client.js"></script>
+            <script type="text/javascript" src="./jquery-1.4.2.min.js"></script>
+		
+	</head>
+	<body>	
+	<div id="content">	
+		<div id="header">
+		<h1><img src="discovery_logo.png"> 	</h1> 
+		</div>
+		<div id="functions">	
+		<h2>Testfunctions:</h2>
+	    <h3> Discover Device and Service </h3>
+			<p>
+ <INPUT TYPE="submit" onclick="connectWebinos()" VALUE="Connect to webinos" class="button" /><br />
+            <!--<select id='servicelist' size="8" multiple="multiple">-->
+			<select id='servicelist'>
+				<option>Pull down and select a service </option>
+				<OPTION VALUE="0x1106"          >FileService
+				<OPTION VALUE="0x1108"          >HeadsetService
+				<OPTION VALUE="0x1109"          >CordlessService
+				<OPTION VALUE="0x110A"          >AudioSourceService
+			</select><br/>
+		    <INPUT TYPE="submit" onclick="discoverdevice()" VALUE="Find Device with Selected Service" class="button" /><br />
+			<INPUT TYPE="submit" onclick="bindservice()" VALUE="Bind with device and service" class="button" /><br />
+			
+			<h3> Use Discovered service</h3>
+			<INPUT TYPE="submit" onclick="listfile()" VALUE="Get filelist" class="button" /><br />
+			<INPUT TYPE="submit" onclick="getfile()" VALUE="Get File" class="button" /><br />
+			<INPUT TYPE="submit" onclick="playfile()" VALUE="play file" class="button" /><br />
+			<div id="loader"></div>
+
+		</p>
+    </div>
+    		
+		<p> Found devices supporting service  :</p>
+	
+		<select id='devicelist' size="8" multiple="multiple">
+
+        <OPTION VALUE="Select a device below to bind">Select a device below to bind</OPTION>
+
+		</select><br/>
+
+	    <!--<INPUT TYPE="submit" onclick="bindservice()" VALUE="Bind with device and service"></p>-->
+		<p> Folder list :</p>
+		
+		<select id='folderlist'>
+		<!--<select id='folderlist' size="8" multiple="multiple">-->
+
+        <OPTION VALUE="Select a folder to open">Select a folder to open</OPTION>
+
+		</select>
+	     
+		
+		<p> File list :</p>
+	
+		<select id='filelist' size="10" multiple="multiple">
+
+        <OPTION VALUE="Select a file to transfer">Select a file to transfer</OPTION>
+		</select>
+		
+		<hr />
+	    <p>Contacts:</p>
+	    <a
+		href="mailto:alan.baldwin@samsung.com">alan.baldwin@samsung.com</a>
+		or
+		<a
+		href="mailto:ziran.sun@samsung.com">ziran.sun@samsung.com</a> 
+			
+	</body>
+	
+	<script type="text/javascript">
+	var bluetoothService = null;
+
+function emptyList( box ) {
+	box.options.length = 1;
+}
+
+function fillList( box, arr0, arr1 ) {
+	// arr[0] holds the display text
+	// arr[1] are the values
+
+	for ( i = 0; i < arr0.length; i++ ) {
+
+		option = new Option( arr0[i], arr1[i] );
+		box.options[box.length] = option;
+	}
+
+	// Preselect option 0
+	box.selectedIndex=0;
+}
+
+	
+		function changeHandler(event)
+		{
+			var index;
+			index = this.selectedIndex;
+
+			if (index >= 0 && this.options.length > index)
+			{
+				// Get the new value
+  				selected = this.options[index].value;
+ 			}
+     		return selected;
+		}
+		
+		if (servicelist.addEventListener) 
+		{
+  			// DOM2 standard
+  			servicelist.addEventListener("change", changeHandler, false);
+		}
+		else if (service.attachEvent) 
+		{
+  			// IE fallback
+  			servicelist.attachEvent("onchange", changeHandler);
+		}
+		else 
+		{
+  			// DOM0 fallback
+  			servicelist.onchange = changeHandler;
+		}
+
+		if (devicelist.addEventListener) 
+		{
+  			// DOM2 standard
+  			devicelist.addEventListener("change", changeHandler, false);
+		}
+		else if (devicelist.attachEvent) 
+		{
+  			// IE fallback
+  			devicelist.attachEvent("onchange", changeHandler);
+		}
+		else 
+		{
+  			// DOM0 fallback
+  			devicelist.onchange = changeHandler;
+		}
+		
+		if (folderlist.addEventListener) 
+		{
+  			// DOM2 standard
+  			folderlist.addEventListener("change", changeHandler, false);
+		}
+		else if (folderlist.attachEvent) 
+		{
+  			// IE fallback
+  			folderlist.attachEvent("onchange", changeHandler);
+		}
+		else 
+		{
+  			// DOM0 fallback
+  			folderlist.onchange = changeHandler;
+		}		
+		
+		if (filelist.addEventListener) 
+		{
+  			// DOM2 standard
+  			filelist.addEventListener("change", changeHandler, false);
+		}
+		else if (filelist.attachEvent) 
+		{
+  			// IE fallback
+  			filelist.attachEvent("onchange", changeHandler);
+		}
+		else 
+		{
+  			// DOM0 fallback
+  			filelist.onchange = changeHandler;
+		}		
+		
+		function discoverdevice()
+		{
+			var serviceType = document.getElementById('servicelist').value;
+			console.log("serviceType:" + serviceType); 
+			
+			$('#loader').html("<img src='vehicle/ajaxloader.gif'>");
+	
+			//webinos.rpc.findServices(serviceType, {onFound: function (results) {		
+			bluetoothService.findservices(serviceType,function (results){
+		document.getElementById("loader").innerHTML = "";
+		var textarray = [];
+		var valuearray = []; 
+		var temp = [];
+		console.log("results:" + results);
+	
+		var str = String(results);
+		var str_split = str.split("\n");
+				
+		var val = document.getElementById('devicelist');
+		emptyList(devicelist);
+		
+		for (i = 0; i < str_split.length; i++)
+		{	
+			if(str_split[i].indexOf(",", 0) == 0)
+			{
+				// remove comma in the beginning
+				str_split[i] = str_split[i].substring(1, str_split[i].length);
+			}
+			textarray.push(str_split[i]);
+			valuearray.push(str_split[i]);
+		}
+		fillList(devicelist, textarray, valuearray);
+	});			
+		}
+		
+		function bindservice(){
+		
+			$('#loader').html("<img src='vehicle/ajaxloader.gif'>");	
+			var device = document.getElementById('devicelist').value;
+		    alert("You've chosen to bind service in device  " + device + "and see the root folder list");
+		    
+		    //only need MAC address 
+			var addresses = device.split(",");
+			console.log("addresses[1]" + addresses[1]);
+		    //connect the device
+		    bluetoothService.binddevice(addresses[1], function (results){
+		document.getElementById("loader").innerHTML = "";
+		console.log("folder-response results:" + results);
+		var textarray = [];
+		var valuearray = []; 
+		
+		var str = String(results);
+		var folder_arr = str.split(",");
+		var occurences = (str.split(",").length - 1);
+		
+		var val = document.getElementById('folderlist');
+		emptyList(folderlist);
+		
+		for(var i = 0; i <= occurences; i++)	
+		{
+			textarray.push(folder_arr[i]);
+			valuearray.push(folder_arr[i]);
+		}
+		
+		fillList(folderlist, textarray, valuearray);
+		
+	});
+		}	
+		
+		function listfile()
+		{
+			alert("Make sure that your files are bluetooth visible. e.g. enable Bluetooth visibility"); 
+			
+			$('#loader').html("<img src='vehicle/ajaxloader.gif'>");
+			var device = document.getElementById('devicelist').value;
+			console.log("device:" + device);
+			var dir = document.getElementById('folderlist').value;
+			console.log("folder:" + dir);
+			var data = [];
+			data[0] = device;
+			data[1] = dir; 
+			bluetoothService.listfile(data,function (results){
+		document.getElementById("loader").innerHTML = "";
+		console.log("filelist", results);
+		
+		var textarray = [];
+		var valuearray = []; 
+		
+		//handle results
+		var substr = String(results);
+		
+		var occurences = (substr.split("file name").length - 1);
+		console.log("occurences:" + occurences);
+		
+		var data = substr.split("file name=");
+		
+		var val = document.getElementById('filelist');
+		emptyList(filelist);
+		
+		for(var i = 1; i <= occurences; i++)	
+		{
+			var endpoint = data[i].indexOf(" ");
+			data[i] = data[i].substring(0, endpoint);
+			//remove ""
+			data[i] = data[i].substring(1, data[i].length -1);
+			
+			textarray.push(data[i]);
+			valuearray.push(data[i]);
+		}
+		
+		fillList(filelist, textarray, valuearray);
+		// end of result handling
+	});
+		}
+		
+		function getfile()
+		{
+			$('#loader').html("<img src='vehicle/ajaxloader.gif'>");
+			var device = document.getElementById('devicelist').value;
+			var dir = document.getElementById('folderlist').value;
+			var selectedFile = document.getElementById('filelist').value;
+			var str1 = "/";
+			
+			var data = [];
+			data[0] = device;
+			data[2] = selectedFile;
+			console.log("selectedFile: " + selectedFile); 
+			selectedfile=str1.concat(selectedFile);
+			data[1] = str1.concat(dir.concat(selectedfile));
+			
+			console.log("file:" + data[1]);
+			
+			bluetoothService.transferfile(data,function (){
+		document.getElementById("loader").innerHTML = "";
+	}); 
+		}
+		
+		function playfile()
+		{
+		  var selectedFile = document.getElementById('filelist').value;
+		  console.log("selectedFile:" + selectedFile);
+		 // var str1 = "http://106.1.9.17:8000/";
+		 var str1 = "http://"+ window.location.hostname+"/";
+		  //window.location = str1.concat(selectedFile);
+		  
+		  newwindow = window.open(str1.concat(selectedFile),'name','height=400,width=300');
+		  if (window.focus) {newwindow.focus()}
+		  
+        }
+
+      function connectWebinos(){
+	webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/manager/discovery/bluetooth'), {onFound: function (service) {
+		 alert("done");
+	    	 bluetoothService = service;
+	    }});
+      }
+		
+	</script>
+	
+</html>
+
+

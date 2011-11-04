@@ -455,7 +455,8 @@ if (typeof exports !== 'undefined'){
 				'./UserProfile/Server/UserProfileServer.js',
 				'./tv/provider/webinos.rpc.tv.js',
 				'./../Manager/Context/Interception/contextInterception.js',
-				'./rpc_contacts.js'
+				'./rpc_contacts.js',
+			'./bluetooth_module/bluetooth.rpc.server.js'
 	               ];
 	
 	for (var i = 0; i <modules.length; i++){
