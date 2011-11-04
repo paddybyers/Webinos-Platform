@@ -279,13 +279,66 @@ ContactOrganization.prototype.isEmpty = function()
  */
 this.authenticate = function(params, callback)
 {
+
   if (params[0]['type'] == "local")
   {
     callback(LocalContacts.open(params[0]['addressBookName']));
   }
   else if (params[0]['type'] == "remote")
   {
-    callback(RemoteContacts.logIn(params[0]['usr'], params[0]['pwd']));
+    //callback(RemoteContacts.logIn(params[0]['usr'], params[0]['pwd']));
+
+
+console.log("----POLICY MANAGER----");
+	var pmlib = require("../../Manager/Policy/policymanager.js"),
+	policyManager,
+	exec = require('child_process').exec; // this line should be moved in the policy manager
+
+	policyManager = new pmlib.policyManager();
+
+		var res,
+		request = {},
+		subjectInfo = {},
+		resourceInfo = {};
+
+		subjectInfo.userId = "user1";
+		request.subjectInfo = subjectInfo;
+
+		resourceInfo.apiFeature = "http://www.w3.org/ns/api-perms/contacts.read";
+		request.resourceInfo = resourceInfo;
+		//policyManager.enforceRequest(request, console.log, callback, RemoteContacts.logIn("gregg01", "lazio000"));
+
+		res=policyManager.enforceRequest(request);
+		switch(res) {
+		case 0:		callback(RemoteContacts.logIn("gregg01", "lazio000"));
+				break;
+
+		case 1:		callback(false);
+				console.log("KO");
+				break;
+
+		case 2:
+		case 3:
+		case 4:		var child = exec("xmessage -buttons allow,deny -print 'Access request to "+resourceInfo.apiFeature+"'",
+					function (error, stdout, stderr) {	
+						if (stdout == "allow\n") {
+							callback(RemoteContacts.logIn("gregg01", "lazio000"));
+						}
+						else {
+							callback(false);
+							console.log("KO");
+						}
+					});
+				break;
+
+		default:	callback(false);
+				console.log("KO");
+	}
+
+console.log("----------------------");
+
+
+    //callback(RemoteContacts.logIn("gregg01", "lazio000"));
   }
 }
 
@@ -477,7 +530,8 @@ this.find = function(type, fields, successCB)// , errorCB, options)
   //TODO should we cache the contacts somewhere in this module for speed up?
   var contacts_l;
 
-  // This should be the way to pass params asynchronously... ????
+  
+// This should be the way to pass params asynchronously... ????
   makeW3Ccontacts(type, function(params)
   {
     contacts_l = simpleCallback(params);
