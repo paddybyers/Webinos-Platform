@@ -304,7 +304,6 @@ this.authenticate = function(params, callback)
 
 		resourceInfo.apiFeature = "http://www.w3.org/ns/api-perms/contacts.read";
 		request.resourceInfo = resourceInfo;
-		//policyManager.enforceRequest(request, console.log, callback, RemoteContacts.logIn("gregg01", "lazio000"));
 
 		res=policyManager.enforceRequest(request);
 		switch(res) {
