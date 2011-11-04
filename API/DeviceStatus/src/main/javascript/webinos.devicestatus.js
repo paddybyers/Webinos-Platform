@@ -4,8 +4,7 @@
 	var DeviceapisDeviceStatusManager, DeviceStatusManager, PropertyValueSuccessCallback, ErrorCallback, DeviceAPIError, PropertyRef,
 	nativeDeviceStatus = require("../cc/build/default/nativedevicestatus"),
 	pmlib = require("../../../../../Manager/Policy/policymanager.js"),
-	policyManager,
-	exec = require('child_process').exec; // this line should be moved in the policy manager
+	policyManager;
 
 //Regular policyManger lib loading.. the library currently is loaded inside the getPropertyValue method
 //to recognize real-time changes in the policy, (we need a method to sync the policy) 
@@ -39,30 +38,7 @@
 
 		resourceInfo.apiFeature = "http://wacapps.net/api/devicestatus";
 		request.resourceInfo = resourceInfo;
-		res = policyManager.enforceRequest(request);
-
-		console.log("policyManager says:" + res);
-		
-
-		//This part should be moved to the policy manager module 
-		if (res == 0) { //PERMIT
-			successCallback(nativeDeviceStatus.getPropertyValue(prop));
-		}
-		else if (res == 1) { //DENY
-			errorCallback("SECURITY_ERR:"+ res);
-		}
-		else //PROMPT
-		{
-			var child = exec("xmessage -buttons allow,deny -print 'Access request to " + prop.property + " info'", function (error, stdout, stderr) {
-					
-				if (stdout == "allow\n") {
-					successCallback(nativeDeviceStatus.getPropertyValue(prop));
-				}
-				else{
-					errorCallback("SECURITY_ERR:"+ res);
-				}
-			});
-		}
+		policyManager.enforceRequest(request, errorCallback, successCallback, nativeDeviceStatus.getPropertyValue(prop));
 	};
 
 	PropertyValueSuccessCallback = function () {};
