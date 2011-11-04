@@ -28,12 +28,13 @@ function pzh() {
 	this.config = {};
 	this.connected_pzh = [];
 	this.connected_pzp = [];
+	this.writeStatus = true;
 };
 
 /* PZH generates self event to enable message flow between different functions. 
  * This has been done to enable call flow between components
  */
-pzh.prototype = new process.EventEmitter();
+//pzh.prototype = new process.EventEmitter();
 
 /*
  * This function is registered with message handler to send message towards rpc. 
@@ -55,10 +56,10 @@ pzh.prototype.sendMessage = function(message, address) {
 	+ address + ' Message ' + JSON.stringify(message));
 	if (self.connected_pzh[address]) {
 		webinos.session.common.debug('PZH ('+self.sessionId+') Connected PZH ');
-		self.connected_pzh[address].write(JSON.stringify(message));
-	} else if (self.connected_pzp[address]) {
+		self.writeStatus = self.connected_pzh[address].write(JSON.stringify(message));
+	} else if (self.connected_pzp[address] && self.writeStatus) {
 		webinos.session.common.debug('PZH ('+self.sessionId+') Connected PZP ');
-		self.connected_pzp[address].socket.write(JSON.stringify(message));
+		self.writeStatus = self.connected_pzp[address].socket.write(JSON.stringify(message));
 	} else {
 		webinos.session.common.debug("PZH: Client " + address + " is not connected");
 	}
@@ -136,6 +137,7 @@ pzh.prototype.connect = function () {
 		* Connected_client list is sent to connected PZP. Message sent is with payload 
 		* of form {status:'Auth', message:self.connected_client} and type as prop.
  		*/
+		//conn.setNoDelay(true);	
 		if(conn.authorized) {
 			webinos.session.common.debug("PZH: Client Authenticated ");
 
@@ -320,10 +322,13 @@ pzh.prototype.connect = function () {
 				webinos.message.setObject(self);
 				if(payload !== null) 
 					parse.payload = payload;
-				webinos.message.onMessageReceived(JSON.stringify(parse));
+				webinos.message.onMessageReceived(parse);
 			}
 		});
-
+		
+		conn.on('drain', function() {
+			self.writeStatus = true;
+		});
 		conn.on('end', function() {
 			webinos.session.common.debug('PZH ('+self.sessionId+') server connection end');
 		});		
@@ -512,7 +517,7 @@ pzh.prototype.connectOtherPZH = function(server, port) {
 				conn_pzh.write(JSON.stringify(msg));
 
 			} else {
-				webinos.message.onMessageReceived(JSON.stringify(parse));
+				webinos.message.onMessageReceived(parse);
 			}
 				
 		});

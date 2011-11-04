@@ -107,13 +107,13 @@ function logObj(obj, name){
 function write(rpc, respto, msgid){
 
 	    //create response message
-	    var options = {};
+    	var options = {};
         options.to = respto;
         options.resp_to = respto;
         options.id = msgid;
-		console.log("MESSAGE WRITE");
-		console.log(rpc);
-	    options.payload = JSON.stringify(rpc);
+	console.log("MESSAGE WRITE");
+	console.log(rpc);
+    options.payload = rpc;
 	    
 	    message = webinos.message.createMessage(options);
 
@@ -170,8 +170,8 @@ function write(rpc, respto, msgid){
 rpc.setWriter(write);
 
 webinos.message.onMessageReceived = function(message, sessionid){
- 
-  message = JSON.parse(message);
+  if(typeof message === "string")
+  	message = JSON.parse(message);
   console.log(message.payload);
 	//if(typeof message.payload === "object")
 	//	message.payload = JSON.stringify(message.payload);
@@ -289,10 +289,7 @@ webinos.message.onMessageReceived = function(message, sessionid){
           if(messageCallbacks[message.id])
           {
             console.log(message);
-			message.payload = JSON.parse(message.payload);
-			if(typeof message.payload === "string") {
-				message.payload = JSON.parse(message.payload);
-			}
+			message.payload = message.payload;
 			//debugger;
 			if(typeof message.payload.method !== "undefined")
             {

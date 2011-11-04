@@ -1,33 +1,23 @@
 <html>
 <head>
 <title>webinos rpc</title>
-	<script type="text/javascript" src="/client/async.min.js"></script>
-	<script type="text/javascript" src="/webinos.utils.js"></script>
 	<script type="text/javascript" src="/rpc.js"></script>
 	<script type="text/javascript" src="/client/webinos.js"></script>
-	<script type="text/javascript" src="/client/webinos.file.js"></script>
 	<script type="text/javascript" src="/client/jsrender.js"></script>
 	<script type="text/javascript" src="/messaging.js"></script>
 	<script type="text/javascript" src="/client/get42.js"></script>
-	<script type="text/javascript" src="/client/contacts/contacts.js"></script>
 	<link rel="stylesheet" type="text/css" href="/client/jquery-ui-1.8.16.custom.css"/>
 	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
 	<script type="text/javascript" src="/client/jquery.js"></script>
 	<script type="text/javascript" src="/client/jquery-ui.js"></script>
 	<script type="text/javascript" src="/client/dojo.js"></script>
 	<script type="text/javascript">
-      	    var contacts = null;
-      	    var geoLocationService = null;
-			var watchId = null;
             $(document).ready(function() {
 		            $("#tabs").tabs();
-		          
-
-            		var reader = null;
+		        	var reader = null;
             	    var fileSaver = null;
             	    var fileWriter = null;
-            	    var test = [];
-		
+            	    var test = [];		
             	    
             	    $('#startPZH').bind('click', function() {
 						var config = 'country='+ document.getElementById('country').value + '\n' +
@@ -66,7 +56,7 @@
 						webinos.message_send(null, options, null, null);
 
 						
-                    });                   
+                    });            
 		  
 				   $('#otherPZH').bind('click', function() {
 						var payload = {status: 'otherPZH', 
@@ -75,44 +65,21 @@
 						var options = {type: 'prop', payload: payload};
 						webinos.send(null, options, null, null);
                     });
+                    
                     $('#findService').bind('click', function() {
                     	var address = $('#pzh_pzp_list').val();
                     	if (address === "null" || address === "undefined") {
                     		alert("Select from list which you node you want to  connect");
                     	} else {
-						webinos.ServiceDiscovery.findServices(address, 
-							new ServiceType('http://www.w3.org/ns/api-perms/file.read'), 
-							{onFound: function (service) {
-								reader = service;
-								webinos.ServiceDiscovery.findServices(address, 
-									new ServiceType('http://www.w3.org/ns/api-perms/file.save'), 
-									{onFound: function (service) {
-										fileSaver = service;
-										 webinos.ServiceDiscovery.findServices(address, 
-										 	new ServiceType('http://www.w3.org/ns/api-perms/file.write'), 
-											{onFound: function (service) {
-												fileWriter = service;
-												webinos.ServiceDiscovery.findServices(address,
-													 new ServiceType('http://www.w3.org/ns/api-perms/contacts'), 
-													{onFound: function (service) {
-													   contacts = service;
-													   document.getElementById('html_contacts').innerHTML = 
-						"<i><b>Contacts</b></i> webinos rpc service found!<br>Please select contacts type, fill the text areas then press <i>Authenticate</i> button above.";				
-														webinos.ServiceDiscovery.findServices(address, 
-															new ServiceType('http://webinos.org/api/test'), 
-															{onFound: function (service) {
-															test.push(service);															
-														}});
-												}});
-									
-										}});
-					
+							webinos.ServiceDiscovery.findServices(address, 
+								new ServiceType('http://webinos.org/api/test'), 
+								{onFound: function (service) {
+									test.push(service);															
 								}});
-						}});
-}
-});
+						}
+					});
                     
-                      $('#get42').bind('click', function() {
+                     $('#get42').bind('click', function() {
 						  	                     	
 	                      for (var i=0; i<test.length; i++) {
 	                    	test[i].get42(function (result){
@@ -124,351 +91,13 @@
                     }); 
                      
 					
-                    $('#echo').bind('click', function() {
-                    	for (var i=0; i<test.length; i++) {
-	                    	test[i].echoAttr.echo(document.getElementById("fileContent").value, function (result){
-	                    		alert(result);
-	                    	});
-                    	}
-                    }); 
-                    
-                    $('#cls').bind('click', function() {
-                    	document.getElementById("messages").innerHTML = "";
-                    	document.getElementById("fileContent").value = "";
-                    }); 
-                    
-                    $('#getFileContent').bind('click', function() {
-                       reader.bind(function () {
-                       //var reader = new webinos.WebinosFileReader();
-                       		reader.readAsText($('#messageText').val());
-                       		reader.onload = function (result) {
-                       			reader.unbind();
-            	    			//$('#messages').append('<li>Result: ' + result + '</li>');
-                       			document.getElementById("fileContent").value = result;
-                       			$('#messages').append('<li>Got Reader Result (see box)</li>');
-            	    		};
-                       		reader.onerror = function (error) {
-                       			reader.unbind();
-               	    			$('#messages').append('<li>Result: Error Code: ' +  error + '</li>');
-            	    		};
-            	    	
-                       });
-            	    	
-            	    	$('#messages').append('<li> Requesting file Read</li>');
-                    }); 
-                    
-                    
-                    $('#fileSaver').bind('click', function() {
-                       fileSaver.bind(function () {
-                    	   
-                    	   webinos.ServiceDiscovery.findServices(webinos.findServiceBindAddress(),
-                    	   	"BlobBuilder", {onFound: function (service) {
-                    	   
-                    	   var fileName = $('#messageText').val();
-                    	   
-                    	   service.append(document.getElementById("fileContent").value);
-                    	   var tmp = fileSaver.saveAs(service.getBlob(),fileName);
-                    	   service.append(" Arbritrary appendix to given text.");
-                    	   //var tmp2 = fileSaver.saveAs(service.getBlob(),fileName + "2");
-                    	   
-                    	   tmp.onwriteend = function () {
-                    		   $('#messages').append('<li> Writing done.</li>'); 
-                    	   };
-                    	   /*
-                    	   tmp2.onwriteend = function () {
-                    		   $('#messages').append('<li> Writing done 2.</li>'); 
-                    	   };*/
-                    	   
-                    	   tmp.onwritestart = function () {
-                    		   $('#messages').append('<li> Write started.</li>');
-                    	   };
-                    	   
-                    	   tmp.onwrite = function () {
-                    		   $('#messages').append('<li> Writing...</li>');
-                    	   };
-                    	   
-                    	   tmp.onerror = function (error) {
-                    		   $('#messages').append('<li> Writing error! Code: ' + error.code + '</li>');
-                    	   };
-                    	   
-                    	   $('#messages').append('<li> Accessing FileSaver Constants (INIT, WRITING, DONE, readyState): '
-                    			   + tmp.INIT + ' '
-                    			   + tmp.WRITING + ' '
-                    			   + tmp.DONE + ' '
-                    			   + tmp.readyState + ' '
-                    			   + '</li>'); 
-                    	   }});
-                       });
-                    });
-                    
-                    $('#fileWriter').bind('click', function() {
-                    	fileWriter.bind(function () {
-                     	   
-                      	    webinos.ServiceDiscovery.findServices(webinos.findServiceBindAddress(),
-                      	    	"BlobBuilder", {onFound: function (service) {
-                    	    
-                      	      var fileName = $('#messageText').val();
-                        	   
-                      	    service.append(document.getElementById("fileContent").value);
-                        	   var tmp = fileWriter.writeAs(fileName);
-                        	   
-                        	   tmp.onwriteend = function () {
-                        		   $('#messages').append('<li> Writing done.</li>'); 
-                        	   };
-                        	   
-                        	   tmp.onwritestart = function () {
-                        		   $('#messages').append('<li> Writing started.</li>');
-                        	   };
-                        	   
-                        	   tmp.onwrite = function () {
-                        		   $('#messages').append('<li> Writing...</li>');
-                        	   };
-                        	   
-                        	   tmp.onerror = function (error) {
-                        		   $('#messages').append('<li> Writing error! Code: ' + error.code + '</li>');
-                        	   };
-                        	   
-                        	   $('#messages').append('<li> Accessing FileWriter Constants (INIT, WRITING, DONE, readyState): '
-                        			   + tmp.INIT + ' '
-                        			   + tmp.WRITING + ' '
-                        			   + tmp.DONE + ' '
-                        			   + tmp.readyState + ' '
-                        			   + '</li>'); 
-                         	   
-                        	   tmp.write(service.getBlob());
-                    	    }});
-                        });
-                     }); 
-                    
-                    $('#fileWriterTruncate').bind('click', function() {
-                    	fileWriter.bind(function () {
-                     	   
-                      	    webinos.ServiceDiscovery.findServices(webinos.findServiceBindAddress(),
-                      	    	"BlobBuilder", {onFound: function (service) {
-                    	    
-                      	      var fileName = $('#messageText').val();
-                        	   
-                      	    service.append(document.getElementById("fileContent").value);
-                        	  
-                      	    var tmp = fileWriter.writeAs(fileName);
-                        	   
-                        	   tmp.onwriteend = function () {
-                        		   $('#messages').append('<li> Truncate done.</li>'); 
-                        	   };
-                        	   
-                        	   tmp.onwritestart = function () {
-                        		   $('#messages').append('<li> Truncate started.</li>');
-                        	   };
-                        	   
-                        	   tmp.onwrite = function () {
-                        		   $('#messages').append('<li> Truncateing...</li>');
-                        	   };
-                        	   
-                        	   tmp.onerror = function (error) {
-                        		   $('#messages').append('<li> Truncate error: ' + error.target.error.name + '</li>');
-                        	   };
-                        	   
-                        	   tmp.truncate($('#truncate').val());
-                    	    }});
-                        });
-                     }); 
-                $('#btnAuthenticate').bind('click', function() {
-			  		console.log('AUTH CB' + $("input[@name='contactType']:checked").val());
-					if (contacts)
-					{
-					  parameters = {};
-					  if ($("input[@name='contactType']:checked").val() === 'remote')
-					  {
-						usr = $('#usernameText').val();
-						pwd = $('#passwordText').val();
-						parameters.usr = usr;
-						parameters.pwd = pwd;
-						parameters.type = "remote";
-
-					  }
-					  else if ($("input[@name='contactType']:checked").val() === 'local')
-					  {
-						addressBookName = $('#addressBookNameText').val();
-						parameters.addressBookName = addressBookName;
-						parameters.type = "local";
-					  }
-					  contacts.authenticate(parameters, handle_authentication_query)
-
-					}
-					else
-					{
-					  document.getElementById('html_contacts').innerHTML = "PROBLEM: Service unreachable";
-					}
-			  });
-			  
-			  $('#btnContacts').bind('click', function() {
-			 	parameters = {};
-				var result = false;
-				if (contacts)
-				{
-				  if ($("input[@name='contactType']:checked").val() == 'remote')
-				  {
-					parameters.type = "remote";
-					contacts.isAlreadyAuthenticated(parameters, function(result)
-					{
-					  contacts.getAllContacts(parameters, print_contact_list);
-					});
-				  }
-				  else if ($("input[@name='contactType']:checked").val() == 'local')
-				  {
-					parameters.type = "local";
-					contacts.isAlreadyAuthenticated(parameters, function(result)
-					{
-					  contacts.getAllContacts(parameters, print_contact_list);
-					});
-				  }
-				}
-			  });
-            
-
-			  $('#btnFindContacts').bind('click', function() {
-			  	parameters = {};
-				var result = false;
-				if (contacts)
-				{
-					parameters.fields = {};
-					if ($('#findContactName').val() != "")
-					  parameters.fields["name"] = $('#findContactName').val();
-					if ($('#findContactEmail').val() != "")
-					  parameters.fields["emails"] = $('#findContactEmail').val();
-					if ($('#findContactAddress').val() != "")
-					  parameters.fields["addresses"] = $('#findContactAddress').val();
-					if ($('#findContactPhone').val() != "")
-					  parameters.fields["phoneNumbers"] = $('#findContactPhone').val();
-					  
-				  if ($("input[@name='contactType']:checked").val() == 'remote')
-				  {
-					parameters.type = "remote";
-					//TODO set parameters.fields!!!!
-
-					contacts.isAlreadyAuthenticated(parameters, function(result)
-					{
-					  contacts.find(parameters, print_contact_list);
-					});
-				  }
-				  else if ($("input[@name='contactType']:checked").val() == 'local')
-				  {
-					parameters.type = "local";
-	
-					contacts.isAlreadyAuthenticated(parameters, function(result)
-					{
-					  contacts.find(parameters, print_contact_list);
-					});
-				  }
-				}
-			  });
-			  
-					  			    			  
-			 
+                 
 		});
-  			function handle_authentication_query(status) // see function
-			  {
-				if (status)
-				{
-				  if ($("input[@name='contactType']:checked").val() == 'remote')
-					document.getElementById('authStatus').innerHTML = "<font color='#00CC00'>" + "Logged in GMail" + "</font>";
-				  else if ($("input[@name='contactType']:checked").val() == 'local')
-					document.getElementById('authStatus').innerHTML = "<font color='#AACC00'>" + "Thunderbird Address Book Open"
-					  + "</font>";
-				}
-				else
-				  document.getElementById('authStatus').innerHTML = "<font color='#FF0000'><b><u>" + "CANNOT" + "</u>"
-					+ "Authenticate: check GMail username and password or address book file name" + "</b></font>";
-			  };
-
-			  // Print a contact list to HTML document
-			  function print_contact_list(list)
-			  {
-				//alert("contact list size " + list.length)
-				//clean then write
-				document.getElementById('contactList').innerHTML = "";
-				if (list.length > 0)
-				{
-				  for ( var i = 0; i < list.length; i++)
-				  {
-					//        console.log(list[i]);
-					var contactString = (list[i].displayName == "" ? "<b>Anonymous</b></br>" : "<b>Name: </b>" +
-					  list[i].displayName + "<br>");
-					contactString += ((list[i].nickname == undefined || list[i].nickname == "") ? "" : "<b>Nickname: </b>" +
-					  list[i].nickname + "<br>");
-
-					if ((list[i].emails instanceof Array) && list[i].emails.length > 0)
-					{
-					  contactString += "<b>Emails:</b><br>";
-					  for ( var j = 0; j < list[i].emails.length; j++)
-						contactString += "&nbsp;&nbsp;" + (list[i].emails[j].pref ? "* " : "&nbsp;&nbsp;") +
-						  list[i].emails[j].type + ": <a href=\"mailto:" + list[i].emails[j].value + "\">" +
-						  list[i].emails[j].value + "</a><br>";
-					}
-					if ((list[i].addresses instanceof Array) && list[i].addresses.length > 0)
-					{
-					  contactString += "<b>Addresses:</b><br>";
-					  for ( var j = 0; j < list[i].addresses.length; j++)
-						contactString += "&nbsp;&nbsp;" + (list[i].addresses[j].pref ? "* " : "&nbsp;&nbsp;") +
-						  (list[i].addresses[j].type == "" ? "other" : list[i].addresses[j].type) + ": " +
-						  list[i].addresses[j].formatted + "<br>";
-					}
-					if ((list[i].phoneNumbers instanceof Array) && list[i].phoneNumbers.length > 0)
-					{
-					  contactString += "<b>Phones:</b><br>";
-					  for ( var j = 0; j < list[i].phoneNumbers.length; j++)
-						contactString += "&nbsp;&nbsp;" + (list[i].phoneNumbers[j].pref ? "* " : "&nbsp;&nbsp;") +
-						  list[i].phoneNumbers[j].type + ": " + list[i].phoneNumbers[j].value + "<br>";
-					}
-					if ((list[i].ims instanceof Array) && list[i].ims.length > 0)
-					{
-					  contactString += "<b>Messengers:</b><br>";
-					  for ( var j = 0; j < list[i].ims.length; j++)
-						contactString += "&nbsp;&nbsp;" + (list[i].ims[j].pref ? "* " : "&nbsp;&nbsp;") + list[i].ims[j].type +
-						  ": " + list[i].ims[j].value + "<br>";
-					}
-					if ((list[i].organizations instanceof Array) && list[i].organizations.length > 0)
-					{
-					  contactString += "<b>Organizations:</b><br>";
-					  for ( var j = 0; j < list[i].organizations.length && list[i].organizations[j].name != undefined; j++)
-						contactString += "&nbsp;&nbsp;" + (list[i].organizations[j].pref ? "* " : "&nbsp;&nbsp;") +
-						  list[i].organizations[j].type + ": " + list[i].organizations[j].name + "<br>";
-					}
-
-					if ((list[i].photos instanceof Array) && list[i].photos.length > 0)
-					{
-					  contactString += "<b>Picture:</b><br>";
-					  for ( var j = 0; j < list[i].photos.length; j++)
-					  {
-						if(list[i].photos[j].type=="file") //is base64 string
-							contactString+="<img src=\"data:image/png;base64,"+list[i].photos[j].value+"\" alt=\"Image\"><br>";
-						else if(list[i].photos[j].type=="url") //is an URL
-							contactString+="<img src=\""+list[i].photos[j].value+"\" alt=\"Image\"><br>";
-					  }
-					}
-
-					if ((list[i].urls instanceof Array) && list[i].urls.length > 0)
-					{
-					  contactString += "<b>Websites:</b><br>";
-					  for ( var j = 0; j < list[i].urls.length; j++)
-						contactString += "&nbsp;&nbsp;" + (list[i].urls[j].pref ? "* " : "&nbsp;&nbsp;") + list[i].urls[j].type +
-						  ": <a href=\"" + list[i].urls[j].value + "\">" + list[i].urls[j].value + "</a><br>";
-					}
-
-					contactString += "<br>"
-					$('#contactList').append(contactString);
-					$('#contactList').append("<br>");
-				  }
-				}
-				else
-				  $('#contactList').append("<font color='#FF0000'><b>NO CONTACTS!</b></font>");
-			  };
-	
-		
 		</script>
 	 
 </head>
 <body>
+
 
 <div id="header"> <h1><img src="testbed_logo.png"></h1> </div>
 <div class="pzh-pzp">
@@ -476,12 +105,14 @@
 	<ul>
 		<li> <a href="#pzh"> PZH </a> </li>
 		<li> <a href="#pzp"> PZP </a> </li>
-		<li> <a href="#example"> Example </a> </li>
+		<li> <a href="#get42_example"> Get42 Example </a> </li>
 		<li> <a href="#contact"> Contact </a> </li>
-		<li> <a href="#otherExamples"> OtherExample </a> </li>
-
+		<li> <a href="#geolocation"> GeoLocation </a> </li>
+		<li> <a href="#discovery"> Discovery </a> </li>
+		<li> <a href="#sensor"> Sensor </a> </li>
+		<li> <a href="#file-api"> File API </a> </li>
 	</ul>
-
+	
 	<div id = "pzh">
 		<table>
 			<p> PZH Connecting Details (If you want to start second PZH server, please change above config values) </p>
@@ -524,128 +155,39 @@
 		</table>
 	</div>
 
-	<div id = "example">
-		<table width=auto>
+	<div id = "get42_example">
+		<table>
 				<tr> <td>
 					Select from the list Available PZP & PZH to find Service
 					<select id="pzh_pzp_list"> <option> </option> </select>
-					<button id="findService" class="button">Find Service</button> </td></tr>
+					<button id="findService" class="button"> Find Service </button> </td></tr>
 					<tr> <td><p><i> Find Service will determine where your code will be executed</i></p> 
 				</td> </tr>
 				<tr> <td>
 					<button id="get42" class="button">get42PZP</button>
-				</td> </tr>
-				<tr> <td> <button id="echo"  class="button">echo</button> 
-					<button id="cls"  class="button">Clear</button> 
-				</td> </tr>	
-				 <tr> <td>
-				 		<label> Truncate </label> </td>
-				 		<td> <input type="text" id="truncate"/> </td>
-				 		<td> <button id="fileWriterTruncate"  class="button">Truncate</button> 
-			 	</td> </tr>
-				<tr> <td>
-				 		<label for="messageText">File Name</label> </td>
-				 	   <td> <input type="text" id="fileContent"/> </td>
-				       <td> <button id="getFileContent"  class="button">Get File Content</button> </td>
-				       <td> <textarea rows='8' size = 500 id="fileContent"></textarea> <
-				</td> </tr>
-				<tr> <td>
-					<button id="fileSaver" class="button">Save with FileSaver</button>
-					<button id="fileWriter" class="button">Save with FileWriter</button>
-				 </td> </tr>
-			     <tr> <td>
-		     		<ul id="messages">
-				 	<p id="cwd"></p>
-					<ul id="ls"></ul>
-				 </td> </tr>
+				</td> </tr>				
 		</table>
-	</div>	
+	</div>
 	 
 	<div id = "contact">
-		<table border="1" style="height: 100%; width: 100%;">
-		<tr valign="top">
-		  <td width="50%">
-		    <div>
-		      <div>
-		        <p>
-		          <input type="radio" name="contactType" value="remote"
-		            id="cnt_remote" checked="checked"">Remote
-		          Contacts (GMail) </input> <br> <input type="radio"
-		            name="contactType" value="local" id="cnt_local"">Local
-		          Contacts (Thunderbird) </input> <br> 
-
-	<!--	     <label for="addressBookNameText">Local Address Book: </label>-->
-		          <!-- We'd better put an "open file" form -->
-	<!--              <input type="text" id="addressBookNameText" size="40"
-		            placeholder="<path_to_your_Thunderbird_.mab file>" />
-
-		          <!-- But it uses C:\fakepath :( ==> no way to get full path <input type="file" id="getAddressBook" accept=".mab">-->
-	<!--		         <br> <label for="usernameText">Username: </label> <input
-		            type="text" id="usernameText"
-		            placeholder="enter username" /> <br> <label
-		            for="passwordText">Password: </label> <input
-		            type="password" id="passwordText"
-		            placeholder="enter password" /> <br>              -->
-		        </p>
-		      </div>
-		      <!--   <p> -->
-		      <div>
-		        <button id="btnAuthenticate"  class="button">Authenticate/Open</button>
-		        <br>
-		        <button id="btnContacts"  class="button">Get All Contacts List</button>
-		        <button id="btnFindContacts"  class="button">Find Contact!</button>
-		      </div>
-		      <div id="html_contacts">
-				<script>
-		            document.write("NO SERVICE");
-		        </script>
-		     </div>
-		      <div id="authStatus">
-		        <script>
-		          document.write("NOT YET AUTHENTICATED");
-		         </script>
-		      </div>		   
-		  </td>
-		  <!--Right part of the table-->
-		  <td width="50%">	
-		    <div>
-		      <!--<p id="cwd"></p>
-		      <ul id="ls"></ul> -->
-		      <div id="find_contacts">
-		        <p>
-		          <label for="findContactName">Name: </label> <input
-		            type="text" id="findContactName" placeholder="Name" /><br>
-		          <label for="findContactEmail">Email: </label> <input
-		            type="text" id="findContactEmail"
-		            placeholder="Email Address" /><br> <label
-		            for="findContactPhone:">Phone: </label> <input
-		            type="text" id="findContactPhone" placeholder="Phone" /><br>
-		          <label for="findContactEmail">Address: </label> <input
-		            type="text" id="findContactAddress"
-		            placeholder="Address" /><br>
-		        </p>
-		      </div>
-		      <div id="contactList">
-		        <script>
-		          document.write("");
-		         </script>
-		      </div>
-		    </div>
-
-			  </td>
-			</tr>
-		  </table>
+		<embed src="contacts/contactsClient.html" width="100%" height="100%">
 	</div>
-	<div id="otherExamples">
-		<a href="/client/geolocation.html"> GeoLocation </a> <br>
-		<a href="/client/sensor.html"> Sensor </a> <br>
-		<a href="/client/discoveryUI.html"> DiscoveryUI </a> <br>
-		<a href="/client/file.html"> File </a> <br>
-		<a href="/client/file-api-demo.html"> FileAPI </a> <br>
+	<div id="geolocation">
+		<embed src="geolocation.html" width="100%" height="100%">
 	</div>
+	<div id="sensor">
+		<embed src="sensor.html"width="100%" height="100%">
+	</div>
+	<div id="discovery">
+		<embed src="discoveryUI.html" width="100%" height="100%">
+	</div>
+	<div id="file-api">
+		<embed src="file-api-demo.html" width="100%" height="100%">
+	</div>
+	
+</div>
 </div>
 
 <div id="status">STATUS: <span id="message"></span></div>
-</div>
 </body>
 </html>

@@ -82,7 +82,7 @@
 				pzhid = data.payload.pzh;
 				connected_pzp = data.payload.connected_pzp;
 				connected_pzh = data.payload.connected_pzh;
-				$("<optgroup label = 'PZP' >").appendTo("#pzh_pzp_list");
+				$("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
 				var i;
 				for(i =0; i < connected_pzp.length; i++) {
 					$("<option value=" + connected_pzp[i] + " >" +connected_pzp[i] + "</option>").appendTo("#pzh_pzp_list");					
@@ -101,8 +101,10 @@
 			} else if(data.type === "prop" && data.payload.status === "info") {
                	//document.getElementById("message").innerHTML = "";
 				$('#message').append('<li>'+data.payload.message+'</li>');				
-			}
-			else {
+			} else if(data.type === "prop" && data.payload.status === "pzp_info") {
+				$("<option value=" + data.payload.message + " >" +data.payload.message + "</option>").appendTo("#pzp_list");				
+				$('#message').append('<li> PZP just joined: '+data.payload.message+'</li>');	
+			} else {
 				webinos.message.onMessageReceived(JSON.stringify(data));
 			}
 		};

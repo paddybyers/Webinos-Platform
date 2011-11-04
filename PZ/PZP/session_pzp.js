@@ -64,7 +64,8 @@
 
 		this.client_pzp = {};
 		
-		this.instance = "null";
+		this.connAppId = null;
+		this.instance = null;
 	};
 
 	//This structure holds socket connection information of the server.
@@ -171,7 +172,7 @@
 			webinos.message.setGet(self.sessionId);
 			webinos.message.setObject(self);
 			webinos.message.setSend(webinos.session.pzp.send);
-			webinos.message.onMessageReceived(JSON.stringify(data1));
+			webinos.message.onMessageReceived(data1);
 		
 		});
 
@@ -251,7 +252,7 @@
 					webinos.message.setGet(self.sessionId);
 					webinos.message.setSend(webinos.session.pzp.send);
 					webinos.message.setObject(self);
-					webinos.message.onMessageReceived(JSON.stringify(parse));
+					webinos.message.onMessageReceived(parse);
 				}
 			
 			});
@@ -302,7 +303,7 @@
 			function(conn) {
 				webinos.session.common.debug('PZP (' + self.config.sessionId +
 					') Connection to PZH status: ' + client.authorized);
-				//client.setEncoding('base64');	
+				//client.setNoDelay(true);	
 				self.clientSocket = client;
 			});
 
@@ -407,7 +408,7 @@
 					data2.payload.status === 'PZPUpdate') {
 						webinos.session.common.debug('PZP ('+self.config.sessionId+') Update other PZP details') ;
 						msg = JSON.parse(data2.payload.message);
-						for (myKey in msg) {						
+						for (myKey in msg) {
 							if(self.sessionId !== msg[myKey].name && !self.client_pzp[msg[myKey].name]) {
 								if(!self.connected_pzp[msg[myKey].name]) {
 									self.connected_pzp[msg[myKey].name] = {'socket': '', 
@@ -417,6 +418,8 @@
 												'object': ''};			
 		
 								self.connectOtherPZP(msg[myKey]);
+								self.sendMessage({"type":"prop", "payload": {"status":"pzp_info", "message":msg[myKey].name}},
+									webinos.session.pzp.instance.connAppId);
 							}
 						}
 					}	
@@ -428,7 +431,7 @@
 				webinos.message.setGet(self.sessionId);
 				webinos.message.setObject(self);
 				webinos.message.setSend(webinos.session.pzp.send);
-				webinos.message.onMessageReceived(JSON.stringify(data2));
+				webinos.message.onMessageReceived(data2);
 			}
 			
 		});
@@ -634,11 +637,11 @@
 		
 		
 		webinos.session.pzp.connected_session = function(connection) {
-			var otherPZP = [], mykey, otherPZH = [], id;
-			id = webinos.session.pzp.instance.sessionId+ '/'+
+			var otherPZP = [], mykey, otherPZH = [];
+			webinos.session.pzp.instance.connAppId = webinos.session.pzp.instance.sessionId+ '/'+
 			webinos.session.pzp.instance.serviceSessionId;
 			webinos.session.pzp.instance.serviceSessionId += 1;
-			webinos.session.pzp.instance.connected_app[id] = connection;
+			webinos.session.pzp.instance.connected_app[webinos.session.pzp.instance.connAppId] = connection;
 
 			for(mykey in webinos.session.pzp.instance.connected_pzp) {
 				otherPZP.push(webinos.session.pzp.instance.connected_pzp[mykey].name);
@@ -650,7 +653,7 @@
 	
 			var options = {'type': 'prop', 
 				'from': webinos.session.pzp.instance.sessionId, 
-				'to': id,
+				'to': webinos.session.pzp.instance.connAppId,
 				'payload': {'status': 'registeredBrowser' , 
 					'pzh': webinos.session.pzp.instance.serverName,
 					'connected_pzp': otherPZP,
@@ -722,13 +725,15 @@
 					//fs.writeFile(msg.payload.config.configfile, msg.payload.config.value);
 					pzh.connectOtherPZH(msg.payload.servername, msg.payload.serverport);
 					// Instantiate and connect to other PZH server
+				} else if(msg.type === 'prop' && msg.payload.status === 'pzp_info') {
+						connection.sendUTF(JSON.stringify(msg));
 				} else {
-					if( webinos.session.pzp !== "undefined" && 
-						webinos.session.pzp !== "null") {
+					if( typeof webinos.session.pzp !== "undefined" && 
+						webinos.session.pzp !== null) {
 						webinos.message.setGet(webinos.session.pzp.instance.sessionId);
 						webinos.message.setObject(webinos.session.pzp.instance);
 						webinos.message.setSend(webinos.session.pzp.send);
-						webinos.message.onMessageReceived(JSON.stringify(msg), msg.to);
+						webinos.message.onMessageReceived(msg, msg.to);
 					}
 				}
 			});
