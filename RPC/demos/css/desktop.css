@@ -202,6 +202,18 @@
     background-image: url(../images/Android-Setting-48.png);
 }
 
+.tv-service{
+  background-image: url(../images/TV-48.png)!
+}
+.tv-icon{
+  background-image: url(../images/TV-small.png)!important; 
+}
+.remote-control{
+  background-image: url(../images/RemoteControl-48.png)
+}
+.remote-control-icon{
+  background-image: url(../images/RemoteControl-small.png)!important; 
+}
 .android-contacts{
   background-image: url(../images/Android-Contacts-48.png);
 }

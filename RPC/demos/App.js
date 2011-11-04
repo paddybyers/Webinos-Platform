@@ -33,7 +33,8 @@ Ext.define('WebDemo.App', {
                 model: 'Ext.ux.desktop.ShortcutModel',
                 data: [
 		   { name: 'Webinos Services', iconCls: 'webinos-services', module: 'win-services' },
-		   { name: 'Google Contacts', iconCls: 'android-contacts', module: 'win-contacts' }
+		   { name: 'Google Contacts', iconCls: 'android-contacts', module: 'win-contacts' },
+		   { name: 'TV Remote', iconCls: 'remote-control', module: 'win-tv-remote' }
                 ]
             }),
 
