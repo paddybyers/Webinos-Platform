@@ -288,8 +288,6 @@ this.authenticate = function(params, callback)
   {
     //callback(RemoteContacts.logIn(params[0]['usr'], params[0]['pwd']));
 
-
-console.log("----POLICY MANAGER----");
 	var pmlib = require("../../Manager/Policy/policymanager.js"),
 	policyManager,
 	exec = require('child_process').exec; // this line should be moved in the policy manager
@@ -310,7 +308,7 @@ console.log("----POLICY MANAGER----");
 
 		res=policyManager.enforceRequest(request);
 		switch(res) {
-		case 0:		callback(RemoteContacts.logIn("gregg01", "lazio000"));
+		case 0:		callback(RemoteContacts.logIn(params[0]['usr'], params[0]['pwd']));
 				break;
 
 		case 1:		callback(false);
@@ -322,7 +320,7 @@ console.log("----POLICY MANAGER----");
 		case 4:		var child = exec("xmessage -buttons allow,deny -print 'Access request to "+resourceInfo.apiFeature+"'",
 					function (error, stdout, stderr) {	
 						if (stdout == "allow\n") {
-							callback(RemoteContacts.logIn("gregg01", "lazio000"));
+							callback(RemoteContacts.logIn(params[0]['usr'], params[0]['pwd']));
 						}
 						else {
 							callback(false);
@@ -334,11 +332,6 @@ console.log("----POLICY MANAGER----");
 		default:	callback(false);
 				console.log("KO");
 	}
-
-console.log("----------------------");
-
-
-    //callback(RemoteContacts.logIn("gregg01", "lazio000"));
   }
 }
 
