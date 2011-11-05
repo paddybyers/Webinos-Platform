@@ -457,8 +457,7 @@ if (typeof exports !== 'undefined'){
 				'./../Manager/Context/Interception/contextInterception.js',
 				'./rpc_contacts.js',
 				'./Context/webinos.rpc.context.js'
-				'./rpc_contacts.js',
-			'./bluetooth_module/bluetooth.rpc.server.js'
+  			    './bluetooth_module/bluetooth.rpc.server.js'
 	               ];
 	
 	for (var i = 0; i <modules.length; i++){

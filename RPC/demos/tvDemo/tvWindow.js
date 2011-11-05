@@ -14,7 +14,7 @@ Ext.define('WebDemo.TVWindow', {
     init : function(){
         this.launcher = {
             text: 'TV Window',
-            iconCls:'video',
+            iconCls:'tv-icon',
             handler : this.createWindow,
             scope: this
         }

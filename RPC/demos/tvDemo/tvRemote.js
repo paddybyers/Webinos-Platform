@@ -5,7 +5,7 @@ Ext.define('WebDemo.TVRemote', {
     init: function () {
         this.launcher = {
             text: 'TV Remote',
-            iconCls: 'tv-remote-small',
+            iconCls: 'remote-control-icon',
             handler: this.createWindow,
             scope: this
         };
@@ -66,7 +66,8 @@ Ext.define('WebDemo.TVRemote', {
 			},
 			height: 300,
 			autoScroll: true,
-			title: 'Available Channels'
+			title: 'Available Channels',
+			items: Abot.TV.availableChannels
 		    }
 		]
             });

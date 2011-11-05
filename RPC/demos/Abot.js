@@ -148,9 +148,11 @@ Abot.TV = {
 	  Abot.TV.tvService.tuner.getTVSources(/*TVSuccessCB*/ Abot.TV.updateAvailableChannels, /*optional TVErrorCB*/ Abot.TV.errorRetrivingChannels);
 	}
       },
+      availableChannels: [],
       updateAvailableChannels: function(sources){
 	//clear channels
 	Ext.getCmp("pnlAvailableChannels").items.clear();
+	Abot.TV.availableChannels = [];
 	Ext.each(sources, function(source, index) {
 	    var fieldsetToAdd =  {
                     xtype: 'fieldset',
@@ -175,6 +177,7 @@ Abot.TV = {
                         });
 	    });
 	   Ext.getCmp("pnlAvailableChannels").items.add(new Ext.form.FieldSet(fieldsetToAdd));
+	   Abot.TV.availableChannels.push(fieldsetToAdd);
 	});
 	Ext.getCmp("pnlAvailableChannels").doLayout();
       },
