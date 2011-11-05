@@ -17,6 +17,7 @@
             	    var fileWriter = null;
             	    var test = [];
             	    var geoLocationService = null;
+            	    var context = null;
             	    
                     $('#findService').bind('click', function() {
                 	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/file.read'), {onFound: function (service) {
@@ -31,6 +32,13 @@
                 	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/test'), {onFound: function (service) {
                 	    	test.push(service);
                 	    }});
+                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), {onFound: function (service) {
+                	    	context = service;
+                	    }});
+                    });
+                    
+                    $('#contextTest').bind('click',function(){
+                    	context.find('lala',function(result){document.getElementById("fileContent").value =result;})
                     });
                     
                     $('#get42').bind('click', function() {
@@ -288,6 +296,7 @@
 		    	<button id="fileSaver">Save with FileSaver</button>
 		    	<button id="fileWriter">Save with FileWriter</button>
 		    	<button id="fileWriterTruncate">Truncate</button>
+		    	<button id="contextTest">Context test</button>
 		     	<input type="text" id="truncate" />
 			</p>
 			<p>
