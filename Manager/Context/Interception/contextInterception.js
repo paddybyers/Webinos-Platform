@@ -83,10 +83,6 @@ webinos.context.logContext = function(myObj, res) {
         Fs.mkdirSync(pathclass.dirname(dbpath) + "/temp", 0755);
         console.log("Secure Context Data Saved");
 
-
-
-
-
       });
     });
   }
@@ -144,15 +140,22 @@ webinos.context.find = function(findwhat, success,fail){
 
 
     // where = {join: "and", terms: [{field: "api", compares: "equals", value: "http://webinos.org/api/test"},{field: "method", compares: "equals", value: "get42"}]};
-    var where = {field: "api", compare: "equals", value: "http://webinos.org/api/test"};
+    var where = {field: "method", compare: "equals", value: "setChannel"};
 
-    var fields = {hash: true,method: true};
+    var fields = {params: true};
     var query = {where: where, fields: fields};
 
     var results =  webinos.context.database.query(query);
     
     console.log(results);
-    success(results);
+    var output ={};
+    results.forEach(function(element, index, array){
+      console.log(element);
+      if (output[element.params[0].name] == null) output[element.params[0].name] = 1;
+      else output[element.params[0].name] +=1;
+    });
+    console.log(output);
+    success(output);
     console.log("closing up")
     securestore.close(pass, dbpath + ".zip", pathclass
         .dirname(dbpath)
@@ -163,16 +166,8 @@ webinos.context.find = function(findwhat, success,fail){
       console.log("Secure Context Data Saved");
 
 
-
-
     });
   });
-
-
-
-
-
-
 
 };
 
