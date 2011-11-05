@@ -52,30 +52,24 @@ pzh.prototype.sendMessage = function(message, address) {
 	
 	webinos.session.common.debug('PZH ('+self.sessionId+') SendMessage to address ' 
 	+ address ); //+ ' Message ' + JSON.stringify(message));
+	debugger;
 	if (self.connected_pzh[address]) {
 		webinos.session.common.debug('PZH ('+self.sessionId+') Connected PZH ');
 		self.writeStatus = self.connected_pzh[address].write(JSON.stringify(message));
 	} else if (self.connected_pzp[address] && self.writeStatus) {
 		webinos.session.common.debug('PZH ('+self.sessionId+') Connected PZP ');
-		debugger;
 		if(JSON.stringify(message).length < 5000) {
-			var msg, buf = new Buffer(JSON.stringify(message).length);
-			buf.write(JSON.stringify(message), 0, JSON.stringify(message).length);
-			self.writeStatus = self.connected_pzp[address].socket.write('0#'+JSON.stringify(message).length+'#'+buf);
+			var buf = new Buffer('0#'+JSON.stringify(message).length+'#'+JSON.stringify(message));
+			self.writeStatus = self.connected_pzp[address].socket.write(buf);
 		} else {
-			debugger;
-			console.log('PZH: Greater than 65535');
-			var i, msg;
-			for(i = 0 ; i < JSON.stringify(message).length; i += 30000) {
-				if((JSON.stringify(message).length - i) < 30000) {
-					var buf = new Buffer(JSON.stringify(message).length - i);
-					buf.write(JSON.stringify(message), i, (JSON.stringify(message).length - i));
-					self.writeStatus = self.connected_pzp[address].socket.write('0#'+(JSON.stringify(message).length - i)+'#'+buf);
+			console.log('PZH: Greater than 5000');
+			for(var i = 0 ; i < JSON.stringify(message).length; i += 5000) {
+				if((JSON.stringify(message).length - i) < 5000) {
+					var buf = new Buffer('0#'+(JSON.stringify(message).length-i)+'#'+JSON.stringify(message).substr(i,JSON.stringify(message).length));
+					self.writeStatus = self.connected_pzp[address].socket.write(buf);
 				} else {
-					var buf = new Buffer(30000);
-					console.log(i);
-					buf.write(JSON.stringify(message).substr(i, 30000), i, 30000);
-					self.writeStatus = self.connected_pzp[address].socket.write('1#30000#'+buf);
+					var buf = new Buffer('1#5000#'+JSON.stringify(message).substr(i,5000));
+					self.writeStatus = self.connected_pzp[address].socket.write(buf);
 				}
 			}
 		}
@@ -156,8 +150,7 @@ pzh.prototype.connect = function () {
 		* Connected_client list is sent to connected PZP. Message sent is with payload 
 		* of form {status:'Auth', message:self.connected_client} and type as prop.
  		*/
-		conn.setNoDelay(true);
-		conn.socket.bufferSize = 65535;
+	
 		if(conn.authorized) {
 			webinos.session.common.debug("PZH: Client Authenticated ");
 
@@ -194,7 +187,7 @@ pzh.prototype.connect = function () {
 							'payload': {'status':'Auth', 'message': otherPZH} };
 				self.sendMessage(msg1, msg1.to);
 				var msg = webinos.message.registerSender(self.sessionId, data[0]);
-				webinos.session.pzh.sendMessage(msg, data[0]);
+				self.sendMessage(msg, data[0]);
 
 				msg = {'type': 'prop', 
 						'from':  self.sessionId, 
@@ -204,7 +197,7 @@ pzh.prototype.connect = function () {
 					webinos.session.common.debug("PZH: PZHUpdate ["+ myKey +"] = "+
 						self.connected_pzh[myKey]);
 					if(data[0] !== myKey) {
-						self.connected_pzh[myKey].write('#'+JSON.stringify(msg));;
+						self.sendMessage(msg, myKey);
 					}
 				}
 			} else {
@@ -236,7 +229,9 @@ pzh.prototype.connect = function () {
 				'payload': {'status':'NotAuth'}};
 			webinos.session.common.debug("PZH: Not Auth Message Sent " + msg.to);
 			// This is special case as client is not listed in the connected_pzp list	
-			conn.write('#'+JSON.stringify(msg)); 
+			msg = JSON.stringify(msg);			
+			var buf = new Buffer('0#'+msg.length+'#'+msg);
+			conn.write(buf); 
 		}
 		
 		conn.on('connection', function() {
@@ -250,23 +245,18 @@ pzh.prototype.connect = function () {
 			
 			try {
 				conn.pause();
-				
-				var multiMsg = data.toString('utf8').split('#');
-				if(multiMsg.length > 1) {
-					for(var i=0; i < multiMsg.length; i++) {
-						if(multiMsg[i].length > 0) {
-							conn.emit('data', multiMsg[i]);
-							return;
-						}
+				debugger;
+				var nextData = '', data1, msg = data.toString('utf8').split('#');
+				if( msg[0]==='0' ) {
+					data1 = msg[2].substr(0, msg[1]);
+					if(msg[2].length > msg[1]) {
+						nextData = msg[2].substr(msg[1], msg[2].length);
 					}
-				} else {
-					data = multiMsg[0];
-				}
-				
-				
-				parse = JSON.parse(data);
-				
-				
+				} else 
+					return;
+
+				parse = JSON.parse(data1);
+			
 				if(typeof parse.payload !== "undefined")
 					payload = parse.payload;
 			    process.nextTick(function () {
@@ -314,7 +304,9 @@ pzh.prototype.connect = function () {
 												(fs.readFileSync(self.config.clientcert).toString()), 
 												'signingCert':signingcert}
 											};
-										conn.write('#'+JSON.stringify(msg));
+										console.log("PZH: Client cert Message sent");
+										var buf = new Buffer('0#'+JSON.stringify(msg).length+'#'+JSON.stringify(msg));
+										conn.write(buf);
 									}
 							});
 						});
@@ -338,7 +330,7 @@ pzh.prototype.connect = function () {
 							// send message to all connected PZP						
 							for (var myKey in self.connected_pzp) {
 								if(myKey !== parse.from) 
-									self.connected_pzp[myKey].socket.write('#'+JSON.stringify(msg));
+									sendMessage(myKey, msg);
 							}
 						} else {
 							webinos.session.common.debug('PZH ('+self.sessionId+') Received PZP details from entity' +
@@ -549,7 +541,8 @@ pzh.prototype.connectOtherPZH = function(server, port) {
 				// Message we are sending back that's why from is parse.to
 				var msg = webinos.message.registerSender(parse.to, parse.from);
 				self.connected_pzh[parse.from] = conn_pzh;
-				conn_pzh.write('#'+JSON.stringify(msg));
+				var buf = new Buffer('0#'+JSON.stringify(msg).length+'#'+JSON.stringify(msg));
+				conn_pzh.write(buf);
 
 			} else {
 				webinos.message.onMessageReceived(parse);

@@ -15,6 +15,7 @@
 	var sendDataStatus = true;
 	var nextData = {};
 	var data3 = '';
+	var lastMsg='';
 	webinos.session = {};
 	/* This is base object for webinos.session.pzh
 	*/
@@ -81,6 +82,7 @@
 	 */
 	Pzp.prototype.sendMessage = function (message, address) {
 		var self = this;
+		var buf = new Buffer('0#'+JSON.stringify(message).length+'#'+JSON.stringify(message));
 		if (self.connected_app[address]) { // it should be for the one of the apps connected.
 			webinos.session.common.debug("PZP (" + self.config.sessionId +
 				")  Message forwarded to connected app on websocket server ");
@@ -88,26 +90,23 @@
 		} else if (self.client_pzp[address]) {
 			webinos.session.common.debug("PZP (" + self.config.sessionId +
 				")  Sending message to Server PZP");
-			self.client_pzp[address].write('#'+JSON.stringify(message));
+			self.client_pzp[address].write(buf);
 		} else if (self.connected_pzp[address]) {
 			webinos.session.common.debug("PZP (" + self.config.sessionId +
 				")  Sending message to Client PZP ");
-			self.connected_pzp[address].socket.write('#'+JSON.stringify(message));
+			self.connected_pzp[address].socket.write(buf);
 		} else if (address === self.serverName) {
 			// This is for communicating with PZH
 			if(sendDataStatus) {
 				webinos.session.common.debug("PZP (" + self.config.sessionId +
 					")  Message Addressed to PZH ");
-				sendDataStatus = self.clientSocket.write('#'+JSON.stringify(message));
-				//self.clientSocket.socket.flush();
+				sendDataStatus = self.clientSocket.write(buf);
 			}			
-
 		} else {
 			if(sendDataStatus) {
 				webinos.session.common.debug("PZP (" + self.config.sessionId +
 					") No where to send sending to PZH ");
-				sendDataStatus = self.clientSocket.write('#'+JSON.stringify(message));
-				//self.clientSocket.socket.flush();
+				sendDataStatus = self.clientSocket.write(buf);
 			}
 		}
 
@@ -304,41 +303,23 @@
 			function(conn) {
 				webinos.session.common.debug('PZP (' + self.config.sessionId +
 					') Connection to PZH status: ' + client.authorized);
-				//client.setNoDelay(true);	
 				client.bufferSize = 65535;
 				self.clientSocket = client;
 			});
 
 		client.on('data', function(data) {
 			var  data2 = {}, myKey;
-			//console.log('in data');
-			//console.log(typeof data);
-			//data1 = new Buffer(data, 'base64');
-			//console.log(data1);
-			//if(Buffer.isBuffer(data)) {
-				//console.log("It is buffer");
-			//}
 			var data1 = {}, open = 0, i = 0, close = 0;
 			
 			try {
 				client.pause();
 					
-				/*var multiMsg = data.toString('utf8').split('#');
-				if(multiMsg.length > 1) {
-					for(var i=0; i < multiMsg.length; i++) {
-						if(multiMsg[i].length > 0) {
-							client.emit('data', multiMsg[i]);
-							return;
-						}	
-					}
-				} else {
-					data = multiMsg[0];
-				}*/
-
-				var msg = data.toString().split('#');
-				if(msg[0]==='0' ) { 
-					console.log(msg[1]);
-					console.log(msg[2].length);
+		
+				var msg = data.toString('utf8').split('#');
+				if(msg[0]==='0' ) {
+					msg[2] = msg[2].toString('utf8');
+					if(msg[2].length > msg[1])
+						 
 					console.log('PZP: Received msg' + msg[2]);
 					if(data3 !== '') {
 						data1 = data3 + msg[2].substr(0, msg[1]);
@@ -348,32 +329,19 @@
 					}
 					data2 = JSON.parse(data1);
 				} else if(msg[0] === '1'){
-					debugger;
 					data3 += msg[2].substr(0,msg[1]);					
-					console.log('PZH: bigger message read');
-					return;
+					return
+				} else if(lastMsg !== '') {
+					data2 = JSON.parse(lastMsg+msg[2].substr(0,msg[1]));
+					lastMsg = '';									
 				} else {
 					return;
-				}			
+				}		
 
-				/*if(typeof data === "string")
-					data2 = JSON.parse(data);
-				else 
-					data2 = data;
-				*/
 				process.nextTick(function () {
 					client.resume();
 				});
 						
-				//console.log(data2);
-				//data2 = JSON.parse(data, reviewer);
-			
-				/*function reviewer(key, value) {
-					if(typeof value === "object") {
-						console.log(key);
-						console.log(value);						
-					}
-				}*/
 				webinos.session.common.debug('PZP ('+self.config.sessionId+') Received data ');
 				/* If sends the client certificate to get signed certificate from server. 
 				 * Payload message format {status: 'clientCert', message: certificate)
