@@ -13,6 +13,11 @@
 	<script type="text/javascript" src="/client/dojo.js"></script>
 	<script type="text/javascript">
             $(document).ready(function() {
+				//Abot added to change the address
+				var cServerHostname = window.location.hostname;
+			    document.getElementById('servername').value = cServerHostname;
+document.getElementById('pzpservername').value = cServerHostname;	
+document.getElementById('pzpipaddr').value = cServerHostname;
 		            $("#tabs").tabs();
 		        	var reader = null;
             	    var fileSaver = null;
