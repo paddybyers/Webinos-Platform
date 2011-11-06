@@ -12,7 +12,7 @@ if ($(".accordion")) $(".accordion").tabs(".accordion dd", {tabs: 'dt', effect: 
 });
 var tvService =null;
 var channelMap = {};
-$(function(){setTimeout(getServices,100);});
+$(function(){setTimeout(getServices,500);});
 
 function getServices(){
   webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/tv'), {onFound: function (service) {

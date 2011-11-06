@@ -42,6 +42,7 @@ Ext.define('WebDemo.ContextWindow', {
                     xtype: 'numbercolumn',
                     dataIndex: 'frequency',
                     text: 'Frequency',
+		    format: '0',
 		    width: 50
                 }
             ]
