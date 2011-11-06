@@ -112,7 +112,7 @@ function write(rpc, respto, msgid){
         options.resp_to = respto;
         options.id = msgid;
 	console.log("MESSAGE WRITE");
-	console.log(rpc);
+	//console.log(rpc);
     options.payload = rpc;
 	    
 	    message = webinos.message.createMessage(options);
@@ -172,10 +172,10 @@ rpc.setWriter(write);
 webinos.message.onMessageReceived = function(message, sessionid){
   if(typeof message === "string")
   	message = JSON.parse(message);
-  console.log(message.payload);
+  
 	//if(typeof message.payload === "object")
 	//	message.payload = JSON.stringify(message.payload);
-  console.log('MESSAGE: '+JSON.stringify(message));
+  
   if(message.hasOwnProperty("register") && message.register)
   { 
     var from = message.from;
@@ -288,7 +288,7 @@ webinos.message.onMessageReceived = function(message, sessionid){
           //this is a message respnose to me 
           if(messageCallbacks[message.id])
           {
-            console.log(message);
+            //console.log(message);
 			message.payload = message.payload;
 			//debugger;
 			if(typeof message.payload.method !== "undefined")
