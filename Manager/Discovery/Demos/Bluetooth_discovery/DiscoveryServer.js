@@ -60,9 +60,10 @@ io.sockets.on('connection', function (socket)
   socket.on('listfile', function (data) {
 	   n = new ft.bluetooth();
 	   //lists = n.file_list(data[0], data[1]);
-	   var str1 = "/";
+	   //var str1 = "/";
 	   //lists = n.file_list(data[0], data[1]);
-	   lists = n.file_list(data[0], str1.concat(data[1]));
+	   //lists = n.file_list(data[0], str1.concat(data[1]));
+	   lists = n.file_list(data[0], data[1]);
 	   
 	   console.log("lists = " + lists);
 	   console.log("send resp back to clients"); 
