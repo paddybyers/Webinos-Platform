@@ -11,6 +11,8 @@ Abot.GUI = {
 	Abot.GUI.ShowInfo(title,text);//TODO: add an icon or something
     },
     Log: function(line){
+       var store = Ext.getStore("LogsStore");
+       store.add([[new Date(), line]])
     }
 };
 
@@ -18,8 +20,14 @@ Abot.Contacts = {
       contactsService: null, //The service provider
       authenticated: false,
       bindservice: function() {//Discover service
+	Abot.GUI.Log("Requested contact service discovery");
 	webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/contacts'),{
-          onFound : function(service)  {   Abot.Contacts.contactsService = service; Ext.getCmp("cmdEnableContactsModule").DoDisable(); Ext.getCmp("lblContactsServiceStatus").ChangeToWaitingAuth();}
+          onFound : function(service)  {   
+	    Abot.Contacts.contactsService = service; 
+	    Ext.getCmp("cmdEnableContactsModule").DoDisable(); 
+	    Ext.getCmp("lblContactsServiceStatus").ChangeToWaitingAuth();
+	    Abot.GUI.Log("Discovered contact service");
+	  }
         });
       },
       connectGoogle: function(username,password){
@@ -37,6 +45,7 @@ Abot.Contacts = {
       handle_authentication_query:  function(status) {
 	if (status)
 	{
+	  Abot.GUI.Log("Authenticated with gmail account");
 	  Abot.Contacts.authenticated = true;
 	  Ext.getCmp("cmdRefreshGoogleContacts") && Ext.getCmp("cmdRefreshGoogleContacts").enable();
 	  Ext.getCmp("lblContactsServiceStatus").ChangeToAuthenticated();
@@ -45,8 +54,10 @@ Abot.Contacts = {
 	}
 	else
 	  Abot.GUI.ShowError("Failed login","Check GMail username and password");
+	  Abot.GUI.Log("FAILED to auth with gmail account");
       },
       AuthenticateContact: function(){
+	 Abot.GUI.Log("Requested to auth with gmail account");
 	 var uname = Ext.getCmp("fldGmailUsername").getValue();
 	 var pass =  Ext.getCmp("fldGmailPassword").getValue();
 	  Abot.Contacts.connectGoogle(uname,pass);
@@ -60,11 +71,13 @@ Abot.Contacts = {
 	  parameters.type = "remote";
 	  Abot.Contacts.contactsService.isAlreadyAuthenticated(parameters, function(result)
 	  {
+	    Abot.GUI.Log("Requested contacts refresh");
 	    Abot.Contacts.contactsService.getAllContacts(parameters, Abot.Contacts.AddContactsToList);
 	  });
 	  }
       },
       AddContactsToList: function(list){
+	 Abot.GUI.Log("Contacts retrieved");
 	 var store = Ext.getStore("ContactsStore");
 	 if (list.length > 0)
 	  {
@@ -112,6 +125,7 @@ Abot.TV = {
 	return Abot.TV.tvService!=null;
     },
     bindservice: function(){
+        Abot.GUI.Log('Request to connect the TV service');
 	webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/tv'), {onFound: function (service) {
 		if(!Abot.TV.isServiceDiscovered()){
 		  Ext.getCmp("cmdEnableTVService").DoDisable();
@@ -123,13 +137,21 @@ Abot.TV = {
 	    	}
 	    }});
       },
+      currentSourceName: '[Source]',
+      currentChannelName: '[Channel]',
+      currentStream: null,
       updateUI: function(tvSourceName, channelName,stream){
-	  if(tvSourceName)
+	  if(tvSourceName){
 		Ext.getCmp('tvSourceLabel') && Ext.getCmp('tvSourceLabel').setText(tvSourceName);
-	  if(channelName)
+		Abot.TV.currentSourceName = tvSourceName;
+	  }
+	  if(channelName){
 		Ext.getCmp('channelNameLabel') && Ext.getCmp('channelNameLabel').setText(channelName);
+		Abot.TV.currentChannelName = channelName;
+	  }
 	  if(stream){
 		Ext.getCmp('video-player') && Ext.getCmp('video-player').setSrc(stream);
+		Abot.TV.currentStream = stream;
 		//Maybe doComponentLayout() after setting src?
 	  }
       },
@@ -202,4 +224,44 @@ Abot.TV = {
 	Abot.GUI.Log("Error changing the channel!");
 	Abot.GUI.ShowError("Error in TV","Could not change the tv channel!");
       }
-}
+};
+Abot.Context = {
+   contextService: null,
+   isServiceDiscovered: function(serviceNotFoundMessage){
+	if(Abot.Context.contextService==null && serviceNotFoundMessage){
+	  Abot.GUI.ShowError("Error in Context",serviceNotFoundMessage);
+	}
+	return Abot.Context.contextService!=null;
+    },
+    bindservice: function(){
+        Abot.GUI.Log('Request to connect the Context service');
+	webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), {onFound: function (service) {
+		if(!Abot.Context.isServiceDiscovered()){
+		  Ext.getCmp("cmdEnableContextService").DoDisable();
+		  Abot.Context.contextService = service;
+		  Abot.GUI.ShowInfo("Context Service found",'SERVICE FOUND: Context');
+		  Abot.GUI.Log('SERVICE FOUND: Context');
+	    	}else{
+		  Abot.GUI.Log('Context service already found.');
+	    	}
+	    }});
+      },
+     getChannelsFrequency: function(){
+       if (Abot.Context.isServiceDiscovered("The Context service is no discovered yet! Please discover it via the services window.")){
+	 myDesktopApp.getModule('win-context').loadingResults();
+	 Abot.GUI.Log('Request for context: Channel frequency');
+	 var store = Ext.getStore("ContextStore");
+	 store.loadData([],false);
+	 Abot.Context.contextService.find({},function(results){
+	   Abot.GUI.Log('Successfull context response: Channel frequency');
+	   for (var channel in results) {  
+	     store.add([[channel, results[channel]]]);  
+	  }
+	  myDesktopApp.getModule('win-context').loadingFinished();
+	 },function(){
+	   Abot.GUI.Log('Failed context response: Channel frequency');
+	   myDesktopApp.getModule('win-context').loadingFinished();
+	});
+       }
+     }
+};

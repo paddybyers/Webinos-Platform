@@ -101,7 +101,8 @@ Ext.define('Ext.ux.desktop.App', {
     getStartConfig: function () {
         var me = this, cfg = {
             app: me,
-            menu: []
+            menu: [],
+	    sidemenu: []
         };
 
         Ext.apply(cfg, me.startConfig);
@@ -110,6 +111,9 @@ Ext.define('Ext.ux.desktop.App', {
             if (module.launcher) {
                 cfg.menu.push(module.launcher);
             }
+            if (module.sidelauncher) {
+                cfg.sidemenu.push(module.sidelauncher);
+            } 
         });
 
         return cfg;

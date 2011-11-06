@@ -176,7 +176,7 @@
     text-decoration: underline;
 }
 
-#contactsGrid-body .x-mask{
+#contextGrid-body .x-mask, #contactsGrid-body .x-mask{
    background-image: url(../images/large-loading.gif);
    background-repeat: no-repeat;
 }
@@ -200,6 +200,22 @@
 
 .webinos-services {
     background-image: url(../images/Android-Setting-48.png);
+}
+.webinos-services-icon {
+    background-image: url(../images/Android-Setting-16.png)!important;
+}
+.context-icon{
+  background-image: url(../images/Favorite-16.png)!important;
+}
+.context-big{
+  background-image: url(../images/Favorite-48.png);
+}
+
+.logs-icon{
+  background-image: url(../images/Gnome-Logviewer-16.png)!important;
+}
+.logs-big{
+  background-image: url(../images/Gnome-Logviewer-48.png);
 }
 
 .tv-service{

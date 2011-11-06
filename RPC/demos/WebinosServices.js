@@ -3,7 +3,12 @@ Ext.define('WebDemo.ServicesWindow', {
     id: 'win-services',
 
     init: function () {
-        
+        this.sidelauncher = {
+                        text:'Services',
+                        iconCls:'webinos-services-icon',
+                        handler: this.createWindow,
+			scope: this
+                    };
     },
 
     createWindow: function () {
@@ -19,6 +24,7 @@ Ext.define('WebDemo.ServicesWindow', {
 		type: 'vbox'
 	    },
 	    id: this.id,
+	    iconCls: this.sidelauncher.iconCls,
             title: 'Webinos Services',
 	    items: [
 		{
@@ -126,6 +132,18 @@ Ext.define('WebDemo.ServicesWindow', {
 		    DoDisable: function(){
 			this.disable();
 			this.setText("TV service is enabled");
+		    }
+		},
+		{
+		    xtype: 'button',
+		    height: 47,
+		    id: 'cmdEnableContextService',
+		    text: 'Enable Context Service',
+		    disabled: !Abot.Context.isServiceDiscovered,
+		    handler: Abot.Context.bindservice,
+		    DoDisable: function(){
+			this.disable();
+			this.setText("Context service is enabled");
 		    }
 		}
 	    ]

@@ -39,8 +39,7 @@ Ext.define('WebDemo.TVWindow', {
                     {
                         xtype: 'video',
                         id: 'video-player',
-                        src: [
-                        ],
+                        src: [],
                         autobuffer: true,
                         autoplay : true,
                         controls : true,
@@ -84,7 +83,7 @@ Ext.define('WebDemo.TVWindow', {
                         {
                             xtype: 'label',
 			    id: 'tvSourceLabel',
-                            text: '[TV Source]'
+                            text: Abot.TV.currentSourceName
                         },
                         {
                             xtype: 'tbfill',
@@ -93,7 +92,7 @@ Ext.define('WebDemo.TVWindow', {
                         {
                             xtype: 'label',
 			    id: 'channelNameLabel',
-                            text: '[Channel Name]'
+                            text: Abot.TV.currentChannelName
                         }
                     ]
                 }
@@ -111,6 +110,9 @@ Ext.define('WebDemo.TVWindow', {
         if (me.tip) {
             me.tip.setTarget(win.taskButton.el);
         }
+        
+        if (Abot.TV.currentStream)
+	  Ext.getCmp('video-player').setSrc(Abot.TV.currentStream);
 
         return win;
     },

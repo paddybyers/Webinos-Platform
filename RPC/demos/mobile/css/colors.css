@@ -1,0 +1,15 @@
+/* CSS Document */
+
+/* Landscape and Portrait Mode overrides /*
+
+/* Portrait */
+@media screen and (max-width: 320px)
+{
+	label, .label {display:block;margin-bottom:.25em}
+}
+ 
+/* Landscape */
+@media screen and (min-width: 460px)
+{
+	label, .label {display:inline-block;margin-right:.5em}
+}

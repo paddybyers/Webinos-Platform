@@ -11,9 +11,13 @@ Ext.define('WebDemo.App', {
 
     getModules : function(){
         return [
+	    new WebDemo.ServicesWindow(),
+            new WebDemo.LogsStore(),
+            new WebDemo.LogsWindow(),
+	    new WebDemo.ContextStore(),
+            new WebDemo.ContextWindow(),
 	    new WebDemo.ContactsStore(),
 	    new WebDemo.ContactsWindow(),
-	    new WebDemo.ServicesWindow(),
 	    new WebDemo.TVWindow(),
 	    new WebDemo.TVRemote()
         ];
@@ -33,8 +37,10 @@ Ext.define('WebDemo.App', {
                 model: 'Ext.ux.desktop.ShortcutModel',
                 data: [
 		   { name: 'Webinos Services', iconCls: 'webinos-services', module: 'win-services' },
+		   { name: 'GUI Logs', iconCls: 'logs-big', module: 'win-logs' },
 		   { name: 'Google Contacts', iconCls: 'android-contacts', module: 'win-contacts' },
-		   { name: 'TV Remote', iconCls: 'remote-control', module: 'win-tv-remote' }
+		   { name: 'TV Remote', iconCls: 'remote-control', module: 'win-tv-remote' },
+		   { name: 'Context', iconCls: 'context-big', module: 'win-context' }
                 ]
             }),
 
@@ -53,14 +59,7 @@ Ext.define('WebDemo.App', {
             height: 300,
             toolConfig: {
                 width: 100,
-                items: [
-                    {
-                        text:'Services',
-                        iconCls:'settings',
-                        handler: me.onWebinosSettings,
-                        scope: me
-                    }
-                ]
+                items: ret.sidemenu
             }
         });
     },
@@ -84,14 +83,6 @@ Ext.define('WebDemo.App', {
             desktop: this.desktop
         });
         dlg.show();
-    },
-	
-	onWebinosSettings: function(){
-		var module = myDesktopApp.getModule("win-services");
-		var win = module && module.createWindow();
-		//var dlg = new MyApp.view.GoogleContacts();
-		
-		//dlg.show();
-	}
+    }
 });
 

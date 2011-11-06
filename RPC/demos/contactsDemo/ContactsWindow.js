@@ -43,7 +43,9 @@ Ext.define('WebDemo.ContactsWindow', {
 			      {
 				  xtype: 'button',
 				  text: 'Open Webinos services',
-			          handler: myDesktopApp.onWebinosSettings
+			          handler: function(){
+				    myDesktopApp.getModule('win-services').createWindow();
+				  }
 			      }
                         ]
                     }
@@ -54,7 +56,6 @@ Ext.define('WebDemo.ContactsWindow', {
 			id: 'contactsGrid',
                         height: 333,
                         width: 744,
-                        title: 'My Google Contacts',
                         store: 'ContactsStore',
                         columns: [
                             {
