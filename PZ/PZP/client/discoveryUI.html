@@ -2,11 +2,17 @@
 <html dir="ltr" lang="en-US">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		<title>Webinos Discovery UI</title>
-		<link rel="stylesheet" href="ClientStyle.css" type="text/css" media="screen" />
-		<script type="text/javascript" src="../rpc.js"></script>
-		<script type="text/javascript" src="../webinos.utils.js"></script>
-		<script type="text/javascript" src="../client/jquery-1.4.2.min.js"></script>
+		<title>Webinos RPC Module Discovery</title>
+		<script type="text/javascript" src="/rpc.js"></script>
+		<script type="text/javascript" src="/client/webinos.js"></script>
+		<script type="text/javascript" src="/client/jsrender.js"></script>
+		<script type="text/javascript" src="/messaging.js"></script>
+		<script type="text/javascript" src="/client/get42.js"></script>
+		<link rel="stylesheet" type="text/css" href="/client/jquery-ui-1.8.16.custom.css"/>
+		<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
+		<script type="text/javascript" src="/client/jquery.js"></script>
+		<script type="text/javascript" src="/client/jquery-ui.js"></script>
+		<script type="text/javascript" src="/client/dojo.js"></script>
 		
 		<!-- add client side *.js in the list. Not sure if included the right files for TV, contacts, devicestatus...
 		TODO: currently these .js files are all over the place. Need to create a script to get a list of
@@ -16,17 +22,17 @@
 		<script type="text/javascript" src="./webinos.js"></script>
 		<script type="text/javascript" src="./webinos.sensors.js"></script>       
 		<script type="text/javascript" src="./webinos.file.js"></script>
-		<script type="text/javascript" src= "./get42.js"></script>
+		<script type="text/javascript" src= "/get42.js"></script>
 		<script type="text/javascript" src= "../../API/DeviceStatus/src/client/RPC/webinos.client.devicestatus.js"></script>
 		<script type="text/javascript" src= "../../API/DeviceStatus/src/client/RPC/client.js"></script>
-		<script type="text/javascript" src= "../tv/consumer/webinos.client.tv.js"></script>
-		<script type="text/javascript" src= "../tv/consumer/client.js"></script>
-		<script type="text/javascript" src= "../UserProfile/Client/UserProfileClient.js"></script>
+		<script type="text/javascript" src= "/tv/consumer/webinos.client.tv.js"></script>
+		<script type="text/javascript" src= "/tv/consumer/client.js"></script>
+		<script type="text/javascript" src= "/UserProfile/Client/UserProfileClient.js"></script>
 		
 	</head>
 	
 	<body>
-	<h1>Webinos Discovery UI Prototype</h1>
+	<h1>Webinos RPC Module Discovery</h1>
 	<!--<p>Enter Service you are looking for:   </p>-->
 	<div> PZH PZP LIST : <select id="pzh_pzp_list"> <option> </option> </select> <br> </div>
 	

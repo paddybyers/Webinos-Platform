@@ -164,7 +164,7 @@
 		});
 	
 		client.on('data', function (data) {
-			var msg = data.toString('utf8');//.split('#')
+			var data1, msg = data.toString('utf8');//.split('#')
 	
 			if(msg[0] ==='#' && msg[msg.length-1] === '#') {
 				msg = msg.split('#');
