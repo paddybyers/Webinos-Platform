@@ -305,6 +305,7 @@
 			console.log('acutally it does itself');
 			msg = msg.split('#');
 			data2 = JSON.parse(msg[1]);
+			lastMsg ='';
 		} else if(msg[0] === '#' || (msg[0] !== '#' && msg[msg.length] !== '#')){
 			lastMsg += data;
 			return;		
@@ -400,7 +401,7 @@
 							self.connectOtherPZP(msg[myKey]);
 							self.sendMessage({"type":"prop", "payload": {"status":"pzp_info", "message":msg[myKey].name}},
 								webinos.session.pzp.instance.connAppId);
-						}
+						//}
 					}
 				}	
 		}

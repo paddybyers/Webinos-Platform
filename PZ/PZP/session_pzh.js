@@ -277,9 +277,9 @@ pzh.prototype.processMsg = function(conn,data) {
 	var msg = data.toString('utf8');//.split('#')
 		
 	if(msg[0] ==='#' && msg[msg.length-1] === '#') {
-		console.log('acutally it does itself');
 		msg = msg.split('#');
 		parse = JSON.parse(msg[1]);
+		lastMsg = '';
 	} else if(msg[0] === '#' || (msg[0] !== '#' && msg[msg.length] !== '#')){
 		lastMsg += data;
 		return;		
@@ -365,7 +365,7 @@ pzh.prototype.processMsg = function(conn,data) {
 				// send message to all connected PZP						
 				for (var myKey in self.connected_pzp) {
 					if(myKey !== parse.from) 
-						self.sendMessage(myKey, msg);
+						self.sendMessage(msg, myKey);
 				}
 			} else {
 				webinos.session.common.debug('PZH ('+self.sessionId+') Received PZP details from entity' +
