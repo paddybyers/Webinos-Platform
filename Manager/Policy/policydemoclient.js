@@ -24,7 +24,7 @@ function changeAppCert(cert) {
 }
 
 function refreshTable() {
-	var reqUrl = "http://localhost:8124/getPolicyTable?file="+policyFileSelected;
+	var reqUrl = "http://"+window.location.hostname+":8124/getPolicyTable?file="+policyFileSelected;
 	if(appCert != "X") {
 		reqUrl += "&appCert="+appCert;
 	}
