@@ -15,7 +15,7 @@
  ******************************************************************************/
  
 //require.paths.unshift(__dirname+"/build/default/"); // path to our extension
-var remotecontacts = require(__dirname+"/build/Release/remotecontacts");//require(__dirname+"/build/default/remotecontacts");
+var remotecontacts = (process.versions.node > "0.4.12" ) ? require(__dirname+"/build/Release/remotecontacts") : require(__dirname+"/build/default/remotecontacts");
 
 //Pass methods to the above levels using this
 //TODO here we can remap names, if desired
