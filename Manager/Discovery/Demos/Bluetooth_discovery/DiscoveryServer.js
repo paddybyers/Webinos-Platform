@@ -1,5 +1,7 @@
 var http = require('http'),
-    io = require('socket.io'),	
+    //please don't use the socket.io in RPC dir	
+    //io = require('../../../../RPC/node_modules/socket.io'),
+    io = require('./node_modules/socket.io'),
     sys = require("sys"),
     url = require("url"),
     path = require("path");
