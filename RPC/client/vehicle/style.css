@@ -128,7 +128,19 @@
 				text-transform:uppercase;
 			}
 			
+			.running{
+				background: url(rauschen.png), -moz-linear-gradient(top, #ffb500, #ffff00); /* Firefox */
+				background:  url(rauschen.png), -webkit-gradient(linear, left top, left bottom, from(#ffb500), to(#ffff00)), url(rauschen.png); /* Safari, Chrome*/
+				background: url(rauschen.png), -webkit-linear-gradient(top, #ffb500, #ffff00); /* Safari, Chrome - neue Syntax! */
+				background:  url(rauschen.png), -o-linear-gradient(top, #ffb500, #ffff00); /* Opera */
+				background:  url(rauschen.png), -ms-linear-gradient(top, #ffb500, #ffff00); /* IE */
+				
+				
+				background:  url(rauschen.png), linear-gradient(top, #ffb500, #ffff00); /* W3C Standard */			
+				color: #000;
 			
+			
+			}			
 			select{
 				-moz-border-radius:4px; /* Firefox */
 				-webkit-border-radius:4px; /* Safari, Chrome */
@@ -194,4 +206,27 @@
 				
 				}
 				#info p{font-size: 14px; margin: 0; padding 0;}
+				
+				#pdcApp{
+					height: 200px;
+					width: 650px;
+					background: url(pdc.jpg);
+					background-repeat: none; background-position:center; */
+					
+				
+				}
 			
+			#pdcFront{
+				margin-left: 184px;
+				margin-top: 31px;
+				
+			}
+			
+			#pdcRear{
+				margin-top: 31px;
+				margin-left: 138px;
+			}
+			
+			#pdcLauncher{
+				visibility: hidden;
+			}
