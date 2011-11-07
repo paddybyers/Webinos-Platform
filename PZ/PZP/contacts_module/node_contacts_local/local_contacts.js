@@ -15,7 +15,9 @@
  ******************************************************************************/
 
 //require.paths.unshift(__dirname+"/build/default/"); // path to local contacts extension module
-var localcontacts = require(__dirname+"/build/default/localcontacts");
+
+//var localcontacts = require(__dirname+"/build/default/localcontacts"); //node v0.4.12
+var localcontacts = require(__dirname+"/build/Release/localcontacts");   //node v0.6.0
 
 //Pass methods to the above levels using this
 //TODO here we can remap names, if desired

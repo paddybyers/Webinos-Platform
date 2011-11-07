@@ -14,13 +14,14 @@
  * limitations under the License.
  ******************************************************************************/
 
-var localcontacts = require("../../build/default/localcontacts");
+//var localcontacts = require("../../build/default/localcontacts"); //node v0.4.12
+var localcontacts = require("../../build/Release/localcontacts"); //node v0.6.0
 
 //TEST module loaded ok
 console.log("localcontacts module OBJ: "+localcontacts);
 
 //default address book TODO add a sample .mab file
-var addressbookName= "/home/vito/.thunderbird/lbhzgow0.default/abook.mab"; //"<path_to_thunderbird_address_book>/abook.mab"; //history.mab";
+var addressbookName= __dirname+"/../testAddressBook/abook.mab"; //"<path_to_thunderbird_address_book>/abook.mab"; //history.mab";
 
 //TEST constructor
 var myContacts = new localcontacts.contacts();

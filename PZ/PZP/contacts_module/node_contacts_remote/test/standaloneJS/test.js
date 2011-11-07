@@ -14,7 +14,8 @@
  * limitations under the License.
  ******************************************************************************/
 
-var remotecontacts = require("../../build/default/remotecontacts");
+var remotecontacts = require("../../build/default/remotecontacts"); //node v0.4.12
+var remotecontacts = require("../../build/Release/remotecontacts"); //node v0.6.0
 
 //TEST module loaded ok
 console.log("remotecontacts module OBJ: "+remotecontacts);
