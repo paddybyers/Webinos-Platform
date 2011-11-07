@@ -14,8 +14,11 @@
  * limitations under the License.
  ******************************************************************************/
 
-//var localcontacts = require("../../build/default/localcontacts"); //node v0.4.12
-var localcontacts = require("../../build/Release/localcontacts"); //node v0.6.0
+var nodeVersion = process.versions.node;
+ if(nodeVersion=="0.6.0")
+	var localcontacts = require("../../build/Release/localcontacts"); //node v0.6.0
+ else
+	var localcontacts = require("../../build/default/localcontacts"); //node v0.4.12
 
 //TEST module loaded ok
 console.log("localcontacts module OBJ: "+localcontacts);
