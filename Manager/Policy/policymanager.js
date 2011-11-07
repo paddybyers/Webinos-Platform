@@ -6,7 +6,7 @@
 
 	policyManager = function() {
 		// Load the native module
-		this.pmNativeLib = require('./build/default/pm.node');
+		this.pmNativeLib = (process.versions.node < "0.6.0" ) ? require('./build/default/pm.node') : require('./build/Release/pm.node');
 		this.pmCore = new this.pmNativeLib.PolicyManagerInt();
 	}
 
@@ -39,7 +39,12 @@
 				default:	errorCallback("SECURITY_ERR: " + res);
 			}
 		}
-		return res;
+		return (res);
+	}
+
+	policyManager.prototype.reloadPolicy = function() {
+		this.pmCore.reloadPolicy();
+		return;
 	}
 
 	exports.policyManager = policyManager;

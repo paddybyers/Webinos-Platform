@@ -61,7 +61,7 @@ bool Subject::match(Request* req){
 		// For Debug
 		LOGD("[Subject] cerco in %s ",it_policy->first.data());
 		for(map<string,vector<string>* >::iterator it=req->getSubjectAttrs().begin(); it != req->getSubjectAttrs().end(); it++)
-			LOGD("req %s",it->first.data());
+			LOGD("[Subject] req %s",it->first.data());
 		
 		
 		if(req->getSubjectAttrs().find(it_policy->first) != req->getSubjectAttrs().end()){
