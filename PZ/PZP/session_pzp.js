@@ -82,7 +82,7 @@
 	 */
 	Pzp.prototype.sendMessage = function (message, address) {
 		var self = this;
-		var buf = new Buffer('0#'+JSON.stringify(message).length+'#'+JSON.stringify(message));
+		var buf = new Buffer('#'+JSON.stringify(message)+'#');
 		if (self.connected_app[address]) { // it should be for the one of the apps connected.
 			webinos.session.common.debug("PZP (" + self.config.sessionId +
 				")  Message forwarded to connected app on websocket server ");
@@ -299,36 +299,28 @@
 		var  data2 = {}, myKey;
 		var data1 = {}, open = 0, i = 0, close = 0;
 	
-		var msg = data.toString('utf8').split('#')
+		var msg = data.toString('utf8');//.split('#')
 		
-		if(msg[0]==='0' ) {
-			msg[2] = msg[2].toString('utf8');
-
-			if(data3 !== '') {
-				data1 = data3 + msg[2].substr(0, msg[1]);
-				data3 = '';
-			} else {
-				data1 = msg[2].substr(0, msg[1]);
-			}
-			data2 = JSON.parse(data1);
-			if(msg[2].length > msg[1]) {
-				lastMsg = msg[2].substr(msg[1], msg[2].length);
-			}		
-		} else if(msg[0] === '1'){
-			data3 += msg[2].substr(0,msg[1]);
-			webinos.session.common.debug('PZP ('+self.config.sessionId+') Part of the message received');
-			if(msg[2].length > msg[1]) {
-				lastMsg = msg[2].substr(msg[1], msg[2].length);
+		if(msg[0] ==='#' && msg[msg.length-1] === '#') {
+			console.log('acutally it does itself');
+			msg = msg.split('#');
+			data2 = JSON.parse(msg[1]);
+		} else if(msg[0] === '#' || (msg[0] !== '#' && msg[msg.length] !== '#')){
+			lastMsg += data;
+			return;		
+		} else if(msg[msg.length-1] === '#'){
+			lastMsg += data;	
+			try{
+				data2 = JSON.parse(lastMsg);
+				console.log(data2);
+				lastMsg = '';
+			} catch(err) {
+				console.log('PZP: Accumulated data is wrong');
 			}
 			return;
-		}  else {
-			webinos.session.common.debug('PZP ('+self.config.sessionId+') Cannot interprete data');
-			return;
-		}		
-				
-		webinos.session.common.debug('PZP ('+self.config.sessionId+') Received msg (Actual) ' 
-			+ msg[1] + ' Received ' + msg[2].length);
-
+		}
+		
+		webinos.session.common.debug('PZP ('+self.config.sessionId+') Received msg'); 
 		/* It sends the client certificate to get signed certificate from server. 
 		 * Payload message format {status: 'clientCert', message: certificate)
 		 */
@@ -338,7 +330,7 @@
 				webinos.session.common.debug('PZP ('+self.config.sessionId+') Not Authenticated');
 				msg = { 'type': 'prop', 'payload': {'status':'clientCert', 
 					'message':fs.readFileSync(self.config.certnamecsr).toString()}};
-				self.sendMessage(msg);
+				self.sendMessage(msg, data2.from);
 		}
 		/* It registers with message handler and set methods for message handler. 
 		 * It also registers PZH as its client. To enable message to be sent from 
@@ -442,11 +434,11 @@
 
 		client.on('data', function(data) {
 			try {
-				client.pause();
+				//client.pause();
 				self.processMsg(data, callback);
-				process.nextTick(function () {
-					client.resume();
-				});			
+				//process.nextTick(function () {
+				//	client.resume();
+				//});			
 			} catch (err) {
 				console.log('PZP: Exception' + err);
 				console.log(err.code);

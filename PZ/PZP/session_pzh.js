@@ -57,29 +57,8 @@ pzh.prototype.sendMessage = function(message, address) {
 		self.writeStatus = self.connected_pzh[address].write(JSON.stringify(message));
 	} else if (self.connected_pzp[address] && self.writeStatus) {
 		webinos.session.common.debug('PZH ('+self.sessionId+') Connected PZP ');
-		if(JSON.stringify(message).length < 50000) {
-			buf = new Buffer('0#'+JSON.stringify(message).length+'#'+JSON.stringify(message));
-			self.connected_pzp[address].socket.pause();
-			self.writeStatus = self.connected_pzp[address].socket.write(buf);
-		} else {
-			console.log('PZH: Message Size' +JSON.stringify(message).length);
-			for(var i = 0 ; i < JSON.stringify(message).length; i += 50000) {
-				self.connected_pzp[address].socket.pause();
-				if((JSON.stringify(message).length - i) < 50000) {
-					buf = new Buffer('0#'+(JSON.stringify(message).length-i)+'#'+
-						JSON.stringify(message).substr(i,JSON.stringify(message).length));
-					console.log('PZH: 0 ' + buf.toString().length);
-				} else {
-					buf = new Buffer('1#50000#'+JSON.stringify(message).substr(i,50000));
-					console.log('PZH: 1 ' + buf.toString().length);
-				}
-				self.writeStatus = self.connected_pzp[address].socket.write(buf);
-				process.nextTick(function () {
-					self.connected_pzp[address].socket.resume();
-				});			
-			}
-			
-		}		
+		buf = new Buffer('#'+JSON.stringify(message)+'#');
+		self.writeStatus = self.connected_pzp[address].socket.write(buf);
 	} else {
 		webinos.session.common.debug("PZH: Client " + address + " is not connected");
 	}
@@ -241,7 +220,7 @@ pzh.prototype.connect = function () {
 			webinos.session.common.debug("PZH: Not Auth Message Sent " + msg.to);
 			// This is special case as client is not listed in the connected_pzp list	
 			msg = JSON.stringify(msg);			
-			var buf = new Buffer('0#'+msg.length+'#'+msg);
+			var buf = new Buffer('#'+msg+'#');
 			conn.write(buf); 
 		}
 		
@@ -250,18 +229,12 @@ pzh.prototype.connect = function () {
 		});
 		
 		conn.on('data', function(data) {
-
-
-			
 			try {
 				conn.pause();
 				self.processMsg(conn, data);
 			    process.nextTick(function () {
 				  conn.resume();
-				});
-	
-				//console.log(parse);
-	 			
+				});	 			
 			} catch (err) {
 				console.log('PZH: Exception' + err);
 				console.log(err.code);
@@ -301,32 +274,27 @@ pzh.prototype.processMsg = function(conn,data) {
 	var data1 = {}, open = 0, i = 0, close = 0;
 	var payload = null, parse;
 
-	var msg = data.toString('utf8').split('#')
-	
-	console.log('PZH: Received msg (Actual) ' + msg[1] + ' Received ' + msg[2].length);
-	
-	if(msg[0]==='0' ) {
-		msg[2] = msg[2].toString('utf8');
-
-		if(data3 !== '') {
-			data1 = data3 + msg[2].substr(0, msg[1]);
-			data3 = '';
-		} else {
-			data1 = msg[2].substr(0, msg[1]);
+	var msg = data.toString('utf8');//.split('#')
+		
+	if(msg[0] ==='#' && msg[msg.length-1] === '#') {
+		console.log('acutally it does itself');
+		msg = msg.split('#');
+		parse = JSON.parse(msg[1]);
+	} else if(msg[0] === '#' || (msg[0] !== '#' && msg[msg.length] !== '#')){
+		lastMsg += data;
+		return;		
+	} else if(msg[msg.length-1] === '#'){
+		lastMsg += data;	
+		try{
+			parse = JSON.parse(lastMsg);
+			console.log(data2);
+			lastMsg = '';
+		} catch(err) {
+			console.log('PZP: Accumulated data is wrong');
 		}
-		parse = JSON.parse(data1);
-	} else if(msg[0] === '1'){
-		data3 += msg[2].substr(0,msg[1]);
-		webinos.session.common.debug('PZH ('+self.sessionId+') Part of the message received');
-		return;
-	}  else {
-		webinos.session.common.debug('PZH ('+self.sessionId+') Cannot interprete data');
 		return;
 	}
-	
-	if(msg[2].length > msg[1]) {
-		lastMsg = msg[2].substr(msg[1], msg[2].length);
-	}		
+		
 			
 	webinos.session.common.debug('PZH ('+self.sessionId+') Received data ');
 	if(typeof parse.payload !== "undefined")
@@ -372,7 +340,7 @@ pzh.prototype.processMsg = function(conn,data) {
 									'signingCert':signingcert}
 								};
 							console.log("PZH: Client cert Message sent");
-							var buf = new Buffer('0#'+JSON.stringify(msg).length+'#'+JSON.stringify(msg));
+							var buf = new Buffer('#'+JSON.stringify(msg)+'#');
 							conn.write(buf);
 						}
 				});
@@ -397,7 +365,7 @@ pzh.prototype.processMsg = function(conn,data) {
 				// send message to all connected PZP						
 				for (var myKey in self.connected_pzp) {
 					if(myKey !== parse.from) 
-						sendMessage(myKey, msg);
+						self.sendMessage(myKey, msg);
 				}
 			} else {
 				webinos.session.common.debug('PZH ('+self.sessionId+') Received PZP details from entity' +
@@ -582,7 +550,7 @@ pzh.prototype.connectOtherPZH = function(server, port) {
 				// Message we are sending back that's why from is parse.to
 				var msg = webinos.message.registerSender(parse.to, parse.from);
 				self.connected_pzh[parse.from] = conn_pzh;
-				var buf = new Buffer('0#'+JSON.stringify(msg).length+'#'+JSON.stringify(msg));
+				var buf = new Buffer('#'+JSON.stringify(msg)+'#');
 				conn_pzh.write(buf);
 
 			} else {
