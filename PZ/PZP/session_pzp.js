@@ -164,7 +164,26 @@
 		});
 	
 		client.on('data', function (data) {
-			var data1 = JSON.parse(data);			
+			var msg = data.toString('utf8');//.split('#')
+	
+			if(msg[0] ==='#' && msg[msg.length-1] === '#') {
+				msg = msg.split('#');
+				data1 = JSON.parse(msg[1]);
+				lastMsg = '';
+			} else if(msg[0] === '#' || (msg[0] !== '#' && msg[msg.length] !== '#')){
+				lastMsg += data;
+				return;		
+			} else if(msg[msg.length-1] === '#'){
+				lastMsg += data;	
+				try{
+					data1 = JSON.parse(lastMsg);
+					console.log(data1);
+					lastMsg = '';
+				} catch(err) {
+					console.log('PZP: Accumulated data is wrong');
+				}
+				return;
+			}		
 			webinos.session.common.debug("PZP Client (" + self.config.sessionId +
 				")  Received data ");
 			webinos.session.common.debug("PZP Client (" + self.config.sessionId +
@@ -238,7 +257,25 @@
 			conn.on('data', function (data) {
 				webinos.session.common.debug("PZP Server (" + self.config.sessionId +
 					")  Read bytes = " 	+ data.length);
-				parse = JSON.parse(data);
+				var msg = data.toString('utf8');//.split('#')
+				if(msg[0] ==='#' && msg[msg.length-1] === '#') {
+					msg = msg.split('#');
+					parse = JSON.parse(msg[1]);
+					lastMsg = '';
+				} else if(msg[0] === '#' || (msg[0] !== '#' && msg[msg.length] !== '#')){
+					lastMsg += data;
+					return;		
+				} else if(msg[msg.length-1] === '#'){
+					lastMsg += data;	
+					try{
+						parse = JSON.parse(lastMsg);
+						console.log(parse);
+						lastMsg = '';
+					} catch(err) {
+						console.log('PZP: Accumulated data is wrong');
+					}
+				}
+
 				if (parse.type === 'prop' && parse.payload.status === 'pzpDetails') {
 					if(self.connected_pzp[parse.from]) {
 						self.connected_pzp[parse.from].port = parse.payload.port;
@@ -401,7 +438,7 @@
 							self.connectOtherPZP(msg[myKey]);
 							self.sendMessage({"type":"prop", "payload": {"status":"pzp_info", "message":msg[myKey].name}},
 								webinos.session.pzp.instance.connAppId);
-						//}
+						}
 					}
 				}	
 		}
