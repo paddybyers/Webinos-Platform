@@ -6,7 +6,7 @@
 
 	policyManager = function() {
 		// Load the native module
-		this.pmNativeLib = require('./build/default/pm.node');
+		this.pmNativeLib = require('./build/Release/pm.node');//require('./build/default/pm.node');
 		this.pmCore = new this.pmNativeLib.PolicyManagerInt();
 	}
 
