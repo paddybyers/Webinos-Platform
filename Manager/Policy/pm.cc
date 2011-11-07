@@ -59,6 +59,7 @@ public:
 		map<string, vector<string>*> * subject_attrs = new map<string, vector<string>*>();
 		(*subject_attrs)["user-id"] = new vector<string>();
 		(*subject_attrs)["user-key-cn"] = new vector<string>();
+		(*subject_attrs)["distributor-key-root-fingerprint"] = new vector<string>();
 
 		map<string, vector<string>*> * resource_attrs = new map<string, vector<string>*>();
 		(*resource_attrs)["api-feature"] = new vector<string>();
@@ -91,7 +92,15 @@ public:
 				LOGD("Parameter user-key-cn : %s", *userKeyCn);
 			}
 		}
-		
+
+		if (args[0]->ToObject()->Has(String::New("widgetInfo"))) {
+			v8::Local<Value> siTmp = args[0]->ToObject()->Get(String::New("widgetInfo"));
+			if (siTmp->ToObject()->Has(String::New("distributorKeyRootFingerprint"))) {
+				v8::String::AsciiValue distributorKeyRootFingerprint(siTmp->ToObject()->Get(String::New("distributorKeyRootFingerprint")));
+				(*subject_attrs)["distributor-key-root-fingerprint"]->push_back(*distributorKeyRootFingerprint);
+				LOGD("Parameter distributor-key-root-fingerprint : %s", *distributorKeyRootFingerprint);
+			}
+		}
 
 //		string widPath(".");
 
@@ -122,7 +131,6 @@ public:
 		//TODO: Reload policy file
 		delete pmtmp->pminst;
 		pmtmp->pminst = new PolicyManager("./policy.xml");
-		pmtmp->Wrap(args.This());
 
 		Local<Integer> result = Integer::New(0);
 		

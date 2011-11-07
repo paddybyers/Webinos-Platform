@@ -39,7 +39,12 @@
 				default:	errorCallback("SECURITY_ERR: " + res);
 			}
 		}
-		return res;
+		return (res);
+	}
+
+	policyManager.prototype.reloadPolicy = function() {
+		this.pmCore.reloadPolicy();
+		return;
 	}
 
 	exports.policyManager = policyManager;
