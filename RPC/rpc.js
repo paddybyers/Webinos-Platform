@@ -1,46 +1,54 @@
 //This RPC implementation should be compliant to JSON RPC 2.0
 //as specified @ http://jsonrpc.org/spec.html
 
-(function() {
-  if (typeof webinos === 'undefined')
-    webinos = {};
+if (typeof webinos === 'undefined')
+	webinos = {};
 
-  if (typeof module !== 'undefined')
-    var utils = require('./webinos.utils.js');
-  else if (typeof webinos.utils !== 'undefined')
-    var utils = webinos.utils;
+if (typeof webinos.rpc === 'undefined')
+	webinos.rpc = {};
 
-  if (typeof utils !== 'undefined')
-    utils.rpc = {
-      request: function (service, method, objectRef, successCallback, errorCallback) {
-        return function () {
-          var params = Array.prototype.slice.call(arguments);
-          var message = webinos.rpc.createRPC(service, method, params);
+if (typeof module === 'undefined')
+	var exports = webinos.rpc;
+else
+	var exports = module.exports = webinos.rpc;
 
-          if (objectRef)
-            message.fromObjectRef = objectRef;
+(function (exports) {
+	var contextEnabled = typeof process === 'undefined' || (process.version >= 'v0.4.0' && process.version < 'v0.5.0');
+	
+	if (typeof module !== 'undefined')
+		var utils = require('./webinos.utils.js');
+	else
+		var utils = webinos.utils || (webinos.utils = {});
+	
+	exports.utils = {};
 
-          webinos.rpc.executeRPC(message, utils.callback(successCallback, this), utils.callback(errorCallback, this));
-        };
-      },
+	exports.utils.request = function (service, method, objectRef, successCallback, errorCallback) {
+		return function () {
+			var params = Array.prototype.slice.call(arguments);
+			var message = exports.createRPC(service, method, params);
 
-      notify: function (service, method, objectRef) {
-        return function () {
-          var params = Array.prototype.slice.call(arguments);
-          var message = webinos.rpc.createRPC(service, method, params);
+			if (objectRef)
+				message.fromObjectRef = objectRef;
 
-          if (objectRef)
-            message.fromObjectRef = objectRef;
+			exports.executeRPC(message, utils.callback(successCallback, this), utils.callback(errorCallback, this));
+		};
+	}
 
-          webinos.rpc.executeRPC(message);
-        };
-      }
-  };
+	exports.utils.notify = function (service, method, objectRef) {
+		return function () {
+			var params = Array.prototype.slice.call(arguments);
+			var message = exports.createRPC(service, method, params);
+
+			if (objectRef)
+				message.fromObjectRef = objectRef;
+
+			exports.executeRPC(message);
+		};
+	}
 
   write = null;
 
 
-  webinos.rpc = {};
   webinos.rpc.awaitingResponse = {};
   webinos.rpc.objects = {};
   webinos.rpc.responseToMapping = [];
@@ -166,7 +174,8 @@
                   webinos.rpc.executeRPC(res, null, null, responseto, msgid);
 
                   // CONTEXT LOGGING HOOK
-                  webinos.context.logContext(myObject,res);
+                  if (contextEnabled)
+                	  webinos.context.logContext(myObject,res);
                 },
                 function (error){
                   if (typeof id === 'undefined') return;
@@ -425,7 +434,7 @@
   /**
    * Export definitions for node.js
    */
-  if (typeof exports !== 'undefined'){
+  if (typeof module !== 'undefined'){
     exports.setWriter = webinos.rpc.setWriter;
     exports.handleMessage = webinos.rpc.handleMessage;
     exports.executeRPC = webinos.rpc.executeRPC;
@@ -447,19 +456,24 @@
                    './rpc_test2.js',
                    './rpc_test.js',
                    './rpc_file.js',
-                   './webinos.rpc.file.js',
+                   './webinos.file.rpc.js',
                    './rpc_geolocation.js',
                    './rpc_vehicle.js',
                    './rpc_sensors.js',
                    '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
                    './UserProfile/Server/UserProfileServer.js',
                    './tv/provider/webinos.rpc.tv.js',
-                   './../Manager/Context/Interception/contextInterception.js',
+                   // './../Manager/Context/Interception/contextInterception.js',
                    './rpc_contacts.js',
-                   './Context/webinos.rpc.context.js',
+                   // './Context/webinos.rpc.context.js',
                    './bluetooth_module/bluetooth.rpc.server.js'
                    ];
 
+    if (contextEnabled) {
+    	modules.push('./../Manager/Context/Interception/contextInterception.js');
+    	modules.push('./Context/webinos.rpc.context.js');
+    }
+    
     for (var i = 0; i <modules.length; i++){
       try{
         require(modules[i]);
@@ -469,4 +483,4 @@
       }
     }
   }
-})();
+})(exports);
