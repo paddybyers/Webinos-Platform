@@ -7,9 +7,7 @@
 (function () {
 	"use strict";
 	if (typeof webinos === "undefined") {
-		webinos = {};
-		/* This is the base object for webinos.session
-		*/
+		webinos = {};	
 		
 	}
 	var sendDataStatus = true;

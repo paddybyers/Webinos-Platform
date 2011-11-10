@@ -6,7 +6,7 @@
 if (typeof webinos === "undefined") {
 	webinos = {};
 	webinos.session = {};
-}
+};
 webinos.session.pzh = require('./session_pzh.js');
 
 var hostname = '' , serverPort = 0, webServerPort = 0;

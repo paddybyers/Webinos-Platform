@@ -6,20 +6,26 @@ if (typeof webinos === "undefined") {
 
 if (typeof exports !== "undefined") {
 	webinos.message = require("./messaging.js");
+	webinos.session.pzh = {};
+	webinos.session.common = require('./session_common.js');
+	webinos.rpc = require("./rpc.js");
 } 
 
 // Global variables and node modules that are required
 var tls = require('tls'),
 	events = require('events'),
 	fs = require('fs'), 
-	http = require('http');
+	http = require('http'),
+	url = require('url'),
+	path = require('path'),
+	WebSocketServer = require('websocket').server;
  
 /* connected_pzp: holds information about PZP's connected to current PZH. 
  * It is an array which store object. An object has two fields:
  ** session : stores session id of the connected pzp
  ** socket: Holds socket information which is used while sending message to pzp
  */
-webinos.session.pzh = {};
+
 var lastMsg = '', data3 = '';
 
 function Pzh() {
@@ -629,7 +635,7 @@ webinos.session.pzh.startWebSocketServer = function(hostname, serverPort, webSer
 				response.writeHead(200);  
 				response.write(file, "binary");  
 				response.end();
-				});
+			});
 		});  
 	});
 
@@ -713,7 +719,7 @@ webinos.session.pzh.startWebSocketServer = function(hostname, serverPort, webSer
 if (typeof exports !== 'undefined') {
 	exports.startPZH = webinos.session.pzh.startPZH;
 	exports.send = webinos.session.pzh.send;
-	
+	exports.startWebSocketServer = webinos.session.pzh.startWebSocketServer;
 }
 
 }());

@@ -1,5 +1,5 @@
 (function() {
-
+	if (typeof webinos === "undefined") webinos = {};
 	var channel = null;
 	var sessionid = null;
 	var pzpid = null;

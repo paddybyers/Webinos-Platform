@@ -1,7 +1,10 @@
 <html>
 <head>
 <title>PZH farm</title>
-	<script type="text/javascript" src="/client/webinos.js"></script>
+	<script type="text/javascript" src="/rpc.js"></script>
+	<script type="text/javascript" src="/client/webinos_pzh.js"></script>
+	<script type="text/javascript" src="/messaging.js"></script>
+
 	<link rel="stylesheet" type="text/css" href="/client/jquery-ui-1.8.16.custom.css"/>
 	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
 	<script type="text/javascript" src="/client/jquery.js"></script>
@@ -24,7 +27,7 @@
 					httpserver: document.getElementById('httpport').value,
 					value: config}; 
 			var options = {type: 'prop', payload: payload};
-			webinos.message_send(null, options, null, null);                	   
+			webinos.message_send(options);                	   
                     });
                   
 		$('#connectPZH').bind('click', function() {
@@ -32,7 +35,7 @@
 				servername: document.getElementById('pzh_ip_addr').value,
 				serverport: document.getElementById('pzh_port').value}; 
 			var options = {type: 'prop', payload: payload};
-			webinos.message_send(null, options, null, null);
+			webinos.message_send(options);
                  });
                  
 		$('#downloadCert').bind('click', function() {
@@ -40,7 +43,7 @@
 				servername: document.getElementById('pzh_ip_addr').value,
 				serverport: document.getElementById('pzh_http_port').value}; 
 			var options = {type: 'prop', payload: payload};
-			webinos.message_send(null, options, null, null);
+			webinos.message_send(options);
                  });
    	 });   		
 	</script>
