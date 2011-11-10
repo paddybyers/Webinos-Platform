@@ -25,7 +25,7 @@
 	};
 	DeviceStatusManager.prototype = new WebinosService;
 
-	DeviceStatusManager.prototype.getPropertyValue = function (prop, successCallback, errorCallback) {
+	DeviceStatusManager.prototype.getPropertyValue = function (successCallback, errorCallback, prop) {
 		var rpc = webinos.rpc.createRPC(this, "devicestatus.getPropertyValue", arguments);
 		webinos.rpc.executeRPC(rpc, 
 			function (params) { successCallback(params); },
