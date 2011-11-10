@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>webinos rpc</title>
+<title>PZH PZP Testbed</title>
 	<script type="text/javascript" src="/rpc.js"></script>
 	<script type="text/javascript" src="/client/webinos.js"></script>
 	<script type="text/javascript" src="/client/jsrender.js"></script>
@@ -13,104 +13,100 @@
 	<script type="text/javascript" src="/client/dojo.js"></script>
 	<script type="text/javascript">
             $(document).ready(function() {
-				//Abot added to change the address
-				var cServerHostname = window.location.hostname;
-			    document.getElementById('servername').value = cServerHostname;
-document.getElementById('pzpservername').value = cServerHostname;	
-document.getElementById('pzpipaddr').value = cServerHostname;
-		            $("#tabs").tabs();
-		        	var reader = null;
-            	    var fileSaver = null;
-            	    var fileWriter = null;
-            	    var test = [];		
-            	    
-            	    $('#startPZH').bind('click', function() {
-						var config = 'country='+ document.getElementById('country').value + '\n' +
-								'state='+ document.getElementById('state').value + '\n' +
-								'city='+ document.getElementById('city').value + '\n' +
-								'organization='+ document.getElementById('org').value + '\n' +
-								'organizationUnit='+ document.getElementById('orgunit').value + '\n' +
-								'common='+ document.getElementById('common').value + '\n' +
-								'email='+ document.getElementById('email').value + '\n' +
-								'days='+ document.getElementById('days').value + '\n';
-						var payload = {status: 'startPZH', 
-									servername: document.getElementById('servername').value, 
-									serverport: document.getElementById('serverport').value, 
-									httpserver: document.getElementById('httpport').value,
-									value: config}; 
-						var options = {type: 'prop', payload: payload};
-						webinos.message_send(null, options, null, null);                	   
-                    });
+		//Abot added to change the address
+		//var cServerHostname = window.location.hostname;
+	    	//document.getElementById('servername').value = cServerHostname;
+		//document.getElementById('pzpservername').value = cServerHostname;	
+		//document.getElementById('pzpipaddr').value = cServerHostname;
+		$("#tabs").tabs();
+		
+            	$('#startPZH').bind('click', function() {
+			var config = 'country='+ document.getElementById('country').value + '\n' +
+				'state='+ document.getElementById('state').value + '\n' +
+				'city='+ document.getElementById('city').value + '\n' +
+				'organization='+ document.getElementById('org').value + '\n' +
+				'organizationUnit='+ document.getElementById('orgunit').value + '\n' +
+				'common='+ document.getElementById('common').value + '\n' +
+				'email='+ document.getElementById('email').value + '\n' +
+				'days='+ document.getElementById('days').value + '\n';
+			var payload = {status: 'startPZH', 
+				servername: document.getElementById('servername').value, 
+				serverport: document.getElementById('serverport').value, 
+				httpserver: document.getElementById('httpport').value, 
+				value: config}; 
+			var options = {type: 'prop', payload: payload};
+			webinos.message_send(null, options, null, null);                	   
+                });
 
-                   $('#startPZP').bind('click', function() {
-						var config = 'country='+ document.getElementById('pzpcountry').value + '\n' +
-						'state='+ document.getElementById('pzpstate').value + '\n' +
-						'city='+ document.getElementById('pzpcity').value + '\n' +
-						'organization='+ document.getElementById('pzporg').value + '\n' +
-						'organizationUnit='+ document.getElementById('pzporgunit').value + '\n' +
-						'common='+ document.getElementById('pzpcommon').value + '\n' +
-						'email='+ document.getElementById('pzpemail').value + '\n' +
-						'days='+ document.getElementById('pzpdays').value + '\n';
-						
-						var payload = {status: 'startPZP', 
-								servername: document.getElementById('pzpservername').value,
-								serverport: document.getElementById('pzpserverport').value,
-								pzpserverport: document.getElementById('pzpport').value,
-								ipaddr:document.getElementById('pzpipaddr').value,
-								value: config}; 
-						var options = {type: 'prop', payload: payload};
-						webinos.message_send(null, options, null, null);
-
-						
-                    });            
-		  
-				   $('#otherPZH').bind('click', function() {
-						var payload = {status: 'otherPZH', 
-								servername: document.getElementById('otherpzhservername').value,
-								serverport: document.getElementById('otherpzhserverport').value}; 
-						var options = {type: 'prop', payload: payload};
-						webinos.send(null, options, null, null);
-                    });
+                $('#startPZP').bind('click', function() {
+			var config = 'country='+ document.getElementById('pzpcountry').value + '\n' +
+				'state='+ document.getElementById('pzpstate').value + '\n' +
+				'city='+ document.getElementById('pzpcity').value + '\n' +
+				'organization='+ document.getElementById('pzporg').value + '\n' +
+				'organizationUnit='+ document.getElementById('pzporgunit').value + '\n' +
+				'common='+ document.getElementById('pzpcommon').value + '\n' +
+				'email='+ document.getElementById('pzpemail').value + '\n' +
+				'days='+ document.getElementById('pzpdays').value + '\n';
+					
+			var payload = {status: 'startPZP', 
+				servername: document.getElementById('pzpservername').value,
+				serverport: document.getElementById('pzpserverport').value,
+				pzpserverport: document.getElementById('pzpport').value,
+				ipaddr:document.getElementById('pzpipaddr').value,
+				value: config}; 
+			
+			var options = {type: 'prop', payload: payload};
+			webinos.message_send(null, options, null, null);
+		});            
+		
+		$('#connectPZH').bind('click', function() {
+			var payload = {status: 'connectPZH', 
+				servername: document.getElementById('pzh_ip_addr').value,
+				serverport: document.getElementById('pzh_port').value}; 
+			var options = {type: 'prop', payload: payload};
+			webinos.message_send(null, options, null, null);
+                 });
+                 
+		$('#downloadCert').bind('click', function() {
+			var payload = {status: 'downloadCert', 
+				servername: document.getElementById('pzh_ip_addr').value,
+				serverport: document.getElementById('pzh_http_port').value}; 
+			var options = {type: 'prop', payload: payload};
+			webinos.message_send(null, options, null, null);
+                 });
                     
-                    $('#findService').bind('click', function() {
+                 $('#findService').bind('click', function() {
                     	var address = $('#pzh_pzp_list').val();
                     	if (address === "null" || address === "undefined") {
                     		alert("Select from list which you node you want to  connect");
                     	} else {
-							webinos.ServiceDiscovery.findServices(address, 
-								new ServiceType('http://webinos.org/api/test'), 
-								{onFound: function (service) {
-									test.push(service);															
-								}});
-						}
-					});
-                    
-                     $('#get42').bind('click', function() {
-						  	                     	
-	                      for (var i=0; i<test.length; i++) {
-	                    	test[i].get42(function (result){
-    	                		alert(result);
-        	            		alert(test[i].testAttr);
-    	        	        	});
-                    	}
-                    	
-                    }); 
-                     
-					
-                 
+				webinos.ServiceDiscovery.findServices(address, 
+				new ServiceType('http://webinos.org/api/test'), 
+					{onFound: function (service) {
+						test.push(service);		
+				}});
+			}
 		});
-		</script>
-	 
+                    
+              $('#get42').bind('click', function() {
+			for (var i=0; i<test.length; i++) {
+				test[i].get42(function (result){
+					alert(result);
+					alert(test[i].testAttr);
+				});
+            		}           	
+            	}); 
+	});
+</script>
 </head>
 <body>
-
-
-<div id="header"> <h1><img src="testbed_logo.png"></h1> </div>
+<center><div id="header"> <h1><img src="testbed_logo.png"></h1> </div></center>
 <div class="pzh-pzp">
 <div id = "tabs">
 	<ul>
 		<li> <a href="#pzh"> PZH </a> </li>
 		<li> <a href="#pzp"> PZP </a> </li>
+		<li> <a href="#connect_pzh"> Connect PZH </a> </li>
 		<li> <a href="#get42_example"> Get42 Example </a> </li>
 		<li> <a href="#contact"> Contact </a> </li>
 		<li> <a href="#geolocation"> GeoLocation </a> </li>
@@ -119,76 +115,93 @@ document.getElementById('pzpipaddr').value = cServerHostname;
 		<li> <a href="#file-api"> File API </a> </li>
 	</ul>
 	
-	<div id = "pzh">
-		<table>
-			<p> PZH Connecting Details (If you want to start second PZH server, please change above config values) </p>
+	<div id = "pzh" style="background-color:#0879a9">
+		<center> <p style="color:white"> Multiple PZH can be initiated, used this tab for starting local PZH	</p> </center>
+		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
 			<tr><th>Config </th> <th> Value </th> </tr>
-
-			<tr><td>Country </td><td><input type="text" id="country" value="UK"/></td>
-			<tr><td>State</td><td> <input type="text" id="state" value="TW"/></td>
-			<tr><td>City </td><td><input type="text" id="city" value="ST"/></td>
-			<tr><td>Org </td><td><input type="text" id="org" value="Webinos"/></td>
-			<tr><td>OrgUnit </td><td><input type="text" id="orgunit" value="WP4"/></td>
-			<tr><td>Common</td><td> <input type="text" id="common" value="habib@virji"/></td>
-			<tr><td>Email </td><td><input type="text" id="email" value="internal@webinos.org"/></td>
-			<tr><td>Days</td><td> <input type="text" id="days" value="180"/></td>
-	
+			<tr><td>Country </td><td><input type="text" id="country" value=""/></td></tr>
+			<tr><td>State</td><td> <input type="text" id="state" value=""/></td></tr>
+			<tr><td>City </td><td><input type="text" id="city" value=""/></td></tr>
+			<tr><td>Org </td><td><input type="text" id="org" value="Webinos"/></td></tr>
+			<tr><td>OrgUnit </td><td><input type="text" id="orgunit" value="WP4"/></td> </tr>
+			<tr><td>Common</td><td> <input type="text" id="common" value="WebinosLocalPZH" /> </td> </tr>
+			<tr><td><i> (Info: This name should be different for each PZH)</i></td><td> </td></tr>
+			<tr><td>Email </td><td><input type="text" id="email" value="internal@webinos.org"/></td></tr>
+			<tr><td>Days</td><td> <input type="text" id="days" value="180"/></td>	</tr>
 			<tr><td>Server Name </td><td><input type="text" id="servername" value="localhost"/></td></tr>
-			<tr><td>Server Port </td><td><input type="text" id="serverport" value="442"/></td></tr>
-			<tr><td>HTTPS Server Port</td><td> <input type="text" id="httpport" value="8907"/></td></tr>
-			<tr><td><button id="startPZH" class="button">Start PZH </button></td></tr>
+			<tr><td><i> (Info: This should be IP address on which PZH can be accessed via PZP) </i></td></tr>
+			<tr><td>Server Port </td><td><input type="text" id="serverport" value="443"/></td></tr>
+			<tr><td><i> (Info: If already this port is in use, next available port will be used)</i></td></tr>			
+			<tr><td>HTTPS Server Port</td><td> <input type="text" id="httpport" value="8081"/></td></tr>
+			<tr><td><i> (Info:PZH certificate is available to download at this address)</i></td></tr>
 		</table>
+			<center> <button id="startPZH" class="button">Start PZH </button> </center>
 	</div>
-	<div id = "pzp">	
-
-		<table>
+	<div id = "pzp" style="background-color:#0879a9">	
+		<center> <p style="color:white"> Start Multiple PZP's, Just change common name field</p> </center>
+		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
 			<tr><th>Config </th> <th> Value </th> </tr>
-
-			<tr><td>Country </td><td><input type="text" id="pzpcountry" value="UK"/></td>
-			<tr><td>State</td><td> <input type="text" id="pzpstate" value="TW"/></td>
-			<tr><td>City </td><td><input type="text" id="pzpcity" value="ST"/></td>
-			<tr><td>Org </td><td><input type="text" id="pzporg" value="Webinos"/></td>
-			<tr><td>OrgUnit </td><td><input type="text" id="pzporgunit" value="WP4"/></td>
-			<tr><td>Common</td><td> <input type="text" id="pzpcommon" value="PC"/></td>
-			<tr><td>Email </td><td><input type="text" id="pzpemail" value="internal@webinos.org"/></td>
-			<tr><td>Days</td><td> <input type="text" id="pzpdays" value="180"/></td>
-
-	
-			<tr><td>PZH Address </td><td><input type="text" id="pzpservername" value="localhost"/></td>
-			<tr><td>PZH Port </td><td><input type="text" id="pzpserverport" value="442"/></td>
-			<tr><td>PZP Server Address</td><td><input type="text" id="pzpipaddr" value="localhost"/></td>
-			<tr><td>PZP Server Port Number</td><td><input type="text" id="pzpport" value="9002"/></td>
-			<tr><td><button id="startPZP" class="button">Start PZP </button></td></tr>
+			<tr><td>Country </td><td><input type="text" id="pzpcountry" value=""/></td> </tr>
+			<tr><td>State</td><td> <input type="text" id="pzpstate" value=""/></td></tr>
+			<tr><td>City </td><td><input type="text" id="pzpcity" value=""/></td></tr>
+			<tr><td>Org </td><td><input type="text" id="pzporg" value="Webinos"/></td></tr>
+			<tr><td>OrgUnit </td><td><input type="text" id="pzporgunit" value="WP4"/></td></tr>
+			<tr><td>Common</td><td> <input type="text" id="pzpcommon" value="Desktop"/></td></tr>
+			<tr><td><i> (Info: This name should be different for each PZP)</i></td><td> </td></tr>
+			<tr><td>Email </td><td><input type="text" id="pzpemail" value="internal@webinos.org"/></td></tr>
+			<tr><td>Days</td><td> <input type="text" id="pzpdays" value="180"/></td>	</tr>
+			<tr><td>PZH Address </td><td><input type="text" id="pzpservername" value="localhost"/></td></tr>
+			<tr><td><i> (Info: This should match with PZH address you want to connect)</i></td><td> </td></tr>
+			<tr><td>PZH Port </td><td><input type="text" id="pzpserverport" value="443"/></td></tr>
+			<tr><td><i> (Info: This should match with PZH Port)</i></td><td> </td></tr>
+			<tr><td>PZP Server Address</td><td><input type="text" id="pzpipaddr" value="localhost"/></td></tr>
+			<tr><td><i> (Info: This address is used for starting PZP Server)</i></td><td> </td></tr>
+			<tr><td>PZP Server Port Number</td><td><input type="text" id="pzpport" value="8000"/></td>	</tr>	
+			<tr><td><i> (Info: PZP server listens on this port)</i></td><td> </td></tr>
 		</table>
+			<center>><button id="startPZP" class="button">Start PZP </button></center>
 	</div>
+	<div id = "connect_pzh" style="background-color:#0879a9">
+		<center> <p style="color:white"></p> </center>
+		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
+			<tr> <td> PZH Address: </td> <td><input type="text" id="pzh_ip_addr" value="79.125.104.127"/></td></tr>
+			<tr> <td> PZH Port: </td> <td><input type="text" id="pzh_http_port" value="8081"/></td></tr>
+		</table>
+			<center> <button id="downloadCert" class="button"> Download Certificate </button> </center>
+		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
+			<tr> <td> PZH Address: </td> <td><input type="text" id="pzh_ip_addr" value="79.125.104.127"/></td></tr>
+			<tr> <td> PZH Port: </td> <td><input type="text" id="pzh_port" value="443"/></td></tr>
+		</table>		
+			<center> <button id="connectPZH" class="button"> Connect PZH </button> </center>
 
-	<div id = "get42_example">
-		<table>
+	</div>
+	<div id = "get42_example" style="background-color:#0879a9"> 
+		<table style="background-color:lightgray; border:3px solid #0879a9">
 				<tr> <td>
 					Select from the list Available PZP & PZH to find Service
-					<select id="pzh_pzp_list"> <option> </option> </select>
-					<button id="findService" class="button"> Find Service </button> </td></tr>
+					<select id="pzh_pzp_list"> <option> </option> </select> </td>
+					<td> <button id="findService" class="button"> Find Service </button> </td></tr>
 					<tr> <td><p><i> Find Service will determine where your code will be executed</i></p> 
-				</td> </tr>
+				</td> <td> </td> </tr>
 				<tr> <td>
-					<button id="get42" class="button">get42PZP</button>
-				</td> </tr>				
+					<button id="get42" class="button">Get 42</button>
+				</td> <td> </td> </tr>				
 		</table>
 	</div>
 	 
-	<div id = "contact">
+	<div id = "contact" style="background-color:#0879a9">
 		<embed src="contacts/contactsClient.html" width="100%" height="100%">
 	</div>
-	<div id="geolocation">
+	<div id="geolocation" style="background-color:#0879a9">
 		<embed src="geolocation.html" width="100%" height="100%">
 	</div>
-	<div id="sensor">
+	<div id="sensor" style="background-color:#0879a9">
 		<embed src="sensor.html"width="100%" height="100%">
 	</div>
-	<div id="discovery">
+	<div id="discovery" style="background-color:#0879a9">
 		<embed src="discoveryUI.html" width="100%" height="100%">
 	</div>
-	<div id="file-api">
+	<div id="file-api" style="background-color:#0879a9">
 		<embed src="file-api-demo.html" width="100%" height="100%">
 	</div>
 	

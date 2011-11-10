@@ -32,69 +32,35 @@
 			var options = {type: 'prop', payload: payload};
 			webinos.message_send(null, options, null, null);                	   
                     });
-
-                   $('#startPZP').bind('click', function() {
-			var config = 'country='+ document.getElementById('pzpcountry').value + '\n' +
-			'state='+ document.getElementById('pzpstate').value + '\n' +
-			'city='+ document.getElementById('pzpcity').value + '\n' +
-			'organization='+ document.getElementById('pzporg').value + '\n' +
-			'organizationUnit='+ document.getElementById('pzporgunit').value + '\n' +
-			'common='+ document.getElementById('pzpcommon').value + '\n' +
-			'email='+ document.getElementById('pzpemail').value + '\n' +
-			'days='+ document.getElementById('pzpdays').value + '\n';
-						
-			var payload = {status: 'startPZP', 
-				servername: document.getElementById('pzpservername').value,
-				serverport: document.getElementById('pzpserverport').value,
-				pzpserverport: document.getElementById('pzpport').value,
-				ipaddr:document.getElementById('pzpipaddr').value,
-				value: config}; 
-				var options = {type: 'prop', payload: payload};
-				webinos.message_send(null, options, null, null);
-
-						
-                    });            
-		  
-		   $('#otherPZH').bind('click', function() {
-			var payload = {status: 'otherPZH', 
-			servername: document.getElementById('otherpzhservername').value,
-			serverport: document.getElementById('otherpzhserverport').value}; 
-			var options = {type: 'prop', payload: payload};
-			webinos.send(null, options, null, null);
-                    });
    		}); 
 	</script>
 	 
 </head>
 <body>
 
-
 <center> <div id="header"> <h1><img src="testbed_logo.png"></h1> </div> </center>
-<div class="pzh-pzp">
-<div id = "tabs">
-	
-	<div id = "pzh">
-		<table style="background-color:white; border:1px solid blue" align="center">
-			<tr><th>Config </th> <th> Value </th> </tr>
-
-			<tr><td>Country </td><td><input type="text" id="country" value="UK"/></td>
-			<tr><td>State</td><td> <input type="text" id="state" value=""/></td>
-			<tr><td>City </td><td><input type="text" id="city" value=""/></td>
-			<tr><td>Org </td><td><input type="text" id="org" value="Webinos"/></td>
-			<tr><td>OrgUnit </td><td><input type="text" id="orgunit" value="WP4"/></td>
-			<tr><td>Common</td><td> <input type="text" id="common" value="WebinosPZH"/></td>
-			<tr><td>Email </td><td><input type="text" id="email" value="internal@webinos.org"/></td>
-			<tr><td>Days</td><td> <input type="text" id="days" value="180"/></td>
-			<tr><td>Server Name </td><td><input type="text" id="servername" value="10.58.182.141"/></td></tr>
-			<tr><td>Server Port </td><td><input type="text" id="serverport" value="443"/></td></tr>
-			<tr><td>HTTPS Server Port</td><td> <input type="text" id="httpport" value="8907"/></td></tr>
-			<tr><center><td> <button id="startPZH" class="button">Start PZH </button> </td></center></tr>
-		</table>
-	</div
-	
+<div id = "pzh" style="background-color:#0879a9">
+<center> <p style="color:white"> Multiple PZH can be initiated	</p> </center>
+<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
+	<tr><th>Config </th> <th> Value </th> </tr>
+	<tr><td>Country </td><td><input type="text" id="country" value=""/></td></tr>
+	<tr><td>State</td><td> <input type="text" id="state" value=""/></td></tr>
+	<tr><td>City </td><td><input type="text" id="city" value=""/></td></tr>
+	<tr><td>Org </td><td><input type="text" id="org" value="Webinos"/></td></tr>
+	<tr><td>OrgUnit </td><td><input type="text" id="orgunit" value="WP4"/></td> </tr>
+	<tr><td>Common</td><td> <input type="text" id="common" value="WebinosPZH" /> </td> </tr>
+	<tr><td><i> (Info: This name should be different for each PZH)</i></td><td> </td></tr>
+	<tr><td>Email </td><td><input type="text" id="email" value="internal@webinos.org"/></td></tr>
+	<tr><td>Days</td><td> <input type="text" id="days" value="180"/></td>	</tr>
+	<tr><td>Server Name </td><td><input type="text" id="servername" value="10.58.182.141"/></td></tr>
+	<tr><td><i> (Info: This should be IP address on which PZH can be accessed via PZP) </i></td></tr>
+	<tr><td>Server Port </td><td><input type="text" id="serverport" value="443"/></td></tr>
+	<tr><td><i> (Info: If already this port is in use, next available port will be used)</i></td></tr>			
+	<tr><td>HTTPS Server Port</td><td> <input type="text" id="httpport" value="8081"/></td></tr>
+	<tr><td><i> (Info:PZH certificate is available to download at this address)</i></td></tr>
+</table>
+	<center> <button id="startPZH" class="button">Start PZH </button> </center>
 </div>
-</div>
-
 <div id="status">STATUS: <span id="message"></span></div>
 </body>
 </html>

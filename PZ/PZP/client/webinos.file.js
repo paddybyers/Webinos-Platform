@@ -364,12 +364,12 @@
 	file.LocalFileSystem.prototype = new WebinosService();
 	file.LocalFileSystem.prototype.constructor = file.LocalFileSystem;
 
-	file.LocalFileSystem.prototype.requestFileSystem = function (type, size, successCallback, errorCallback) {
+	file.LocalFileSystem.prototype.requestFileSystem = function (type, size, successCallback, errorCallback, responseto, msgid) {
 		utils.bind(utils.rpc.request(this, 'requestFileSystem', null, function (result) {
 			utils.callback(successCallback, this)(file.FileSystem.deserialize(this, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(file.FileError.deserialize(error));
-		}), this)(type, size);
+		}, responseto, msgid), this)(type, size);
 	}
 
 	file.LocalFileSystem.prototype.resolveLocalFileSystemURL = function (url, successCallback, errorCallback) {

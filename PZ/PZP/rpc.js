@@ -12,7 +12,7 @@
 	
 	if (typeof utils !== 'undefined')
 		utils.rpc = {
-			request: function (service, method, objectRef, successCallback, errorCallback) {
+			request: function (service, method, objectRef, successCallback, errorCallback, responseto, msgid) {
 				return function () {
 					var params = Array.prototype.slice.call(arguments);
 					var message = webinos.rpc.createRPC(service, method, params);
@@ -20,18 +20,18 @@
 					if (objectRef)
 						message.fromObjectRef = objectRef;
 
-					webinos.rpc.executeRPC(message, utils.callback(successCallback, this), utils.callback(errorCallback, this));
+					webinos.rpc.executeRPC(message, utils.callback(successCallback, this), utils.callback(errorCallback, this), responseto, msgid);
 				};
 			},
 			
-			notify: function (service, method, objectRef) {
+			notify: function (service, method, objectRef, responseto, msgid) {
 				return function () {
 					var params = Array.prototype.slice.call(arguments);
 					var message = webinos.rpc.createRPC(service, method, params);
 					
 					if (objectRef)
 						message.fromObjectRef = objectRef;
-					webinos.rpc.executeRPC(message);
+					webinos.rpc.executeRPC(message, null, null, responseto, msgid);
 				};
 			}
 		};
@@ -64,7 +64,7 @@ webinos.rpc.setWriter = function (writer){
  */
 webinos.rpc.handleMessage = function (message, responseto, msgid){
 	console.log("New packet from messaging");
-	console.log("Message: " + JSON.stringify(message));
+	//console.log("Message: " + JSON.stringify(message));
 	console.log("Response to " + responseto);
 	var myObject = message;
 	logObj(myObject, "rpc");
@@ -227,7 +227,7 @@ webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto, msgid) {
     else{
     	if (typeof callback !== 'undefined' && typeof responseto === 'undefined') responseto = callback;
     }
-    
+    debugger;
     //TODO check if rpc is request on a specific object (objectref) and get mapped responseto / destination session
     
     //TODO remove stringify when integrating with Message Routing/Ziran

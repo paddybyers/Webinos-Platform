@@ -339,7 +339,6 @@
 		var msg = data.toString('utf8');//.split('#')
 		
 		if(msg[0] ==='#' && msg[msg.length-1] === '#') {
-			console.log('acutally it does itself');
 			msg = msg.split('#');
 			data2 = JSON.parse(msg[1]);
 			lastMsg ='';
@@ -714,8 +713,7 @@
 		
 		webinos.session.pzp.wsServer.on('connect', function(connection) {
 			webinos.session.common.debug("PZP Websocket Server: Connection accepted.");
-			
-			if(webinos.session.pzp.instance !== undefined && webinos.session.pzp.instance !== null) {
+			if(typeof webinos.session.pzp.instance !== "undefined") {
 				webinos.session.pzp.connected_session(connection);
 			}			
 			
@@ -771,7 +769,12 @@
 								connection.sendUTF(JSON.stringify(info));
 						});
 					}
-				} else if(msg.type === 'prop' && msg.payload.status === 'otherPZH') {
+				} else if(msg.type === 'prop' && msg.payload.status === 'downloadCert') {
+					//fs.writeFile(msg.payload.config.configfile, msg.payload.config.value);
+					pzh.downloadCertificate(msg.payload.servername, msg.payload.serverport);
+					// Instantiate and connect to other PZH server
+				}
+				 else if(msg.type === 'prop' && msg.payload.status === 'connectPZH') {
 					//fs.writeFile(msg.payload.config.configfile, msg.payload.config.value);
 					pzh.connectOtherPZH(msg.payload.servername, msg.payload.serverport);
 					// Instantiate and connect to other PZH server

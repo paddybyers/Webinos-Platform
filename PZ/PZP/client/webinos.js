@@ -7,6 +7,10 @@
 	var connected_pzp = null;
 	var connected_pzh = null;
 	var findServiceBindAddress = null;
+	webinos.message_send_messaging = function(object, message, to) {
+		webinos.message_send(to, message, null, null);
+	};
+	
 	webinos.message_send = function(to, rpc, successCB, errorCB) {
 		var type, id = 0;	
 		if(rpc.type !== undefined && rpc.type === "prop") {
@@ -57,8 +61,6 @@
 		return findServiceBindAddress;
 	}
 	
-
-	
 	/**
 	 * Creates the socket communication channel
 	 * for a locally hosted websocket server at port 8080
@@ -67,9 +69,9 @@
 	 */
 	 function createCommChannel(successCB) {
 		try{
-			channel  = new WebSocket('ws://'+window.location.hostname+':8081');
+			channel  = new WebSocket('ws://'+window.location.hostname+':81');
 		} catch(e) {
-			channel  = new MozWebSocket('ws://'+window.location.hostname+':8080');
+			channel  = new MozWebSocket('ws://'+window.location.hostname+':81');
 		}
 				
 		channel.onmessage = function(ev) {
@@ -105,7 +107,10 @@
 				$("<option value=" + data.payload.message + " >" +data.payload.message + "</option>").appendTo("#pzp_list");				
 				$('#message').append('<li> PZP just joined: '+data.payload.message+'</li>');	
 			} else {
-				webinos.message.onMessageReceived(JSON.stringify(data));
+				//webinos.message.setGet(sessionid);
+				//webinos.message.setObject(this);
+				//webinos.message.setSend(webinos.message_send_messaging);
+				webinos.message.onMessageReceived(data, data.to);
 			}
 		};
 	}
