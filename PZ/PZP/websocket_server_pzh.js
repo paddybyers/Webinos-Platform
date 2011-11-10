@@ -7,7 +7,7 @@ if (typeof webinos === "undefined") {
 	webinos = {};
 	webinos.session = {};
 }
-webinos.session.pzp = require('./session_pzp.js');
+webinos.session.pzh = require('./session_pzh.js');
 
 var hostname = '' , serverPort = 0, webServerPort = 0;
 process.argv.forEach(function(val, index, array) {
@@ -19,4 +19,4 @@ process.argv.forEach(function(val, index, array) {
 		webServerPort = val;
 });
 
-webinos.session.pzp.startWebSocketServer(hostname, serverPort, webServerPort); 
+webinos.session.pzh.startWebSocketServer(hostname, serverPort, webServerPort); 

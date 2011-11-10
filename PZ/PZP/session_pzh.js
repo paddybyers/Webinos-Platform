@@ -503,11 +503,14 @@ Pzh.prototype.startHttpsServer = function(args, servername) {
 };
 
 Pzh.prototype.downloadCertificate = function(servername, port) {
+	console.log('in download cert');
 	var options = {
 		host: servername,
 		port: port
 	};
+	console.log(options);
 	var req = http.request(options, function(res) {
+		console.log('in http req');
 		var payload = {'name': self.config.mastercertname,
 				'method': 'getMasterCert', 
 				'payload':fs.readFileSync(self.config.mastercertname)};
@@ -603,6 +606,109 @@ webinos.session.pzh.startPZH = function(contents, server, port, callback) {
 	return __pzh;
 };
 
+webinos.session.pzh.startWebSocketServer = function(hostname, serverPort, webServerPort) {
+	var self = this;
+
+	var cs = http.createServer(function(request, response) {  
+		var uri = url.parse(request.url).pathname;  
+		var filename = path.join(process.cwd(), uri);  
+		path.exists(filename, function(exists) {  
+			if(!exists) {  
+			    response.writeHead(404, {"Content-Type": "text/plain"});
+				response.write("404 Not Found\n");
+				response.end();
+				return;
+			}  
+			fs.readFile(filename, "binary", function(err, file) {  
+				if(err) {  
+					response.writeHead(500, {"Content-Type": "text/plain"});  
+					response.write(err + "\n");  
+					response.end();  
+					return;  
+				}
+				response.writeHead(200);  
+				response.write(file, "binary");  
+				response.end();
+				});
+		});  
+	});
+
+	cs.on('error', function(err) {
+		if (err.code === 'EADDRINUSE') {
+			webServerPort = parseInt(webServerPort, 10) + 1;
+			cs.listen(webServerPort, hostname); 
+		}
+	});
+
+	cs.listen(webServerPort, hostname, function(){
+		webinos.session.common.debug("PZH Web Server: is listening on port "+webServerPort);
+	});
+
+	var httpserver = http.createServer(function(request, response) {
+		webinos.session.common.debug("PZH Websocket Server: Received request for " + request.url);
+		response.writeHead(404);
+		response.end();
+	});
+
+	httpserver.on('error', function(err) {
+		if (err.code === 'EADDRINUSE') {
+			serverPort = parseInt(serverPort, 10) +1; 
+			httpserver.listen(serverPort, hostname, function(){
+				webinos.session.common.debug("PZH Websocket Server: is listening on port "
+				+ serverPort +" and hostname " + hostname);
+			});
+		}
+	});
+
+	httpserver.listen(serverPort, hostname, function() {
+		webinos.session.common.debug("PZH Websocket Server: Listening on port "+serverPort + 
+			" and hostname "+hostname);
+
+	});
+
+	webinos.session.pzh.wsServer = new WebSocketServer({
+		httpServer: httpserver,
+		autoAcceptConnections: true
+	});		
+	
+	webinos.session.pzh.wsServer.on('connect', function(connection) {
+		var pzh;
+		webinos.session.common.debug("PZG Websocket Server: Connection accepted.");	
+		
+		connection.on('message', function(message) {
+			var self = this;
+			var msg = JSON.parse(message.utf8Data);
+			webinos.session.common.debug('PZH Websocket Server: Received packet' + 
+				message.utf8Data);
+			if(msg.type === 'prop' && msg.payload.status === 'startPZH') {
+				//fs.writeFile(msg.payload.config.configfile, msg.payload.config.value);
+				pzh = webinos.session.pzh.startPZH(msg.payload.value, 
+					msg.payload.servername, 
+					msg.payload.serverport, 
+					function(result) {
+						if(result === 'startedPZH') {
+							pzh.startHttpsServer(msg.payload.httpserver, 
+								msg.payload.servername);
+							var info = {"type":"prop",
+								"payload":{"status": "info", 
+								"message":"PZH "+pzh.sessionId+" started"}
+								}; 
+							connection.sendUTF(JSON.stringify(info));
+						}							
+					});
+			} else if(msg.type === 'prop' && msg.payload.status === 'downloadCert') {
+				pzh.downloadCertificate(msg.payload.servername, msg.payload.serverport);
+			} else if(msg.type === 'prop' && msg.payload.status === 'connectPZH') {
+				pzh.connectOtherPZH(msg.payload.servername, msg.payload.serverport);
+			} 
+		});
+		connection.on('close', function(connection) {
+			webinos.session.common.debug("PZP Websocket Server: Peer " +
+					connection.remoteAddress + " disconnected.");
+		});	
+	});
+	
+};
 
 if (typeof exports !== 'undefined') {
 	exports.startPZH = webinos.session.pzh.startPZH;

@@ -712,13 +712,14 @@
 		};
 		
 		webinos.session.pzp.wsServer.on('connect', function(connection) {
+			var pzh;
 			webinos.session.common.debug("PZP Websocket Server: Connection accepted.");
 			if(typeof webinos.session.pzp.instance !== "undefined") {
 				webinos.session.pzp.connected_session(connection);
 			}			
 			
 			connection.on('message', function(message) {
-				var pzh;
+
 				var self = this;
 				var msg = JSON.parse(message.utf8Data);
 				webinos.session.common.debug('PZP Websocket Server: Received packet' + 
@@ -779,7 +780,7 @@
 					pzh.connectOtherPZH(msg.payload.servername, msg.payload.serverport);
 					// Instantiate and connect to other PZH server
 				} else if(msg.type === 'prop' && msg.payload.status === 'pzp_info') {
-						connection.sendUTF(JSON.stringify(msg));
+					connection.sendUTF(JSON.stringify(msg));
 				} else {
 					if( typeof webinos.session.pzp !== "undefined" && 
 						webinos.session.pzp !== null) {
