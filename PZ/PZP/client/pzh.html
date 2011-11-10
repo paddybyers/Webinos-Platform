@@ -1,0 +1,100 @@
+<html>
+<head>
+<title>webinos rpc</title>
+	<script type="text/javascript" src="/rpc.js"></script>
+	<script type="text/javascript" src="/client/webinos.js"></script>
+	<script type="text/javascript" src="/client/jsrender.js"></script>
+	<script type="text/javascript" src="/messaging.js"></script>
+	<script type="text/javascript" src="/client/get42.js"></script>
+	<link rel="stylesheet" type="text/css" href="/client/jquery-ui-1.8.16.custom.css"/>
+	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
+	<script type="text/javascript" src="/client/jquery.js"></script>
+	<script type="text/javascript" src="/client/jquery-ui.js"></script>
+	<script type="text/javascript" src="/client/dojo.js"></script>
+	<script type="text/javascript">
+            $(document).ready(function() {
+		//Abot added to change the address
+            	    
+            	 $('#startPZH').bind('click', function() {
+			var config = 'country='+ document.getElementById('country').value + '\n' +
+			'state='+ document.getElementById('state').value + '\n' +
+			'city='+ document.getElementById('city').value + '\n' +
+			'organization='+ document.getElementById('org').value + '\n' +
+			'organizationUnit='+ document.getElementById('orgunit').value + '\n' +
+			'common='+ document.getElementById('common').value + '\n' +
+			'email='+ document.getElementById('email').value + '\n' +
+			'days='+ document.getElementById('days').value + '\n';
+			var payload = {status: 'startPZH', 
+					servername: document.getElementById('servername').value, 
+					serverport: document.getElementById('serverport').value, 
+					httpserver: document.getElementById('httpport').value,
+					value: config}; 
+			var options = {type: 'prop', payload: payload};
+			webinos.message_send(null, options, null, null);                	   
+                    });
+
+                   $('#startPZP').bind('click', function() {
+			var config = 'country='+ document.getElementById('pzpcountry').value + '\n' +
+			'state='+ document.getElementById('pzpstate').value + '\n' +
+			'city='+ document.getElementById('pzpcity').value + '\n' +
+			'organization='+ document.getElementById('pzporg').value + '\n' +
+			'organizationUnit='+ document.getElementById('pzporgunit').value + '\n' +
+			'common='+ document.getElementById('pzpcommon').value + '\n' +
+			'email='+ document.getElementById('pzpemail').value + '\n' +
+			'days='+ document.getElementById('pzpdays').value + '\n';
+						
+			var payload = {status: 'startPZP', 
+				servername: document.getElementById('pzpservername').value,
+				serverport: document.getElementById('pzpserverport').value,
+				pzpserverport: document.getElementById('pzpport').value,
+				ipaddr:document.getElementById('pzpipaddr').value,
+				value: config}; 
+				var options = {type: 'prop', payload: payload};
+				webinos.message_send(null, options, null, null);
+
+						
+                    });            
+		  
+		   $('#otherPZH').bind('click', function() {
+			var payload = {status: 'otherPZH', 
+			servername: document.getElementById('otherpzhservername').value,
+			serverport: document.getElementById('otherpzhserverport').value}; 
+			var options = {type: 'prop', payload: payload};
+			webinos.send(null, options, null, null);
+                    });
+   		}); 
+	</script>
+	 
+</head>
+<body>
+
+
+<center> <div id="header"> <h1><img src="testbed_logo.png"></h1> </div> </center>
+<div class="pzh-pzp">
+<div id = "tabs">
+	
+	<div id = "pzh">
+		<table style="background-color:white; border:1px solid blue" align="center">
+			<tr><th>Config </th> <th> Value </th> </tr>
+
+			<tr><td>Country </td><td><input type="text" id="country" value="UK"/></td>
+			<tr><td>State</td><td> <input type="text" id="state" value=""/></td>
+			<tr><td>City </td><td><input type="text" id="city" value=""/></td>
+			<tr><td>Org </td><td><input type="text" id="org" value="Webinos"/></td>
+			<tr><td>OrgUnit </td><td><input type="text" id="orgunit" value="WP4"/></td>
+			<tr><td>Common</td><td> <input type="text" id="common" value="WebinosPZH"/></td>
+			<tr><td>Email </td><td><input type="text" id="email" value="internal@webinos.org"/></td>
+			<tr><td>Days</td><td> <input type="text" id="days" value="180"/></td>
+			<tr><td>Server Name </td><td><input type="text" id="servername" value="10.58.182.141"/></td></tr>
+			<tr><td>Server Port </td><td><input type="text" id="serverport" value="443"/></td></tr>
+			<tr><td>HTTPS Server Port</td><td> <input type="text" id="httpport" value="8907"/></td></tr>
+			<tr><center><td> <button id="startPZH" class="button">Start PZH </button> </td></center></tr>
+		</table>
+	</div
+	
+</div>
+</div>
+
+<div id="status">STATUS: <span id="message"></span></div>
+</body>
+</html>
