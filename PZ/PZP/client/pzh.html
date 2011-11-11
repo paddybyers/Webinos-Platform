@@ -24,7 +24,7 @@
 					httpserver: document.getElementById('httpport').value,
 					value: config}; 
 			var options = {type: 'prop', payload: payload};
-			message_send(options);                	   
+			webinos.message_send(null,options,null,null);
                     });
                   
 		$('#connectPZH').bind('click', function() {
@@ -32,7 +32,7 @@
 				servername: document.getElementById('pzh_ip_addr').value,
 				serverport: document.getElementById('pzh_port').value}; 
 			var options = {type: 'prop', payload: payload};
-			message_send(options);
+			webinos.message_send(options);
                  });
                  
 		$('#downloadCert').bind('click', function() {
@@ -40,7 +40,7 @@
 				servername: document.getElementById('pzh_ip_addr').value,
 				serverport: document.getElementById('pzh_http_port').value}; 
 			var options = {type: 'prop', payload: payload};
-			message_send(options);
+			webinos.message_send(null, options, null, null);
                  });
    	 });   		
 	</script>

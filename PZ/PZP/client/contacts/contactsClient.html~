@@ -19,17 +19,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<script type="text/javascript" src="/client/jquery-1.6.4.min.js"></script>
-
+<script src="/client/jquery-1.6.4.min.js"></script>
 <script type="text/javascript" src="/rpc.js"></script>
 <script type="text/javascript" src="/client/webinos.js"></script>
-	<script type="text/javascript" src="/messaging.js"></script>
+<script type="text/javascript" src="/messaging.js"></script>
+<link rel="stylesheet" type="text/css" href="/client/style.css" media="screen"/>
 <script type="text/javascript" src="/client/contacts/contacts.js"></script>
-<script type="text/javascript"
-  src="http://code.jquery.com/jquery-1.5.2.js"></script>
-<script type="text/javascript"
-  src="http://ajax.googleapis.com/ajax/libs/dojo/1.6.1/dojo/dojo.xd.js"></script>
+
 <!-- Following script contains all the client interface machinery in JS -->
 <!-- <script src="./contactsClientScript.js"></script> -->
 <script type="text/javascript">
@@ -46,8 +42,9 @@
   // Same as "FindService" button,but automatic
   function bindservice()
   {
+	var address = $('#pzh_pzp_list').val();
     webinos.ServiceDiscovery
-      .findServices(
+      .findServices(address,
         new ServiceType('http://www.w3.org/ns/api-perms/contacts'),
         {
           onFound : function(service)
@@ -86,7 +83,7 @@
     {
       document.getElementById('html_contacts').innerHTML = "PROBLEM: Service unreachable";
     }
-  }
+  }	
 
   function get_contact_list_cb()
   {
@@ -153,7 +150,7 @@
 
   function handle_authentication_query(status) // see function
   {
-	console.log(status);
+	console.log('handle_auth : '+status);
     if (status)
     {
       if ($("input[@name='contactType']:checked").val() == 'remote')
@@ -170,14 +167,14 @@
   // Print a contact list to HTML document
   function print_contact_list(list)
   {
-    //alert("contact list size " + list.length)
+    //alert("contact list size " 	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>+ list.length)
     //clean then write
     document.getElementById('contactList').innerHTML = "";
     if (list.length > 0)
     {
       for ( var i = 0; i < list.length; i++)
       {
-        //        console.log(list[i]);
+        //console.log(list[i]);
         var contactString = (list[i].displayName == "" ? "<b>Anonymous</b></br>" : "<b>Name: </b>" +
           list[i].displayName + "<br>");
         contactString += ((list[i].nickname == undefined || list[i].nickname == "") ? "" : "<b>Nickname: </b>" +
@@ -255,34 +252,37 @@
 </head>
 <body>
   <!--Right part of the table-->
+
   <table border="1" style="height: 100%; width: 100%;">
     <tr valign="top">
       <td width="50%">
         <div>
-          <div>
+          <div style="background-color:lightgray; border:1px solid black">
+        		PZH PZP LIST : <select id="pzh_pzp_list"> <option> Empty </option> </select> <br>
             <p>
               <input type="radio" name="contactType" value="remote"
                 id="cnt_remote" checked="checked"">Remote
               Contacts (GMail) <br> <input type="radio"
                 name="contactType" value="local" id="cnt_local"">Local
-              Contacts (Thunderbird) <br> <label
-                for="addressBookNameText">Local Address Book: </label>
+              Contacts (Thunderbird) <br> 
+              <!--<label
+                for="addressBookNameText">Local Address Book: </label>-->
               <!-- We'd better put an "open file" form -->
-              <input type="text" id="addressBookNameText" size="40"
-                placeholder="<path_to_your_Thunderbird_.mab file>" />
+              <!--<input type="text" id="addressBookNameText" size="40"
+                placeholder="<path_to_your_Thunderbird_.mab file>" />-->
               <!-- But it uses C:\fakepath :( ==> no way to get full path <input type="file" id="getAddressBook" accept=".mab">-->
-              <br> <label for="usernameText">Username: </label> <input
+              <!--<br> <label for="usernameText">Username: </label> <input
                 type="text" id="usernameText"
                 placeholder="enter username" /> <br> <label
                 for="passwordText">Password: </label> <input
                 type="password" id="passwordText"
-                placeholder="enter password" /> <br>
+                placeholder="enter password" /> <br>-->
               <!--     <label for="fileContent">File Content</label> <br>
     <textarea rows='8' size=500 id="fileContent"></textarea> -->
             </p>
           </div>
           <!--   <p> -->
-          <div>
+          <div style="background-color:lightgray; border:1px solid black">
             <button id="btnFind">Find Contacts Service</button>
             <button id="btnAuthenticate">Authenticate/Open</button>
             <br>
@@ -291,13 +291,13 @@
           </div>
           <!--   </p> -->
 
-          <div id="html_contacts">
+          <div id="html_contacts" style="background-color:lightgray; border:1px solid black">
 
             <script>
                           document.write("NO SERVICE");
                         </script>
           </div>
-          <div id="authStatus">
+          <div id="authStatus" style="background-color:lightgray; border:1px solid black">
             <script>
                           document.write("NOT YET AUTHENTICATED");
                         </script>
@@ -318,7 +318,7 @@
         <div>
           <!--           <p id="cwd"></p>
           <ul id="ls"></ul> -->
-          <div id="find_contacts">
+          <div id="find_contacts"   div style="background-color:lightgray; border:1px solid black">
             <p>
               <label for="findContactName">Name: </label> <input
                 type="text" id="findContactName" placeholder="Name" /><br>

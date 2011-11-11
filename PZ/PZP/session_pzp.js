@@ -747,7 +747,7 @@
 						msg.payload.serverport, 
 						function(result) {
 							if(result === 'startedPZH') {
-								pzh.startHttpsServer(msg.payload.httpserver, msg.payload.servername);
+								//pzh.startHttpsServer(msg.payload.httpserver, msg.payload.servername);
 								var info = {"type":"prop", "payload":{"status": "info", "message":"PZH started"}}; 
 								connection.sendUTF(JSON.stringify(info));
 							}							

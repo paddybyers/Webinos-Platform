@@ -85,7 +85,7 @@ function Contact(_id, _displayName, _name, _nickname, _phonenumbers, _emails, _a
     this.gender = _gender;
   if (_note)
     this.note = _note;
-  if (_photos && _photos instanceof Array)
+  if (_photos && _photos instanceof Array )
     this.photos = _photos;
   if (_catgories && _catgories instanceof Array && (_catgories.length > 0 && (_catgories[0] instanceof String)))
     this.categories = _catgories;
@@ -420,8 +420,8 @@ function rawContact2W3CContact(rawContact)
   var _contactPhotos = new Array(rawContact.photos.length);
   for ( var j = 0; j < rawContact.photos.length; j++)
   {
-    _contactPhotos[j] = new ContactField(rawContact.photos[j]['value'], rawContact.photos[j]['type'],
-      Boolean(rawContact.photos[j]['pref'] == "true"));
+	_contactPhotos[j] = new ContactField(rawContact.photos[j]['value'], rawContact.photos[j]['type'],
+	  Boolean(rawContact.photos[j]['pref'] == "true"));
   }
 
   //Fill Contact
