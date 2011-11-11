@@ -469,44 +469,6 @@ Pzh.prototype.configurePZH = function(contents, callback) {
 	});	
 };
 
-//webinos.session.pzh.startHttpsServer = function(args) {
-Pzh.prototype.startHttpsServer = function(args, servername) {
-	var self = this;
-	self.httpPort = args;
-	var httpServer = http.createServer(function(request, response) {
-		request.on('data', function(data) {
-			var parse = JSON.stringify(data);
-			console.log(parse);
-			
-			if(parse.method === "getMasterCert") {
-				self.config.otherPZHMasterCert = parse.name;
-				fs.writeFileSync(self.config.otherPZHMasterCert, parse.payload);
-				response.writeHead(200, {'Content-Type': 'text/plain'});
-				var payload = {'method': 'receiveMasterCert',
-						'name':self.config.mastercertname, 
-						'payload':fs.readFileSync(self.config.mastercertname) };
-				response.write(JSON.stringify(payload));
-				response.end();					
-			}
-		});
-	    	response.writeHead(200, {'Content-Type': 'text/plain'});
-		response.write("You are connected to PZH:" + self.sessionId+ "\n");
-		response.end();
-	});
-
-	httpServer.on('error', function (err) {
-		if (err.code == 'EADDRINUSE') {
-			webinos.session.common.debug('PZP Server: Address in use');
-			self.httpPort = parseInt(self.httpPort) + 1 ;
-				httpServer.listen(self.httpPort, servername);
-			}
-		});
-
-	httpServer.listen(self.httpPort, servername, function(){
-		webinos.session.common.debug("PZH HTTPS Server: Listening on port " + self.httpPort);
-	});
-
-};
 
 Pzh.prototype.downloadCertificate = function(servername, port) {
 	console.log('in download cert');
@@ -612,108 +574,67 @@ webinos.session.pzh.startPZH = function(contents, server, port, callback) {
 	return __pzh;
 };
 
-webinos.session.pzh.startWebSocketServer = function(hostname, serverPort, webServerPort) {
+webinos.session.pzh.startWebSocketServer = function(hostname, serverPort) {
 	var self = this;
+	console.log(hostname);
+	console.log(serverPort);
+        var httpServer = http.createServer(function(request, response) {
+                request.on('data', function(data) {
+			console.log(data);
+                        var msg = JSON.stringify(data);
+                        console.log(parse);
 
-	var cs = http.createServer(function(request, response) {  
-		var uri = url.parse(request.url).pathname;  
-		var filename = path.join(process.cwd(), uri);  
-		path.exists(filename, function(exists) {  
-			if(!exists) {  
-			    response.writeHead(404, {"Content-Type": "text/plain"});
-				response.write("404 Not Found\n");
-				response.end();
-				return;
-			}  
-			fs.readFile(filename, "binary", function(err, file) {  
-				if(err) {  
-					response.writeHead(500, {"Content-Type": "text/plain"});  
-					response.write(err + "\n");  
-					response.end();  
-					return;  
-				}
-				response.writeHead(200);  
-				response.write(file, "binary");  
-				response.end();
-			});
-		});  
-	});
+                        if(msg.payload.status === "getMasterCert") {
+                                self.config.otherPZHMasterCert =msg.payload.name;
+                                fs.writeFileSync(self.config.otherPZHMasterCert, msg.payload.cert);
+                                response.writeHead(200, {'Content-Type': 'text/plain'});
+                                var payload = {'type':'prop',
+						'payload': {'status':'receiveMasterCert', 'name':self.config.mastercertname, 'cert':fs.readFileSync(self.config.mastercertname) }};
+				response.writeHead(200);
+                                response.write(JSON.stringify(payload));
+                                response.end();
+                        }
 
-	cs.on('error', function(err) {
-		if (err.code === 'EADDRINUSE') {
-			webServerPort = parseInt(webServerPort, 10) + 1;
-			cs.listen(webServerPort, hostname); 
-		}
-	});
+		 if(msg.type === 'prop' && msg.payload.status === 'startPZH') {
+                        pzh = webinos.session.pzh.startPZH(msg.payload.value,
+                                msg.payload.servername,
+                                msg.payload.serverport,
+                                function(result) {
+                                        if(result === 'startedPZH') {
+                                                var info = {"type":"prop",
+                                                        "payload":{"status": "info",
+                                                        "message":"PZH "+pzh.sessionId+" started"}
+                                                        };
+                                                response.writeHead(200);
+                                                response.write(JSON.stringify(info));
+                                                response.end();
+                                        }
+                                });
+                }
+               
+                response.writeHead(200, {'Content-Type': 'text/plain'});
+                response.write("You are connected to PZH:" + self.sessionId+ "\n");
+                response.end();
+        });
 
-	cs.listen(webServerPort, hostname, function(){
-		webinos.session.common.debug("PZH Web Server: is listening on port "+webServerPort);
-	});
+	httpServer.on('close', function(connection) {
+                webinos.session.common.debug("PZP Websocket Server: Peer " +
+                        connection.remoteAddress + " disconnected.");
+        });
 
-	var httpserver = http.createServer(function(request, response) {
-		webinos.session.common.debug("PZH Websocket Server: Received request for " + request.url);
-		response.writeHead(404);
-		response.end();
-	});
+        httpServer.on('error', function (err) {
+                if (err.code == 'EADDRINUSE') {
+                        webinos.session.common.debug('PZP Server: Address in use');
+                        serverPort = parseInt(serverPort) + 1 ;
+                                httpServer.listen(serverPort, hostname);
+                        }
+                });
 
-	httpserver.on('error', function(err) {
-		if (err.code === 'EADDRINUSE') {
-			serverPort = parseInt(serverPort, 10) +1; 
-			httpserver.listen(serverPort, hostname, function(){
-				webinos.session.common.debug("PZH Websocket Server: is listening on port "
-				+ serverPort +" and hostname " + hostname);
-			});
-		}
-	});
-
-	httpserver.listen(serverPort, hostname, function() {
-		webinos.session.common.debug("PZH Websocket Server: Listening on port "+serverPort + 
-			" and hostname "+hostname);
-
-	});
-
-	webinos.session.pzh.wsServer = new WebSocketServer({
-		httpServer: httpserver,
-		autoAcceptConnections: true
-	});		
+        httpServer.listen(serverPort, hostname, function(){
+                webinos.session.common.debug("PZH HTTP Server: Listening on port " + serverPort);
+        });
 	
-	webinos.session.pzh.wsServer.on('connect', function(connection) {
-		var pzh;
-		webinos.session.common.debug("PZG Websocket Server: Connection accepted.");	
-		
-		connection.on('message', function(message) {
-			var self = this;
-			var msg = JSON.parse(message.utf8Data);
-			webinos.session.common.debug('PZH Websocket Server: Received packet' + 
-				message.utf8Data);
-			if(msg.type === 'prop' && msg.payload.status === 'startPZH') {
-				//fs.writeFile(msg.payload.config.configfile, msg.payload.config.value);
-				pzh = webinos.session.pzh.startPZH(msg.payload.value, 
-					msg.payload.servername, 
-					msg.payload.serverport, 
-					function(result) {
-						if(result === 'startedPZH') {
-							pzh.startHttpsServer(msg.payload.httpserver, 
-								msg.payload.servername);
-							var info = {"type":"prop",
-								"payload":{"status": "info", 
-								"message":"PZH "+pzh.sessionId+" started"}
-								}; 
-							connection.sendUTF(JSON.stringify(info));
-						}							
-					});
-			} else if(msg.type === 'prop' && msg.payload.status === 'downloadCert') {
-				pzh.downloadCertificate(msg.payload.servername, msg.payload.serverport);
-			} else if(msg.type === 'prop' && msg.payload.status === 'connectPZH') {
-				pzh.connectOtherPZH(msg.payload.servername, msg.payload.serverport);
-			} 
-		});
-		connection.on('close', function(connection) {
-			webinos.session.common.debug("PZP Websocket Server: Peer " +
-					connection.remoteAddress + " disconnected.");
-		});	
-	});
-	
+	})
 };
 
 if (typeof exports !== 'undefined') {
