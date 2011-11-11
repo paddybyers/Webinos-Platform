@@ -1,6 +1,11 @@
 <html>
 <head>
 <title>Webinos RPC - DeviceStatus API Test</title>
+	<script type="text/javascript">
+		if (window.location.hostname == "") {
+			window.location.hostname = "localhost";
+		}
+	</script>
 	<script type="text/javascript" src="../../../../../RPC/rpc.js"></script>
 	<script type="text/javascript" src="../../../../../RPC/client/webinos.js"></script>
 	<script type="text/javascript" src="./webinos.client.devicestatus.js"></script>
