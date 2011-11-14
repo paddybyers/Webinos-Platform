@@ -23,6 +23,7 @@ AuthStatus.prototype.authMethodDetails = "";
 
 
 AuthError = function () {
+	"use strict";
 	this.code = Number;
 };
 
@@ -49,6 +50,7 @@ AuthErrorCB.prototype.onError = function (error) {
 
 
 WebinosAuthentication = function () {
+	"use strict";
 	this.authentication = new WebinosAuthenticationInterface();
 };
 
@@ -65,18 +67,19 @@ var storePass = "PZpassword", storeFile = "./auth.zip", storeDir  = "./authentic
 var ask, getAuthTime, write_buffer, username;
 
 webinos.authentication.authenticate = function (params, successCB, errorCB, objectRef) {
-	var newly_authenticated, stats, passfile, passrows, p, buffer;
+	"use strict";
+	var newly_authenticated, passfile, passrows, p, buffer, error = {};
 
 	if (params[0] !== '') {
 		username = params[0];
 		webinos.authentication.isAuthenticated(params, function (authenticated) {
 			if (authenticated === false) {
 				ask("Password", function (password) {
-					try {
-						newly_authenticated = false;
-						secstore.open(storePass, storeFile, storeDir, function (err) {	
-							if (err === undefined || err === null) {
-								stats = fs.statSync(password_filename);
+					newly_authenticated = false;
+					secstore.open(storePass, storeFile, storeDir, function (err) {	
+						if (err === undefined || err === null) {
+							try {
+								// var stats = fs.statSync(password_filename);
 								passfile = fs.readFileSync(password_filename) + "";
 								passrows = passfile.split('\n');
 								for (p in passrows) {
@@ -92,7 +95,7 @@ webinos.authentication.authenticate = function (params, successCB, errorCB, obje
 									write_buffer(buffer, function () {
 										secstore.close(storePass, storeFile, storeDir, function (err) {	
 											if (err !== undefined && err !== null) {
-												console.log(err);
+												errorCB(err);
 											}
 											else {
 												webinos.authentication.getAuthenticationStatus([username], function (authStatus) {
@@ -109,36 +112,44 @@ webinos.authentication.authenticate = function (params, successCB, errorCB, obje
 									if (newly_authenticated === false) {
 										secstore.close(storePass, storeFile, storeDir, function (err) {	
 											if (err !== undefined && err !== null) {
-												console.log(err);
+												errorCB(err);
 											}
-											successCB("Wrong username or password");
+											else {
+												error.code = AuthError.prototype.UNKNOWN_ERROR;
+												error.message = "Wrong username or password";
+												errorCB(error);
+											}
 										});
 									}
 								}
-							} else {		
-								console.log(err);
 							}
-						});
-
-					}
-					catch (e) {
-						errorCB(e + "");
-					}
+							catch (e) {
+								errorCB(e);
+							}
+						} else {		
+							errorCB(err);
+						}
+					});
 				});
 			}
 			else {
-				successCB("User already authenticated");
+				error.code = AuthError.prototype.UNKNOWN_ERROR;
+				error.message = "User already authenticated";
+				errorCB(error);
 			}
-		}, function (error) {
-			errorCB(error);
+		}, function (err) {
+			errorCB(err);
 		});
 	}
 	else {
-		errorCB("Username is missing");
+		error.code = AuthError.prototype.INVALID_ARGUMENT_ERROR;
+		error.message = "Username is missing";
+		errorCB(error);
 	}
 };
 
 getAuthTime = function () {
+	"use strict";
 	var now = new Date(), month, date, hours, minutes, offset, h_offset, m_offset;
 	
 	month = now.getMonth();
@@ -197,6 +208,7 @@ write_buffer = function (buffer, done) {
 };
 
 ask = function (question, callback) {
+	"use strict";
 	var pswd = "", passwd,
 	stdin = process.stdin, stdout = process.stdout,
 	stdio = process.binding("stdio");
@@ -236,15 +248,16 @@ ask = function (question, callback) {
 
 
 webinos.authentication.isAuthenticated = function (params, successCB, errorCB, objectRef) {
-	var authenticated, stats, authfile, authrows, authrow;
+	"use strict";
+	var authenticated, authfile, authrows, authrow, error = {};
 	
 	if (params[0] !== '') {
 		username = params[0];
-		try {
-			authenticated = false;
-			secstore.open(storePass, storeFile, storeDir, function (err) {	
-				if (err === undefined || err === null) {
-					stats = fs.statSync(authstatus_filename);
+		authenticated = false;
+		secstore.open(storePass, storeFile, storeDir, function (err) {	
+			if (err === undefined || err === null) {
+				try {
+					// var stats = fs.statSync(authstatus_filename);
 					authfile = fs.readFileSync(authstatus_filename) + "";
 					authrows = authfile.split('\n');
 					for (authrow in authrows) {
@@ -255,36 +268,41 @@ webinos.authentication.isAuthenticated = function (params, successCB, errorCB, o
 					}
 					secstore.close(storePass, storeFile, storeDir, function (err) {	
 						if (err !== undefined && err !== null) {
-							console.log(err);
+							errorCB(err);
 						}
-						successCB(authenticated);
+						else {
+							successCB(authenticated);
+						}
 					});
-				} else {		
-					console.log(err);
 				}
-			});
-		}
-		catch (e) {
-			successCB(false);
-		}
+				catch (e) {
+					errorCB(e);
+				}
+			} else {		
+				errorCB(err);
+			}
+		});
 	}
 	else {
-		errorCB("Username is missing");
+		error.code = AuthError.prototype.INVALID_ARGUMENT_ERROR;
+		error.message = "Username is missing";
+		errorCB(error);
 	}
 };
 
 webinos.authentication.getAuthenticationStatus = function (params, successCB, errorCB, objectRef) {
-	var authenticated, resp, stats, authfile, authrows, authrow, auth_s = new AuthStatus();
+	"use strict";
+	var authenticated, resp, authfile, authrows, authrow, auth_s = new AuthStatus(), error = {};
 	
 	if (params[0] !== '') {
 		username = params[0];
 		webinos.authentication.isAuthenticated(params, function (authenticated) {
 			if (authenticated === true) {
-				try {
-					resp = "Authentication status not available";
-					secstore.open(storePass, storeFile, storeDir, function (err) {	
-						if (err === undefined || err === null) {
-							stats = fs.statSync(authstatus_filename);
+				resp = "";
+				secstore.open(storePass, storeFile, storeDir, function (err) {	
+					if (err === undefined || err === null) {
+						try {
+							// var stats = fs.statSync(authstatus_filename);
 							authfile = fs.readFileSync(authstatus_filename) + "";
 							authrows = authfile.split('\n');
 							for (authrow in authrows) {
@@ -298,28 +316,41 @@ webinos.authentication.getAuthenticationStatus = function (params, successCB, er
 							}
 							secstore.close(storePass, storeFile, storeDir, function (err) {	
 								if (err !== undefined && err !== null) {
-									console.log(err);
+									errorCB(err);
 								}
-								successCB(resp);
+								else {
+									if (resp !== "") {
+										successCB(resp);
+									}
+									else {
+										error.code = AuthError.prototype.UNKNOWN_ERROR;
+										error.message = "Authentication status not available";
+										errorCB(error);
+									}
+								}
 							});
-						} else {		
-							console.log(err);
 						}
-					});
-				}
-				catch (e) {
-					successCB(e + "");
-				}
+						catch (e) {
+							errorCB(e);
+						}
+					} else {		
+						errorCB(err);
+					}
+				});
 			}
 			else {
-				successCB("User not authenticated");
+				error.code = AuthError.prototype.UNKNOWN_ERROR;
+				error.message = "User not authenticated";
+				errorCB(error);
 			}
-		}, function (error) {
-			errorCB(error);
+		}, function (err) {
+			errorCB(err);
 		});
 	}
 	else {
-		successCB("username is missing");
+		error.code = AuthError.prototype.INVALID_ARGUMENT_ERROR;
+		error.message = "Username is missing";
+		errorCB(error);
 	}
 };
 
@@ -328,6 +359,7 @@ var authenticationModule = new RPCWebinosService({
 	displayName: 'Authentication',
 	description: 'webinos authentication API'
 });
+
 authenticationModule.authenticate = webinos.authentication.authenticate;
 authenticationModule.isAuthenticated = webinos.authentication.isAuthenticated;
 authenticationModule.getAuthenticationStatus = webinos.authentication.getAuthenticationStatus;
