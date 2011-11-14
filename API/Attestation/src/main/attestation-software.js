@@ -1,8 +1,8 @@
-// 
-// This file is the interface to the attestation API.
-// On different platforms, this will hopefully (in the future)
-// talk to different underlying code and software stacks.
-//
+
+// This file WILL be the software-only attestation API
+
+// IT IS CURRENTLY A WORK IN PROGRESS (read: completely broken)
+
 
 
 // for ubuntu, likely to combine 
