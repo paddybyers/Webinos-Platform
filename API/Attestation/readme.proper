@@ -48,11 +48,7 @@ Privacy CA client and (if possible) the EK Certificate Extractor.
 
 ./identity [label] AIKDIR/[label]/key.blob AIKDIR/[label]/cert.pem
 
-(4) Use openssl to create a text version of the certificate
-
-openssl x509 -text -in AIKDIR/[label]/cert.pem -pubkey -noout > AIKDIR/[label]/cert.txt
-
-(5) Change line 80 of attestation.js so that "aikdirectory" points to AIKDIR.
+(4) Change line 80 of attestation.js so that "aikdirectory" points to AIKDIR.
 
 
 -------------------------------------------------------------------------------

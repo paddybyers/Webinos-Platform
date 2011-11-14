@@ -11,16 +11,11 @@
 //  (1) use the "identity" executable from privacyca.com to
 //      create a "key.blob" file and a cert.pem file
 //       
-//  (2) generate some certificate information in plain text, 
-//      via OpenSSL using this line:
-//      openssl x509 -text -in ./cert.pem -pubkey -noout > cert.txt
-//      This is a bit messy, but saves me from parsing OpenSSL 
-//      PEM files
 //
-//  (3) create a root directory to store all of your AIKs in.  Set this
+//  (2) create a root directory to store all of your AIKs in.  Set this
 //      as the "aikdirectory" in the config var below.
 //      Within this directory, each AIK lives in a sub directory, 
-//      containing the three key files - "cert.txt", "key.blob" and "cert.pem"
+//      containing the two key files - "key.blob" and "cert.pem"
 //      so, for instance, I have /home/johl/aiks/ as the "aikdirectory" as
 //      well as the /home/johl/aiks/1/ subdirectory containing those three files
 var path = require('path');
@@ -60,9 +55,9 @@ var config = {
         "use strict";
         return this.keyblobprefix;
     },
-    getCertTextPrefix: function () {
+    getCertPemPrefix: function () {
         "use strict";
-        return this.certtextprefix;
+        return this.certpemprefix;
     },
     getImaLog: function () {
         "use strict";
@@ -79,7 +74,7 @@ var config = {
     schema: "TPM 1.2 + IMA",
     aikdirectory: "/home/johl/git-repos/wp4/API/Attestation/src/test/aiks",
     keyblobprefix: "key.blob",
-    certtextprefix: "cert.txt",
+    certpemprefix: "cert.pem",
     srkpwd: "srkpwd",
     // Should be, on a real system -
     // "/sys/kernel/security/ima/ascii_runtime_measurements",
@@ -105,7 +100,7 @@ function getAllKeyIds() {
 //Does a key with the given ID exist?
 function keyExists(keyid) {
 	"use strict";
-    return path.existsSync(config.getAikDir()) && path.existsSync(getKeyPath(keyid)) && path.existsSync(path.join(getKeyPath(keyid), config.getKeyBlobPrefix())) && path.existsSync(path.join(getKeyPath(keyid), config.getCertTextPrefix()));
+    return path.existsSync(config.getAikDir()) && path.existsSync(getKeyPath(keyid)) && path.existsSync(path.join(getKeyPath(keyid), config.getKeyBlobPrefix())) && path.existsSync(path.join(getKeyPath(keyid), config.getCertPemPrefix()));
 }
 
 //
@@ -114,15 +109,9 @@ function keyExists(keyid) {
 //
 function loadCertFile(keyid, doneFn) {
     "use strict";
-    fs.readFile(path.join(getKeyPath(keyid), config.getCertTextPrefix()), "utf8", function (error, data) {
-        if (error !== null && error !== undefined) {
-            console.log("Could not read cert file " + path.join(getKeyPath(keyid), config.getCertTextPrefix()));
-            console.log(error);
-        }
-        x509.readString(data, function (cert) {
-            cert.id = keyid;
-            doneFn(cert);
-        });
+    x509.readFile(path.join(getKeyPath(keyid), config.getCertPemPrefix()), function (cert) {
+        cert.id = keyid;
+        doneFn(cert);
     });
 }
 
@@ -154,6 +143,11 @@ attester.getAttestationKey = function (keyid, doneFn) {
     }
 };
 
+var toStr = function() {
+    "use strict";
+    return "Log [" + this.pcr + "]: " + this.text;
+};
+
 // Return an interpretation of the boot log software list
 function getBootSoftwareList() {
     "use strict";
@@ -174,6 +168,7 @@ function getBootSoftwareList() {
                 flag: "boot",
                 text: lines[i].substr(lines[i].indexOf("[") + 1, lines[i].length - (lines[i].indexOf("[") + 2)).trim()
             };
+            entry[j].toString = toStr;
         }
         j = j+1;
     }
@@ -207,6 +202,7 @@ function getIMASoftwareList() {
             for (k = 4; k < line.length; k=k+1) {
                 entry[j].text = entry[j].text + line[k];
             }
+            entry[j].toString = toStr;
         }
         j=j+1;
     }
@@ -246,10 +242,8 @@ attester.getAttestation = function (keyid, pcrs, nonce, doneFn) {
  config.getSrkPassword(), path.join(getKeyPath(keyid), config.getKeyBlobPrefix()), pcrs, nonce);
  //TODO: error handling.
  for (i = 0; i < pcrs.length; i=i+1) {
-     console.log("Getting PCR " + pcrs[i]);
      var pcrRes = tssBridge.getPCR(pcrs[i]);
      pcrList[pcrs[i]] = pcrRes;
-     console.log(": " + pcrList[pcrs[i]]);
  }
 
  doneFn(config.getSchema(), softwareList, pcrList, attData);
