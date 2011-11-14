@@ -239,10 +239,10 @@
 				sessionId = self.serverName + '/' +cn.split(':')[0];
 
 				self.connected_pzp[sessionId] = {'socket': conn, 
-												'name': sessionId, 
-												'address': conn.socket.remoteAddress, 
-												'port': '',
-												'object': ''};
+								'name': sessionId, 
+								'address': conn.socket.remoteAddress, 
+								'port': '',
+								'object': ''};
 				webinos.session.common.debug("PZP Server (" + self.config.sessionId +
 					") connected_pzp ");
 			} 

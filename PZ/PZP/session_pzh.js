@@ -477,12 +477,32 @@ Pzh.prototype.downloadCertificate = function(servername, port) {
 	var options = {
 		headers: headers,		
 		port: port,
+		host: servername,
 		agent: agent,
 		method: 'POST'
-	}; 
+	};
+	
+	pzh.config.otherPZHMasterKey= parse.payload.keyname;
+		fs.writeFileSync(pzh.config.otherPZHMasterKey, parse.payload.key, function() {
+			pzh.config.otherPZHMasterCert= parse.payload.certname;
+			fs.writeFileSync(pzh.config.otherPZHMasterCert, parse.payload.cert, function() {
+				var cert = fs.readFileSync(pzh.config.mastercertname).toString();
+				var payload = {'type':'prop',
+				'payload':{'status':'receiveMasterCert',
+					'certname': pzh.config.mastercertname,
+					'cert':cert,
+					'keyname': pzh.config.masterkeyname,
+					'key':key}};
+				response.writeHead(200);
+				webinos.session.common.debug("Server sending certificate " + JSON.stringify(payload).length);
+				response.write('#'+JSON.stringify(payload)+'#\n');
+				response.end();
+			});
+		});
 
 	var req = http.request(options, function(res) {		
 		res.on('data', function(data) {
+			console.log('Received data from server ' + data.length); 
 			if(lastMsg !== '') {
 				data = lastMsg+data;			
 				lastMsg = '';									
@@ -496,23 +516,27 @@ Pzh.prototype.downloadCertificate = function(servername, port) {
 			} else if(msg[0] === '#' || (msg[0] !== '#' && msg[msg.length-2] !== '#')){
 				lastMsg += data;
 				return;		
-			} 
-			self.config.otherPZHMasterCert = parse.payload.name;
-			fs.writeFileSync(self.config.otherPZHMasterCert, parse.payload.cert);
-			req.end();
+			}
+			self.config.otherPZHMasterKey= parse.payload.keyname;
+			fs.writeFileSync(self.config.otherPZHMasterKey, parse.payload.key, function() {
+				self.config.otherPZHMasterCert= parse.payload.certname;
+				fs.writeFileSync(self.config.otherPZHMasterCert, parse.payload.cert, function() {
+
+				self.connectOtherPZH(servername, '443');
+				});
+			});
 		});			
 	});
 	
 	var payload = {'type':'prop',
 			'payload':{'status':'getMasterCert',
-				'name': self.config.mastercertname,
-				'cert':fs.readFileSync(self.config.mastercertname)}
-		};
-	console.log((JSON.stringify(payload)).length);
+				'certname': self.config.mastercertname,
+				'cert':fs.readFileSync(self.config.mastercertname).toString(),
+				'keyname':self.config.masterkeyname,
+				'key':fs.readFileSync(self.config.masterkeyname).toString()}};
+	console.log('PZH Client Certificate data length '+(JSON.stringify(payload)).length);
 	req.write('#'+JSON.stringify(payload)+'#\n');
-//	req.end();
-	
-	
+	req.end();
 	
 }
 
@@ -660,17 +684,25 @@ webinos.session.pzh.startWebSocketServer = function(hostname, serverPort, webSer
 				}
 				return;
 			}
-		
-			pzh.config.otherPZHMasterCert= parse.payload.name;
-			fs.writeFileSync(pzh.config.otherPZHMasterCert, parse.payload.cert);
-		
-			var payload = {'type':'prop',
-			'payload':{'status':'receiveMasterCert',
-				'name': pzh.config.mastercertname,
-				'cert':fs.readFileSync(pzh.config.mastercertname)}};
-			response.writeHead(200);
-			response.write('#'+JSON.stringify(payload)+'#\n');
-			response.end();		
+			pzh.config.otherPZHMasterKey= parse.payload.keyname;
+			fs.writeFileSync(pzh.config.otherPZHMasterKey, parse.payload.key, function() {
+				pzh.config.otherPZHMasterCert= parse.payload.certname;
+				fs.writeFileSync(pzh.config.otherPZHMasterCert, parse.payload.cert, function() {
+					var context = { key: fs.readFileSync(pzh.config.otherPZHMasterKey), 
+							cert: fs.readFileSync(pzh.config.otherPZHMasterKey)};
+					pzh.sock.addContext(request.address, context);
+					var payload = {'type':'prop',
+					'payload':{'status':'receiveMasterCert',
+						'certname': pzh.config.mastercertname,
+						'cert':fs.readFileSync(pzh.config.mastercertname).toString(),
+						'keyname': pzh.config.masterkeyname,
+						'key':keyfs.readFileSync(pzh.config.masterkeyname).toString()}};
+					response.writeHead(200);
+					webinos.session.common.debug("Server sending certificate " + JSON.stringify(payload).length);
+					response.write('#'+JSON.stringify(payload)+'#\n');
+					response.end();
+				});
+			});
 		});
 		request.on('end', function(data) {
 		    console.log('PZH Server got end: ');

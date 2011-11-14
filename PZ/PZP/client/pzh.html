@@ -21,7 +21,6 @@
 			var payload = {status: 'startPZH', 
 					servername: document.getElementById('servername').value, 
 					serverport: document.getElementById('serverport').value, 
-					httpserver: document.getElementById('httpport').value,
 					value: config}; 
 			var options = {type: 'prop', payload: payload};
 			webinos.message_send(null,options,null,null);
@@ -43,6 +42,8 @@
 			webinos.message_send(null, options, null, null);
                  });
    	 });   		
+   	 //
+   	 //
 	</script>
 	 
 </head>
@@ -71,8 +72,6 @@
 		<tr><td><i> (Info: This should be IP address on which PZH can be accessed via PZP) </i></td></tr>
 		<tr><td>Server Port </td><td><input type="text" id="serverport" value="443"/></td></tr>
 		<tr><td><i> (Info: If already this port is in use, next available port will be used)</i></td></tr>			
-		<tr><td>HTTPS Server Port</td><td> <input type="text" id="httpport" value="8081"/></td></tr>
-		<tr><td><i> (Info:PZH certificate is available to download at this address)</i></td></tr>
 	</table>
 		<center> <button id="startPZH" class="button">Start PZH </button> </center>
 	</div>
@@ -80,7 +79,7 @@
 		<center> <p style="color:white"></p> </center>
 		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
 			<tr> <td> PZH Address: </td> <td><input type="text" id="pzh_ip_addr" value="79.125.104.127"/></td></tr>
-			<tr> <td> PZH Port: </td> <td><input type="text" id="pzh_http_port" value="8081"/></td></tr>
+			<tr> <td> PZH Port: </td> <td><input type="text" id="pzh_http_port" value="81"/></td></tr>
 		</table>
 			<center> <button id="downloadCert" class="button"> Download Certificate </button> </center>
 		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
