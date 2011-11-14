@@ -19,7 +19,7 @@ $(document).ready(
 				successCB = function (value) { alert("Success => BatteryLevel (%): " + value ); };
 				errorCB = function (value) { alert("Error: " + value); };
 
-				devicestatusservice.getPropertyValue(prop, successCB, errorCB);
+				devicestatusservice.getPropertyValue(successCB, errorCB, prop);
 			}
 		);
 

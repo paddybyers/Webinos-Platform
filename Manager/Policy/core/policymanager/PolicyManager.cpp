@@ -15,7 +15,6 @@
  ******************************************************************************/
 
 #include "PolicyManager.h"
-//#include <android/log.h>
 #include "../../debug.h"
 
 PolicyManager::PolicyManager() {}

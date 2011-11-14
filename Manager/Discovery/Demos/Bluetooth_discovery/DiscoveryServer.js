@@ -1,5 +1,7 @@
 var http = require('http'),
-    io = require('socket.io'),	
+    //please don't use the socket.io in RPC dir	
+    //io = require('../../../../RPC/node_modules/socket.io'),
+    io = require('./node_modules/socket.io'),
     sys = require("sys"),
     url = require("url"),
     path = require("path");
@@ -60,9 +62,10 @@ io.sockets.on('connection', function (socket)
   socket.on('listfile', function (data) {
 	   n = new ft.bluetooth();
 	   //lists = n.file_list(data[0], data[1]);
-	   var str1 = "/";
+	   //var str1 = "/";
 	   //lists = n.file_list(data[0], data[1]);
-	   lists = n.file_list(data[0], str1.concat(data[1]));
+	   //lists = n.file_list(data[0], str1.concat(data[1]));
+	   lists = n.file_list(data[0], data[1]);
 	   
 	   console.log("lists = " + lists);
 	   console.log("send resp back to clients"); 

@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>Webinos - PZP</title>
+	<link rel="icon" href="images/webinos.ico" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="ext-4.0.7-gpl/resources/css/ext-all.css" />
+    <link rel="stylesheet" type="text/css" href="css/desktop.css" />
+   
+    <script type="text/javascript" src="ext-4.0.7-gpl/ext-all.js"></script>
+<script type="text/javascript" src="ext-4.0.7-gpl/baseClasses/Module.js"></script>
+<script type="text/javascript" src="ext-4.0.7-gpl/baseClasses/FitAllLayout.js"></script>
+<script type="text/javascript" src="ext-4.0.7-gpl/baseClasses/StartMenu.js"></script>
+<script type="text/javascript" src="ext-4.0.7-gpl/baseClasses/TaskBar.js"></script>
+<script type="text/javascript" src="ext-4.0.7-gpl/baseClasses/Desktop.js"></script>
+<script type="text/javascript" src="ext-4.0.7-gpl/baseClasses/Wallpaper.js"></script>
+<script type="text/javascript" src="ext-4.0.7-gpl/baseClasses/ShortcutModel.js"></script>
+<script type="text/javascript" src="ext-4.0.7-gpl/baseClasses/App.js"></script>
+<script type="text/javascript" src="ext-4.0.7-gpl/baseClasses/Html5VideoPanel.js"></script>
+<script type="text/javascript" src="WallpaperModel.js"></script>
+<script type="text/javascript" src="WallpaperWindow.js"></script>
+<script type="text/javascript" src="WebinosServices.js"></script>
+<script type="text/javascript" src="logsWindow/logsStore.js"></script>
+<script type="text/javascript" src="logsWindow/logsWindow.js"></script>
+<script type="text/javascript" src="contextDemo/contextStore.js"></script>
+<script type="text/javascript" src="contextDemo/contextWindow.js"></script>
+<script type="text/javascript" src="contactsDemo/ContactsStore.js"></script>
+<script type="text/javascript" src="contactsDemo/ContactsWindow.js"></script>
+
+<script type="text/javascript" src="tvDemo/tvWindow.js"></script>
+<script type="text/javascript" src="tvDemo/tvRemote.js"></script>
+
+
+<!-- Webinos scripts -->
+<script type="text/javascript" src="/rpc.js"></script>
+<script type="text/javascript" src="/client/webinos.js"></script>
+
+<script type="text/javascript" src="/client/contacts/contacts.js"></script>
+<script type="text/javascript" src="/tv/consumer/webinos.client.tv.js"></script>
+
+<script type="text/javascript" src="Abot.js"></script>
+
+<script type="text/javascript" src="App.js"></script>
+    <script type="text/javascript">
+        Ext.Loader.setPath({
+            'Ext.ux.desktop': 'js',
+            WebDemo: ''
+        });
+
+        var myDesktopApp;
+        Ext.onReady(function () {
+            myDesktopApp = new WebDemo.App();
+        });
+    </script>
+</head>
+
+<body>
+
+    <a href="http://www.webinos.org" target="_blank" alt="Powered by webinos"
+       id="poweredby"><div></div></a>
+
+</body>
+</html>

@@ -66,6 +66,7 @@ webinos.rpc.bindsevice = function (device) {
 		
 		var str = String(results);
 		var folder_arr = str.split(",");
+		
 		var occurences = (str.split(",").length - 1);
 		
 		var val = document.getElementById('folderlist');
@@ -73,6 +74,12 @@ webinos.rpc.bindsevice = function (device) {
 		
 		for(var i = 0; i <= occurences; i++)	
 		{
+			if(folder_arr[i].indexOf("/") !== 0)
+			{
+				var slash = "/";
+				folder_arr[i] = slash.concat(folder_arr[i]);
+			}
+			
 			textarray.push(folder_arr[i]);
 			valuearray.push(folder_arr[i]);
 		}
@@ -84,37 +91,84 @@ webinos.rpc.bindsevice = function (device) {
 
 getfilelist = function(data){
 	socket.emit('listfile', data);
+	console.log("data[1] is:" + data[1]);
+	if(data[1].indexOf("/") !== 0)
+	{
+		str1 = "/";
+		data[1] = str1.concat(data[1]);
+	}
+	
 	socket.on('listresp', function (results){
 		document.getElementById("loader").innerHTML = "";
 		console.log("filelist", results);
 		
 		var textarray = [];
 		var valuearray = []; 
-		
+
+		var folder_textarray = [];
+		var folder_valuearray = [];
+
 		//handle results
 		var substr = String(results);
 		
 		var occurences = (substr.split("file name").length - 1);
 		console.log("occurences:" + occurences);
-		
-		var data = substr.split("file name=");
-		
-		var val = document.getElementById('filelist');
-		emptyList(filelist);
-		
-		for(var i = 1; i <= occurences; i++)	
+		if(occurences)
 		{
-			var endpoint = data[i].indexOf(" ");
-			data[i] = data[i].substring(0, endpoint);
-			//remove ""
-			data[i] = data[i].substring(1, data[i].length -1);
+			var filename = substr.split("file name=");
 			
-			textarray.push(data[i]);
-			valuearray.push(data[i]);
+			var val = document.getElementById('filelist');
+			emptyList(filelist);
+			
+			for(var i = 1; i <= occurences; i++)	
+			{
+				var endpoint = filename[i].indexOf(" ");
+				filename[i] = filename[i].substring(0, endpoint);
+				//remove ""
+				filename[i] = filename[i].substring(1, filename[i].length -1);
+				var dir = data[1];
+				dir = dir.concat("/");
+				filename[i] = dir.concat(filename[i]);
+				textarray.push(filename[i]);
+				valuearray.push(filename[i]);
+			}
+			
+			fillList(filelist, textarray, valuearray);
+			// end of result handling
 		}
+		else
+		{
+			var folder_occur = (substr.split("folder name").length - 1);
+			if(folder_occur)
+			{
+			    var foldername = substr.split("folder name=");
+				var val = document.getElementById('folderlist');
+				emptyList(folderlist);
+				
+				for(var i = 1; i <= folder_occur; i++)	
+				{
+					var endpoint = foldername[i].indexOf("/>");
+					foldername[i] = foldername[i].substring(0, endpoint);
+					//remove ""
+					foldername[i] = foldername[i].substring(1, foldername[i].length -1);
+					
+					var parentdir = data[1];
+					console.log("data[1]:" + data[1]);
+					parentdir = parentdir.concat("/");
+					foldername[i] = parentdir.concat(foldername[i]); 
+					if((foldername[i].indexOf("/") ===0) && (foldername[i].lastIndexOf("/") ===1)) 
+					{
+						foldername[i] = foldername[i].substring(1, foldername[i].length);
+					}
+					
+					folder_textarray.push(foldername[i]);
+					folder_valuearray.push(foldername[i]);
+				}
+			
+				fillList(folderlist, folder_textarray, folder_valuearray);
+			}
 		
-		fillList(filelist, textarray, valuearray);
-		// end of result handling
+		}
 	});
 }
 

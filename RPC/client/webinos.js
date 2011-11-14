@@ -22,9 +22,9 @@
 	 */
 	function createCommChannel (successCB){
 		try{
-		channel  = new WebSocket('ws://127.0.0.1:8080');
+		channel  = new WebSocket('ws://'+window.location.hostname+':8080');
 		}catch(e){
-			channel  = new MozWebSocket('ws://127.0.0.1:8080');
+			channel  = new MozWebSocket('ws://'+window.location.hostname+':8080');
 		}
 		channel.onopen = function() {
 			webinos.rpc.setWriter(write);
@@ -88,6 +88,8 @@
 			if (typeof TVManager !== 'undefined') typeMap['http://webinos.org/api/tv'] = TVManager;
 			if (typeof DeviceStatusManager !== 'undefined') typeMap['http://wacapps.net/api/devicestatus'] = DeviceStatusManager;
 			if (typeof Contacts !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/contacts'] = Contacts;
+			if (typeof Context !== 'undefined') typeMap['http://webinos.org/api/context'] = Context;
+			if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
 			// elevate baseServiceObj to usable local WebinosService object
 			
 			if (baseServiceObj.api === 'http://webinos.org/api/sensors.temperature'){
@@ -562,7 +564,31 @@
 	Vehicle.prototype.findDestination = function(destinationCB, errorCB, search){
 		console.log('Find Destination...');
 	};
-
+	
+	 ///////////////////// CONTEXT INTERFACE ///////////////////////////////
+  var Context;
+  
+  Context = function(obj) {
+    this.base = WebinosService;
+    this.base(obj);
+  };
+  Context.prototype = new WebinosService;
+  
+  Context.prototype.find = function(what, callOnSuccess, callOnError) { 
+    arguments[0] = what;
+    var rpc = webinos.rpc.createRPC(this, "find", arguments);
+    
+    webinos.rpc.executeRPC(rpc,
+      function(result){
+          callOnSuccess(result);
+      },
+      function(error){
+          callOnError(error);
+      }
+    );
+  };
+  
+ 
 	///////////////////// GEOLOCATION INTERFACE ///////////////////////////////
 	
 	var WebinosGeolocation;

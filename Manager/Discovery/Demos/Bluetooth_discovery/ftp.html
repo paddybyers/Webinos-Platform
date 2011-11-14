@@ -4,7 +4,8 @@
 		<title>Webinos Local Discovery Prototype</title>
 		
 		<link rel="stylesheet" type="text/css" href="GuiElements/demoPage/style.css" media="screen"/>
-		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+	<!--	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> -->
+<script type="text/javascript" src="./jquery-1.4.2.min.js"></script>
 		<script src="http://localhost:8000/socket.io/socket.io.js"></script>
 		
 	</head>
@@ -29,7 +30,9 @@
 			<INPUT TYPE="submit" onclick="bindservice()" VALUE="Bind with device and service" class="button" /><br />
 			
 			<h3> Use Discovered service</h3>
-			<INPUT TYPE="submit" onclick="listfile()" VALUE="Get filelist" class="button" /><br />
+			<!--<INPUT TYPE="submit" onclick="listfile()" VALUE="Get filelist" class="button" /><br />-->
+			<INPUT TYPE="submit" onclick="listfile()" VALUE="Open Folder" class="button" /><br />
+			<INPUT TYPE="submit" onclick="upfolder()" VALUE="Go Back to Parent Folder" class="button" /><br />
 			<INPUT TYPE="submit" onclick="getfile()" VALUE="Get File" class="button" /><br />
 			<INPUT TYPE="submit" onclick="playfile()" VALUE="play file" class="button" /><br />
 			<div id="loader"></div>
@@ -43,7 +46,7 @@
 		
 		<p> Found devices supporting service  :</p>
 	
-		<select id='devicelist' size="8" multiple="multiple">
+		<select id='devicelist' size="6" multiple="multiple">
 
         <OPTION VALUE="Select a device below to bind">Select a device below to bind</OPTION>
 
@@ -52,10 +55,11 @@
 	    <!--<INPUT TYPE="submit" onclick="bindservice()" VALUE="Bind with device and service"></p>-->
 		<p> Folder list :</p>
 		
-		<select id='folderlist'>
-		<!--<select id='folderlist' size="8" multiple="multiple">-->
+		<!-- <select id='folderlist'> -->
+	
+		<select id='folderlist' size="7" multiple="multiple">
 
-        <OPTION VALUE="Select a folder to open">Select a folder to open</OPTION>
+        <OPTION VALUE="Select a folder below">Select a folder below</OPTION>
 
 		</select>
 	     
@@ -64,7 +68,7 @@
 	
 		<select id='filelist' size="10" multiple="multiple">
 
-        <OPTION VALUE="Select a file to transfer">Select a file to transfer</OPTION>
+        <OPTION VALUE="Select a file below">Select a file below</OPTION>
 		</select>
 		
 		<hr />
@@ -182,33 +186,96 @@
 		
 		function listfile()
 		{
-			alert("Make sure that your files are bluetooth visible. e.g. enable Bluetooth visibility"); 
 			
-			$('#loader').html("<img src='GuiElements/demoPage/ajaxloader.gif'>");
+			var val = document.getElementById('filelist');
+			emptyList(filelist);
+			
+			
 			var device = document.getElementById('devicelist').value;
+			var addresses = device.split(",");
+			device = addresses[1];
 			console.log("device:" + device);
 			var dir = document.getElementById('folderlist').value;
-			console.log("folder:" + dir);
-			var data = [];
-			data[0] = device;
-			data[1] = dir; 
-			getfilelist(data);
+			
+			if(dir === "Select a folder below")
+			{
+			  alert(" you need to select a folder in the folder list for this operation");
+			
+			}
+			else
+			{	$('#loader').html("<img src='GuiElements/demoPage/ajaxloader.gif'>");
+				alert("Make sure that your files are bluetooth visible. e.g. enable Bluetooth visibility");
+				console.log("folder:" + dir);
+				var data = [];
+				data[0] = device;
+				data[1] = dir; 
+				getfilelist(data);
+			}
 		}
+		
+		function upfolder()
+		{	
+			var device = document.getElementById('devicelist').value;
+			var addresses = device.split(",");
+			device = addresses[1];
+			var currentfolder = document.getElementById('folderlist').value;
+			console.log("currentfolder:" + currentfolder);
+			if(currentfolder === "Select a folder below")
+			{
+			  alert(" you need to select a folder in the folder list for this operation");
+			
+			}
+			else
+			{
+				var index = currentfolder.lastIndexOf("/");
+				if(index !==0)
+				{
+					var parentfolder = currentfolder.substring(0, index);
+					var index2 = parentfolder.lastIndexOf("/");
+					console.log("index2:" + index2);
+					if(index2 === 0)
+					{
+						parentfolder = "/";
+					}
+					else
+					{
+						parentfolder = parentfolder.substring(0, index2);
+					}
+					console.log("parentfolder:" + parentfolder);
+				
+					var data = [];
+					data[0] = device;
+					data[1] = parentfolder;
+					getfilelist(data);
+					var val = document.getElementById('filelist');
+					emptyList(filelist);
+				}
+			}
+		}
+		
 		
 		function getfile()
 		{
 			$('#loader').html("<img src='GuiElements/demoPage/ajaxloader.gif'>");
 			var device = document.getElementById('devicelist').value;
-			var dir = document.getElementById('folderlist').value;
+			var addresses = device.split(",");
+			device = addresses[1];	
+			//var dir = document.getElementById('folderlist').value;
 			var selectedFile = document.getElementById('filelist').value;
-			var str1 = "/";
+			//var str1 = "/";
 			
 			var data = [];
 			data[0] = device;
-			data[2] = selectedFile;
+			
+			data[1] = selectedFile;
 			console.log("selectedFile: " + selectedFile); 
-			selectedfile=str1.concat(selectedFile);
-			data[1] = str1.concat(dir.concat(selectedfile));
+			
+			var index= selectedFile.lastIndexOf("/");
+			data[2] = selectedFile.substring(index+1, selectedFile.length);
+			console.log("data[2]", data[2]);
+			
+			//selectedfile=str1.concat(selectedFile);
+			//data[1] = str1.concat(dir.concat(selectedfile));
 			
 			console.log("file:" + data[1]);
 			
@@ -219,11 +286,13 @@
 		{
 		  var selectedFile = document.getElementById('filelist').value;
 		  console.log("selectedFile:" + selectedFile);
-		 // var str1 = "http://106.1.9.17:8000/";
-		 var str1 = "http://localhost:8000/";
-		  //window.location = str1.concat(selectedFile);
+		  // var str1 = "http://106.1.9.17:8000/";
+		  var str1 = "http://localhost:8000/";
 		  
-		  newwindow=window.open(str1.concat(selectedFile),'name','height=400,width=300');
+		  var index= selectedFile.lastIndexOf("/");
+		  filetransferred = selectedFile.substring(index+1, selectedFile.length);
+		  
+		  newwindow=window.open(str1.concat(filetransferred),'name','height=400,width=300');
 		  if (window.focus) {newwindow.focus()}
 		  
         }

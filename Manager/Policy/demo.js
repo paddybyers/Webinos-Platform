@@ -4,6 +4,7 @@
 var pmlib;
 var res;
 var pm;
+var exec = require('child_process').exec;
 
 function runPolicyTest() {
 	try {
@@ -20,10 +21,10 @@ function runPolicyTest() {
 			return;
 		}
 
+		testFeatures1("user2");
 		testFeatures("user1");
 		testFeatures("user2");
 		testFeatures("user3");
-
 	}
 	catch(e) {
 		console.log("error: "+e.message);
@@ -46,10 +47,10 @@ function ruleEffectDescription(num) {
 	return "INAPPLICABLE";
 }
 
-function testFeatures(userId) {
+function testFeatures1(userId) {
 
 	console.log("");
-	console.log("Testing features for user "+userId+"...");
+	console.log("Testing features for user " + userId + "...");
 	var req = {};
 	var ri = {};
 	var si = {};
@@ -58,19 +59,59 @@ function testFeatures(userId) {
 
 	ri.apiFeature = "http://www.w3.org/ns/api-perms/calendar.read";
 	req.resourceInfo = ri;
+	console.log("\nRequest for " + ri.apiFeature);
 	res = pm.enforceRequest(req);
-	console.log(req.resourceInfo.apiFeature+": "+ruleEffectDescription(res));
+
+	switch(res) {
+		case 0:		console.log("OK");
+				break;
+
+		case 1:		console.log("KO");
+				break;
+
+		case 2:
+		case 3:
+		case 4:		var child = exec("xmessage -buttons allow,deny -print 'Access request to ... '",
+					function (error, stdout, stderr) {	
+						if (stdout == "allow\n") {
+							console.log("OK");
+						}
+						else {
+							console.log("KO");
+						}
+					});
+				break;
+
+		default:	console.log("KO");
+	}
+}
+
+
+
+function testFeatures(userId) {
+
+	console.log("");
+	console.log("Testing features for user " + userId + "...");
+	var req = {};
+	var ri = {};
+	var si = {};
+	si.userId = userId;
+	req.subjectInfo = si;
+
+	ri.apiFeature = "http://www.w3.org/ns/api-perms/calendar.read";
+	req.resourceInfo = ri;
+	console.log("\nRequest for " + ri.apiFeature);
+	pm.enforceRequest(req, console.log, console.log, req.resourceInfo.apiFeature + " => OK");
 
 	ri.apiFeature = "http://www.w3.org/ns/api-perms/contacts.read";
 	req.resourceInfo = ri;
-	res = pm.enforceRequest(req);
-	console.log(req.resourceInfo.apiFeature+": "+ruleEffectDescription(res));
+	console.log("\nRequest for " + ri.apiFeature);
+	pm.enforceRequest(req, console.log, console.log, req.resourceInfo.apiFeature + " => OK");
 
 	ri.apiFeature = "http://webinos.org/api/messaging";
 	req.resourceInfo = ri;
-	res = pm.enforceRequest(req);
-	console.log(req.resourceInfo.apiFeature+": "+ruleEffectDescription(res));
-
+	console.log("\nRequest for " + ri.apiFeature);
+	pm.enforceRequest(req, console.log, console.log, req.resourceInfo.apiFeature + " => OK");
 }
 
 runPolicyTest();
