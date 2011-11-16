@@ -478,24 +478,6 @@ Pzh.prototype.downloadCertificate = function(servername, port) {
 		method: 'POST'
 	};
 	
-	pzh.config.otherPZHMasterKey= parse.payload.keyname;
-		fs.writeFileSync(pzh.config.otherPZHMasterKey, parse.payload.key, function() {
-			pzh.config.otherPZHMasterCert= parse.payload.certname;
-			fs.writeFileSync(pzh.config.otherPZHMasterCert, parse.payload.cert, function() {
-				var cert = fs.readFileSync(pzh.config.mastercertname).toString();
-				var payload = {'type':'prop',
-				'payload':{'status':'receiveMasterCert',
-					'certname': pzh.config.mastercertname,
-					'cert':cert,
-					'keyname': pzh.config.masterkeyname,
-					'key':key}};
-				response.writeHead(200);
-				utils.debug("Server sending certificate " + JSON.stringify(payload).length);
-				response.write('#'+JSON.stringify(payload)+'#\n');
-				response.end();
-			});
-		});
-
 	var req = http.request(options, function(res) {		
 		res.on('data', function(data) {
 			console.log('Received data from server ' + data.length); 
@@ -514,11 +496,10 @@ Pzh.prototype.downloadCertificate = function(servername, port) {
 				return;		
 			}
 			self.config.otherPZHMasterKey= parse.payload.keyname;
-			fs.writeFileSync(self.config.otherPZHMasterKey, parse.payload.key, function() {
+			fs.writeFile(self.config.otherPZHMasterKey, parse.payload.key, function() {
 				self.config.otherPZHMasterCert= parse.payload.certname;
-				fs.writeFileSync(self.config.otherPZHMasterCert, parse.payload.cert, function() {
-
-				self.connectOtherPZH(servername, '443');
+				fs.writeFile(self.config.otherPZHMasterCert, parse.payload.cert, function() {
+					self.connectOtherPZH(servername, '443');
 				});
 			});
 		});			
@@ -533,7 +514,6 @@ Pzh.prototype.downloadCertificate = function(servername, port) {
 	console.log('PZH Client Certificate data length '+(JSON.stringify(payload)).length);
 	req.write('#'+JSON.stringify(payload)+'#\n');
 	req.end();
-	
 }
 
 //sessionPzh.connectOtherPZH = function(server, port) {
@@ -552,7 +532,27 @@ Pzh.prototype.connectOtherPZH = function(server, port) {
 			utils.debug('PZH ('+self.sessionId+') Not connected');
 		}
 		conn_pzh.on('data', function(data) {
-			var parse = JSON.parse(data);
+			var parse;
+			var msg = data.toString('utf8');//.split('#')
+		
+			if(msg[0] ==='#' && msg[msg.length-1] === '#') {
+				msg = msg.split('#');
+				parse = JSON.parse(msg[1]);
+				lastMsg = '';
+			} else if(msg[0] === '#' || (msg[0] !== '#' && msg[msg.length-1] !== '#')){
+				lastMsg += data;
+				return;		
+			} else if(msg[msg.length-1] === '#'){				
+				try{
+					parse = JSON.parse(lastMsg);
+					lastMsg = '';
+				} catch(err) {
+					utils.debug('PZP: Accumulated data is wrong');
+				}
+				return;
+			}
+			
+			
 			utils.debug('PZH ('+self.sessionId+') Message Received ');// + JSON.stringify(parse));
 
 			if(parse.type === 'prop' && parse.payload.status === 'Auth') {
@@ -692,7 +692,7 @@ sessionPzh.startWebSocketServer = function(hostname, serverPort, webServerPort) 
 						'certname': pzh.config.mastercertname,
 						'cert':fs.readFileSync(pzh.config.mastercertname).toString(),
 						'keyname': pzh.config.masterkeyname,
-						'key':keyfs.readFileSync(pzh.config.masterkeyname).toString()}};
+						'key':fs.readFileSync(pzh.config.masterkeyname).toString()}};
 					response.writeHead(200);
 					utils.debug("Server sending certificate " + JSON.stringify(payload).length);
 					response.write('#'+JSON.stringify(payload)+'#\n');
