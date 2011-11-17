@@ -16,5 +16,6 @@
 
   <modules>
     <!-- One module tag per child module -->
+    <module>test-module</module>
   </modules>
 </project>
