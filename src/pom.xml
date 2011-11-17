@@ -81,7 +81,7 @@
                   <executable>jasmine-node</executable>
                   <arguments>
                     <argument>--junitreport</argument>
-                    <argument>src/test/javascript</argument>
+                    <argument>src/test/javascript/jasmine</argument>
                   </arguments>
                   <successCodes>
                     <param>0</param>
@@ -97,7 +97,7 @@
                   <executable>jasmine-node</executable>
                   <arguments>
                     <argument>--junitreport</argument>
-                    <argument>src/test/cc</argument>
+                    <argument>src/test/cc/jasmine</argument>
                   </arguments>
                   <successCodes>
                     <param>0</param>

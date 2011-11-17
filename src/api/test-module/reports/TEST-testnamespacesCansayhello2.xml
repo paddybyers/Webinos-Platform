@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites>
+<testsuite name="test.namespaces.Can say hello2" errors="0" tests="1" failures="0" time="0.002" timestamp="2011-11-17T15:08:37">
+  <testcase classname="test.namespaces.Can say hello2" name="test.namespaces.can return a string saying hello world!" time="0.001"></testcase>
+</testsuite>
+</testsuites>
