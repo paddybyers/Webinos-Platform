@@ -628,20 +628,21 @@
 
 	WebinosGeolocation.prototype.watchPosition = function (PositionCB, PositionErrorCB, PositionOptions) {   // not yet working
 			var rpc = webinos.rpc.createRPC(this, "watchPosition", PositionOptions); // RPC service name, function, options
-			// rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
-			/* /create the result callback
-			callback = {};
-			callback.locationUpdate = function (params, successCallback, errorCallback, objectRef) {
+			
+			rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID
+			
+			// create the result callback
+			var callback = new RPCWebinosService({api:rpc.fromObjectRef});
+			
+			callback.onEvent = function (params) {
 				alert("watchPosition update: " + JSON.stringify(params));
-				PositionCB(params);
+				PositionCB(params[0]);
 			};
 			
 			//register the object as being remotely accessible
-			webinos.rpc.registerObject(rpc.fromObjectRef, callback);			
-			*/
+			webinos.rpc.registerCallbackObject(callback);			
 			
-			var rpc = webinos.rpc.createRPC(this, "getCurrentPosition", PositionOptions);
-			webinos.message_send(findServiceBindAddress, rpc, PositionCB, PositionErrorCB );		
+			webinos.message_send(findServiceBindAddress, rpc, callback);
 		};
 
 	WebinosGeolocation.prototype.clearWatch = function (watchId) {   // not yet working
