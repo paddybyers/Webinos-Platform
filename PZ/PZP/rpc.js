@@ -20,7 +20,7 @@
 					if (objectRef)
 						message.fromObjectRef = objectRef;
 
-					webinos.rpc.executeRPC(message, utils.callback(successCallback, this), utils.callback(errorCallback, this), responseto, msgid);
+					webinos.message_send(webinos.findServiceBindAddress(), message, utils.callback(successCallback, this), utils.callback(errorCallback, this));
 				};
 			},
 			
@@ -31,7 +31,8 @@
 					
 					if (objectRef)
 						message.fromObjectRef = objectRef;
-					webinos.rpc.executeRPC(message, null, null, responseto, msgid);
+					
+					webinos.message_send(webinos.findServiceBindAddress(), message);
 				};
 			}
 		};
@@ -230,7 +231,7 @@ webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto, msgid) {
 		if (typeof errorCB === 'function') cb.onError = errorCB;
 		if (typeof rpc.id !== 'undefined') webinos.rpc.awaitingResponse[rpc.id] = cb;
 	}
-    else if (rpc.method.indexOf('@') === -1) {
+    else if (rpc.method && rpc.method.indexOf('@') === -1) {
     	var objectRef = rpc.method.split('.')[0];
     	if (objRefCachTable[objectRef] !== 'undefined') {
     		responseto = objRefCachTable[objectRef].responseTo;

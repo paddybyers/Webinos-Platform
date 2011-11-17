@@ -642,7 +642,7 @@
 			//register the object as being remotely accessible
 			webinos.rpc.registerCallbackObject(callback);			
 			
-			webinos.message_send(findServiceBindAddress, rpc, callback);
+			webinos.message_send(findServiceBindAddress, rpc);
 		};
 
 	WebinosGeolocation.prototype.clearWatch = function (watchId) {   // not yet working
