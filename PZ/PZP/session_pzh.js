@@ -55,7 +55,7 @@ Pzh.prototype.sendMessage = function(message, address) {
 	+ address ); //+ ' Message ' + JSON.stringify(message));
 	if (self.connected_pzh[address]) {
 		utils.debug('PZH ('+self.sessionId+') Connected PZH ');
-		self.writeStatus = self.connected_pzh[address].write(JSON.stringify(message));
+		self.writeStatus = self.connected_pzh[address].socket.write(JSON.stringify(message));
 	} else if (self.connected_pzp[address] && self.writeStatus) {
 		utils.debug('PZH ('+self.sessionId+') Connected PZP ');
 		buf = new Buffer('#'+JSON.stringify(message)+'#');
@@ -160,16 +160,13 @@ Pzh.prototype.connect = function () {
 				// Assumption: PZH is of form ipaddr or web url
 				// Assumption: PZP is of form url@mobile:Deviceid@mac
 				if(data.length === 1 ) {
+					var otherPZH = [], myKey;
 					utils.debug('PZH ('+self.sessionId+') PZH Connected');
 					self.connected_pzh[data[0]] = {'socket': conn, 
 						'name': data[0], 
 						'address': conn.socket.remoteAddress, 
 						'port': conn.socket.remotePort};
-					var otherPZH = [], myKey;
-				 	//format: ownid :: client sessionid :: other connected pzp
 					for (myKey in self.connected_pzh){
-						utils.debug("OtherPZH ["+myKey +"] = "
-						+self.connected_pzh[myKey]);
 						otherPZH.push(myKey);
 					}
 					var msg1 = { 'type': 'prop', 
@@ -177,20 +174,9 @@ Pzh.prototype.connect = function () {
 						'to': data[0], 
 						'payload': {'status':'Auth', 'message': otherPZH} };
 					self.sendMessage(msg1, msg1.to);
+					
 					var msg=webinosMessage.registerSender(self.sessionId, data[0]);
 					self.sendMessage(msg, data[0]);
-
-					msg = {'type': 'prop', 
-						'from':  self.sessionId, 
-						'payload': {'status':'PZHUpdate', 'message':otherPZP}};
-					// send message to all connected PZP and PZH
-					for (myKey in self.connected_pzh){
-						utils.debug("PZH: PZHUpdate ["+ myKey +"] = "+
-							self.connected_pzh[myKey]);
-						if(data[0] !== myKey) {
-							self.sendMessage(msg, myKey);
-						}
-					}
 				} else if(data.length === 2 ) { 
 					utils.debug('PZH ('+self.sessionId+') PZP Connected');
 					sessionId = data[0]+'@'+data[1].split(':')[0];
@@ -490,13 +476,11 @@ Pzh.prototype.downloadCertificate = function(servername, port) {
 				lastMsg += data;
 				return;		
 			}
-			self.config.otherPZHMasterKey= parse.payload.keyname;
-			fs.writeFile(self.config.otherPZHMasterKey, parse.payload.key, function() {
-				self.config.otherPZHMasterCert= parse.payload.certname;
-				fs.writeFile(self.config.otherPZHMasterCert, parse.payload.cert, function() {
-					self.connectOtherPZH(servername, '443');
-				});
+			self.config.otherPZHMasterCert= parse.payload.certname;
+			fs.writeFile(self.config.otherPZHMasterCert, parse.payload.cert, function() {
+				self.connectOtherPZH(servername, '443');
 			});
+
 		});			
 	});
 	
@@ -684,8 +668,8 @@ sessionPzh.startWebSocketServer = function(hostname, serverPort, webServerPort) 
 				'payload':{'status':'receiveMasterCert',
 					'certname': pzh.config.mastercertname,
 					'cert':fs.readFileSync(pzh.config.mastercertname).toString()}};
-				response.writeHead(200);
 				utils.debug("Server sending certificate " + JSON.stringify(payload).length);
+				response.writeHead(200);		
 				response.write('#'+JSON.stringify(payload)+'#\n');
 				response.end();
 			});
