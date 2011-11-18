@@ -26,6 +26,12 @@ password.txt contains usernames and passwords.
 authstatus.txt contains data about authenticated users.
 
 
+Required modules:
+
+- zipper (https://github.com/rubenv/zipper) and zipfile (https://github.com/springmeyer/node-zipfile), required by securestore
+
+- schema.js (https://github.com/akidee/schema.js), required to validate input files against JSON schema.
+
 
 How to run the test:
 

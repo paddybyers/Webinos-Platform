@@ -1,6 +1,71 @@
 var fs = require('fs');
 var util = require('util');
 var secstore = require("../Manager/Storage/src/main/javascript/securestore.js");
+var sc = require('schema')('authEnvironment', { fallbacks: 'STRICT_FALLBACKS' });
+
+var passfile_validation = sc.f(
+	{
+		type: 'array', // function arguments are treated as array
+		items: {
+			// password.txt schema
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					username: {
+						type:'string'
+					},
+					password: {
+						type:'string'
+					},
+				},
+				additionalProperties: false
+			},
+		},
+	},
+
+	true,
+	true,
+
+	function (res, callback){
+		callback(null, res);
+	}
+)
+
+var authfile_validation = sc.f(
+	{
+		type: 'array', // function arguments are treated as array
+		items: {
+			// authstatus.txt schema
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					username: {
+						type:'string'
+					},
+					lastAuthTime: {
+						type:'string'
+					},
+					authMethod: {
+						type:'string'
+					},
+					authMethodDetails: {
+						type:'string'
+					},
+				},
+				additionalProperties: false
+			},
+		},
+	},
+
+	true,
+	true,
+
+	function (res, callback){
+		callback(null, res);
+	}
+)
 
 if (typeof webinos === "undefined") {
 	var webinos = {};
@@ -60,15 +125,15 @@ WebinosAuthenticationInterface = function () {
 webinos.authentication = new WebinosAuthenticationInterface();
 
 
-var password_filename = "./authentication/password.txt", authstatus_filename = "./authentication/authstatus.txt", sep = '|';
+var password_filename = "./authentication/password.txt", authstatus_filename = "./authentication/authstatus.txt";
 
 var storePass = "PZpassword", storeFile = "./auth.zip", storeDir  = "./authentication";
 
-var ask, getAuthTime, write_buffer, username;
+var ask, getAuthTime, username;
 
 webinos.authentication.authenticate = function (params, successCB, errorCB, objectRef) {
 	"use strict";
-	var newly_authenticated, passfile, passrows, p, buffer, error = {};
+	var newly_authenticated, passfile, p, authfile, buffer = {}, error = {};
 
 	if (params[0] !== '') {
 		username = params[0];
@@ -79,34 +144,54 @@ webinos.authentication.authenticate = function (params, successCB, errorCB, obje
 					secstore.open(storePass, storeFile, storeDir, function (err) {	
 						if (err === undefined || err === null) {
 							try {
-								// var stats = fs.statSync(password_filename);
-								passfile = fs.readFileSync(password_filename) + "";
-								passrows = passfile.split('\n');
-								for (p in passrows) {
-									if (passrows[p] !== '') {
-										if (typeof(passrows[p]) === 'string' && username === passrows[p].split(sep)[0] && password === passrows[p].split(sep)[1]) {
-											buffer = username + "|" + getAuthTime() + "|" + "password" + "|" + "console inserted password\n";
-											newly_authenticated = true;
-											break;
+								passfile = JSON.parse(fs.readFileSync(password_filename) + "");
+
+								passfile_validation(passfile, function(e, result){
+									if (e !== undefined && e !== null) {
+										error.code = AuthError.prototype.UNKNOWN_ERROR;
+										error.message = "Validation error in " + password_filename;
+										errorCB(error);
+									}
+									else {
+										for (p in passfile) {
+											if (passfile[p].username === username && passfile[p].password === password) {
+												buffer = {"username" : username, "lastAuthTime" : getAuthTime() , "authMethod" : "password", "authMethodDetails" : "console inserted password"}
+												newly_authenticated = true;
+												break;
+											}
 										}
 									}
-								}
+								});
+
 								if (newly_authenticated === true) {
-									write_buffer(buffer, function () {
-										secstore.close(storePass, storeFile, storeDir, function (err) {	
-											if (err !== undefined && err !== null) {
-												errorCB(err);
-											}
-											else {
-												webinos.authentication.getAuthenticationStatus([username], function (authStatus) {
-													successCB("User authenticated\n" + authStatus);
-												},
-												function (err) {
+									authfile = JSON.parse(fs.readFileSync(authstatus_filename) + "");
+
+									authfile_validation(authfile, function(e, result){
+										if (e !== undefined && e !== null) {
+											error.code = AuthError.prototype.UNKNOWN_ERROR;
+											error.message = "Validation error in " + authstatus_filename;
+											errorCB(error);
+										}
+										else {
+											authfile.push(buffer);
+											fs.writeFileSync(authstatus_filename, JSON.stringify(authfile), 'utf-8');
+
+											secstore.close(storePass, storeFile, storeDir, function (err) {	
+												if (err !== undefined && err !== null) {
 													errorCB(err);
-												});
-											}
-										});
+												}
+												else {
+													webinos.authentication.getAuthenticationStatus([username], function (authStatus) {
+														successCB("User authenticated\n" + authStatus);
+													},
+													function (err) {
+														errorCB(err);
+													});
+												}
+											});
+										}
 									});
+
 								}
 								else {
 									if (newly_authenticated === false) {
@@ -198,14 +283,6 @@ getAuthTime = function () {
 	return now.getFullYear() + "-" + month + "-" + date + "T" + hours + ":" + minutes + h_offset + ":" + m_offset;
 };
 
-write_buffer = function (buffer, done) {
-	fs.open(authstatus_filename, 'a', 0666, function (e, fd) {
-		fs.write(fd, buffer, undefined, 'utf-8', function () {
-			fs.close(fd);
-			done();
-		});
-	});
-};
 
 ask = function (question, callback) {
 	"use strict";
@@ -249,7 +326,7 @@ ask = function (question, callback) {
 
 webinos.authentication.isAuthenticated = function (params, successCB, errorCB, objectRef) {
 	"use strict";
-	var authenticated, authfile, authrows, authrow, error = {};
+	var authenticated, authfile, authrow, error = {};
 	
 	if (params[0] !== '') {
 		username = params[0];
@@ -257,21 +334,29 @@ webinos.authentication.isAuthenticated = function (params, successCB, errorCB, o
 		secstore.open(storePass, storeFile, storeDir, function (err) {	
 			if (err === undefined || err === null) {
 				try {
-					// var stats = fs.statSync(authstatus_filename);
-					authfile = fs.readFileSync(authstatus_filename) + "";
-					authrows = authfile.split('\n');
-					for (authrow in authrows) {
-						if (authrows[authrow] !== '' && typeof(authrows[authrow]) === 'string' && username === authrows[authrow].split(sep)[0]) {
-							authenticated = true;
-							break;
-						}
-					}
-					secstore.close(storePass, storeFile, storeDir, function (err) {	
-						if (err !== undefined && err !== null) {
-							errorCB(err);
+					authfile = JSON.parse(fs.readFileSync(authstatus_filename) + "");
+
+					authfile_validation(authfile, function(e, result){
+						if (e !== undefined && e !== null) {
+							error.code = AuthError.prototype.UNKNOWN_ERROR;
+							error.message = "Validation error in " + authstatus_filename;
+							errorCB(error);
 						}
 						else {
-							successCB(authenticated);
+							for (authrow in authfile) {
+								if (authfile[authrow].username === username) {
+									authenticated = true;
+									break;
+								}
+							}
+							secstore.close(storePass, storeFile, storeDir, function (err) {	
+								if (err !== undefined && err !== null) {
+									errorCB(err);
+								}
+								else {
+									successCB(authenticated);
+								}
+							});
 						}
 					});
 				}
@@ -292,7 +377,7 @@ webinos.authentication.isAuthenticated = function (params, successCB, errorCB, o
 
 webinos.authentication.getAuthenticationStatus = function (params, successCB, errorCB, objectRef) {
 	"use strict";
-	var authenticated, resp, authfile, authrows, authrow, auth_s = new AuthStatus(), error = {};
+	var authenticated, resp, authfile, authrow, auth_s = new AuthStatus(), error = {};
 	
 	if (params[0] !== '') {
 		username = params[0];
@@ -302,31 +387,39 @@ webinos.authentication.getAuthenticationStatus = function (params, successCB, er
 				secstore.open(storePass, storeFile, storeDir, function (err) {	
 					if (err === undefined || err === null) {
 						try {
-							// var stats = fs.statSync(authstatus_filename);
-							authfile = fs.readFileSync(authstatus_filename) + "";
-							authrows = authfile.split('\n');
-							for (authrow in authrows) {
-								if (authrows[authrow] !== '' && typeof(authrows[authrow]) === 'string' && username === authrows[authrow].split(sep)[0]) {
-									auth_s.lastAuthTime = authrows[authrow].split(sep)[1];
-									auth_s.authMethod = authrows[authrow].split(sep)[2];
-									auth_s.authMethodDetails = authrows[authrow].split(sep)[3];
-									resp = "lastAuthTime: " + auth_s.lastAuthTime + "\nauthMethod: " + auth_s.authMethod + "\nauthmethodDetails: " + auth_s.authMethodDetails;
-									break;
-								}
-							}
-							secstore.close(storePass, storeFile, storeDir, function (err) {	
-								if (err !== undefined && err !== null) {
-									errorCB(err);
+							authfile = JSON.parse(fs.readFileSync(authstatus_filename) + "");
+
+							authfile_validation(authfile, function(e, result){
+								if (e !== undefined && e !== null) {
+									error.code = AuthError.prototype.UNKNOWN_ERROR;
+									error.message = "Validation error in " + authstatus_filename;
+									errorCB(error);
 								}
 								else {
-									if (resp !== "") {
-										successCB(resp);
+									for (authrow in authfile) {
+										if (authfile[authrow].username === username) {
+											auth_s.lastAuthTime = authfile[authrow].lastAuthTime;
+											auth_s.authMethod = authfile[authrow].authMethod;
+											auth_s.authMethodDetails = authfile[authrow].authMethodDetails;
+											resp = "lastAuthTime: " + auth_s.lastAuthTime + "\nauthMethod: " + auth_s.authMethod + "\nauthmethodDetails: " + auth_s.authMethodDetails;
+											break;
+										}
 									}
-									else {
-										error.code = AuthError.prototype.UNKNOWN_ERROR;
-										error.message = "Authentication status not available";
-										errorCB(error);
-									}
+									secstore.close(storePass, storeFile, storeDir, function (err) {	
+										if (err !== undefined && err !== null) {
+											errorCB(err);
+										}
+										else {
+											if (resp !== "") {
+												successCB(resp);
+											}
+											else {
+												error.code = AuthError.prototype.UNKNOWN_ERROR;
+												error.message = "Authentication status not available";
+												errorCB(error);
+											}
+										}
+									});
 								}
 							});
 						}
