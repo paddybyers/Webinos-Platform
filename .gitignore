@@ -14,6 +14,9 @@ Manager/Context/Storage/data/context.json
 # ignore waf lock files
 .lock-wscript
 
+#ignore build folders
+build
+
 #ignore target folders
 target
 
