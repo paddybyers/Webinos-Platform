@@ -1,7 +1,10 @@
 var fs = require('fs');
 var util = require('util');
-var secstore = require("../Manager/Storage/src/main/javascript/securestore.js");
 var sc = require('schema')('authEnvironment', { fallbacks: 'STRICT_FALLBACKS' });
+var tty = require('tty'); // required starting from node.js 0.6.1
+
+// commented out due to lack of zipper module in node.js 0.6.1
+// var secstore = require("../Manager/Storage/src/main/javascript/securestore.js");
 
 var passfile_validation = sc.f(
 	{
@@ -141,8 +144,10 @@ webinos.authentication.authenticate = function (params, successCB, errorCB, obje
 			if (authenticated === false) {
 				ask("Password", function (password) {
 					newly_authenticated = false;
-					secstore.open(storePass, storeFile, storeDir, function (err) {	
-						if (err === undefined || err === null) {
+					
+					// commented out due to lack of zipper module in node.js 0.6.1
+					//secstore.open(storePass, storeFile, storeDir, function (err) {	
+					//	if (err === undefined || err === null) {
 							try {
 								passfile = JSON.parse(fs.readFileSync(password_filename) + "");
 
@@ -176,45 +181,48 @@ webinos.authentication.authenticate = function (params, successCB, errorCB, obje
 											authfile.push(buffer);
 											fs.writeFileSync(authstatus_filename, JSON.stringify(authfile), 'utf-8');
 
-											secstore.close(storePass, storeFile, storeDir, function (err) {	
-												if (err !== undefined && err !== null) {
-													errorCB(err);
-												}
-												else {
+											// commented out due to lack of zipper module in node.js 0.6.1
+											//secstore.close(storePass, storeFile, storeDir, function (err) {	
+											//	if (err !== undefined && err !== null) {
+											//		errorCB(err);
+											//	}
+											//	else {
 													webinos.authentication.getAuthenticationStatus([username], function (authStatus) {
 														successCB("User authenticated\n" + authStatus);
 													},
 													function (err) {
 														errorCB(err);
 													});
-												}
-											});
+											//	}
+											//});
 										}
 									});
 
 								}
 								else {
 									if (newly_authenticated === false) {
-										secstore.close(storePass, storeFile, storeDir, function (err) {	
-											if (err !== undefined && err !== null) {
-												errorCB(err);
-											}
-											else {
+
+										// commented out due to lack of zipper module in node.js 0.6.1
+										//secstore.close(storePass, storeFile, storeDir, function (err) {	
+										//	if (err !== undefined && err !== null) {
+										//		errorCB(err);
+										//	}
+										//	else {
 												error.code = AuthError.prototype.UNKNOWN_ERROR;
 												error.message = "Wrong username or password";
 												errorCB(error);
-											}
-										});
+										//	}
+										//});
 									}
 								}
 							}
 							catch (e) {
 								errorCB(e);
 							}
-						} else {		
-							errorCB(err);
-						}
-					});
+					//	} else {		
+					//		errorCB(err);
+					//	}
+					//});
 				});
 			}
 			else {
@@ -287,17 +295,16 @@ getAuthTime = function () {
 ask = function (question, callback) {
 	"use strict";
 	var pswd = "", passwd,
-	stdin = process.stdin, stdout = process.stdout,
-	stdio = process.binding("stdio");
+	stdin = process.stdin, stdout = process.stdout;
 
-	stdio.setRawMode(true);
 	stdin.resume();
+	tty.setRawMode(true); // modified to comply with node.js 0.6.1
 	stdout.write(question + ": ");
 
 	passwd = function (char, key) {
 		if (key.name === 'enter') {
 			stdout.write("\n");
-			stdio.setRawMode(false);
+			tty.setRawMode(false); // modified to comply with node.js 0.6.1
 			stdin.pause();
 			callback(pswd);
 			pswd = "";
@@ -308,7 +315,7 @@ ask = function (question, callback) {
 			}
 			else {
 				if (key.ctrl && key.name === 'c') {
-					stdio.setRawMode(false);
+					tty.setRawMode(false); // modified to comply with node.js 0.6.1
 					process.exit();
 				}
 				else {
@@ -318,9 +325,14 @@ ask = function (question, callback) {
 		}
 	};
 	
-	if (stdin.listeners('keypress').length === 0) {
-		stdin.on('keypress', passwd);
+	// modified to work around a presumed RPC problem
+	//if (stdin.listeners('keypress').length === 0) {
+	//	stdin.on('keypress', passwd);
+	//}
+	if (stdin.listeners('keypress').length > 0) {
+		stdin.listeners('keypress').pop();
 	}
+	stdin.on('keypress', passwd);
 };
 
 
@@ -331,8 +343,10 @@ webinos.authentication.isAuthenticated = function (params, successCB, errorCB, o
 	if (params[0] !== '') {
 		username = params[0];
 		authenticated = false;
-		secstore.open(storePass, storeFile, storeDir, function (err) {	
-			if (err === undefined || err === null) {
+		
+		// commented out due to lack of zipper module in node.js 0.6.1
+		//secstore.open(storePass, storeFile, storeDir, function (err) {	
+		//	if (err === undefined || err === null) {
 				try {
 					authfile = JSON.parse(fs.readFileSync(authstatus_filename) + "");
 
@@ -349,24 +363,26 @@ webinos.authentication.isAuthenticated = function (params, successCB, errorCB, o
 									break;
 								}
 							}
-							secstore.close(storePass, storeFile, storeDir, function (err) {	
-								if (err !== undefined && err !== null) {
-									errorCB(err);
-								}
-								else {
+
+							// commented out due to lack of zipper module in node.js 0.6.1
+							//secstore.close(storePass, storeFile, storeDir, function (err) {	
+							//	if (err !== undefined && err !== null) {
+							//		errorCB(err);
+							//	}
+							//	else {
 									successCB(authenticated);
-								}
-							});
+							//	}
+							//});
 						}
 					});
 				}
 				catch (e) {
 					errorCB(e);
 				}
-			} else {		
-				errorCB(err);
-			}
-		});
+		//	} else {		
+		//		errorCB(err);
+		//	}
+		//});
 	}
 	else {
 		error.code = AuthError.prototype.INVALID_ARGUMENT_ERROR;
@@ -384,8 +400,10 @@ webinos.authentication.getAuthenticationStatus = function (params, successCB, er
 		webinos.authentication.isAuthenticated(params, function (authenticated) {
 			if (authenticated === true) {
 				resp = "";
-				secstore.open(storePass, storeFile, storeDir, function (err) {	
-					if (err === undefined || err === null) {
+
+				// commented out due to lack of zipper module in node.js 0.6.1
+				//secstore.open(storePass, storeFile, storeDir, function (err) {	
+				//	if (err === undefined || err === null) {
 						try {
 							authfile = JSON.parse(fs.readFileSync(authstatus_filename) + "");
 
@@ -405,11 +423,13 @@ webinos.authentication.getAuthenticationStatus = function (params, successCB, er
 											break;
 										}
 									}
-									secstore.close(storePass, storeFile, storeDir, function (err) {	
-										if (err !== undefined && err !== null) {
-											errorCB(err);
-										}
-										else {
+
+									// commented out due to lack of module file in node.js 0.6.1
+									//secstore.close(storePass, storeFile, storeDir, function (err) {	
+									//	if (err !== undefined && err !== null) {
+									//		errorCB(err);
+									//	}
+									//	else {
 											if (resp !== "") {
 												successCB(resp);
 											}
@@ -418,18 +438,18 @@ webinos.authentication.getAuthenticationStatus = function (params, successCB, er
 												error.message = "Authentication status not available";
 												errorCB(error);
 											}
-										}
-									});
+									//	}
+									//});
 								}
 							});
 						}
 						catch (e) {
 							errorCB(e);
 						}
-					} else {		
-						errorCB(err);
-					}
-				});
+				//	} else {		
+				//		errorCB(err);
+				//	}
+				//});
 			}
 			else {
 				error.code = AuthError.prototype.UNKNOWN_ERROR;

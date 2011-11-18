@@ -25,17 +25,24 @@ This file has been created to use the securestore module.
 password.txt contains usernames and passwords.
 authstatus.txt contains data about authenticated users.
 
+- test_auth/authentication/password.txt
+- test_auth/authentication/authstatus.txt
+Unencrypted version on files contained in test_auth/auth.zip
+
 
 Required modules:
 
-- zipper (https://github.com/rubenv/zipper) and zipfile (https://github.com/springmeyer/node-zipfile), required by securestore
+Node 0.4:
+- zipper (https://github.com/rubenv/zipper) and zipfile (https://github.com/springmeyer/node-zipfile), required by securestore.
+  securestore usage is temporarily removed in node 0.6 version due to lack of updated zipper module
 
+Node 0.4 and 0.6
 - schema.js (https://github.com/akidee/schema.js), required to validate input files against JSON schema.
 
 
 How to run the test:
 
-1) Put in the root RPC directory rpc_auth.js and auth.zip.
+1) Put in the root RPC directory rpc_auth.js and authentication directory, containing password.txt and authstatus.txt
 
 2) Add to rpc.js (located in the RPC root directory) the element
 './rpc_auth.js'
