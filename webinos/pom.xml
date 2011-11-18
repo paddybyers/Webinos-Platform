@@ -137,6 +137,15 @@
             <fileset>
               <directory>reports</directory>
             </fileset>
+            <fileset>
+              <directory>src/main/cc/build</directory>
+            </fileset>
+            <fileset>
+              <directory>src/main/cc</directory>
+              <includes>
+                <include>**/.lock-wscript</include>
+              </includes>
+            </fileset>
           </filesets>
         </configuration>
       </plugin>
