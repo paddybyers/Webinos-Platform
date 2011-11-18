@@ -19,4 +19,8 @@ process.argv.forEach(function(val, index, array) {
 		webServerPort = val;
 });
 
-webinos.session.pzp.startWebSocketServer(hostname, serverPort, webServerPort); 
+if (hostname === '' || serverPort <= 0 || webServerPort <= 0) {
+	console.log("pzp.js: Error starting server.\n\t Start with: node websocket_server.js <host> <websocket port> <http port>\n\t E.g.: node websocket_server.js localhost 81 80");
+} else {
+	webinos.session.pzp.startWebSocketServer(hostname, serverPort, webServerPort); 
+}

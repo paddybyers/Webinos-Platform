@@ -20,7 +20,7 @@
 					if (objectRef)
 						message.fromObjectRef = objectRef;
 
-					webinos.rpc.executeRPC(message, utils.callback(successCallback, this), utils.callback(errorCallback, this), responseto, msgid);
+					webinos.message_send(webinos.findServiceBindAddress(), message, utils.callback(successCallback, this), utils.callback(errorCallback, this));
 				};
 			},
 			
@@ -31,12 +31,18 @@
 					
 					if (objectRef)
 						message.fromObjectRef = objectRef;
-					webinos.rpc.executeRPC(message, null, null, responseto, msgid);
+					
+					webinos.message_send(webinos.findServiceBindAddress(), message);
 				};
 			}
 		};
 
 write = null;
+
+/*
+ * used to store objectRefs for callbacks that get invoked more than once
+ */ 
+var objRefCachTable = {};
 
 
 webinos.rpc = {};
@@ -117,15 +123,16 @@ webinos.rpc.handleMessage = function (message, responseto, msgid){
 				}
 			}
 			
-			//if (typeof webinos.rpc.objects[service] === 'object'){
 			if (typeof includingObject === 'object'){
-				id = myObject.id;
+				var id = myObject.id;
 				
 				if (typeof myObject.fromObjectRef !== 'undefined' && myObject.fromObjectRef != null) {
+					// callback registration case (one request to many responses)
 				
 					webinos.rpc.responseToMapping[myObject.fromObjectRef] = responseto;
 					
-					//webinos.rpc.objects[service][method](
+					objRefCachTable[myObject.fromObjectRef] = {responseTo:responseto, msgId: msgid};
+					
 					includingObject[method](
 						myObject.params, 
 						function (result) {
@@ -152,7 +159,7 @@ webinos.rpc.handleMessage = function (message, responseto, msgid){
 					);
 				}
 				else {
-					//webinos.rpc.objects[service][method](
+					// default request-response case
 					includingObject[method](
 						myObject.params, 
 						function (result) {
@@ -224,10 +231,13 @@ webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto, msgid) {
 		if (typeof errorCB === 'function') cb.onError = errorCB;
 		if (typeof rpc.id !== 'undefined') webinos.rpc.awaitingResponse[rpc.id] = cb;
 	}
-    else{
-    	if (typeof callback !== 'undefined' && typeof responseto === 'undefined') responseto = callback;
+    else if (rpc.method && rpc.method.indexOf('@') === -1) {
+    	var objectRef = rpc.method.split('.')[0];
+    	if (objRefCachTable[objectRef] !== 'undefined') {
+    		responseto = objRefCachTable[objectRef].responseTo;
+    		msgid = objRefCachTable[objectRef].msgId;
+    	}
     }
-    debugger;
     //TODO check if rpc is request on a specific object (objectref) and get mapped responseto / destination session
     
     //TODO remove stringify when integrating with Message Routing/Ziran

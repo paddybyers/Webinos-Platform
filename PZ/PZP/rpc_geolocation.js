@@ -63,12 +63,19 @@ function getCurrentPosition (params, successCB, errorCB, objectRef){
 }
 
 
-function watchPosition (params, successCB, errorCB, objectRef){    // not yet working
-	var tint = 10000;
+function watchPosition (params, successCB, errorCB, objectRef) {
+	var tint = 2000;
 	if (params.maximumAge) tint = params.maximumAge;
+	
 	var watchId = setInterval( function () {
-		getCurrentPosition (params, successCB, errorCB, objectRef);
+		
+		getCurrentPosition (params, function(e) {
+			var rpc = webinos.rpc.createRPC(objectRef, 'onEvent', [e]);
+			webinos.rpc.executeRPC(rpc);
+		}, errorCB, objectRef);
+		
 	}, tint);
+	
 }
 	
 
