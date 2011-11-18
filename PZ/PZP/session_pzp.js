@@ -32,6 +32,7 @@
 		url = require('url'),
 		path = require('path'),
 		WebSocketServer = require('websocket').server,
+		child_process = require('child_process'),
 		Pzp = null;
 
 	Pzp = function () {
@@ -112,7 +113,7 @@
 	Pzp.prototype.checkFiles = function (callback) {
 		var self, options;
 		self = this;
-		fs.readFile(self.config.keyname, function (err) {
+		fs.readFile(self.config.mastercertname, function (err) {
 			if (err) {
 				utils.generateSelfSignedCert(self, function (status) {
 					if (status === 'true') {
@@ -233,8 +234,7 @@
 				self.connected_pzp[sessionId] = {'socket': conn, 
 								'name': sessionId, 
 								'address': conn.socket.remoteAddress, 
-								'port': '',
-								'object': ''};
+								'port': ''};
 				utils.debug("PZP Server (" + self.config.sessionId +
 					") connected_pzp ");
 			} 
@@ -339,7 +339,6 @@
 			lastMsg += data;	
 			try{
 				data2 = JSON.parse(lastMsg);
-				console.log(data2);
 				lastMsg = '';
 			} catch(err) {
 				console.log('PZP: Accumulated data is wrong');
@@ -352,12 +351,24 @@
 		 * Payload message format {status: 'clientCert', message: certificate)
 		 */
 		if (data2.type === 'prop' && 
-			data2.payload.status === 'NotAuth' && 
-			data2.to === self.config.sessionId) {
-				utils.debug('PZP ('+self.config.sessionId+') Not Authenticated');
-				msg = { 'type': 'prop', 'payload': {'status':'clientCert', 
-					'message':fs.readFileSync(self.config.certnamecsr).toString()}};
+		data2.payload.status === 'NotAuth' /*&& 
+		data2.to === self.config.sessionId*/) {
+			var common = data2.from + '@' + self.config.common;
+			utils.debug('PZP ('+self.config.sessionId+') Not Authenticated');
+			var req = 'openssl req -new -subj \"/C='+self.config.country+
+			'/ST='+self.config.state+'/L='+self.config.city+'/CN='+common+
+			'/emailAddress='+self.config.email + '\" -key ' + self.config.keyname+
+			' -out temp.csr';
+
+			child_process.exec(req, function (error, stdout, stderr) {
+				self.config.sessionId = common.split(':')[0];
+				msg = { 'type': 'prop', 
+				'from': self.config.sessionId,
+				'payload': {'status':'clientCert', 
+					'cert':fs.readFileSync('temp.csr').toString()}};
 				self.sendMessage(msg, data2.from);
+				
+			});
 		}
 		/* It registers with message handler and set methods for message handler. 
 		 * It also registers PZH as its client. To enable message to be sent from 
@@ -366,89 +377,82 @@
 		 * for connecting PZP. If port is blocked it increments port before connecting.
 		 */
 		else if (data2.type === 'prop' && 
-				data2.payload.status === 'Auth') {
-					utils.debug('PZP ('+self.config.sessionId+') Connected to PZH & Authenticated');
-					self.serverName = data2.from;
-					self.sessionId = data2.to;
+			data2.payload.status === 'Auth') {
+			utils.debug('PZP ('+self.config.sessionId+') Connected to PZH & Authenticated');
+			self.serverName = data2.from;
+			self.sessionId = data2.to;
 
-					webinosMessage.setGet(self.sessionId);
-					webinosMessage.setObject(self);
-					webinosMessage.setSend(sessionPzp.send);
-					msg = webinosMessage.registerSender(self.sessionId, self.serverName);
-					self.sendMessage(msg, self.serverName);
-		
-					self.startServer(function() {
-						msg = { 'type': 'prop', 'from' : self.sessionId, 'to': self.serverName, 
-								'payload': {'status': 'pzpDetails', 
-											'port': self.pzp_serverPort, 
-											'object':''/*webinos.rpc.object*/}
-						};
-						self.sendMessage(msg, self.serverName);
-
-						setTimeout(function() {
-							callback.call(self, 'startedPZP');
-						}, 500);
-					});
+			webinosMessage.setGet(self.sessionId);
+			webinosMessage.setObject(self);
+			webinosMessage.setSend(sessionPzp.send);
+			msg = webinosMessage.registerSender(self.sessionId, self.serverName);
+			self.sendMessage(msg, self.serverName);
+			self.startServer(function() {
+				msg = { 'type': 'prop', 'from' : self.sessionId, 'to': self.serverName, 
+					'payload': {'status': 'pzpDetails', 
+					'port': self.pzp_serverPort}};
+				self.sendMessage(msg, self.serverName);
+				setTimeout(function() {
+					callback.call(self, 'startedPZP');
+				}, 500);
+			});
 		} // It is signed client certificate by PZH
 		else if(data2.type === 'prop' && 
-				data2.payload.status === 'signedCert' && 
-				self.config.sessionId === data2.to) {
-					utils.debug(self.config.sessionId);
-					utils.debug('PZP ('+self.config.sessionId+') Creating signed client cert ' 
-						+self.config.certname + ' to ' + data2.to);
-					fs.writeFile(self.config.certname, 
-						data2.payload.clientCert, 
-						function() {
-							utils.debug('PZP ('+self.config.sessionId+') Creating server signing cert '
-								+self.config.mastercertname);
-							fs.writeFile(self.config.mastercertname, 
-								data2.payload.signingCert, 
-								function() {
-									if(typeof callback !== "undefined") {
-										callback.call(self, 'connectPZHAgain');
-									}
-								});
+			data2.payload.status === 'signedCert' /*&& 
+			self.config.sessionId === data2.to*/) {
+			self.config.sessionId = data2.to;
 
-						});
+			utils.debug('PZP ('+self.config.sessionId+') Creating signed client cert ' 
+				+self.config.certname + ' to ' + data2.to);
+			fs.writeFile(self.config.certname, data2.payload.clientCert, 
+			function() {
+				utils.debug('PZP ('+self.config.sessionId+') Creating server signing cert '
+					+self.config.mastercertname);
+				fs.writeFile(self.config.mastercertname, 
+				data2.payload.signingCert, 
+				function() {
+					if(typeof callback !== "undefined") {
+						callback.call(self, 'connectPZHAgain');
+					}
+				});
+			});
 		} // This is update message about other connected PZP
 		else if(data2.type === 'prop' && 
-				data2.payload.status === 'PZPUpdate') {
-					utils.debug('PZP ('+self.config.sessionId+') Update other PZP details') ;
-					msg = JSON.parse(data2.payload.message);
-					for (myKey in msg) {
-						if(self.sessionId !== msg[myKey].name && !self.client_pzp[msg[myKey].name]) {
-							if(!self.connected_pzp[msg[myKey].name]) {
-								self.connected_pzp[msg[myKey].name] = {'socket': '', 
-											'name': msg[myKey].name, 
-											'address': msg[myKey].address, 
-											'port': msg[myKey].port,
-											'object': ''};			
+			data2.payload.status === 'PZPUpdate') {
+			utils.debug('PZP ('+self.config.sessionId+') Update other PZP details') ;
+			msg = JSON.parse(data2.payload.message);
+			for (myKey in msg) {
+				if(self.sessionId !== msg[myKey].name && !self.client_pzp[msg[myKey].name]) {
+					if(!self.connected_pzp[msg[myKey].name]) {
+						self.connected_pzp[msg[myKey].name] = {'socket': '', 
+						'name': msg[myKey].name, 
+						'address': msg[myKey].address, 
+						'port': msg[myKey].port};			
 
-							self.connectOtherPZP(msg[myKey]);
-							self.sendMessage({"type":"prop", "payload": {"status":"pzp_info", "message":msg[myKey].name}},
-								sessionPzp.instance.connAppId);
-						}
+					self.connectOtherPZP(msg[myKey]);
+					self.sendMessage({"type":"prop", 
+						"payload": {"status":"pzp_info", "message":msg[myKey].name}},
+					sessionPzp.instance.connAppId);
 					}
-				}	
+				}
+			}	
 		}
 		// Forward message to message handler
 		else { 
 			utils.debug('PZP ('+self.config.sessionId+') Message Forward to Message Handler' ); 
-				//JSON.stringify(data2));
 			webinosMessage.setGet(self.sessionId);
 			webinosMessage.setObject(self);
 			webinosMessage.setSend(sessionPzp.send);
 			webinosMessage.onMessageReceived(data2);
 		}
 	};
+
 	/* It is responsible for connecting with PZH and handling events.
 	 * It does JSON parsing of received message../../RPC/contacts_module/node_contacts_remote/build/config.log
 	 */
-	 
 	Pzp.prototype.connect = function (options, callback) {
 		var self, client, msg = {};
 		self = this;
-
 		client = tls.connect(self.pzh_serverPort, 
 			self.pzh_serverName, 
 			options, 
@@ -461,11 +465,11 @@
 
 		client.on('data', function(data) {
 			try {
-				//client.pause();
+				client.pause();
 				self.processMsg(data, callback);
-				//process.nextTick(function () {
-				//	client.resume();
-				//});			
+				process.nextTick(function () {
+					client.resume();
+				});			
 			} catch (err) {
 				console.log('PZP: Exception' + err);
 				console.log(err.code);
@@ -499,19 +503,19 @@
 		fs.readdir(__dirname, function(err, files) {
 			for(i in files) {
 				if( (files[i].indexOf('pzp',0) === 0) &&  
-					files[i].indexOf('key.pem', 0) !== -1) {
-						id = files[i].split('_');
-						data1 = contents.toString().split('\n');
-						for(j = 0; j < data1.length; j += 1) {
-							if(data1[j].split('=')[0] === 'common') {
-								// If matches no need to generate new config
-								common = data1[j].split('=')[1];
-								if(id[1] === common) {
-									common = id[1];
-									flag = false;
-								}										
-							}
+				files[i].indexOf('master_cert.pem', 0) !== -1) {
+					id = files[i].split('_');
+					data1 = contents.toString().split('\n');
+					for(j = 0; j < data1.length; j += 1) {
+						if(data1[j].split('=')[0] === 'common') {
+							// If matches no need to generate new config
+							common = data1[j].split('=')[1];
+							if(id[1] === common) {
+								common = id[1];
+								flag = false;
+							}										
 						}
+					}
 				}
 			}
 
@@ -552,7 +556,8 @@
 						} else if(data1[i][0] === 'organizationUnit') {
 							self.config.orgunit = data1[i][1];
 						} else if(data1[i][0] === 'common') {
-							self.config.common = data1[i][1] + ':DeviceId@'+self.config.id;
+							self.config.common = data1[i][1] + 
+							':DeviceId:('+self.config.id+')';
 						} else if(data1[i][0] === 'email') {
 							self.config.email = data1[i][1];
 						} else if(data1[i][0] === 'days') {
@@ -584,16 +589,16 @@
 		client.pzp_serverPort = pzpport;
 		client.ipaddr = ipaddr;
 		client.configurePZP(contents, function(result) {
-			utils.debug('PZP ('+client.config.sessionId+') '+result);
+			utils.debug('PZP (Not Connected) '+result);
 			client.checkFiles(function(result) {
-				utils.debug('PZP ('+client.config.sessionId+') Client Connecting ');			
-				client.config.sessionId = client.config.common.split(':')[0];
-			
+				utils.debug('PZP (Not Connected) Client Connecting ');			
 				client.connect(result, function(result) {
 					if (result === 'connectPZHAgain') {
+						utils.debug('PZP ('+client.config.sessionId+') Client Connecting Again');
 						var options = {	key: fs.readFileSync(client.config.keyname),
-										cert: fs.readFileSync(client.config.certname),
-										ca: fs.readFileSync(client.config.mastercertname)};
+							cert: fs.readFileSync(client.config.certname),
+							ca: fs.readFileSync(client.config.mastercertname)};
+
 						client.connect(options, function(result) {
 							if(result === 'startedPZP') {
 								callback.call(client, 'startedPZP');
@@ -631,7 +636,7 @@
 					response.writeHead(200);  
 					response.write(file, "binary");  
 					response.end();
-					});
+				});
 			});  
 		});
 	
@@ -671,8 +676,7 @@
 		sessionPzp.wsServer = new WebSocketServer({
 			httpServer: httpserver,
 			autoAcceptConnections: true
-		});
-		
+		});		
 		
 		sessionPzp.connected_session = function(connection) {
 			var otherPZP = [], mykey, otherPZH = [];
@@ -740,7 +744,8 @@
 						function(result) {
 							if(result === 'startedPZH') {
 								//pzh.startHttpsServer(msg.payload.httpserver, msg.payload.servername);
-								var info = {"type":"prop", "payload":{"status": "info", "message":"PZH started"}}; 
+								var info = {"type":"prop", 
+								"payload":{"status": "info", "message":"PZH started"}}; 
 								connection.sendUTF(JSON.stringify(info));
 							}							
 						});

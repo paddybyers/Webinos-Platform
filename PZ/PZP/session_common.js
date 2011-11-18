@@ -1,5 +1,5 @@
 var  fs = require('fs'),
-    crypto = require('crypto'),
+	crypto = require('crypto'),
 	child_process = require('child_process');
 
 var debug = true;
@@ -97,8 +97,9 @@ exports.generateSelfSignedCert = function(self, callback) {
 exports.generateServerCertifiedCert = function(self, config, callback) {
 	/*generator.genCertifiedCertificate(cert,	config.days, config.certname, config.mastercertname, config.masterkeyname, 
 	function(err) {	console.log('PZ Common: Certificate generation error' + err);});*/
-	var req = 'openssl x509 -req -days ' + config.days + ' -in ' +self.config.certnamecsr+ ' -CAcreateserial -CAkey ' + 
-				config.masterkeyname + ' -CA ' + config.mastercertname+' -out ' + config.certname;
+	var req = 'openssl x509 -req -days ' + config.days + ' -in ' +self.config.certnamecsr+ 
+	' -CAcreateserial -CAkey ' + config.masterkeyname + ' -CA ' + config.mastercertname+
+	' -out ' + config.certname;
 
 	//console.log(req);
 
@@ -116,45 +117,41 @@ exports.generateServerCertifiedCert = function(self, config, callback) {
 /* This is called once from PZH to generate master certificate for PZH.
  * This results in native code call.
  */
-exports.generateClientCertifiedCert = function(certname, self, callback) {
-	var days = self.config.days;
-	var keyname = self.config.masterkeyname;
-	var req = 'openssl x509 -req -days ' + self.config.days + ' -in ' + certname + ' -CAcreateserial -CAkey ' +
-		keyname + ' -CA ' + self.config.mastercertname + ' -out ' + self.config.clientcert;
-	//console.log('PZ Common : Client Cert ' +  req);
+ 
+exports.generateClientCertifiedCert = function(self, callback) {
+	var req = 'openssl x509 -req -days ' + self.config.days + 
+	' -in ' + self.config.tempcsr +' -CAcreateserial -CAkey ' + self.config.masterkeyname + 
+	' -CA ' + self.config.mastercertname + ' -out ' + self.config.clientcert;
 	child_process.exec(req, function (error, stdout, stderr) {
-		console.log('PZ Common: Server Certified Client Cert stderr: ' + stderr);
 		if (error !== null) {
-		  console.log('PZ Common: Server Certified Client Cert Exec error: ' + error);
-		} else {
+			console.log('PZ Common: Server Certified Client Cert error: ' + error);
+			callback.call(self, 'not done');
+		} else if(typeof callback === "function") {
 			callback.call(self, 'done');
 		}
-
 	});
+
 };
 
 /* Before adding client it checks if client is already present or not.
  * Not used currently
  */
-exports.checkClient = function (connected_client, cn){
-	var found = false;
-	for(i = 0; i < connected_client.length; i += 1) {
-		if(connected_client[i].commonname === cn) {
-			found = true;
-			break;
-		}
+exports.checkClient = function (self, cn){
+	if(self.connected_pzp[cn]) {
+		return true;
+	} else 	if(self.connected_pzh[cn]) {
+		return true;
 	}
-	return found;
+	return false;
 };
 
 /*  It removes the connected PZP details.
  */
-exports.removeClient = function(client, conn) {
-	for (myKey in client){
-		if(client[myKey] === conn) {
-			console.log('PZ Common : removed client ' + myKey );
-			break;
-		}
+exports.removeClient = function(self, cn) {
+	if(self.connected_pzp[cn]) {
+		delete self.connected_pzp[cn];
+	} else if(self.connected_pzh[cn]) {
+		delete self.connected_pzh[cn];
 	}
 };
 

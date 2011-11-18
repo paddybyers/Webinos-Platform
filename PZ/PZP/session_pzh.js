@@ -4,13 +4,13 @@ if (typeof exports !== "undefined") {
 	var webinosMessage = require("./messaging.js");
 	var sessionPzh = {};
 	var utils = require('./session_common.js');
-	var rpc = require("./rpc.js");
 } 
 
 // Global variables and node modules that are required
 var tls = require('tls'),
 	events = require('events'),
-	fs = require('fs'), 
+	fs = require('fs'),
+	crypto = require('crypto'),
 	http = require('http'),
 	url = require('url'),
 	path = require('path'),
@@ -82,7 +82,8 @@ Pzh.prototype.checkFiles = function (filename, callback) {
 			utils.generateSelfSignedCert(self, function(status) {
 				if(status === 'true') {
 					fs.readFile(self.config.mastercertname, function(err) {
-						utils.debug('PZH ('+self.sessionId+') generating self signed signing certificate');
+						utils.debug('PZH ('+self.sessionId+
+						') generating self signed signing certificate');
 						utils.generateMasterCert(self, function(result) {
 							if(result === 'done') {
 								utils.debug('PZH ('+self.sessionId+') generating connection certificate signed by signing certificate');
@@ -103,18 +104,24 @@ Pzh.prototype.checkFiles = function (filename, callback) {
 
 Pzh.prototype.connect = function () {
 	"use strict";
-	var i, self, options, server, msg;
+	var i, self, server, msg;
 	self = this;
-	var ca = [fs.readFileSync(self.config.mastercertname)];
-	//if (self.config.otherPZHCert !== '')
-		ca = [fs.readFileSync(self.config.mastercertname)];/*,  fs.readFileSync(self.config.otherPZHCert)*/
+	var ca =  [fs.readFileSync(self.config.mastercertname)];
+	var added = false;
+	
+	if(typeof self.config.otherPZHMasterCert !== 'undefined'){
+               ca = [fs.readFileSync(self.config.mastercertname), 
+               	fs.readFileSync(self.config.otherPZHMasterCert)];
+       }
+
 	// Read server configuration for creating TLS connection
-	var options = {	key: fs.readFileSync(self.config.keyname),
+	var options = {key: fs.readFileSync(self.config.keyname),
 			cert: fs.readFileSync(self.config.certname),
-			ca:ca,
+			ca: fs.readFileSync(self.config.mastercertname),
 			requestCert:true, 
 			rejectUnauthorized:false
 			};
+
 	// PZH session id is the common name assigned to it. In usual scenaio it should be URL of PZH. 
 	self.sessionId = self.config.common.split(':')[0];
 	
@@ -129,11 +136,12 @@ Pzh.prototype.connect = function () {
 	self.connected_pzh[self.sessionId] = {'socket': '', 
 				'name': self.sessionId, 
 				'address': self.server, //serverName
-				'port': self.port, // serverPort
-				'object':rpc.object}; // RPC objects are initialized
+				'port': self.port}; // RPC objects are initialized
 
 	server = tls.createServer (options, function (conn) {
 		var data = {}, obj = {}, cn, found = false, msg, parse = null, payload = {}, msg = {}, sessionId;
+		self.conn = conn;
+		
 		/* If connection is authorized:
 		* SessionId is generated for PZP. Currently it is PZH's name and 
 		* PZP's CommonName and is stored in form of PZH::PZP.
@@ -144,68 +152,59 @@ Pzh.prototype.connect = function () {
 	
 		if(conn.authorized) {
 			utils.debug("PZH: Client Authenticated ");
-
 			cn = conn.getPeerCertificate().subject.CN;
-			var data = cn.split(':');
-			//server.addContext('localhost', {ca:fs.readFileSync('othercert.pem')});
-			// temp work around till https is in place
-			//server.setCert(fs.readFileSync('othercert.pem'));	
-
-			// TODO: For development purpose same host can be used to run multiple client. Enabling below lines will remove duplicates
-			// TODO: Differentiate PZH and PZP, but how to identify who's is who
-			//found = common.checkClient(self.connected_client, cn);
-			//if(found === false) {
-			
-			//self.connected_pzh[self.sessionId] = conn;
-
-			// Assumption: PZH is of form ipaddr or web url
-			// Assumption: PZP is of form url/mobile:Deviceid@mac
-			if(data[0].indexOf('/') !== -1 ) { 
-				self.connected_pzh[data[0]] = {'socket': conn, 
-					'name': cn, 
-					'address': conn.socket.remoteAddress, 
-					'port': conn.socket.remotePort,
-					'object':''};
-				var otherPZH = [], myKey;
-			 	//format: ownid :: client sessionid :: other connected pzp
-				for (myKey in self.connected_pzh){
-					utils.debug("OtherPZH ["+myKey +"] = "+self.connected_pzh[myKey]);
-					otherPZH.push(myKey);
-				}
-				var msg1 = { 'type': 'prop', 
-					'from':  self.sessionId, 
-					'to': data[0], 
-					'payload': {'status':'Auth', 'message': otherPZH} };
-				self.sendMessage(msg1, msg1.to);
-				var msg = webinosMessage.registerSender(self.sessionId, data[0]);
-				self.sendMessage(msg, data[0]);
-
-				msg = {'type': 'prop', 
-					'from':  self.sessionId, 
-					'payload': {'status':'PZHUpdate', 'message':otherPZP}};
-				// send message to all connected PZP and PZH
-				for (myKey in self.connected_pzh){
-					utils.debug("PZH: PZHUpdate ["+ myKey +"] = "+
-						self.connected_pzh[myKey]);
-					if(data[0] !== myKey) {
-						self.sendMessage(msg, myKey);
+			console.log(cn);
+			var data = cn.split('@');
+			found = utils.checkClient(self, cn);
+			if(found === false) {
+				// Assumption: PZH is of form ipaddr or web url
+				// Assumption: PZP is of form url@mobile:Deviceid@mac
+				if(data.length === 1 ) {
+					utils.debug('PZH ('+self.sessionId+') PZH Connected');
+					self.connected_pzh[data[0]] = {'socket': conn, 
+						'name': data[0], 
+						'address': conn.socket.remoteAddress, 
+						'port': conn.socket.remotePort};
+					var otherPZH = [], myKey;
+				 	//format: ownid :: client sessionid :: other connected pzp
+					for (myKey in self.connected_pzh){
+						utils.debug("OtherPZH ["+myKey +"] = "
+						+self.connected_pzh[myKey]);
+						otherPZH.push(myKey);
 					}
-				}
-			} else {
-				// connected PZP session id is of form PZH/PZP's common name without device id
-				sessionId = self.sessionId + "/" + data[0];
+					var msg1 = { 'type': 'prop', 
+						'from':  self.sessionId, 
+						'to': data[0], 
+						'payload': {'status':'Auth', 'message': otherPZH} };
+					self.sendMessage(msg1, msg1.to);
+					var msg=webinosMessage.registerSender(self.sessionId, data[0]);
+					self.sendMessage(msg, data[0]);
 
-				self.connected_pzp[sessionId] = {'socket': conn, 
-					'name': sessionId, 
-					'address': conn.socket.remoteAddress, 
-					'port': '',
-					'object': ''};
+					msg = {'type': 'prop', 
+						'from':  self.sessionId, 
+						'payload': {'status':'PZHUpdate', 'message':otherPZP}};
+					// send message to all connected PZP and PZH
+					for (myKey in self.connected_pzh){
+						utils.debug("PZH: PZHUpdate ["+ myKey +"] = "+
+							self.connected_pzh[myKey]);
+						if(data[0] !== myKey) {
+							self.sendMessage(msg, myKey);
+						}
+					}
+				} else if(data.length === 2 ) { 
+					utils.debug('PZH ('+self.sessionId+') PZP Connected');
+					sessionId = data[0]+'@'+data[1].split(':')[0];
+					self.connected_pzp[sessionId] = {'socket': conn, 
+						'name': sessionId, 
+						'address': conn.socket.remoteAddress, 
+						'port': ''};
 				
-				msg = { 'type': "prop", 
-					'from':  self.sessionId, 
-					'to': sessionId, 
-					'payload': {'status':'Auth'}};
-				self.sendMessage(msg, sessionId);
+					msg = { 'type': "prop", 
+						'from':  self.sessionId,
+						'to': sessionId, 
+						'payload': {'status':'Auth'}};
+					self.sendMessage(msg, sessionId);
+				}
 			}
 		}
 		/* Message is sent to PZP with payload: {status:'NotAuth', message:''}
@@ -216,16 +215,16 @@ Pzh.prototype.connect = function () {
 		else {
 			utils.debug("PZH: Not Authenticated " + conn.authorizationError);
 			var msg = {'type': "prop",
-				'to':conn.getPeerCertificate().subject.CN.split(':')[0],
+				'from':self.sessionId,
 				'payload': {'status':'NotAuth'}};
 			utils.debug("PZH: Not Auth Message Sent " + msg.to);
 			// This is special case as client is not listed in the connected_pzp list	
 			msg = JSON.stringify(msg);			
 			var buf = new Buffer('#'+msg+'#');
-			conn.write(buf); 
+			conn.write(buf);
 		}
 		
-		conn.on('connection', function() {
+		conn.on('connect', function() {
 			utils.debug('PZH ('+self.sessionId+') connection established');
 		});
 		
@@ -258,7 +257,8 @@ Pzh.prototype.connect = function () {
 		});
 
 		conn.on('error', function(err) {
-			utils.debug('PZH ('+self.sessionId+')' + err.code + '\n PZH: Error stack : ' + err.stack);
+			utils.debug('PZH ('+self.sessionId+')' + err.code );
+			utils.debug('PZH ('+self.sessionId+') Error stack : ' + err.stack);
 		});
 	});
 	return server;
@@ -307,14 +307,13 @@ Pzh.prototype.processMsg = function(conn,data) {
 	 * PZP connects again to PZH with new certificates.
 	 */
 	if(parse.type === 'prop' && payload.status === 'clientCert' ) {
-		var signingcert = (fs.readFileSync(self.config.mastercertname).toString());
 		var i, id, id1=0;
 		fs.readdir(__dirname, function(err, files) {
 			for(i in files) {
 				if( (files[i].indexOf('pzh',0) === 0) &&  
-					(files[i].indexOf('client_certified', 0) !== -1)) {
-						id = files[i].split('_');
-						id1 = parseInt(id[2]) + 1;
+				(files[i].indexOf('client_certified', 0) !== -1)) {
+					id = files[i].split('_');
+					id1 = parseInt(id[2]) + 1;
 				}
 			}
 		
@@ -322,57 +321,52 @@ Pzh.prototype.processMsg = function(conn,data) {
 			self.config.tempcsr = name+'_client_temp.csr';
 			self.config.clientcert = name+'_client_certified.pem';
 
-			fs.writeFile(self.config.tempcsr, payload.message, function(err) {
-				if(err) throw err;
-				// If we could get this setSendinformation from within key exchange in openssl,
-				// it would not require certificate
-				utils.debug('PZH ('+self.sessionId+') Peer Common Name ' + 
-					conn.getPeerCertificate().subject.CN);
-				utils.generateClientCertifiedCert(self.config.tempcsr, 
-					self, 
-					function(result) {
-						if(result === 'done') {
-							var msg = {'type': 'prop', 
-								'to':conn.getPeerCertificate().subject.CN.split(':')[0],
-								'payload': {'status':'signedCert', 
-									'clientCert':
-									(fs.readFileSync(self.config.clientcert).toString()), 
-									'signingCert':signingcert}
-								};
-							console.log("PZH: Client cert Message sent");
-							var buf = new Buffer('#'+JSON.stringify(msg)+'#');
-							conn.write(buf);
-						}
+			// If we could get this information from within key exchange in openssl,
+			// it would not require certificate
+			fs.writeFile(self.config.tempcsr, payload.cert, function() {
+				utils.generateClientCertifiedCert(self, function(result) {
+				if(result === 'done') {
+					var msg = {'type': 'prop',
+					'to': parse.from,
+					'payload': {'status':'signedCert', 
+					'clientCert':
+					(fs.readFileSync(self.config.clientcert).toString()), 
+					'signingCert':
+					(fs.readFileSync(self.config.mastercertname).toString())}};
+					utils.debug('PZH ('+self.sessionId+') Client Cert Sent to :'
+					 + msg.to);
+					var buf = new Buffer('#'+JSON.stringify(msg)+'#');
+					conn.write(buf);
+					}
 				});
 			});
 		});
 	} else if (parse.type === 'prop' && 
 		payload.status === 'pzpDetails') {
-			if(self.connected_pzp[parse.from]) {
-				self.connected_pzp[parse.from].port = payload.port;
-				self.connected_pzp[parse.from].object = payload.object;
-				var otherPZP = [];
-				for(var i in self.connected_pzp) {
-					otherPZP.push({'port': self.connected_pzp[i].port, 
-									'name': self.connected_pzp[i].name, 
-									'address':self.connected_pzp[i].address});
-				}
-				var msg = { 'type': "prop", 
-					'from':  self.sessionId,
-					'payload': {'status':'PZPUpdate', 
-								'message':JSON.stringify(otherPZP)}};
+		if(self.connected_pzp[parse.from]) {
+			self.connected_pzp[parse.from].port = payload.port;
+			var otherPZP = [];
+			for(var i in self.connected_pzp) {
+				otherPZP.push({'port': self.connected_pzp[i].port, 
+				'name': self.connected_pzp[i].name, 
+				'address':self.connected_pzp[i].address});
+			}
+			var msg = { 'type': "prop", 
+			'from':  self.sessionId,
+			'payload': {'status':'PZPUpdate', 
+			'message':JSON.stringify(otherPZP)}};
 			
 				// send message to all connected PZP						
-				for (var myKey in self.connected_pzp) {
-					if(myKey !== parse.from) 
-						self.sendMessage(msg, myKey);
-				}
-			} else {
-				utils.debug('PZH ('+self.sessionId+') Received PZP details from entity' +
-					' which is not registered : ' + parse.from);
+			for (var myKey in self.connected_pzp) {
+				if(myKey !== parse.from) 
+					self.sendMessage(msg, myKey);
 			}
+		} else {
+			utils.debug('PZH ('+self.sessionId+') Received PZP details from entity' +
+			' which is not registered : ' + parse.from);
+		}
 	} else { // Message is forwarded to Message handler function, onMessageReceived
-		utils.debug('PZH ('+self.sessionId+') Received data : ');//+JSON.stringify(payload));
+		utils.debug('PZH ('+self.sessionId+') Received data');//+JSON.stringify(payload));
 		webinosMessage.setGet(self.sessionId);
 		webinosMessage.setSend(sessionPzh.send);
 		webinosMessage.setObject(self);
@@ -443,7 +437,8 @@ Pzh.prototype.configurePZH = function(contents, callback) {
 					} else if(data1[i][0] === 'organizationUnit') {
 						self.config.orgunit = data1[i][1];
 					} else if(data1[i][0] === 'common') {
-						self.config.common = data1[i][1] + ':DeviceId@'+self.config.id;
+						self.config.common = data1[i][1] + 
+						':DeviceId:('+self.config.id+')';
 					} else if(data1[i][0] === 'email') {
 						self.config.email = data1[i][1];
 					} else if(data1[i][0] === 'days') {
@@ -507,10 +502,8 @@ Pzh.prototype.downloadCertificate = function(servername, port) {
 	
 	var payload = {'type':'prop',
 			'payload':{'status':'getMasterCert',
-				'certname': self.config.mastercertname,
-				'cert':fs.readFileSync(self.config.mastercertname).toString(),
-				'keyname':self.config.masterkeyname,
-				'key':fs.readFileSync(self.config.masterkeyname).toString()}};
+				'certname': self.config.certname,
+				'cert':fs.readFileSync(self.config.mastercertname).toString()}};
 	console.log('PZH Client Certificate data length '+(JSON.stringify(payload)).length);
 	req.write('#'+JSON.stringify(payload)+'#\n');
 	req.end();
@@ -522,7 +515,7 @@ Pzh.prototype.connectOtherPZH = function(server, port) {
 	utils.debug('PZH ('+self.sessionId+') Connect Other PZH');
 	var options = {	key: fs.readFileSync(self.config.keyname),
 			cert: fs.readFileSync(self.config.certname),
-			ca: [fs.readFileSync(self.config.mastercertname), self.config.otherPZHMasterCert]}; 
+			ca: [fs.readFileSync(self.config.mastercertname)]}; //, self.config.otherPZHMasterCert
 			
 	var conn_pzh = tls.connect(port, server, options, function(conn) {
 		utils.debug('PZH ('+self.sessionId+') Connection Status : '+conn_pzh.authorized);
@@ -595,20 +588,20 @@ sessionPzh.startPZH = function(contents, server, port, callback) {
 	__pzh.configurePZH(contents, function(result) {
 		__pzh.checkFiles(__pzh.config.filename, function(result) {
 			utils.debug('PZH ('+__pzh.sessionId+') Starting server: ' + result);
-			sock = __pzh.connect();
-			sock.on('error', function (err) {
+			__pzh.sock = __pzh.connect();
+			__pzh.sock.on('error', function (err) {
 				if (err.code == 'EADDRINUSE') {
 					utils.debug('PZH ('+__pzh.sessionId+') Address in use');
 					__pzh.port = parseInt(__pzh.port) + 1 ;
-					sock.listen(__pzh.port, server);
+					__pzh.sock.listen(__pzh.port, server);
 				}
 			});
 
-			sock.on('listening', function() {
+			__pzh.sock.on('listening', function() {
 				utils.debug('PZH ('+__pzh.sessionId+') Listening on PORT ' + __pzh.port);
 				callback.call(__pzh, 'startedPZH');
 			});
-			sock.listen(__pzh.port, server);
+			__pzh.sock.listen(__pzh.port, server);
 		});
 	});
 	return __pzh;
@@ -680,25 +673,23 @@ sessionPzh.startWebSocketServer = function(hostname, serverPort, webServerPort) 
 				}
 				return;
 			}
-			pzh.config.otherPZHMasterKey= parse.payload.keyname;
-			fs.writeFileSync(pzh.config.otherPZHMasterKey, parse.payload.key, function() {
-				pzh.config.otherPZHMasterCert= parse.payload.certname;
-				fs.writeFileSync(pzh.config.otherPZHMasterCert, parse.payload.cert, function() {
-					var context = { key: fs.readFileSync(pzh.config.otherPZHMasterKey), 
-							cert: fs.readFileSync(pzh.config.otherPZHMasterKey)};
-					pzh.sock.addContext(request.address, context);
-					var payload = {'type':'prop',
-					'payload':{'status':'receiveMasterCert',
-						'certname': pzh.config.mastercertname,
-						'cert':fs.readFileSync(pzh.config.mastercertname).toString(),
-						'keyname': pzh.config.masterkeyname,
-						'key':fs.readFileSync(pzh.config.masterkeyname).toString()}};
-					response.writeHead(200);
-					utils.debug("Server sending certificate " + JSON.stringify(payload).length);
-					response.write('#'+JSON.stringify(payload)+'#\n');
-					response.end();
-				});
+			
+		
+			pzh.config.otherPZHMasterCert= parse.payload.certname;
+			fs.writeFile(pzh.config.otherPZHMasterCert, parse.payload.cert, function() {
+				pzh.conn.pair.credentials.context.addCACert(pzh.config.mastercertname);
+               			pzh.conn.pair.credentials.context.addCACert(parse.payload.cert);
+                                console.log(pzh.conn.socket.server.ca.toString());
+				var payload = {'type':'prop',
+				'payload':{'status':'receiveMasterCert',
+					'certname': pzh.config.mastercertname,
+					'cert':fs.readFileSync(pzh.config.mastercertname).toString()}};
+				response.writeHead(200);
+				utils.debug("Server sending certificate " + JSON.stringify(payload).length);
+				response.write('#'+JSON.stringify(payload)+'#\n');
+				response.end();
 			});
+
 		});
 		request.on('end', function(data) {
 		    console.log('PZH Server got end: ');
