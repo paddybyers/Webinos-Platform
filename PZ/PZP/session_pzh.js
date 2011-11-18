@@ -160,10 +160,11 @@ Pzh.prototype.connect = function () {
 				// Assumption: PZH is of form ipaddr or web url
 				// Assumption: PZP is of form url@mobile:Deviceid@mac
 				if(data.length === 1 ) {
+					var otherPZHId = data[0].split(':')[0];
 					var otherPZH = [], myKey;
 					utils.debug('PZH ('+self.sessionId+') PZH Connected');
-					self.connected_pzh[data[0]] = {'socket': conn, 
-						'name': data[0], 
+					self.connected_pzh[otherPZHId] = {'socket': conn, 
+						'name': otherPZHId, 
 						'address': conn.socket.remoteAddress, 
 						'port': conn.socket.remotePort};
 					for (myKey in self.connected_pzh){
@@ -171,12 +172,12 @@ Pzh.prototype.connect = function () {
 					}
 					var msg1 = { 'type': 'prop', 
 						'from':  self.sessionId, 
-						'to': data[0], 
+						'to': otherPZHId, 
 						'payload': {'status':'Auth', 'message': otherPZH} };
-					self.sendMessage(msg1, msg1.to);
+					self.sendMessage(msg1, otherPZHId);
 					
-					var msg=webinosMessage.registerSender(self.sessionId, data[0]);
-					self.sendMessage(msg, data[0]);
+					var msg=webinosMessage.registerSender(self.sessionId, otherPZHId);
+					self.sendMessage(msg, otherPZHId);
 				} else if(data.length === 2 ) { 
 					utils.debug('PZH ('+self.sessionId+') PZP Connected');
 					sessionId = data[0]+'@'+data[1].split(':')[0];
@@ -499,7 +500,7 @@ Pzh.prototype.connectOtherPZH = function(server, port) {
 	utils.debug('PZH ('+self.sessionId+') Connect Other PZH');
 	var options = {	key: fs.readFileSync(self.config.keyname),
 			cert: fs.readFileSync(self.config.certname),
-			ca: [fs.readFileSync(self.config.mastercertname)]}; //, self.config.otherPZHMasterCert
+			ca: [fs.readFileSync(self.config.mastercertname), fs.readFileSync(self.config.otherPZHMasterCert)]}; //,
 			
 	var conn_pzh = tls.connect(port, server, options, function(conn) {
 		utils.debug('PZH ('+self.sessionId+') Connection Status : '+conn_pzh.authorized);
