@@ -4,7 +4,10 @@
 	var sessionid = null;
 	var pzpId, pzhId, connectedPzp={}, connectedPzh={};
 	
-		
+	webinos.message_send_messaging = function(msg, to) {
+		msg.resp_to = sessionid;
+		channel.send(JSON.stringify(msg));
+	}	
 	webinos.message_send = function(rpc, to) {
 		var type, id = 0;	
 		if(rpc.type !== undefined && rpc.type === "prop") {
@@ -106,7 +109,7 @@
 			} else {
 				webinos.message.setGetOwnId(sessionid);
 				webinos.message.setObjectRef(this);
-				webinos.message.setSendMessage(webinos.message_send);
+				webinos.message.setSendMessage(webinos.message_send_messaging);
 				webinos.message.onMessageReceived(data, data.to);
 			}
 		};
