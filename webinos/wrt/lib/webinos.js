@@ -4,12 +4,8 @@
 	var sessionid = null;
 	var pzpId, pzhId, connectedPzp={}, connectedPzh={};
 	
-	
-	webinos.message_send_messaging = function (msg, to){
-		channel.send(JSON.stringify(msg));
-	};
-	
-	webinos.message_send = function(to, rpc) {
+		
+	webinos.message_send = function(rpc, to) {
 		var type, id = 0;	
 		if(rpc.type !== undefined && rpc.type === "prop") {
 			type = "prop";
@@ -29,6 +25,7 @@
 			"payload": rpc
 			};
 		if(rpc.register !== "undefined" && rpc.register === true) {
+			console.log(rpc);
 			channel.send(JSON.stringify(rpc));
 		} else {
             console.log('creating callback');
