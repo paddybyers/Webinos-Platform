@@ -6,14 +6,26 @@
  */
 (function () {
 	"use strict";
+	if (typeof webinos === 'undefined')
+		webinos = {};
+
+	if(typeof webinos.session === 'undefined')
+		webinos.session = {}; 
+	
+	if (typeof module === 'undefined')
+		var exports = webinos.session;
+	else
+		var exports = module.exports = webinos.session;
 
 	if (typeof exports !== "undefined") {
 		var sessionPzh = require('../../pzh/lib/session_pzh.js'),
 		messaging = require("../../common/manager/messaging/lib/messagehandler.js"),
-		utils = require('./session_common.js');
+		utils = require('./session_common.js'),
+		sessionPzp = {};
+
 	}
+	
 	var tls = require('tls'),
-	sessionPzp = {},
 	fs = require('fs'),
 	Pzp = null, 
 	tlsId = '';
@@ -31,9 +43,7 @@
 		this.config = {};
 		// Default port to be used by PZP Server
 		this.pzpServerPort = 8000;
-		// lastMsg received by 
-		this.lastMsg = '';
-		this.bindAddress = '';
+		// Used for session reuse
 		this.tlsId = '';
 	};
 	
@@ -62,10 +72,8 @@
 	Pzp.prototype.sendMessage = function (message, address) {
 		var self = this;
 		var buf = new Buffer('#'+JSON.stringify(message)+'#');
-		console.log('PZP Send to '+ address + ' Message '+JSON.stringify(message));
-		if(typeof message.payload !== "undefined" && message.payload.method === 'ServiceDiscovery.findServices') {		
-			self.bindAddress = address;
-		}
+		utils.debug('PZP Send to '+ address + ' Message '+JSON.stringify(message));
+		
 		try {
 		if (self.connectedWebApp[address]) { // it should be for the one of the apps connected.
 			utils.debug("PZP (" + self.sessionId +")  Message forwarded to connected app "+address);
@@ -125,7 +133,7 @@
 						callback.call(self, options);
 					} catch(err) {
 						utils.debug('PZP (' + self.sessionId + 
-						') sessionId file does not exist');
+						') sessionId  does not exist');
 					}
 				} else {
 					options = {
@@ -146,7 +154,7 @@
 		self.sessionId = self.pzhId + "/" + self.config.common.split(':')[0];
 		self.connectedPzh[self.pzhId] = {socket: client};
 		self.pzpAddress = client.socket.address().address;
-		tlsId[self.sessionId] = client.getSession();
+		self.tlsId[self.sessionId] = client.getSession();
 		var msg = messaging.registerSender(self.sessionId, self.pzhId);
 		self.sendMessage(msg, self.pzhId);
 		self.startServer(function() {
@@ -319,20 +327,45 @@
 	/*
 	 * Get the session id for this PZP if available.
 	 */
-	sessionPzp.getSessionId = function() {
+	sessionPzp.getPzpSessionId = function() {
 		if (typeof sessionPzp.instance !== 'undefined') {
-			return sessionPzp.instance.bindAddress;
+			return sessionPzp.instance.sessionId;
 		}
 		return undefined;
 	};
-		
+	
+	sessionPzp.getPzhSessionId = function() {
+		if (typeof sessionPzp.instance !== 'undefined') {
+			return sessionPzp.instance.pzhId;
+		}
+		return undefined;
+	};
+
+	sessionPzp.getConnectedPzhId = function() {
+		if (typeof sessionPzp.instance !== 'undefined') {
+			for(var mykey in sessionPzp.instance.connectedPzh)
+				obj.push(mykey);
+			return obj;
+		}
+		return undefined;
+	};
+	
+	sessionPzp.getConnectedPzpId = function() {
+		if (typeof sessionPzp.instance !== 'undefined') {
+			for(var mykey in sessionPzp.instance.connectedPzp)
+				obj.push(mykey);
+			return obj;
+		}
+		return undefined;
+	};
+
 	sessionPzp.startWebSocketServer = function(hostname, serverPort, webServerPort) {
 		var self = this,
 		http = require('http'),
 		url = require('url'),
 		path = require('path'),
 		WebSocketServer = require('websocket').server;
-		
+		var id = 0, connectedApp ={};		
 		function getContentType(uri) {
 		    var contentType = {"Content-Type": "text/plain"};
 		    switch (uri.substr(uri.lastIndexOf('.'))) {
@@ -422,11 +455,20 @@
 		
 		wsServer.on('connect', function(connection) {
 			var pzh;
+
 			utils.debug("PZP WSServer: Connection accepted.");
 			if(typeof sessionPzp.instance !== "undefined") {
 				sessionPzp.instance.createWebAppSessionId(connection);
+			} else {
+				id += 1;
+				connectedApp["virgin_pzp"+'/'+id] = connection;
+				var payload = {type:"prop", from:"virgin_pzp", to: "virgin_pzp"+'/'+id, payload:{status:"registeredBrowser"}};
+				connection.sendUTF(JSON.stringify(payload));
 			}
-			
+			var messageWS = function(msg, address){
+				if(connectedApp[address])
+				connectedApp[address].sendUTF(JSON.stringify(msg));
+			}
 			connection.on('message', function(message) {
 				var self = this;
 				var msg = JSON.parse(message.utf8Data);
@@ -476,6 +518,11 @@
 				} else {
 					if( typeof sessionPzp.instance !== "undefined" ) {
 						utils.sendMessageMessaging(sessionPzp.instance, msg);
+					} else {
+						messaging.setGetOwnId("virgin_pzp");
+						messaging.setSendMessage(messageWS);
+						messaging.setSeparator("/");
+						messaging.onMessageReceived(msg, msg.to);
 					}
 				}
 			});
@@ -562,7 +609,7 @@
 			*/
 			if (conn.authorized) {
 				cn = conn.getPeerCertificate().subject.CN;			
-				sessionId = self.pzhId + ':' +cn.split(':')[1];
+				sessionId = self.pzhId + '/' +cn.split(':')[1];
 				utils.debug("PZP (" + self.sessionId +") Server: Client Authenticated " + sessionId) ;
 				
 				if(self.connectedPzp[sessionId])
@@ -631,12 +678,15 @@
 	};
 
 	if (typeof exports !== 'undefined') {
- 		exports.startPZP = sessionPzp.startPZP;
+		exports.startPZP = sessionPzp.startPZP;
 		exports.startWebSocketServer = sessionPzp.startWebSocketServer;
 		exports.send = sessionPzp.send; 
 		exports.instance = sessionPzp.instance;
-		exports.getSessionId = sessionPzp.getSessionId; 
-		exports.disconnectPZP = sessionPzp.disconnectPZP;	
+		exports.getPzpSessionId = sessionPzp.getPzpSessionId; 
+		exports.getPzhSessionId = sessionPzp.getPzhSessionId; 
+		exports.disconnectPZP = sessionPzp.disconnectPZP;
+		exports.getConnectedPzpId = sessionPzp.getConnectedPzpId;
+		exports.getConnectedPzhId = sessionPzp.getConnectedPzhId;
 	}
 
 }());

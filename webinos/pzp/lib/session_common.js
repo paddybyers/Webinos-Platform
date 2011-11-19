@@ -270,7 +270,6 @@ var send = function (message, address, object) {
 };
 
 var setMessagingParam = function(self){
-
 	messaging.setGetOwnId(self.sessionId);
 	messaging.setObjectRef(self);
 	messaging.setSendMessage(send);

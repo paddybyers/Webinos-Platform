@@ -2,11 +2,11 @@
 	if (typeof webinos === "undefined") webinos = {};
 	var channel = null;
 	var sessionid = null;
-	var pzpId, pzhId, connectedPzp, connectdPzh;
+	var pzpId, pzhId, connectedPzp={}, connectedPzh={};
 	
 	var findServiceBindAddress = null;
-	
-	webinos.message_send = function(to, rpc) {
+
+	webinos.message_send = function(rpc, to) {
 		var type, id = 0;	
 		if(rpc.type !== undefined && rpc.type === "prop") {
 			type = "prop";
@@ -14,14 +14,11 @@
 		} else {
 			type = "JSONRPC";
 		}
-		if(rpc.fromObjectRef === undefined)
-			rpc.fromObjectRef = Math.floor(Math.random()*1001);
-		if(rpc.id === undefined)
-			rpc.id = Math.floor(Math.random()*1001);
 		
 		if(findServiceBindAddress !== null && (to === "" || to !== findServiceBindAddress)) {
 			to = findServiceBindAddress;
 		}
+
 		if(typeof rpc.method !== undefined && rpc.method === 'ServiceDiscovery.findServices')
 			id = rpc.params[2];
 			
@@ -37,8 +34,8 @@
 		} else {
             console.log('creating callback');
 			console.log('WebSocket Client: Message Sent');
-			console.log(message);
-			channel.send(JSON.stringify(message));
+			console.log(rpc);
+			channel.send(JSON.stringify(rpc));
 		}
 	}
 	
@@ -77,15 +74,21 @@
 				
 		channel.onmessage = function(ev) {
 			console.log('WebSocket Client: Message Received');
-			console.log(JSON.parse(ev.data));
+			console.log(ev.data);
 			var data = JSON.parse(ev.data);
 			if(data.type === "prop" && data.payload.status === 'registeredBrowser') {
 				sessionid = data.to;
-				pzpId = data.from;				
-				pzhId = data.payload.message.pzhId;
-				connectedPzp = data.payload.message.connectedPzp;
-				connectedPzh = data.payload.message.connectedPzh;
-				$(".pzh_pzp_list").empty();
+				pzpId = data.from;
+				if(typeof data.payload.message !== "undefined") {
+					pzhId = data.payload.message.pzhId;
+					connectedPzp = data.payload.message.connectedPzp;
+					connectedPzh = data.payload.message.connectedPzh;
+				}
+				//$("pzh_pzp_list").val("");
+				document.getElementById('pzh_pzp_list').innerHTML="";
+				
+				//$(".pzh_list").empty();
+
 				$("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
 				var i;
 				for(i =0; i < connectedPzp.length; i++) {
@@ -95,14 +98,15 @@
 				$("</optgroup>").appendTo("#pzh_pzp_list");
 				$("<optgroup label = 'PZH' id ='pzh_list' >").appendTo("#pzh_pzp_list");
 				for(i =0; i < connectedPzh.length; i++) {
-					$("<option value=" + connectedPzh[i] + " >" + + "</option>").appendTo("#pzh_pzp_list");					
+					$("<option value=" + connectedPzh[i] + " >" +connectedPzh[i] + "</option>").appendTo("#pzh_pzp_list");					
 				}
 				$("<option value="+pzhId+" >" + pzhId+ "</option>").appendTo("#pzh_pzp_list");						
 				$("</optgroup>").appendTo("#pzh_pzp_list");
 				webinos.message.setGetOwnId(sessionid);
-				
+			
 				var msg = webinos.message.registerSender(sessionid , pzpId);
-				webinos.message_send(pzpId, msg);
+				webinos.message_send(msg, pzpId);
+				
 			} else if(data.type === "prop" && data.payload.status === "info") {
 				$('#message').append('<li>'+data.payload.message+'</li>');
 			} else if(data.type === "prop" && data.payload.status === "update") {
@@ -114,7 +118,7 @@
 			} else {
 				webinos.message.setGetOwnId(sessionid);
 				webinos.message.setObjectRef(this);
-				webinos.message.setSendMessage(webinos.message_send_messaging);
+				webinos.message.setSendMessage(webinos.message_send);
 				webinos.message.onMessageReceived(data, data.to);
 			}
 		};
@@ -193,7 +197,7 @@
 		};
 		webinos.rpc.registerCallbackObject(callback2);
 		
-		webinos.message_send(findServiceBindAddress, rpc);
+		webinos.message_send(rpc, findServiceBindAddress);
 		
 		return;
 	};
