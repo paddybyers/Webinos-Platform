@@ -43,9 +43,8 @@
   // Same as "FindService" button,but automatic
   function bindservice()
   {
-	var address = $('#pzh_pzp_list').val();
     webinos.ServiceDiscovery
-      .findServices(address,
+      .findServices(
         new ServiceType('http://www.w3.org/ns/api-perms/contacts'),
         {
           onFound : function(service)

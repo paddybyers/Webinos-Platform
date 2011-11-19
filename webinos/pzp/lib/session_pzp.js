@@ -331,7 +331,7 @@
 		if (typeof sessionPzp.instance !== 'undefined') {
 			return sessionPzp.instance.sessionId;
 		}
-		return undefined;
+		return "virgin_pzp";
 	};
 	
 	sessionPzp.getPzhSessionId = function() {

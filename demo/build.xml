@@ -23,6 +23,7 @@
                 <file name="wrt/lib/webinos.geolocation.js"/>
                 <file name="wrt/lib/webinos.vehicle.js"/>
                 <file name="wrt/lib/webinos.deviceorientation.js"/>
+            	<file name="wrt/lib/webinos.context.js"/>
             </sources>
         </jscompiler>
     </target>

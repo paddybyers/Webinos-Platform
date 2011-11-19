@@ -15,10 +15,6 @@
 			type = "JSONRPC";
 		}
 		
-		if(findServiceBindAddress !== null && (to === "" || to !== findServiceBindAddress)) {
-			to = findServiceBindAddress;
-		}
-
 		if(typeof rpc.method !== undefined && rpc.method === 'ServiceDiscovery.findServices')
 			id = rpc.params[2];
 			
@@ -34,8 +30,8 @@
 		} else {
             console.log('creating callback');
 			console.log('WebSocket Client: Message Sent');
-			console.log(rpc);
-			channel.send(JSON.stringify(rpc));
+			console.log(message)
+			channel.send(JSON.stringify(message));
 		}
 	}
 	
@@ -43,18 +39,13 @@
 		return sessionid;
 	}
 	webinos.getPZPId = function() {
-		return pzpid;
+		return pzpId;
 	}
 	webinos.getPZHId = function() {
-		return pzhid;
+		return pzhId;
 	}
 	webinos.getOtherPZP = function() {
 		return otherpzp;
-	}
-	webinos.findServiceBindAddress = function(address) {
-		if(typeof address !== "undefined")
-			findServiceBindAddress = address;
-		return findServiceBindAddress;
 	}
 	
 	/**
@@ -84,11 +75,8 @@
 					connectedPzp = data.payload.message.connectedPzp;
 					connectedPzh = data.payload.message.connectedPzh;
 				}
-				//$("pzh_pzp_list").val("");
 				document.getElementById('pzh_pzp_list').innerHTML="";
 				
-				//$(".pzh_list").empty();
-
 				$("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
 				var i;
 				for(i =0; i < connectedPzp.length; i++) {
@@ -142,8 +130,7 @@
 	webinos.ServiceDiscovery = {};
 	webinos.ServiceDiscovery.registeredServices = 0;
 	
-	webinos.ServiceDiscovery.findServices = function (address, serviceType, callback) {
-		findServiceBindAddress = address;
+	webinos.ServiceDiscovery.findServices = function (serviceType, callback) {
 		// pure local services..
 		if (serviceType == "BlobBuilder"){
 			var tmp = new BlobBuilder();
@@ -166,24 +153,30 @@
             if (typeof WebinosDeviceOrientation !== 'undefined') typeMap['http://webinos.org/api/deviceorientation'] = WebinosDeviceOrientation;
 			if (typeof Vehicle !== 'undefined') typeMap['http://webinos.org/api/vehicle'] = Vehicle;
 			if (typeof EventsModule !== 'undefined') typeMap['http://webinos.org/api/events'] = EventsModule;
-			if (typeof Sensor !== 'undefined') typeMap['http://webinos.org/api/sensors'] = Sensor;
+			if (typeof Sensor !== 'undefined') {
+				typeMap['http://webinos.org/api/sensors'] = Sensor;
+				typeMap['http://webinos.org/api/sensors.temperature'] = Sensor;
+			}
 			if (typeof UserProfileIntModule !== 'undefined') typeMap['UserProfileInt'] = UserProfileIntModule;
 			if (typeof TVManager !== 'undefined') typeMap['http://webinos.org/api/tv'] = TVManager;
 			if (typeof DeviceStatusManager !== 'undefined') typeMap['http://wacapps.net/api/devicestatus'] = DeviceStatusManager;
 			if (typeof Contacts !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/contacts'] = Contacts;
 			if (typeof Context !== 'undefined') typeMap['http://webinos.org/api/context'] = Context;
 			if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
-			// elevate baseServiceObj to usable local WebinosService object
 			
-			if (baseServiceObj.api === 'http://webinos.org/api/sensors.temperature'){
-				var tmp = new typeMap['http://webinos.org/api/sensors'](baseServiceObj);
+			var serviceConstructor = typeMap[baseServiceObj.api];
+			if (typeof serviceConstructor !== 'undefined') {
+				// elevate baseServiceObj to usable local WebinosService object
+				var service = new serviceConstructor(baseServiceObj);
+				webinos.ServiceDiscovery.registeredServices++;
+				callback.onFound(service);
+			} else {
+				var serviceErrorMsg = 'Cannot instantiate service in the browser.';
+				console.log(serviceErrorMsg);
+				if (typeof callback.onError === 'function') {
+					callback.onError(new DiscoveryError(102, serviceErrorMsg));
+				}
 			}
-			else{
-				var tmp = new typeMap[baseServiceObj.api](baseServiceObj);
-			}
-
-			webinos.ServiceDiscovery.registeredServices++;
-			callback.onFound(tmp);
 		}
 		
 		var id = Math.floor(Math.random()*1001);
@@ -197,10 +190,19 @@
 		};
 		webinos.rpc.registerCallbackObject(callback2);
 		
-		webinos.message_send(rpc, findServiceBindAddress);
-		
+		rpc.serviceAddress = webinos.getPZPId();
+		webinos.rpc.executeRPC(rpc);
+
 		return;
 	};
+	
+	var DiscoveryError = function(code, message) {
+		this.code = code;
+		this.message = message;
+	};
+	DiscoveryError.prototype.FIND_SERVICE_CANCELED = 101;
+	DiscoveryError.prototype.FIND_SERVICE_TIMEOUT = 102;
+	DiscoveryError.prototype.PERMISSION_DENIED_ERROR = 103;
 	
 	///////////////////// WEBINOS SERVICE INTERFACE ///////////////////////////////
 	
@@ -231,17 +233,12 @@
 	WebinosService.prototype.icon = "";
 
 	
-	
-	WebinosService.prototype.bindService = function(success) {
-		if (channel == null){ 
-			var x = success;
-			createCommChannel(function () {
-				x();
-			});
-			
-		}
-		else{
-			success();
+	// stub implementation in case a service module doesn't provide its own bindService
+	WebinosService.prototype.bindService = function(bindCB) {
+		if (typeof bindCB === 'undefined') return;
+		
+		if (typeof bindCB.onBind === 'function') {
+			bindCB.onBind(this);
 		}
 	};
 	

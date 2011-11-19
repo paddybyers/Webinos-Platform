@@ -12,14 +12,11 @@
 			if (typeof obj[myKey] == 'object') logObj(obj[myKey], name + "." + myKey);
 		}
 	}
-	var address;
 	
             $(document).ready(function() {
             	    foundEventAPIs = [];
                     $('#findService').bind('click', function() {
-						address = $('#pzh_pzp_list').val();
-
-                	    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://webinos.org/api/events'), 
+                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/events'), 
 						{onFound: function (service) {
                 	    	foundEventAPIs.push(service);
                 	    	$('#messages').append('<li> EventAPI found: ' + service.api + '</li>');

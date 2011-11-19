@@ -1,31 +1,24 @@
 (function() {
 
-	TestModule = function(obj) {
+	WebinosContext = function(obj) {
 		this.base = WebinosService;
 		this.base(obj);
-		
-		this._testAttr = "HelloWorld";
-		this.__defineGetter__("testAttr", function (){
-			return this._testAttr + " Success";
-		});
 	};
 	
-	TestModule.prototype = new WebinosService;
+	WebinosContext.prototype = new WebinosService;
 	
-	TestModule.prototype.bindService = function (bindCB, serviceId) {
+	WebinosContext.prototype.bindService = function (bindCB, serviceId) {
 		// actually there should be an auth check here or whatever, but we just always bind
-		this.get42 = get42;
-		this.echoAttr = {};
-		this.echoAttr.echo = echo.bind(this);
+		this.find = find;
+		this.executeQuery = executeQuery;
 		
 		if (typeof bindCB.onBind === 'function') {
 			bindCB.onBind(this);
 		};
 	}
 	
-	function get42(successCB,errorCB) {
-		console.log(this.id);
-		var rpc = webinos.rpc.createRPC(this, "get42",  []);
+	function find(params, successCB,errorCB) {
+		var rpc = webinos.rpc.createRPC(this, "find",  params);
 		webinos.rpc.executeRPC(rpc,
 				function (params){
 					successCB(params);
@@ -35,6 +28,17 @@
 				}
 		);
 	}
+	 function executeQuery(query, successCB,errorCB) {
+	    var rpc = webinos.rpc.createRPC(this, "find",  query);
+	    webinos.rpc.executeRPC(rpc,
+	        function (params){
+	          successCB(params);
+	        },
+	        function (error){
+	          errorCB(error);
+	        }
+	    );
+	  }
 	
 	function echo(attr, successCB, errorCB) {
 		var rpc = webinos.rpc.createRPC(this, "echoAttr.echo", [attr]);
