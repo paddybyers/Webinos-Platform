@@ -24,19 +24,20 @@
 		rpc.fromObjectRef =  Math.floor(Math.random()*1001);
 		
 		var callback = new RPCWebinosService({api:rpc.fromObjectRef});
-		callback.handleEvent = function (event) {
+		callback.handleEvent = function (params,scb,ecb) {
 			console.log("Received a new WebinosEvent");
 			
 			//search in registered listeners for interested listeners based on eventType etc
 			
-			if (typeof registeredListeners[event.listenerID] !== undefined){
-				registeredListeners[event.listenerID](event.webinosevent);
+			if (typeof registeredListeners[params.listenerID] !== undefined){
+				registeredListeners[params.listenerID](params.webinosevent);
+				scb();
 			}
-			
-			
-			
-			
+			else{
+				ecb();
+			}
 		};
+		
 		webinos.rpc.registerCallbackObject(callback);
 		
 		webinos.rpc.executeRPC(rpc, function () {
@@ -142,24 +143,60 @@
 	WebinosEvent.prototype.dispatchWebinosEvent = function(callbacks, referenceTimeout, sync){
 
 		var params = {};
-		params.webinosevent = this;
+		params.webinosevent = {};
+		params.webinosevent.id = this.id;
+		params.webinosevent.type = this.type;
+		params.webinosevent.adressing = this.addressing;
+		params.webinosevent.inResponseTo = this.inResponseTo;
+		params.webinosevent.timeStamp = this.timeStamp;
+		params.webinosevent.expiryTimeStamp = this.expiryTimeStamp;
+		params.webinosevent.addressingSensitive = this.addressingSensitive;
+		params.webinosevent.forwarding = this.forwarding;
+		params.webinosevent.forwardingTimeStamp = this.forwardingTimeStamp;
+		params.webinosevent.payload = this.payload;
 		params.referenceTimeout = referenceTimeout;
 		params.sync = sync;
 		
 		
 		registeredDispatchListeners[this.id] = callbacks;
 		
-		
 		var rpc = webinos.rpc.createRPC(eventService, "WebinosEvent.dispatchWebinosEvent",  params);
-		webinos.rpc.executeRPC(rpc,
-				function (params){
-					console.log("Event dispatched");
-				},
-				function (error){
-					console.log("Error while dispatching");
-				}
-		);
 		
+		if (typeof callbacks !== "undefined"){	
+		
+			console.log("Registering delivery callback");
+			
+			rpc.fromObjectRef =  Math.floor(Math.random()*1001);
+		
+			var callback = new RPCWebinosService({api:rpc.fromObjectRef});
+		
+			callback.onSending = function (params) {
+			//params.event, params.recipient
+				
+				if (typeof callbacks.onSending !== "undefined") {callbacks.onSending(params.event, params.recipient);}
+			};
+			callback.onCaching = function (params) {
+				//params.event
+				if (typeof callbacks.onCaching !== "undefined") {callbacks.onCaching(params.event);}
+			};
+			callback.onDelivery = function (params) {
+			//params.event, params.recipient
+				if (typeof callbacks.onDelivery !== "undefined") {callbacks.onDelivery(params.event, params.recipient);}
+			};
+			callback.onTimeout = function (params) {
+			//params.event, params.recipient
+				if (typeof callbacks.onTimeout !== "undefined") {callbacks.onTimeout(params.event, params.recipient);}
+			};
+			callback.onError = function (params) {
+			//params.event, params.recipient, params.error
+				if (typeof callbacks.onError !== "undefined") {callbacks.onError(params.event, params.recipient, params.error);}
+			};
+	
+		
+			webinos.rpc.registerCallbackObject(callback);
+		}
+		
+		webinos.rpc.executeRPC(rpc);
 		
     	//returns void
     	//raises(WebinosEventException);

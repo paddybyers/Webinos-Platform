@@ -76,7 +76,7 @@
    */
   webinos.rpc.handleMessage = function (message, responseto, msgid){
     console.log("New packet from messaging");
-    console.log("Response to" + responseto);
+    console.log("Response to " + responseto);
     var myObject = message;
     logObj(myObject, "rpc");
 
@@ -204,12 +204,16 @@
       //if no id is provided we cannot invoke a callback
       if (typeof myObject.id === 'undefined' || myObject.id == null) return;
 
+      console.log("Received a response that is registered for " + myObject.id);
+      
       //invoking linked error / success callback
       if (typeof webinos.rpc.awaitingResponse[myObject.id] !== 'undefined'){
         if (webinos.rpc.awaitingResponse[myObject.id] != null){
 
           if (typeof webinos.rpc.awaitingResponse[myObject.id].onResult !== 'undefined' && typeof myObject.result !== 'undefined'){
-            webinos.rpc.awaitingResponse[myObject.id].onResult(myObject.result);
+            
+        	  webinos.rpc.awaitingResponse[myObject.id].onResult(myObject.result);
+        	  console.log("called SCB");
           }
 
           if (typeof webinos.rpc.awaitingResponse[myObject.id].onError !== 'undefined' && typeof myObject.error !== 'undefined'){
@@ -234,34 +238,53 @@
    * is invoked if an RPC response with same id was received
    */
   webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto, msgid) {
-    if (typeof rpc.serviceAddress !== 'undefined') {
+    
+	 //service invocation case
+	  
+	 if (typeof rpc.serviceAddress !== 'undefined') {
       // this only happens in the web browser
       
       webinos.message_send(rpc, rpc.serviceAddress);// TODO move the whole mmessage_send function here?
       
-      var cb = {};
-      cb.onResult = callback;
-      if (typeof errorCB === 'function') cb.onError = errorCB;
-      if (typeof rpc.id !== 'undefined') webinos.rpc.awaitingResponse[rpc.id] = cb;
-      
+      if (typeof callback === 'function'){
+    	  var cb = {};
+      	cb.onResult = callback;
+      	if (typeof errorCB === 'function') cb.onError = errorCB;
+      	if (typeof rpc.id !== 'undefined') webinos.rpc.awaitingResponse[rpc.id] = cb;
+      }
       return;
     }
 
+    
+    // ObjectRef invocation case
+    
     if (typeof callback === 'function'){
       var cb = {};
       cb.onResult = callback;
       if (typeof errorCB === 'function') cb.onError = errorCB;
       if (typeof rpc.id !== 'undefined') webinos.rpc.awaitingResponse[rpc.id] = cb;
+      
+      if (rpc.method && rpc.method.indexOf('@') === -1) {
+          var objectRef = rpc.method.split('.')[0];
+          if (typeof objRefCachTable[objectRef] !== 'undefined') {
+            responseto = objRefCachTable[objectRef].responseTo;
+            
+          }
+          console.log('RPC MESSAGE' + " to " + responseto + " for callback " + objectRef);
+        }
+      
     }
     else if (rpc.method && rpc.method.indexOf('@') === -1) {
       var objectRef = rpc.method.split('.')[0];
       if (typeof objRefCachTable[objectRef] !== 'undefined') {
         responseto = objRefCachTable[objectRef].responseTo;
+        
       }
+      console.log('RPC MESSAGE' + " to " + responseto + " for callback " + objectRef);
     }
 
     //TODO check if rpc is request on a specific object (objectref) and get mapped responseto / destination session
-    console.log('RPC MESSAGE' + rpc);
+   
     //TODO remove stringify when integrating with Message Routing/Ziran
     write(rpc, responseto, msgid);
   };

@@ -4,9 +4,12 @@
 	var sessionid = null;
 	var pzpId, pzhId, connectedPzp={}, connectedPzh={};
 	
-	var findServiceBindAddress = null;
-
-	webinos.message_send = function(rpc, to) {
+	
+	webinos.message_send_messaging = function (msg, to){
+		channel.send(JSON.stringify(msg));
+	};
+	
+	webinos.message_send = function(to, rpc) {
 		var type, id = 0;	
 		if(rpc.type !== undefined && rpc.type === "prop") {
 			type = "prop";

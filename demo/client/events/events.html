@@ -78,7 +78,33 @@
                     		
                     		ev.payload = $("#textOut").val();
                     		console.log(ev.payLoad);
-                    		ev.dispatchWebinosEvent();
+                    		
+                    		
+                    		var callback = {};
+		
+			callback.onSending = function (params) {
+			//params.event, params.recipient
+				
+				$('#messages').append('<li> onSending()</li>');
+			};
+			callback.onCaching = function (params) {
+				//params.event
+				$('#messages').append('<li> onCaching()</li>');
+			};
+			callback.onDelivery = function (params) {
+			//params.event, params.recipient
+				$('#messages').append('<li> onDelivery()</li>');
+			};
+			callback.onTimeout = function (params) {
+			//params.event, params.recipient
+				$('#messages').append('<li> onTimeout()</li>');
+			};
+			callback.onError = function (params) {
+			//params.event, params.recipient, params.error
+				$('#messages').append('<li> onError()</li>');
+			};
+                    		
+                    		ev.dispatchWebinosEvent(callback);
                         }
                      });  
 
