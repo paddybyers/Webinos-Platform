@@ -1,5 +1,5 @@
 var WEBSOCKET_SERVER_PORT = 8080;
-var WEBSERVER_PORT = 80; //Ports <1024 require sudo on linux/osx for the node script to start which is not advised
+var WEBSERVER_PORT = 8081; //Ports <1024 require sudo on linux/osx for the node script to start which is not advised
 
 //Requires
 var WebSocketServer = require('websocket07').server;
