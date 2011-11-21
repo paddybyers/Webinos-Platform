@@ -16,7 +16,7 @@
 			$(document).ready(function() {
 					var vehicle = null;		
 					var listeners = new Array();
-					var _vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passenger-front', 'climate-passenger-rear-left','climate-passenger-rear-right','lights-fog-front','lights-fog-rear','lights-signal-right','lights-signal-warn','lights-parking-hibeam','lights-head','lights-head','wiper-front-wash','wiper-rear-wash','wiper-automatic','wiper-front-once','wiper-rear-once','wiper-front-level1','wiper-front-level2','destination-reached','destination-changed','destination-cancelled','parksensors-front','parksensors-rear','tripcomputer', 'shift'); 
+					var _vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passenger-front', 'climate-passenger-rear-left','climate-passenger-rear-right','lights-fog-front','lights-fog-rear','lights-signal-right','lights-signal-warn','lights-parking','lights-hibeam','lights-head','wiper-front-wash','wiper-rear-wash','wiper-automatic','wiper-front-once','wiper-rear-once','wiper-front-level1','wiper-front-level2','destination-reached','destination-changed','destination-cancelled','parksensors-front','parksensors-rear','tripcomputer','shift'); 
 					postMessage('Info','Page loaded. Please Initialize');
 					
 				$("#pdcLauncher").fancybox({
@@ -45,6 +45,24 @@
 						
 					}
 					
+					//name, street, streetNumber, postalCode, city, country
+					
+					var handleNavigation = function(data){
+						postMessage("info","new Navigation Event Destination-data received.");
+						$('#info').empty();
+						$('#info').append("<p>Navigation Data: "+ data.type +"</p>");
+						$('#info').append("<p>name: "+ data.address.name +"</p>");
+						$('#info').append("<p>county: "+ data.address.country +"</p>");
+						$('#info').append("<p>region: "+ data.address.region +"</p>");
+						$('#info').append("<p>county: "+ data.address.county +"</p>");
+						$('#info').append("<p>city: "+ data.address.city +"</p>");
+						$('#info').append("<p>street: "+ data.address.street +"</p>");
+						$('#info').append("<p>streetNumber: "+ data.address.streetNumber +"</p>");
+						$('#info').append("<p>premises: "+ data.address.premises +"</p>");
+						$('#info').append("<p>additionalInformation: "+ data.address.additionalInformation +"</p>");
+						$('#info').append("<p>postalCode: "+ data.address.postalCode +"</p>");
+											
+					}
 					
 					var handleParkSensorsData = function(data){
 						postMessage("info","new ParkSensorsData received for position: " + data.position);
@@ -55,6 +73,24 @@
 						$('#info').append("<p>Middle Right: "+ data.midRight +"</p>");
 						$('#info').append("<p>Right: "+ data.right +"</p>");
 						
+					}
+					
+					var handleClimateControlData = function(data){
+						postMessage("info","new ClimateControlData received : " + data.zone);
+						$('#info').empty();
+						$('#info').append("<p>zone: "+ data.zone +"</p>");
+						$('#info').append("<p>desiredTemperature: "+ data.desiredTemperature +"</p>");
+						$('#info').append("<p>acstatus: "+ data.acstatus +"</p>");
+						$('#info').append("<p>ventLevel: "+ data.ventLevel +"</p>");
+						$('#info').append("<p>ventMode: "+ data.ventMode +"</p>");
+						
+					}
+					
+					var handleLightWiperControlData = function(data){
+						postMessage("info","new ControlData received : " + data.controlId);
+						$('#info').empty();
+						$('#info').append("<p>ControlID: "+ data.controlId +"</p>");
+						$('#info').append("<p>Active: "+ data.active +"</p>");
 					}
 						
 					var errorCB = function(error){
@@ -128,10 +164,7 @@
 							vehicle.removeEventListener('shift', pdcAppHandler, false);
 						}
 					});
-					
-					
-					
-					
+										
 					
 					$('#addListener').bind('click', function(){
 						
@@ -187,6 +220,75 @@
 							case "parksensors-rear":
 								return handleParkSensorsData;
 								break;
+							case "destination-reached":
+								return handleNavigation;
+								break;
+							case "destination-changed":
+								return handleNavigation;
+								break;
+							case "destination-cancelled":
+								return handleNavigation;
+								break;
+							case "climate-all":
+								return handleClimateControlData;
+								break;
+							case "climate-driver":
+								return handleClimateControlData;
+								break;
+						    case "climate-passenger-front":
+								return handleClimateControlData;
+								break;
+							case "climate-passenger-rear-left":
+								return handleClimateControlData;
+								break;
+                            case "climate-passenger-rear-right":
+								return handleClimateControlData;
+								break;			
+                            case "lights-fog-front":
+								return handleLightWiperControlData;
+								break;
+							case "lights-fog-rear":
+								return handleLightWiperControlData;
+								break;
+						    case "lights-signal-left":
+								return handleLightWiperControlData;
+								break;
+							case "lights-signal-right":
+								return handleLightWiperControlData;
+								break;
+                            case "lights-signal-warn":
+								return handleLightWiperControlData;
+								break;
+                            case "lights-parking":
+								return handleLightWiperControlData;
+								break;
+                            case "lights-hibeam":
+								return handleLightWiperControlData;
+								break;	
+                            case "lights-head":
+								return handleLightWiperControlData;
+								break;	
+							case "wiper-front-wash":
+								return handleLightWiperControlData;
+								break;
+							case "wiper-rear-wash":
+								return handleLightWiperControlData;
+								break;
+						    case "wiper-automatic":
+								return handleLightWiperControlData;
+								break;
+							case "wiper-front-once":
+								return handleLightWiperControlData;
+								break;
+                            case "wiper-rear-once":
+								return handleLightWiperControlData;
+								break;
+                            case "wiper-front-level1":
+								return handleLightWiperControlData;
+								break;
+                            case "wiper-front-level2":
+								return handleLightWiperControlData;
+								break;	
 							default:
 								return handleShiftData;
 						}						
