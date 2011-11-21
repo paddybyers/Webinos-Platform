@@ -15,12 +15,12 @@
 <script type="text/javascript" src="/client/webinos.file.demo.js"></script>
 <script>
 	var init = function () {
-		$('button#init').attr('disabled', 'disabled');
-		$('table#left').css('visibility', 'visible');
-		$('table#right').css('visibility', 'visible');
+		$("button#init").attr("disabled", "disabled");
+		$("table#left").css("visibility", "visible");
+		$("table#right").css("visibility", "visible");
 		
-		var left = new webinos.file.demo.Explorer('table#left');
-		var right = new webinos.file.demo.Explorer('table#right');
+		var left = new webinos.file.demo.Explorer("table#left");
+		var right = new webinos.file.demo.Explorer("table#right");
 
 		webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/file"), {
 			onFound: function (service) {
@@ -37,7 +37,7 @@
 	}
 
 	$(document).ready(function () {
-		$('button#init').click(init);
+		$("button#init").click(init);
 	});
 </script>
 <script id="parent" type="text/x-jquery-tmpl">

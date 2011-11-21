@@ -1,9 +1,9 @@
-if (typeof module === 'undefined') {
-	if (typeof webinos === 'undefined')
-		webinos = {};
+if (typeof module === "undefined") {
+	if (typeof webinos === "undefined")
+		webinos = {}
 	
-	if (typeof webinos.utils === 'undefined')
-		webinos.utils = {};
+	if (typeof webinos.utils === "undefined")
+		webinos.utils = {}
 	
 	var exports = webinos.utils;
 } else
@@ -36,9 +36,9 @@ if (typeof module === 'undefined') {
 	}
 
 	exports.callback = function (fun, thisArg) {
-		if (typeof fun !== 'function')
+		if (typeof fun !== "function")
 			return function () {
-			};
+			}
 
 		return exports.bind(fun, thisArg);
 	}

@@ -1,13 +1,15 @@
-if (typeof webinos === 'undefined')
+if (typeof webinos === "undefined")
 	webinos = {};
 
-if (typeof webinos.file === 'undefined')
+if (typeof webinos.file === "undefined")
 	webinos.file = {};
 
-if (typeof webinos.file.demo === 'undefined')
+if (typeof webinos.file.demo === "undefined")
 	webinos.file.demo = {};
 
 (function (exports) {
+	"use strict";
+	
 	var file = webinos.file;
 	var path = webinos.path || (webinos.path = {});
 	var utils = webinos.utils || (webinos.utils = {});
@@ -15,19 +17,19 @@ if (typeof webinos.file.demo === 'undefined')
 	exports.dialogs = {};
 	
 	exports.dialogs.Name = function (ok, cancel, value) {
-		$('input.name', 'div#dialog-name').val(value || '');
+		$("input.name", "div#dialog-name").val(value || "");
 		
-		return $('div#dialog-name').dialog({
+		return $("div#dialog-name").dialog({
 			buttons: {
-				'OK': function (event) {
-					utils.callback(ok, this)(event, $('input.name', 'div#dialog-name').val());
+				"OK": function (event) {
+					utils.callback(ok, this)(event, $("input.name", "div#dialog-name").val());
 				},
-				'Cancel': function (event) {
+				"Cancel": function (event) {
 					utils.callback(cancel, this)(event);
 				}
 			},
 			closeOnEscape: false,
-			dialogClass: 'ui-dialog-titlebar-no-close',
+			dialogClass: "ui-dialog-titlebar-no-close",
 			draggable: false,
 			minHeight: 0,
 			minWidth: 0,
@@ -37,14 +39,14 @@ if (typeof webinos.file.demo === 'undefined')
 	}
 	
 	exports.dialogs.Editor = function (save, discard, value) {
-		$('textarea.content', 'div#dialog-editor').val(value || '');
+		$("textarea.content", "div#dialog-editor").val(value || "");
 		
-		return $('div#dialog-editor').dialog({
+		return $("div#dialog-editor").dialog({
 			buttons: {
-				'Save': function (event) {
-					utils.callback(save, this)(event, $('textarea.content', 'div#dialog-editor').val());
+				"Save": function (event) {
+					utils.callback(save, this)(event, $("textarea.content", "div#dialog-editor").val());
 				},
-				'Discard': function (event) {
+				"Discard": function (event) {
 					utils.callback(discard, this)(event);
 				}
 			},
@@ -56,22 +58,22 @@ if (typeof webinos.file.demo === 'undefined')
 	exports.Explorer = function (table) {
 		this.objects = new utils.DoublyLinkedList(exports.Object.compare);
 		
-		$(document).bind('file.create', utils.bind(this.create, this));
-		$(document).bind('file.copy', utils.bind(this.copy, this));
-		$(document).bind('file.move', utils.bind(this.move, this));
-		$(document).bind('file.remove', utils.bind(this.remove, this));
+		$(document).bind("file.create", utils.bind(this.create, this));
+		$(document).bind("file.copy", utils.bind(this.copy, this));
+		$(document).bind("file.move", utils.bind(this.move, this));
+		$(document).bind("file.remove", utils.bind(this.remove, this));
 		
 		this.table = $(table);
 		this.table.droppable({
-			activeClass: 'ui-state-active',
-			scope: 'file',
-			tolerance: 'pointer',
+			activeClass: "ui-state-active",
+			scope: "file",
+			tolerance: "pointer",
 			drop: utils.bind(this.drop, this)
 		});
 		
-		$('.create-directory', this.table).click(utils.bind(this.createDirectory, this));
-		$('.create-file', this.table).click(utils.bind(this.createFile, this));
-		$('.reload', this.table).click(utils.bind(this.reload, this));
+		$(".create-directory", this.table).click(utils.bind(this.createDirectory, this));
+		$(".create-file", this.table).click(utils.bind(this.createFile, this));
+		$(".reload", this.table).click(utils.bind(this.reload, this));
 	}
 	
 	exports.Explorer.prototype.directory = null;
@@ -88,7 +90,7 @@ if (typeof webinos.file.demo === 'undefined')
 		var node = this.objects.insert(object, exports.Object.compare);
 		
 		if (node.next === null)
-			$('tbody', this.table).append(object.row);
+			$("tbody", this.table).append(object.row);
 		else
 			node.next.data.row.before(object.row);
 	}
@@ -136,15 +138,15 @@ if (typeof webinos.file.demo === 'undefined')
 	
 	exports.Explorer.prototype.change = function (directory) {
 		this.directory = directory;
-		$('tbody', this.table).empty();
-		$('caption', this.table).text(this.directory.fullPath);
+		$("tbody", this.table).empty();
+		$("caption", this.table).text(this.directory.fullPath);
 		
 		this.objects.empty();
 		
 		this.directory.getParent(utils.bind(function (parent) {
 			this.parent = new exports.Parent(this, parent);
 			
-			$('tbody', this.table).prepend(this.parent.row);
+			$("tbody", this.table).prepend(this.parent.row);
 		}, this), function (error) {
 			alert("Error retrieving parent (#" + error.code + ")");
 		});
@@ -167,7 +169,7 @@ if (typeof webinos.file.demo === 'undefined')
 	
 	exports.Explorer.prototype.drop = function (event, ui) {
 		var altKey = event.altKey;
-		var entry = ui.draggable.parents('tr').data('entry');
+		var entry = ui.draggable.parents("tr").data("entry");
 		
 		var name = new exports.dialogs.Name(utils.bind(function (event, value) {
 			if (!altKey)
@@ -177,20 +179,20 @@ if (typeof webinos.file.demo === 'undefined')
 			
 			action(this.directory, value, function (newEntry) {
 				if (!altKey)
-					var eventType = 'file.copy';
+					var eventType = "file.copy";
 				else
-					var eventType = 'file.move';
+					var eventType = "file.move";
 					
 				$(document).trigger(eventType, [entry, newEntry]);
 				
-				name.dialog('close');
+				name.dialog("close");
 			}, function (error) {
-				name.dialog('close');
+				name.dialog("close");
 				
 				alert("Error copying/moving entry (#" + error.code + ")");
 			})
 		}, this), function (event) {
-			name.dialog('close');
+			name.dialog("close");
 		}, entry.name);
 	}
 	
@@ -200,16 +202,16 @@ if (typeof webinos.file.demo === 'undefined')
 				create: true,
 				exclusive: true
 			}, function (entry) {
-				$(document).trigger('file.create', entry);
+				$(document).trigger("file.create", entry);
 				
-				name.dialog('close');
+				name.dialog("close");
 			}, function (error) {
-				name.dialog('close');
+				name.dialog("close");
 				
 				alert("Error creating directory (#" + error.code + ")");
 			})
 		}, this), function (event) {
-			name.dialog('close');
+			name.dialog("close");
 		});
 		
 		return false;
@@ -221,16 +223,16 @@ if (typeof webinos.file.demo === 'undefined')
 				create: true,
 				exclusive: true
 			}, function (entry) {
-				$(document).trigger('file.create', entry);
+				$(document).trigger("file.create", entry);
 				
-				name.dialog('close');
+				name.dialog("close");
 			}, function (error) {
-				name.dialog('close');
+				name.dialog("close");
 				
 				alert("Error creating file (#" + error.code + ")");
 			})
 		}, this), function (event) {
-			name.dialog('close');
+			name.dialog("close");
 		});
 		
 		return false;
@@ -262,11 +264,11 @@ if (typeof webinos.file.demo === 'undefined')
 	exports.Parent = function (explorer, entry) {
 		exports.Object.call(this, explorer, entry);
 		
-		this.row = $('#parent').tmpl({
-			name: '..'
+		this.row = $("#parent").tmpl({
+			name: ".."
 		});
 		
-		$('.name', this.row).click(utils.bind(this.change, this));
+		$(".name", this.row).click(utils.bind(this.change, this));
 	}
 	
 	exports.Parent.prototype = new exports.Object();
@@ -281,22 +283,22 @@ if (typeof webinos.file.demo === 'undefined')
 	exports.Directory = function (explorer, entry) {
 		exports.Object.call(this, explorer, entry);
 		
-		this.row = $('#directory').tmpl({
+		this.row = $("#directory").tmpl({
 			name: this.entry.name
 		});
 		
-		this.row.data('entry', this.entry);
+		this.row.data("entry", this.entry);
 		
-		$('.name', this.row).click(utils.bind(this.change, this));
-		$('.name', this.row).draggable({
-			helper: 'clone',
+		$(".name", this.row).click(utils.bind(this.change, this));
+		$(".name", this.row).draggable({
+			helper: "clone",
 			opacity: 1,
 			revert: true,
 			revertDuration: 0,
-			scope: 'file'
+			scope: "file"
 		});
 		
-		$('.remove', this.row).click(utils.bind(this.removeRecursively, this));
+		$(".remove", this.row).click(utils.bind(this.removeRecursively, this));
 	}
 	
 	exports.Directory.prototype = new exports.Object();
@@ -310,7 +312,7 @@ if (typeof webinos.file.demo === 'undefined')
 	
 	exports.Directory.prototype.removeRecursively = function (event) {
 		this.entry.removeRecursively(utils.bind(function () {
-			$(document).trigger('file.remove', this.entry);
+			$(document).trigger("file.remove", this.entry);
 		}, this), function (error) {
 			alert("Error (recursively) removing directory (#" + error.code + ")");
 		});
@@ -321,22 +323,22 @@ if (typeof webinos.file.demo === 'undefined')
 	exports.File = function (explorer, entry) {
 		exports.Object.call(this, explorer, entry);
 		
-		this.row = $('#file').tmpl({
+		this.row = $("#file").tmpl({
 			name: this.entry.name
 		});
 		
-		this.row.data('entry', this.entry);
+		this.row.data("entry", this.entry);
 		
-		$('.name', this.row).click(utils.bind(this.edit, this));
-		$('.name', this.row).draggable({
-			helper: 'clone',
+		$(".name", this.row).click(utils.bind(this.edit, this));
+		$(".name", this.row).draggable({
+			helper: "clone",
 			opacity: 1,
 			revert: true,
 			revertDuration: 0,
-			scope: 'file'
+			scope: "file"
 		});
 		
-		$('.remove', this.row).click(utils.bind(this.remove, this));
+		$(".remove", this.row).click(utils.bind(this.remove, this));
 	}
 	
 	exports.File.prototype = new exports.Object();
@@ -360,7 +362,7 @@ if (typeof webinos.file.demo === 'undefined')
 					bb.append(value);
 		
 					writer.onerror = function (evt) {
-						editor.dialog('close');
+						editor.dialog("close");
 						
 						alert("Error writing file (#" + evt.targer.error.code + ")");
 					}
@@ -371,17 +373,17 @@ if (typeof webinos.file.demo === 'undefined')
 
 							writer.write(bb.getBlob());
 						} else
-							editor.dialog('close');
+							editor.dialog("close");
 					}
 					
 					writer.truncate(0);
 				}, function (error) {
-					editor.dialog('close');
+					editor.dialog("close");
 					
 					alert("Error retrieving file writer (#" + error.code + ")");
 				});
 			}, function (event) {
-				editor.dialog('close');
+				editor.dialog("close");
 			}, evt.target.result);
 		}
 		
@@ -396,7 +398,7 @@ if (typeof webinos.file.demo === 'undefined')
 	
 	exports.File.prototype.remove = function (event) {
 		this.entry.remove(utils.bind(function () {
-			$(document).trigger('file.remove', this.entry);
+			$(document).trigger("file.remove", this.entry);
 		}, this), function (error) {
 			alert("Error removing file (#" + error.code + ")");
 		});

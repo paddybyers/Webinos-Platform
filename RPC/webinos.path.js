@@ -1,9 +1,9 @@
-if (typeof module === 'undefined') {
-	if (typeof webinos === 'undefined')
-		webinos = {};
+if (typeof module === "undefined") {
+	if (typeof webinos === "undefined")
+		webinos = {}
 	
-	if (typeof webinos.path === 'undefined')
-		webinos.path = {};
+	if (typeof webinos.path === "undefined")
+		webinos.path = {}
 	
 	var exports = webinos.path;
 } else
@@ -17,13 +17,13 @@ if (typeof module === 'undefined') {
 (function (exports) {
 	"use strict";
 	
-	exports.utils = {};
+	exports.utils = {}
 	
 	exports.utils.split = function (path) {
 		var result = /^(\/?)([\s\S]+\/(?!$)|\/)?((?:[\s\S]+?)?(\.[^.]*)?)$/.exec(path);
 		
 		// [root, directory, basename, extension]
-		return [result[1] || '', result[2] || '', result[3] || '', result[4] || ''];
+		return [result[1] || "", result[2] || "", result[3] || "", result[4] || ""];
 	}
 	
 	/**
@@ -40,9 +40,9 @@ if (typeof module === 'undefined') {
 		for (var i = parts.length - 1; i >= 0; i--) {
 			var last = parts[i];
 
-			if (last == '.')
+			if (last == ".")
 				parts.splice(i, 1);
-			else if (last == '..') {
+			else if (last == "..") {
 				parts.splice(i, 1);
 
 				up++;
@@ -55,7 +55,7 @@ if (typeof module === 'undefined') {
 
 		if (allowAboveRoot)
 			for (; up--;)
-				parts.unshift('..');
+				parts.unshift("..");
 
 		return parts;
 	}
@@ -66,7 +66,7 @@ if (typeof module === 'undefined') {
 			dir = result[1];
 
 		if (!root && !dir)
-			return '.';
+			return ".";
 
 		if (dir)
 			dir = dir.substring(0, dir.length - 1);
@@ -97,20 +97,20 @@ if (typeof module === 'undefined') {
 	 * @see exports.utils.normalizeArray
 	 */
 	exports.normalize = function (path, preserveTrailingSlash) {
-		var isAbsolute = path.charAt(0) == '/',
-			trailingSlash = path.charAt(path.length - 1) == '/';
+		var isAbsolute = path.charAt(0) == "/",
+			trailingSlash = path.charAt(path.length - 1) == "/";
 
-		path = exports.utils.normalizeArray(path.split('/').filter(function (p) {
+		path = exports.utils.normalizeArray(path.split("/").filter(function (p) {
 			return !!p;
-		}), !isAbsolute).join('/');
+		}), !isAbsolute).join("/");
 
 		if (!path && !isAbsolute)
-			path = '.';
+			path = ".";
 
 		if (path && trailingSlash && preserveTrailingSlash)
-			path += '/';
+			path += "/";
 
-		return (isAbsolute ? '/' : '') + path;
+		return (isAbsolute ? "/" : "") + path;
 	}
 
 	/**
@@ -118,7 +118,7 @@ if (typeof module === 'undefined') {
 	 * 
 	 * @param {String} path1 First path.
 	 * @param {String} path2 Second path.
-	 * @returns {Boolean} True if <pre>path1</pre> and <pre>path2</pre> refer to the same entry, false otherwise.
+	 * @returns {Boolean} True if path1 and path2 refer to the same entry, false otherwise.
 	 */
 	exports.equals = function (path1, path2) {
 		return exports.normalize(path1, false) == exports.normalize(path2, false);
@@ -133,36 +133,35 @@ if (typeof module === 'undefined') {
 		var paths = Array.prototype.slice.call(arguments, 0);
 
 		return exports.normalize(paths.filter(function (p) {
-			return typeof p === 'string' && p;
-		}, false).join('/'));
+			return typeof p === "string" && p;
+		}, false).join("/"));
 	}
 	
 	/**
-	 * Checks if <pre>path</pre> is absolute.
+	 * Checks if path is absolute.
 	 * 
 	 * @param {String} path The path.
-	 * @returns {Boolean} True if <pre>path</pre> is absolute, false otherwise.
+	 * @returns {Boolean} True if path is absolute, false otherwise.
 	 * 
 	 * TODO Use it, also internally!
 	 */
 	exports.isAbsolute = function (path) {
-		return path.charAt(0) == '/';
+		return path.charAt(0) == "/";
 	}
 	
 	/**
-	 * Given two absolute paths, checks if <pre>path2</pre> contains a path prefix of <pre>path1</pre> (e.g., in case
-	 * of directories, checks if <pre>path2</pre> is a subdirectory of <pre>path1</pre>). Both paths are normalized
-	 * prior to comparison.
+	 * Given two absolute paths, checks if path2 contains a path prefix of path1 (e.g., in case of directories, checks
+	 * if path2 is a subdirectory of path1). Both paths are normalized prior to comparison.
 	 * 
 	 * @param {String} path1 First path.
 	 * @param {String} path2 Second path.
-	 * @returns {Boolean} True if <pre>path2</pre> contains a path prefix of <pre>path1</pre>, false otherwise.
+	 * @returns {Boolean} True if path2 contains a path prefix of path1, false otherwise.
 	 * 
 	 * TODO Check if paths are absolute.
 	 */
 	exports.isPrefixOf = function (path1, path2) {
-		var path1Parts = exports.normalize(path1).split('/');
-		var path2Parts = exports.normalize(path2).split('/');
+		var path1Parts = exports.normalize(path1).split("/");
+		var path2Parts = exports.normalize(path2).split("/");
 
 		if (path2Parts.length < path1Parts.length)
 			return false;
@@ -182,29 +181,28 @@ if (typeof module === 'undefined') {
 	 * 		to the root directory).
 	 */
 	exports.resolve = function () {
-		var resolvedPath = '',
+		var resolvedPath = "",
 			resolvedAbsolute = false;
 
 		for (var i = arguments.length - 1; i >= 0 && !resolvedAbsolute; i--) {
 			var path = arguments[i];
 
-			if (typeof path !== 'string' || !path)
+			if (typeof path !== "string" || !path)
 				continue;
 
-			resolvedPath = path + '/' + resolvedPath;
-			resolvedAbsolute = path.charAt(0) == '/';
+			resolvedPath = path + "/" + resolvedPath;
+			resolvedAbsolute = path.charAt(0) == "/";
 		}
 		
-		resolvedPath = exports.utils.normalizeArray(resolvedPath.split('/').filter(function (p) {
+		resolvedPath = exports.utils.normalizeArray(resolvedPath.split("/").filter(function (p) {
 			return !!p;
-		}), !resolvedAbsolute).join('/');
+		}), !resolvedAbsolute).join("/");
 
-		return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
+		return ((resolvedAbsolute ? "/" : "") + resolvedPath) || ".";
 	}
 
 	/**
-	 * Given two absolute paths, solves the relative path from <pre>from</pre> to <pre>to</pre>. Both paths are
-	 * normalized prior to solving.
+	 * Given two absolute paths, solves the relative path from from to to. Both paths are normalized prior to solving.
 	 * 
 	 * @param {String} from Origin path.
 	 * @param {String} to Target path;
@@ -213,8 +211,8 @@ if (typeof module === 'undefined') {
 	 * TODO Check if paths are absolute (resolve if not?).
 	 */
 	exports.relative = function (from, to) {
-		var fromParts = exports.normalize(from).split('/');
-		var toParts = exports.normalize(to).split('/');
+		var fromParts = exports.normalize(from).split("/");
+		var toParts = exports.normalize(to).split("/");
 
 		var length = Math.min(fromParts.length, toParts.length);
 		var samePartsLength = length;
@@ -229,10 +227,10 @@ if (typeof module === 'undefined') {
 		var outputParts = [];
 
 		for (var i = samePartsLength; i < fromParts.length; i++)
-			outputParts.push('..');
+			outputParts.push("..");
 
 		outputParts = outputParts.concat(toParts.slice(samePartsLength));
 
-		return outputParts.join('/');
+		return outputParts.join("/");
 	}
 })(exports);
