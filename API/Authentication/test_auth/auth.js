@@ -1,6 +1,7 @@
 (function () {
 
 	AuthenticationModule = function (obj) {
+		"use strict";
 		this.base = WebinosService;
 		this.base(obj);
 	};
@@ -15,6 +16,7 @@
 	AuthenticationModule.prototype = WebinosService.prototype;
 
 	AuthenticationModule.prototype.authenticate = function (username, successCB, errorCB) {
+		"use strict";
 		var rpc = webinos.rpc.createRPC(this, "authenticate", [username]);
 		webinos.rpc.executeRPC(rpc,
 			function (params) {
@@ -27,6 +29,7 @@
 	};
 
 	AuthenticationModule.prototype.isAuthenticated = function (username, successCB, errorCB) {
+		"use strict";
 		var rpc = webinos.rpc.createRPC(this, "isAuthenticated", [username]);
 		webinos.rpc.executeRPC(rpc,
 			function (params) {
@@ -39,6 +42,7 @@
 	};
 	
 	AuthenticationModule.prototype.getAuthenticationStatus = function (username, successCB, errorCB) {
+		"use strict";
 		var rpc = webinos.rpc.createRPC(this, "getAuthenticationStatus", [username]);
 		webinos.rpc.executeRPC(rpc,
 			function (params) {

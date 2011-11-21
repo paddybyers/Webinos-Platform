@@ -1,6 +1,74 @@
 var fs = require('fs');
 var util = require('util');
-var secstore = require("../Manager/Storage/src/main/javascript/securestore.js");
+var sc = require('schema')('authEnvironment', { fallbacks: 'STRICT_FALLBACKS' });
+var tty = require('tty'); // required starting from node.js 0.6.1
+
+// commented out due to lack of zipper module in node.js 0.6.1
+// var secstore = require("../Manager/Storage/src/main/javascript/securestore.js");
+
+var passfile_validation = sc.f(
+	{
+		type: 'array', // function arguments are treated as array
+		items: {
+			// password.txt schema
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					username: {
+						type:'string'
+					},
+					password: {
+						type:'string'
+					},
+				},
+				additionalProperties: false
+			},
+		},
+	},
+
+	true,
+	true,
+
+	function (res, callback){
+		callback(null, res);
+	}
+)
+
+var authfile_validation = sc.f(
+	{
+		type: 'array', // function arguments are treated as array
+		items: {
+			// authstatus.txt schema
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					username: {
+						type:'string'
+					},
+					lastAuthTime: {
+						type:'string'
+					},
+					authMethod: {
+						type:'string'
+					},
+					authMethodDetails: {
+						type:'string'
+					},
+				},
+				additionalProperties: false
+			},
+		},
+	},
+
+	true,
+	true,
+
+	function (res, callback){
+		callback(null, res);
+	}
+)
 
 if (typeof webinos === "undefined") {
 	var webinos = {};
@@ -23,6 +91,7 @@ AuthStatus.prototype.authMethodDetails = "";
 
 
 AuthError = function () {
+	"use strict";
 	this.code = Number;
 };
 
@@ -49,6 +118,7 @@ AuthErrorCB.prototype.onError = function (error) {
 
 
 WebinosAuthentication = function () {
+	"use strict";
 	this.authentication = new WebinosAuthenticationInterface();
 };
 
@@ -58,87 +128,121 @@ WebinosAuthenticationInterface = function () {
 webinos.authentication = new WebinosAuthenticationInterface();
 
 
-var password_filename = "./authentication/password.txt", authstatus_filename = "./authentication/authstatus.txt", sep = '|';
+var password_filename = "./authentication/password.txt", authstatus_filename = "./authentication/authstatus.txt";
 
 var storePass = "PZpassword", storeFile = "./auth.zip", storeDir  = "./authentication";
 
-var ask, getAuthTime, write_buffer, username;
+var ask, getAuthTime, username;
 
 webinos.authentication.authenticate = function (params, successCB, errorCB, objectRef) {
-	var newly_authenticated, stats, passfile, passrows, p, buffer;
+	"use strict";
+	var newly_authenticated, passfile, p, authfile, buffer = {}, error = {};
 
 	if (params[0] !== '') {
 		username = params[0];
 		webinos.authentication.isAuthenticated(params, function (authenticated) {
 			if (authenticated === false) {
 				ask("Password", function (password) {
-					try {
-						newly_authenticated = false;
-						secstore.open(storePass, storeFile, storeDir, function (err) {	
-							if (err === undefined || err === null) {
-								stats = fs.statSync(password_filename);
-								passfile = fs.readFileSync(password_filename) + "";
-								passrows = passfile.split('\n');
-								for (p in passrows) {
-									if (passrows[p] !== '') {
-										if (typeof(passrows[p]) === 'string' && username === passrows[p].split(sep)[0] && password === passrows[p].split(sep)[1]) {
-											buffer = username + "|" + getAuthTime() + "|" + "password" + "|" + "console inserted password\n";
-											newly_authenticated = true;
-											break;
+					newly_authenticated = false;
+					
+					// commented out due to lack of zipper module in node.js 0.6.1
+					//secstore.open(storePass, storeFile, storeDir, function (err) {	
+					//	if (err === undefined || err === null) {
+							try {
+								passfile = JSON.parse(fs.readFileSync(password_filename) + "");
+
+								passfile_validation(passfile, function(e, result){
+									if (e !== undefined && e !== null) {
+										error.code = AuthError.prototype.UNKNOWN_ERROR;
+										error.message = "Validation error in " + password_filename;
+										errorCB(error);
+									}
+									else {
+										for (p in passfile) {
+											if (passfile[p].username === username && passfile[p].password === password) {
+												buffer = {"username" : username, "lastAuthTime" : getAuthTime() , "authMethod" : "password", "authMethodDetails" : "console inserted password"}
+												newly_authenticated = true;
+												break;
+											}
 										}
 									}
-								}
+								});
+
 								if (newly_authenticated === true) {
-									write_buffer(buffer, function () {
-										secstore.close(storePass, storeFile, storeDir, function (err) {	
-											if (err !== undefined && err !== null) {
-												console.log(err);
-											}
-											else {
-												webinos.authentication.getAuthenticationStatus([username], function (authStatus) {
-													successCB("User authenticated\n" + authStatus);
-												},
-												function (err) {
-													errorCB(err);
-												});
-											}
-										});
+									authfile = JSON.parse(fs.readFileSync(authstatus_filename) + "");
+
+									authfile_validation(authfile, function(e, result){
+										if (e !== undefined && e !== null) {
+											error.code = AuthError.prototype.UNKNOWN_ERROR;
+											error.message = "Validation error in " + authstatus_filename;
+											errorCB(error);
+										}
+										else {
+											authfile.push(buffer);
+											fs.writeFileSync(authstatus_filename, JSON.stringify(authfile), 'utf-8');
+
+											// commented out due to lack of zipper module in node.js 0.6.1
+											//secstore.close(storePass, storeFile, storeDir, function (err) {	
+											//	if (err !== undefined && err !== null) {
+											//		errorCB(err);
+											//	}
+											//	else {
+													webinos.authentication.getAuthenticationStatus([username], function (authStatus) {
+														successCB("User authenticated\n" + authStatus);
+													},
+													function (err) {
+														errorCB(err);
+													});
+											//	}
+											//});
+										}
 									});
+
 								}
 								else {
 									if (newly_authenticated === false) {
-										secstore.close(storePass, storeFile, storeDir, function (err) {	
-											if (err !== undefined && err !== null) {
-												console.log(err);
-											}
-											successCB("Wrong username or password");
-										});
+
+										// commented out due to lack of zipper module in node.js 0.6.1
+										//secstore.close(storePass, storeFile, storeDir, function (err) {	
+										//	if (err !== undefined && err !== null) {
+										//		errorCB(err);
+										//	}
+										//	else {
+												error.code = AuthError.prototype.UNKNOWN_ERROR;
+												error.message = "Wrong username or password";
+												errorCB(error);
+										//	}
+										//});
 									}
 								}
-							} else {		
-								console.log(err);
 							}
-						});
-
-					}
-					catch (e) {
-						errorCB(e + "");
-					}
+							catch (e) {
+								errorCB(e);
+							}
+					//	} else {		
+					//		errorCB(err);
+					//	}
+					//});
 				});
 			}
 			else {
-				successCB("User already authenticated");
+				error.code = AuthError.prototype.UNKNOWN_ERROR;
+				error.message = "User already authenticated";
+				errorCB(error);
 			}
-		}, function (error) {
-			errorCB(error);
+		}, function (err) {
+			errorCB(err);
 		});
 	}
 	else {
-		errorCB("Username is missing");
+		error.code = AuthError.prototype.INVALID_ARGUMENT_ERROR;
+		error.message = "Username is missing";
+		errorCB(error);
 	}
 };
 
 getAuthTime = function () {
+	"use strict";
 	var now = new Date(), month, date, hours, minutes, offset, h_offset, m_offset;
 	
 	month = now.getMonth();
@@ -187,28 +291,20 @@ getAuthTime = function () {
 	return now.getFullYear() + "-" + month + "-" + date + "T" + hours + ":" + minutes + h_offset + ":" + m_offset;
 };
 
-write_buffer = function (buffer, done) {
-	fs.open(authstatus_filename, 'a', 0666, function (e, fd) {
-		fs.write(fd, buffer, undefined, 'utf-8', function () {
-			fs.close(fd);
-			done();
-		});
-	});
-};
 
 ask = function (question, callback) {
+	"use strict";
 	var pswd = "", passwd,
-	stdin = process.stdin, stdout = process.stdout,
-	stdio = process.binding("stdio");
+	stdin = process.stdin, stdout = process.stdout;
 
-	stdio.setRawMode(true);
 	stdin.resume();
+	tty.setRawMode(true); // modified to comply with node.js 0.6.1
 	stdout.write(question + ": ");
 
 	passwd = function (char, key) {
 		if (key.name === 'enter') {
 			stdout.write("\n");
-			stdio.setRawMode(false);
+			tty.setRawMode(false); // modified to comply with node.js 0.6.1
 			stdin.pause();
 			callback(pswd);
 			pswd = "";
@@ -219,7 +315,7 @@ ask = function (question, callback) {
 			}
 			else {
 				if (key.ctrl && key.name === 'c') {
-					stdio.setRawMode(false);
+					tty.setRawMode(false); // modified to comply with node.js 0.6.1
 					process.exit();
 				}
 				else {
@@ -229,97 +325,145 @@ ask = function (question, callback) {
 		}
 	};
 	
-	if (stdin.listeners('keypress').length === 0) {
-		stdin.on('keypress', passwd);
+	// modified to work around a presumed RPC problem
+	//if (stdin.listeners('keypress').length === 0) {
+	//	stdin.on('keypress', passwd);
+	//}
+	if (stdin.listeners('keypress').length > 0) {
+		stdin.listeners('keypress').pop();
 	}
+	stdin.on('keypress', passwd);
 };
 
 
 webinos.authentication.isAuthenticated = function (params, successCB, errorCB, objectRef) {
-	var authenticated, stats, authfile, authrows, authrow;
+	"use strict";
+	var authenticated, authfile, authrow, error = {};
 	
 	if (params[0] !== '') {
 		username = params[0];
-		try {
-			authenticated = false;
-			secstore.open(storePass, storeFile, storeDir, function (err) {	
-				if (err === undefined || err === null) {
-					stats = fs.statSync(authstatus_filename);
-					authfile = fs.readFileSync(authstatus_filename) + "";
-					authrows = authfile.split('\n');
-					for (authrow in authrows) {
-						if (authrows[authrow] !== '' && typeof(authrows[authrow]) === 'string' && username === authrows[authrow].split(sep)[0]) {
-							authenticated = true;
-							break;
+		authenticated = false;
+		
+		// commented out due to lack of zipper module in node.js 0.6.1
+		//secstore.open(storePass, storeFile, storeDir, function (err) {	
+		//	if (err === undefined || err === null) {
+				try {
+					authfile = JSON.parse(fs.readFileSync(authstatus_filename) + "");
+
+					authfile_validation(authfile, function(e, result){
+						if (e !== undefined && e !== null) {
+							error.code = AuthError.prototype.UNKNOWN_ERROR;
+							error.message = "Validation error in " + authstatus_filename;
+							errorCB(error);
 						}
-					}
-					secstore.close(storePass, storeFile, storeDir, function (err) {	
-						if (err !== undefined && err !== null) {
-							console.log(err);
+						else {
+							for (authrow in authfile) {
+								if (authfile[authrow].username === username) {
+									authenticated = true;
+									break;
+								}
+							}
+
+							// commented out due to lack of zipper module in node.js 0.6.1
+							//secstore.close(storePass, storeFile, storeDir, function (err) {	
+							//	if (err !== undefined && err !== null) {
+							//		errorCB(err);
+							//	}
+							//	else {
+									successCB(authenticated);
+							//	}
+							//});
 						}
-						successCB(authenticated);
 					});
-				} else {		
-					console.log(err);
 				}
-			});
-		}
-		catch (e) {
-			successCB(false);
-		}
+				catch (e) {
+					errorCB(e);
+				}
+		//	} else {		
+		//		errorCB(err);
+		//	}
+		//});
 	}
 	else {
-		errorCB("Username is missing");
+		error.code = AuthError.prototype.INVALID_ARGUMENT_ERROR;
+		error.message = "Username is missing";
+		errorCB(error);
 	}
 };
 
 webinos.authentication.getAuthenticationStatus = function (params, successCB, errorCB, objectRef) {
-	var authenticated, resp, stats, authfile, authrows, authrow, auth_s = new AuthStatus();
+	"use strict";
+	var authenticated, resp, authfile, authrow, auth_s = new AuthStatus(), error = {};
 	
 	if (params[0] !== '') {
 		username = params[0];
 		webinos.authentication.isAuthenticated(params, function (authenticated) {
 			if (authenticated === true) {
-				try {
-					resp = "Authentication status not available";
-					secstore.open(storePass, storeFile, storeDir, function (err) {	
-						if (err === undefined || err === null) {
-							stats = fs.statSync(authstatus_filename);
-							authfile = fs.readFileSync(authstatus_filename) + "";
-							authrows = authfile.split('\n');
-							for (authrow in authrows) {
-								if (authrows[authrow] !== '' && typeof(authrows[authrow]) === 'string' && username === authrows[authrow].split(sep)[0]) {
-									auth_s.lastAuthTime = authrows[authrow].split(sep)[1];
-									auth_s.authMethod = authrows[authrow].split(sep)[2];
-									auth_s.authMethodDetails = authrows[authrow].split(sep)[3];
-									resp = "lastAuthTime: " + auth_s.lastAuthTime + "\nauthMethod: " + auth_s.authMethod + "\nauthmethodDetails: " + auth_s.authMethodDetails;
-									break;
+				resp = "";
+
+				// commented out due to lack of zipper module in node.js 0.6.1
+				//secstore.open(storePass, storeFile, storeDir, function (err) {	
+				//	if (err === undefined || err === null) {
+						try {
+							authfile = JSON.parse(fs.readFileSync(authstatus_filename) + "");
+
+							authfile_validation(authfile, function(e, result){
+								if (e !== undefined && e !== null) {
+									error.code = AuthError.prototype.UNKNOWN_ERROR;
+									error.message = "Validation error in " + authstatus_filename;
+									errorCB(error);
 								}
-							}
-							secstore.close(storePass, storeFile, storeDir, function (err) {	
-								if (err !== undefined && err !== null) {
-									console.log(err);
+								else {
+									for (authrow in authfile) {
+										if (authfile[authrow].username === username) {
+											auth_s.lastAuthTime = authfile[authrow].lastAuthTime;
+											auth_s.authMethod = authfile[authrow].authMethod;
+											auth_s.authMethodDetails = authfile[authrow].authMethodDetails;
+											resp = "lastAuthTime: " + auth_s.lastAuthTime + "\nauthMethod: " + auth_s.authMethod + "\nauthmethodDetails: " + auth_s.authMethodDetails;
+											break;
+										}
+									}
+
+									// commented out due to lack of module file in node.js 0.6.1
+									//secstore.close(storePass, storeFile, storeDir, function (err) {	
+									//	if (err !== undefined && err !== null) {
+									//		errorCB(err);
+									//	}
+									//	else {
+											if (resp !== "") {
+												successCB(resp);
+											}
+											else {
+												error.code = AuthError.prototype.UNKNOWN_ERROR;
+												error.message = "Authentication status not available";
+												errorCB(error);
+											}
+									//	}
+									//});
 								}
-								successCB(resp);
 							});
-						} else {		
-							console.log(err);
 						}
-					});
-				}
-				catch (e) {
-					successCB(e + "");
-				}
+						catch (e) {
+							errorCB(e);
+						}
+				//	} else {		
+				//		errorCB(err);
+				//	}
+				//});
 			}
 			else {
-				successCB("User not authenticated");
+				error.code = AuthError.prototype.UNKNOWN_ERROR;
+				error.message = "User not authenticated";
+				errorCB(error);
 			}
-		}, function (error) {
-			errorCB(error);
+		}, function (err) {
+			errorCB(err);
 		});
 	}
 	else {
-		successCB("username is missing");
+		error.code = AuthError.prototype.INVALID_ARGUMENT_ERROR;
+		error.message = "Username is missing";
+		errorCB(error);
 	}
 };
 
@@ -328,6 +472,7 @@ var authenticationModule = new RPCWebinosService({
 	displayName: 'Authentication',
 	description: 'webinos authentication API'
 });
+
 authenticationModule.authenticate = webinos.authentication.authenticate;
 authenticationModule.isAuthenticated = webinos.authentication.isAuthenticated;
 authenticationModule.getAuthenticationStatus = webinos.authentication.getAuthenticationStatus;

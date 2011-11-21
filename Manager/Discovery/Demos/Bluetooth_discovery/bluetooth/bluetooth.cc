@@ -77,14 +77,6 @@ class BTDiscovery: ObjectWrap
 
   static Persistent<FunctionTemplate> s_ct;
 
-  /*BTDiscovery(const Local< Value >& v) :
-      myval(Persistent< Value >::New(v)) {
-
-    } */
-  /*BTDiscovery(const Local< Value >& v) :
-  myval(Persistent< Value >::New(v))
-  {
-  }*/
 
   static void Init(Handle<Object> target)
   {
@@ -109,10 +101,6 @@ class BTDiscovery: ObjectWrap
     NODE_SET_PROTOTYPE_METHOD(s_ct, "file_list", File_list);
     
     NODE_SET_PROTOTYPE_METHOD(s_ct, "file_transfer", File_transfer);
-
-    NODE_SET_PROTOTYPE_METHOD(s_ct, "fold_list", Fold_list);
-
-    NODE_SET_PROTOTYPE_METHOD(s_ct, "file_get", File_get);
 
     target->Set(String::NewSymbol("bluetooth"), s_ct->GetFunction());
   }
@@ -760,7 +748,6 @@ class BTDiscovery: ObjectWrap
 	        printf("connect successful\n");
 	      	goto listfolder;
 	      }
-	      // printf("connect successful\n");
 	      else
 	      {
 	    	 switch (errno)
@@ -770,8 +757,7 @@ class BTDiscovery: ObjectWrap
 	           break; // retry
 
 	           case ECONNREFUSED:
-	            // perror("The user may have rejected the transfer");
-	             perror("The user may have rejected the listfile");
+	             perror("The user may have rejected the list folder");
 	            
  	           break;
 
@@ -1006,7 +992,6 @@ class BTDiscovery: ObjectWrap
 						ent->mode&S_IFDIR?"/":"");*/
 					char* name = strcat(*v8arg1, ent->name);
 					printf("name is: %s\n", name);
-					//result1->Set(v8::Number::New(j), v8::String::New(ent->name));
 					result1->Set(v8::Number::New(j), v8::String::New(name));
 					j++;
 				}
@@ -1025,6 +1010,8 @@ class BTDiscovery: ObjectWrap
 	HandleScope scope;
     BTDiscovery* bd = ObjectWrap::Unwrap<BTDiscovery>(args.This());
     Local<Object> result =  Object::New();
+    
+    v8::Handle<v8::Array> result1 = v8::Array::New(1);
     
     v8::String::Utf8Value v8arg0(args[0]);
     v8::String::Utf8Value v8arg1(args[1]);
@@ -1172,7 +1159,6 @@ class BTDiscovery: ObjectWrap
 
     	transfer:
     	
-    	//obexftp_get(cli, "yd.mp3", "/Music/yd.mp3");
     	
     	printf("v8arg1 = %s\n", *v8arg1);
     	printf("v8arg2 = %s\n", *v8arg2);
@@ -1186,43 +1172,15 @@ class BTDiscovery: ObjectWrap
 		{
 			printf("get file successful!");
 		} 
+		result1->Set(v8::Number::New(0), v8::Integer::New(ret));
     }
 	//obexftp_close(cli);
 	//cli = NULL;
+	
+	v8::Handle<v8::Value> res(result1);
+	return result1;
   }
-
-  static Handle<Value> Fold_list(const Arguments& args)
-  {
-    HandleScope scope;
-    BTDiscovery* bd = ObjectWrap::Unwrap<BTDiscovery>(args.This());
-
-    Local<Object> result =  Object::New();
-
-    //ziran -start
-	static obexftp_client_t *cli = NULL;
-	static const char *src_dev = NULL;
-	static int transport = OBEX_TRANS_BLUETOOTH;
-	//static char *device = NULL;
-	static char *device = "3C:5A:37:12:3E:32";
-	//static int channel = -1;
-	static int channel = 4;
-	static const char *use_uuid = (const char *)UUID_FBS;
-	static int use_uuid_len = sizeof(UUID_FBS);
-	static int use_conn=1;
-	static int use_path=1;
-
-    return scope.Close(result);
-	}
-
-  static Handle<Value> File_get(const Arguments& args)
-  {
-    HandleScope scope;
-	BTDiscovery* bd = ObjectWrap::Unwrap<BTDiscovery>(args.This());
-
-	Local<Object> result =  Object::New();
-
-	return scope.Close(result);
-  }
+  
 };
 
 Persistent<FunctionTemplate> BTDiscovery::s_ct;
