@@ -5,32 +5,7 @@
 	var file = require('./webinos.file.js');
 	var rpc = require('./rpc.js');
 	
-	// TODO Extract (de)serialization to <pre>webinos.events.serialization.js</pre>?
-	exports.events = {};
-	
-	exports.events.Event = {
-		serialize: function (event) {
-			return {
-				type: event.type,
-				eventPhase: event.eventPhase,
-				bubbles: event.bubbles,
-				cancelable: event.cancelable,
-				timeStamp: event.timeStamp
-			};
-		}
-	};
-	
-	exports.events.ProgressEvent = {
-		serialize: function (event) {
-			var object = exports.events.Event.serialize(event);
-			
-			object.lengthComputable = event.lengthComputable;
-			object.loaded = event.loaded;
-			object.total = event.total;
-			
-			return object;
-		}
-	};
+	var dom = require("./webinos.dom.rpc.js");
 
 	exports.file = exports;
 	
