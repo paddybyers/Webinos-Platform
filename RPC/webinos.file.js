@@ -8,37 +8,37 @@
  * 
  * @author Felix-Johannes Jendrusch <felix-johannes.jendrusch@fokus.fraunhofer.de>
  * 
- * TODO Invalidate entries, e.g., after being (re)moved.
- * TODO Handle multiple read calls to <pre>exports.FileReader</pre> (see File API, W3C Working Draft, 20 October 2011).
- * TODO Use error/exception codes according to specification, e.g., at <pre>exports.utils.wrap</pre>.
- * TODO Respect encoding parameters, e.g., at <pre>exports.Blob.prototype.type</pre>.
+ * TODO Validate arguments.
+ * TODO Invalidate entries (and related blobs), e.g., after being (re)moved.
+ * TODO Use error/exception types/codes according to specification, e.g., at exports.utils.wrap(fun, map).
+ * TODO Respect encoding (parameters), e.g., at exports.FileReader.reasAsText(blob, encoding).
  */
 (function (exports) {
 	"use strict";
 	
-	var __fs = require('fs');
-	var __path = require('path');
+	var __fs = require("fs");
+	var __path = require("path");
 
-	var events = require('./webinos.events.js');
-	var path = require('./webinos.path.js');
-	var utils = require('./webinos.utils.js');
+	var dom = require("./webinos.dom.js");
+	var path = require("./webinos.path.js");
+	var utils = require("./webinos.utils.js");
 
-	// TODO Extract utilities to <pre>webinos.file.utils.js</pre>?
-	exports.utils = {};
+	// TODO Extract utilities to webinos.file.utils.js?
+	exports.utils = {}
 	
 	exports.utils.wrap = function (fun, map) {
 		return function () {
 			try {
 				return fun.apply(this, arguments);
 			} catch (exception) {
-				if (typeof map === 'object' && typeof map[exception.code] !== 'undefined')
+				if (typeof map === "object" && typeof map[exception.code] !== "undefined")
 					var code = map[exception.code];
 				else
 					var code = exports.FileException.SECURITY_ERR;
 
 				throw new exports.FileException(code);
 			}
-		};
+		}
 	}
 		
 	exports.utils.schedule = function (fun, successCallback, errorCallback) {
@@ -102,95 +102,158 @@
 	}
 
 	exports.Blob.prototype.size = 0;
-	exports.Blob.prototype.type = '';
+	exports.Blob.prototype.type = "";
 	
 	exports.BlobBuilder = function () {
 	}
 	
-	exports.BlobBuilder.prototype.__text = '';
+	// TODO Contents should be stored in an array and read on demand, i.e., when getBlob(contentType) is called.
+	exports.BlobBuilder.prototype.__contents = "";
 	
 	// TODO Add support for Blob and ArrayBuffer(?).
-	exports.BlobBuilder.prototype.append = function (data) {
-		if (typeof data === 'string')
-			this.__text += data;
+	exports.BlobBuilder.prototype.append = function (data, endings /* ignored */) {
+		if (typeof data === "string")
+			// TODO Write as UTF-8, converting newlines as specified in endings.
+			this.__contents += data;
+		else
+			throw new TypeError("first argument must be a string" /* ..., a Blob, or an ArrayBuffer */);
+			
 	}
 	
 	exports.BlobBuilder.prototype.getBlob = function (contentType) {
-		return new exports.Text(this.__text, contentType);
+		return new exports.Text(this.__contents, contentType);
 	}
 	
-	exports.Text = function (text, type) {
+	exports.Text = function (text, contentType) {
 		exports.Blob.call(this);
 		
-		this.size = text ? text.length : 0;
-		this.type = type || this.type;
+		if (typeof text !== "string")
+			throw new TypeError("first argument must be a string");
 		
-		this.__text = text || '';
+		if (typeof contentType !== "string")
+			var relativeContentType = "";
+		// else if (/* undefined(contentType) */)
+		// 	var relativeContentType = "";
+		else
+			var relativeContentType = contentType;
+		
+		this.size = text.length;
+		this.type = relativeContentType;
+		
+		this.__text = text;
 	}
 	
 	exports.Text.prototype = new exports.Blob();
 	exports.Text.prototype.constructor = exports.Text;
 	
-	exports.Text.prototype.slice = function (start, length, contentType) {
-		if (start > this.size)
-			length = 0;
-		else if (start + length > this.size)
-			length = this.size - start;
+	exports.Text.prototype.slice = function (start, end, contentType) {
+		if (typeof start !== "number")
+			var relativeStart = 0;
+		else if (start < 0)
+			var relativeStart = Math.max(this.size + start, 0);
+		else
+			var relativeStart = Math.min(start, this.size);
 		
-		return new exports.Text(length > 0 ? this.__text.substr(start, length) : '', contentType || this.type);
+		if (typeof end !== "number")
+			var relativeEnd = this.size;
+		else if (end < 0)
+			var relativeEnd = Math.max(this.size + end, 0);
+		else
+			var relativeEnd = Math.min(end, this.size);
+		
+		var span = Math.max(relativeEnd - relativeStart, 0);
+		
+		return new exports.Text(this.__text.substr(relativeStart, span), contentType);
 	}
 
-	exports.File = function (entry, type, start, length) {
+	exports.File = function (entry, start, end, contentType) {
 		exports.Blob.call(this);
-
+		
+		if (!(entry instanceof exports.FileEntrySync) && !(entry instanceof exports.FileEntry))
+			throw new TypeError("first argument must be a FileEntrySync, or FileEntry")
+		
 		var stats = exports.utils.wrap(__fs.statSync)(entry.realize());
+		
+		if (typeof start !== "number")
+			var relativeStart = 0;
+		else if (start < 0)
+			var relativeStart = Math.max(stats.size + start, 0);
+		else
+			var relativeStart = Math.min(start, stats.size);
+		
+		if (typeof end !== "number")
+			var relativeEnd = stats.size;
+		else if (end < 0)
+			var relativeEnd = Math.max(stats.size + end, 0);
+		else
+			var relativeEnd = Math.min(end, stats.size);
+		
+		if (typeof contentType !== "string")
+			var relativeContentType = "";
+		// else if (/* undefined(contentType) */)
+		// 	var relativeContentType = "";
+		else
+			var relativeContentType = contentType;
+		
+		var span = Math.max(relativeEnd - relativeStart, 0);
 
 		this.name = entry.name;
-		this.size = length || start ? Math.max(0, stats.size - start) : stats.size;
-		this.type = type || this.type;
-		this.lastModifiedDate = stats.mtime.getTime();
+		this.size = span;
+		this.type = relativeContentType;
+		this.lastModifiedDate = stats.mtime;
 		
 		this.__entry = entry;
-		this.__start = start ? Math.min(stats.size, start) : 0;
+		this.__size = stats.size;
+		this.__start = relativeStart;
+		this.__end = relativeEnd;
 	}
 
 	exports.File.prototype = new exports.Blob();
 	exports.File.prototype.constructor = exports.File;
 
-	exports.File.prototype.slice = function (start, length, contentType) {
-		if (start > this.size)
-			length = 0;
-		else if (start + length > this.size)
-			length = this.size - start;
+	exports.File.prototype.slice = function (start, end, contentType) {
+		if (typeof start !== "number")
+			var relativeStart = 0;
+		else if (start < 0)
+			var relativeStart = Math.max(this.size + start, 0);
+		else
+			var relativeStart = Math.min(start, this.size);
 		
-		return new exports.File(this.__entry, contentType || this.type, length > 0 ? this.__start + start : 0, length);
+		if (typeof end !== "number")
+			var relativeEnd = this.size;
+		else if (end < 0)
+			var relativeEnd = Math.max(this.size + end, 0);
+		else
+			var relativeEnd = Math.min(end, this.size);
+		
+		return new exports.File(this.__entry, this.__start + relativeStart, this.__start + relativeEnd, contentType);
 	}
 	
 	exports.FileReader = function () {
-		events.EventTarget.call(this);
+		dom.EventTarget.call(this);
 		
-		this.addEventListener('loadstart', function (evt) {
-			utils.callback(this.onloadstart, this)(evt);
+		this.addEventListener("loadstart", function (event) {
+			utils.callback(this.onloadstart, this)(event);
 		});
 		
-		this.addEventListener('progress', function (evt) {
-			utils.callback(this.onprogress, this)(evt);
+		this.addEventListener("progress", function (event) {
+			utils.callback(this.onprogress, this)(event);
 		});
 		
-		this.addEventListener('error', function (evt) {
-			utils.callback(this.onerror, this)(evt);
+		this.addEventListener("error", function (event) {
+			utils.callback(this.onerror, this)(event);
 		});
 		
-		this.addEventListener('abort', function (evt) {
-			utils.callback(this.onabort, this)(evt);
+		this.addEventListener("abort", function (event) {
+			utils.callback(this.onabort, this)(event);
 		});
 		
-		this.addEventListener('load', function (evt) {
-			utils.callback(this.onload, this)(evt);
+		this.addEventListener("load", function (event) {
+			utils.callback(this.onload, this)(event);
 		});
 		
-		this.addEventListener('loadend', function (evt) {
-			utils.callback(this.onloadend, this)(evt);
+		this.addEventListener("loadend", function (event) {
+			utils.callback(this.onloadend, this)(event);
 		});
 	}
 	
@@ -198,7 +261,7 @@
 	exports.FileReader.LOADING = 1;
 	exports.FileReader.DONE = 2;
 	
-	exports.FileReader.prototype = new events.EventTarget();
+	exports.FileReader.prototype = new dom.EventTarget();
 	exports.FileReader.prototype.constructor = exports.FileReader;
 	
 	exports.FileReader.prototype.readyState = exports.FileReader.EMPTY;
@@ -206,89 +269,108 @@
 	exports.FileReader.prototype.error = undefined;
 	
 	exports.FileReader.prototype.readAsArrayBuffer = function (blob) {
-		throw new exports.FileException(exports.FileException.SECURITY_ERR);
+		throw new dom.DOMException("NotSupportedError", "reading as ArrayBuffer is not supported");
 	}
 	
 	exports.FileReader.prototype.readAsBinaryString = function (blob) {
-		throw new exports.FileException(exports.FileException.SECURITY_ERR);
+		throw new dom.DOMException("NotSupportedError", "reading as binary string is not supported");
 	}
 	
 	exports.FileReader.prototype.readAsText = function (blob, encoding) {
-		this.readyState = exports.FileReader.EMPTY;
-		this.result = null;
+		if (this.readyState == exports.FileReader.LOADING)
+			throw new dom.DOMException("InvalidStateError", "read in progress");
+		
+		// TODO Validate blob, e.g., check existence, readability, safeness and size of file blobs.
+		
+		this.readyState = exports.FileReader.LOADING;
+		this.result = ""; // TODO Check algorithm compliance.
+		
+		var createEventInitDict = utils.bind(function (withProgress) {
+			var eventInitDict = {
+				bubbles: false,
+				cancelable: false
+			}
+			
+			if (withProgress) {
+				eventInitDict.lengthComputable = true;
+				eventInitDict.loaded = this.result.length;
+				eventInitDict.total = blob.size;
+			}
+			
+			return eventInitDict;
+		}, this);
+		
+		this.dispatchEvent(new dom.ProgressEvent("loadstart", createEventInitDict(true)));
 
 		utils.bind(exports.utils.schedule(function () {
 			if (blob instanceof exports.Text) {
-				this.readyState = exports.FileReader.LOADING;
-				
-				this.dispatchEvent(new events.ProgressEvent('loadstart', false, false, true, 0, blob.size));
-				
 				this.result = blob.__text;
 				
-				this.dispatchEvent(new events.ProgressEvent('progress', false, false,
-						true, this.result.length, blob.size));
+				var eventInitDict = createEventInitDict(true);
+				
+				this.dispatchEvent(new dom.ProgressEvent("progress", eventInitDict));
 				
 				this.readyState = exports.FileReader.DONE;
-				
-				this.dispatchEvent(new events.ProgressEvent('load', false, false,
-						true, this.result.length, blob.size));
-				this.dispatchEvent(new events.ProgressEvent('loadend', false, false,
-						true, this.result.length, blob.size));
+
+				this.dispatchEvent(new dom.ProgressEvent("load", eventInitDict));
+				this.dispatchEvent(new dom.ProgressEvent("loadend", eventInitDict));
 			} else if (blob instanceof exports.File) {
 				var stream = __fs.createReadStream(blob.__entry.realize(), {
-					encoding: 'utf8',
+					encoding: "utf8" /* encoding */,
 					bufferSize: 1024,
 					start: blob.__start,
 					end: blob.__start + Math.max(0, blob.size - 1)
 				});
 				
-				stream.on('open', utils.bind(function () {
-					this.readyState = exports.FileReader.LOADING;
-					this.result = '';
-
-					this.dispatchEvent(new events.ProgressEvent('loadstart', false, false, true, 0, blob.size));
-				}, this));
+				// stream.on("open", utils.bind(function () {
+					// ...
+				// }, this));
 				
-				stream.on('data', utils.bind(function (data) {
+				stream.on("data", utils.bind(function (data) {
 					this.result += data;
 					
-					this.dispatchEvent(new events.ProgressEvent('progress', false, false,
-							true, this.result.length, blob.size));
+					this.dispatchEvent(new dom.ProgressEvent("progress", createEventInitDict(true)));
 				}, this));
 				
-				stream.on('error', utils.bind(function (error) {
+				stream.on("error", utils.bind(function (error) {
 					this.readyState = exports.FileReader.DONE;
 					this.result = null;
-					
+
 					// TODO Use error codes according to specification.
-					this.error = new exports.FileError(exports.FileError.SECURITY_ERR);
+					this.error = new dom.DOMError("SecurityError");
 					
-					this.dispatchEvent(new events.ProgressEvent('error', false, false, false, 0, 0));
-					this.dispatchEvent(new events.ProgressEvent('loadend', false, false, false, 0, 0));
+					var eventInitDict = createEventInitDict(false);
+					
+					this.dispatchEvent(new dom.ProgressEvent("error", eventInitDict));
+					this.dispatchEvent(new dom.ProgressEvent("loadend", eventInitDict));
 				}, this));
 				
-				stream.on('end', utils.bind(function () {
-					this.readyState = exports.FileReader.DONE;
+				stream.on("end", utils.bind(function () {
+					var eventInitDict = createEventInitDict(true);
 					
-					this.dispatchEvent(new events.ProgressEvent('load', false, false,
-							true, this.result.length, blob.size));
-					this.dispatchEvent(new events.ProgressEvent('loadend', false, false,
-							true, this.result.length, blob.size));
+					// Fire at least one event called progress, even if the read file is empty.
+					if (this.result.length == 0)
+						this.dispatchEvent(new dom.ProgressEvent("progress", eventInitDict));
+					
+					this.readyState = exports.FileReader.DONE;
+
+					this.dispatchEvent(new dom.ProgressEvent("load", eventInitDict));
+					this.dispatchEvent(new dom.ProgressEvent("loadend", eventInitDict));
 				}, this));
 			}
 		}), this)();
 	}
 	
 	exports.FileReader.prototype.readAsDataURL = function (blob) {
-		throw new exports.FileException(exports.FileException.SECURITY_ERR);
+		throw new dom.DOMException("NotSupportedError", "reading as data url is not supported");
 	}
 	
 	exports.FileReader.prototype.abort = function () {
-		throw new exports.FileException(exports.FileException.SECURITY_ERR);
+		throw new dom.DOMException("NotSupportedError", "aborting is not supported");
 	}
 	
 	exports.FileWriter = function (entry) {
-		events.EventTarget.call(this);
+		dom.EventTarget.call(this);
 		
 		var stats = exports.utils.wrap(__fs.statSync)(entry.realize());
 		
@@ -296,28 +378,28 @@
 		
 		this.__entry = entry;
 		
-		this.addEventListener('writestart', function (evt) {
-			utils.callback(this.onwritestart, this)(evt);
+		this.addEventListener("writestart", function (event) {
+			utils.callback(this.onwritestart, this)(event);
 		});
 		
-		this.addEventListener('progress', function (evt) {
-			utils.callback(this.onprogress, this)(evt);
+		this.addEventListener("progress", function (event) {
+			utils.callback(this.onprogress, this)(event);
 		});
 		
-		this.addEventListener('error', function (evt) {
-			utils.callback(this.onerror, this)(evt);
+		this.addEventListener("error", function (event) {
+			utils.callback(this.onerror, this)(event);
 		});
 		
-		this.addEventListener('abort', function (evt) {
-			utils.callback(this.onabort, this)(evt);
+		this.addEventListener("abort", function (event) {
+			utils.callback(this.onabort, this)(event);
 		});
 		
-		this.addEventListener('write', function (evt) {
-			utils.callback(this.onwrite, this)(evt);
+		this.addEventListener("write", function (event) {
+			utils.callback(this.onwrite, this)(event);
 		});
 		
-		this.addEventListener('writeend', function (evt) {
-			utils.callback(this.onwriteend, this)(evt);
+		this.addEventListener("writeend", function (event) {
+			utils.callback(this.onwriteend, this)(event);
 		});
 	}
 	
@@ -325,13 +407,14 @@
 	exports.FileWriter.WRITING = 1;
 	exports.FileWriter.DONE = 2;
 	
-	exports.FileWriter.prototype = new events.EventTarget();
+	exports.FileWriter.prototype = new dom.EventTarget();
 	exports.FileWriter.prototype.constructor = exports.FileWriter;
 	
 	exports.FileWriter.prototype.readyState = exports.FileWriter.INIT;
+	exports.FileWriter.prototype.error = undefined;
+	
 	exports.FileWriter.prototype.position = 0;
 	exports.FileWriter.prototype.length = 0;
-	exports.FileWriter.prototype.error = undefined;
 
 	exports.FileWriter.prototype.write = function (data) {
 		if (this.readyState == exports.FileWriter.WRITING)
@@ -339,32 +422,40 @@
 		
 		this.readyState = exports.FileWriter.WRITING;
 		
+		var eventInitDict = {
+			bubbles: false,
+			cancelable: false,
+			lengthComputable: false,
+			loaded: 0,
+			total: 0
+		}
+		
+		this.dispatchEvent(new dom.ProgressEvent("writestart", eventInitDict));
+		
 		utils.bind(exports.utils.schedule(function () {
-			this.dispatchEvent(new events.ProgressEvent('writestart', false, false, false, 0, 0));
-			
-			// TODO Use a writable stream, i.e., <pre>fs.WriteStream</pre>?
-			var output = exports.utils.wrap(__fs.openSync)(this.__entry.realize(), 'a');
+			// TODO Use a writable stream, i.e., fs.WriteStream?
+			var output = exports.utils.wrap(__fs.openSync)(this.__entry.realize(), "a");
 			
 			if (data instanceof exports.Text) {
 				// TODO Write in chunks?
-				var written = exports.utils.wrap(__fs.writeSync)(output, data.__text, this.position, 'utf8');
+				var written = exports.utils.wrap(__fs.writeSync)(output, data.__text, this.position, "utf8" /* blob.type */);
 				
 				this.position += written;
 				this.length = Math.max(this.length, this.position);
 				
-				this.dispatchEvent(new events.ProgressEvent('progress', false, false, false, 0, 0));
+				this.dispatchEvent(new dom.ProgressEvent("progress", eventInitDict));
 			} else if (data instanceof exports.File) {
-				// TODO Use <pre>exports.FileReader</pre>?
-				var input = exports.utils.wrap(__fs.openSync)(data.__entry.realize(), 'r');
+				// TODO Use exports.FileReader?
+				var input = exports.utils.wrap(__fs.openSync)(data.__entry.realize(), "r");
 				
 				var read;
-				while ((read = exports.utils.wrap(__fs.readSync)(input, 1024, null, 'utf8'))[1] > 0) {
-					var written = exports.utils.wrap(__fs.writeSync)(output, read[0], this.position, 'utf8');
+				while ((read = exports.utils.wrap(__fs.readSync)(input, 1024, null, "utf8" /* blob.type */))[1] > 0) {
+					var written = exports.utils.wrap(__fs.writeSync)(output, read[0], this.position, "utf8" /* blob.type */);
 					
 					this.position += written;
 					this.length = Math.max(this.length, this.position);
 					
-					this.dispatchEvent(new events.ProgressEvent('progress', false, false, false, 0, 0));
+					this.dispatchEvent(new dom.ProgressEvent("progress", eventInitDict));
 				}
 				
 				exports.utils.wrap(__fs.closeSync)(input);
@@ -374,16 +465,16 @@
 		}, function () {
 			this.readyState = exports.FileWriter.DONE;
 			
-			this.dispatchEvent(new events.ProgressEvent('write', false, false, false, 0, 0));
-			this.dispatchEvent(new events.ProgressEvent('writeend', false, false, false, 0, 0));
+			this.dispatchEvent(new dom.ProgressEvent("write", eventInitDict));
+			this.dispatchEvent(new dom.ProgressEvent("writeend", eventInitDict));
 		}, function (error) {
-			this.readyState = exports.FileWriter.DONE;
-
 			// TODO Use error codes according to specification.
 			this.error = new exports.FileError(exports.FileError.SECURITY_ERR);
 			
-			this.dispatchEvent(new events.ProgressEvent('error', false, false, false, 0, 0));
-			this.dispatchEvent(new events.ProgressEvent('writeend', false, false, false, 0, 0));
+			this.readyState = exports.FileWriter.DONE;
+			
+			this.dispatchEvent(new dom.ProgressEvent("error", eventInitDict));
+			this.dispatchEvent(new dom.ProgressEvent("writeend", eventInitDict));
 		}), this)();
 	}
 	
@@ -402,11 +493,19 @@
 			throw new exports.FileException(exports.FileException.INVALID_STATE_ERR);
 		
 		this.readyState = exports.FileWriter.WRITING;
+
+		var eventInitDict = {
+			bubbles: false,
+			cancelable: false,
+			lengthComputable: false,
+			loaded: 0,
+			total: 0
+		}
+		
+		this.dispatchEvent(new dom.ProgressEvent("writestart", eventInitDict));
 		
 		utils.bind(exports.utils.schedule(function () {
-			this.dispatchEvent(new events.ProgressEvent('writestart', false, false, false, 0, 0));
-
-			var fd = exports.utils.wrap(__fs.openSync)(this.__entry.realize(), 'r+');
+			var fd = exports.utils.wrap(__fs.openSync)(this.__entry.realize(), "r+");
 
 			exports.utils.wrap(__fs.truncateSync)(fd, size);
 			exports.utils.wrap(__fs.closeSync)(fd);
@@ -416,16 +515,16 @@
 		}, function () {
 			this.readyState = exports.FileWriter.DONE;
 			
-			this.dispatchEvent(new events.ProgressEvent('write', false, false, false, 0, 0));
-			this.dispatchEvent(new events.ProgressEvent('writeend', false, false, false, 0, 0));
+			this.dispatchEvent(new dom.ProgressEvent("write", eventInitDict));
+			this.dispatchEvent(new dom.ProgressEvent("writeend", eventInitDict));
 		}, function (error) {
-			this.readyState = exports.FileWriter.DONE;
-
 			// TODO Use error codes according to specification.
 			this.error = new exports.FileError(exports.FileError.SECURITY_ERR);
+			
+			this.readyState = exports.FileWriter.DONE;
 
-			this.dispatchEvent(new events.ProgressEvent('error', false, false, false, 0, 0));
-			this.dispatchEvent(new events.ProgressEvent('writeend', false, false, false, 0, 0));
+			this.dispatchEvent(new dom.ProgressEvent("error", eventInitDict));
+			this.dispatchEvent(new dom.ProgressEvent("writeend", eventInitDict));
 		}), this)();
 	}
 	
@@ -441,7 +540,7 @@
 
 	// TODO Choose filesystem according to specification.
 	exports.LocalFileSystemSync.prototype.requestFileSystem = function (type, size) {
-		return new exports.FileSystemSync('default', __path.join(process.cwd(), 'default'));
+		return new exports.FileSystemSync("default", __path.join(process.cwd(), "default"));
 	}
 
 	exports.LocalFileSystemSync.prototype.resolveLocalFileSystemURL = function (url) {
@@ -450,7 +549,7 @@
 	
 	exports.FileSystemSync = function (name, realPath) {
 		this.name = name;
-		this.root = new exports.DirectoryEntrySync(this, '/');
+		this.root = new exports.DirectoryEntrySync(this, "/");
 
 		this.__realPath = realPath;
 	}
@@ -528,10 +627,10 @@
 				exclusive: true
 			});
 			
-			// TODO Use <pre>exports.FileReaderSync</pre>?
+			// TODO Use exports.FileReaderSync?
 			var data = exports.utils.wrap(__fs.readFileSync)(this.realize());
 			
-			// TODO Use <pre>exports.FileWriterSync</pre>?
+			// TODO Use exports.FileWriterSync?
 			exports.utils.wrap(__fs.writeFileSync)(parent.filesystem.realize(newFullPath), data);
 		}
 		
@@ -543,7 +642,7 @@
 		
 		return {
 			modificationTime: stats.mtime
-		};
+		}
 	}
 
 	exports.EntrySync.prototype.getParent = function () {
@@ -559,7 +658,7 @@
 		if (path.equals(parent.fullPath, this.getParent().fullPath) && newName == this.name)
 			throw new exports.FileException(exports.FileException.INVALID_MODIFICATION_ERR);
 		
-		// TODO Is this realy necessary? (I don't like it.)
+		// TODO Is this really necessary? (I don't like it.)
 		if (this.isDirectory && this.isPrefixOf(parent.fullPath))
 			throw new exports.FileException(exports.FileException.INVALID_MODIFICATION_ERR);
 		
@@ -567,6 +666,7 @@
 		
 		exports.utils.wrap(__fs.renameSync)(this.realize(), parent.filesystem.realize(newFullPath));
 
+		// TODO We already know whether this is a directory or a file...
 		return exports.EntrySync.create(parent.filesystem, newFullPath);
 	}
 
@@ -601,8 +701,8 @@
 		return new exports.DirectoryReaderSync(this);
 	}
 
-	exports.DirectoryEntrySync.prototype.isPrefixOf = function (_path) {
-		return path.isPrefixOf(this.fullPath, _path);
+	exports.DirectoryEntrySync.prototype.isPrefixOf = function (fullPath) {
+		return path.isPrefixOf(this.fullPath, fullPath);
 	}
 
 	exports.DirectoryEntrySync.prototype.getDirectory = function (path, options) {
@@ -646,7 +746,7 @@
 			if (!options || !options.create)
 				throw new exports.FileException(exports.FileException.NOT_FOUND_ERR);
 			
-			var fd = exports.utils.wrap(__fs.openSync)(this.filesystem.realize(fullPath), 'w');
+			var fd = exports.utils.wrap(__fs.openSync)(this.filesystem.realize(fullPath), "w");
 			
 			exports.utils.wrap(__fs.closeSync)(fd);
 			
@@ -680,7 +780,7 @@
 	exports.DirectoryReaderSync.prototype.__children = undefined;
 	
 	exports.DirectoryReaderSync.prototype.readEntries = function () {
-		if (typeof this.__children === 'undefined')
+		if (typeof this.__children === "undefined")
 			this.__children = exports.utils.wrap(__fs.readdirSync)(this.__entry.realize());
 
 		var entries = [];
@@ -735,7 +835,7 @@
 
 	exports.FileSystem = function (name, realPath) {
 		this.name = name;
-		this.root = new exports.DirectoryEntry(this, '/');
+		this.root = new exports.DirectoryEntry(this, "/");
 
 		this.__realPath = realPath;
 	}
@@ -820,8 +920,8 @@
 		return new exports.DirectoryReader(this);
 	}
 
-	exports.DirectoryEntry.prototype.isPrefixOf = function (path) {
-		return exports.DirectoryEntrySync.prototype.isPrefixOf.call(exports.utils.sync(this), path);
+	exports.DirectoryEntry.prototype.isPrefixOf = function (fullPath) {
+		return exports.DirectoryEntrySync.prototype.isPrefixOf.call(exports.utils.sync(this), fullPath);
 	}
 
 	exports.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {

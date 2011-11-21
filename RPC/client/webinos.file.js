@@ -1,10 +1,9 @@
-if (typeof webinos === 'undefined')
-	webinos = {};
+if (typeof webinos === "undefined")
+	webinos = {}
 
-if (typeof webinos.file === 'undefined')
-	webinos.file = {};
+if (typeof webinos.file === "undefined")
+	webinos.file = {}; // First necessary semicolon.
 
-//TODO Extract (de)serialization to <pre>webinos.exports.serialization.js</pre>?
 (function (exports) {
 	"use strict";
 
@@ -12,115 +11,182 @@ if (typeof webinos.file === 'undefined')
 	var rpc = webinos.rpc || (webinos.rpc = {});
 	var utils = webinos.utils || (webinos.utils = {});
 	
-	// TODO Extract (de)serialization to <pre>webinos.events.serialization.js</pre>?
-	exports.events = {};
+	// TODO Extract (de)serialization to webinos.dom.js?
+	var dom = {}
 	
-	exports.events.ProgressEvent = {
+	dom.ProgressEvent = {
 		deserialize: function (object, target) {
 			object.target = target
 			object.currentTarget = target;
 			
 			return object;
 		}
-	};
+	}
 
 	exports.Blob = function () {
 	}
 	
 	exports.Blob.serialize = function (blob) {
-		if (blob instanceof exports.Text)
-			return {
-				__type: 'text',
-				size: blob.size,
-				type: blob.type,
-				__text: blob.__text
-			};
-		else if (blob instanceof exports.File)
-			return {
-				__type: 'file',
-				name: blob.name,
-				size: blob.size,
-				type: blob.type,
-				lastModifiedDate: blob.lastModifiedDate,
-				__entry: exports.Entry.serialize(blob.__entry),
-				__start: blob.__start
-			};
+		var object = {
+			type: blob.type /* , */
+			// size: blob.size
+		}
+		
+		if (blob instanceof exports.Text) {
+			object.__type = "text";
+			object.__text = blob.__text;
+		} else if (blob instanceof exports.File) {
+			object.__type = "file";
+			object.lastModifiedDate = blob.lastModifiedDate;
+			object.__entry = exports.Entry.serialize(blob.__entry);
+			object.__size = blob.__size;
+			object.__start = blob.__start;
+			object.__end = blob.__end;
+		}
+			
+		return object;
 	}
 	
 	exports.Blob.deserialize = function (service, object) {
-		if (object.__type == 'text')
+		if (object.__type == "text")
 			return new exports.Text(object.__text, object.type);
-		else if (object.__type == 'file') {
+		else if (object.__type == "file") {
 			var blob = new exports.File(exports.Entry.deserialize(service, object.__entry),
-					object.type, object.__start, object.size);
+					object.__size, object.__start, object.__end, object.type);
 			
 			blob.lastModifiedDate = object.lastModifiedDate;
-			
+		
 			return blob;
 		}
 	}
 	
 	exports.Blob.prototype.size = 0;
-	exports.Blob.prototype.type = '';
+	exports.Blob.prototype.type = "";
 	
 	exports.BlobBuilder = function () {
 	}
 	
-	exports.BlobBuilder.prototype.__text = '';
+	// TODO Contents should be stored in an array and read on demand, i.e., when getBlob(contentType) is called.
+	exports.BlobBuilder.prototype.__contents = "";
 	
 	// TODO Add support for Blob and ArrayBuffer(?).
-	exports.BlobBuilder.prototype.append = function (data) {
-		if (typeof data === 'string')
-			this.__text += data;
+	exports.BlobBuilder.prototype.append = function (data, endings /* ignored */) {
+		if (typeof data === "string")
+			// TODO Write as UTF-8, converting newlines as specified in endings.
+			this.__contents += data;
+		else
+			throw new TypeError("first argument must be a string" /* ..., a Blob, or an ArrayBuffer */);
+			
 	}
 	
 	exports.BlobBuilder.prototype.getBlob = function (contentType) {
-		return new exports.Text(this.__text, contentType);
+		return new exports.Text(this.__contents, contentType);
 	}
 	
-	exports.Text = function (text, type) {
+	exports.Text = function (text, contentType) {
 		exports.Blob.call(this);
 		
-		this.size = text ? text.length : 0;
-		this.type = type || this.type;
+		if (typeof text !== "string")
+			throw new TypeError("first argument must be a string");
 		
-		this.__text = text || '';
+		if (typeof contentType !== "string")
+			var relativeContentType = "";
+		// else if (/* undefined(contentType) */)
+		// 	var relativeContentType = "";
+		else
+			var relativeContentType = contentType;
+		
+		this.size = text.length;
+		this.type = relativeContentType;
+		
+		this.__text = text;
 	}
 	
 	exports.Text.prototype = new exports.Blob();
 	exports.Text.prototype.constructor = exports.Text;
 	
-	exports.Text.prototype.slice = function (start, length, contentType) {
-		if (start > this.size)
-			length = 0;
-		else if (start + length > this.size)
-			length = this.size - start;
+	exports.Text.prototype.slice = function (start, end, contentType) {
+		if (typeof start !== "number")
+			var relativeStart = 0;
+		else if (start < 0)
+			var relativeStart = Math.max(this.size + start, 0);
+		else
+			var relativeStart = Math.min(start, this.size);
 		
-		return new exports.Text(length > 0 ? this.__text.substr(start, length) : '', contentType || this.type);
+		if (typeof end !== "number")
+			var relativeEnd = this.size;
+		else if (end < 0)
+			var relativeEnd = Math.max(this.size + end, 0);
+		else
+			var relativeEnd = Math.min(end, this.size);
+		
+		var span = Math.max(relativeEnd - relativeStart, 0);
+		
+		return new exports.Text(this.__text.substr(relativeStart, span), contentType);
 	}
-	
-	exports.File = function (entry, type, start, length) {
+
+	exports.File = function (entry, size, start, end, contentType) {
 		exports.Blob.call(this);
+		
+		if (!(entry instanceof exports.FileEntry))
+			throw new TypeError("first argument must be a FileEntry")
+		
+		if (typeof size !== "number")
+			throw new TypeError("second argument must be a number");
+		
+		if (typeof start !== "number")
+			var relativeStart = 0;
+		else if (start < 0)
+			var relativeStart = Math.max(size + start, 0);
+		else
+			var relativeStart = Math.min(start, size);
+		
+		if (typeof end !== "number")
+			var relativeEnd = size;
+		else if (end < 0)
+			var relativeEnd = Math.max(size + end, 0);
+		else
+			var relativeEnd = Math.min(end, size);
+		
+		if (typeof contentType !== "string")
+			var relativeContentType = "";
+		// else if (/* undefined(contentType) */)
+		// 	var relativeContentType = "";
+		else
+			var relativeContentType = contentType;
+		
+		var span = Math.max(relativeEnd - relativeStart, 0);
 
 		this.name = entry.name;
-		this.size = length || 0;
-		this.type = type || this.type;
+		this.size = span;
+		this.type = relativeContentType;
 		this.lastModifiedDate = 0;
 		
 		this.__entry = entry;
-		this.__start = start || 0;
+		this.__size = size;
+		this.__start = relativeStart;
+		this.__end = relativeEnd;
 	}
 
 	exports.File.prototype = new exports.Blob();
 	exports.File.prototype.constructor = exports.File;
 
-	exports.File.prototype.slice = function (start, length, contentType) {
-		if (start > this.size)
-			length = 0;
-		else if (start + length > this.size)
-			length = this.size - start;
+	exports.File.prototype.slice = function (start, end, contentType) {
+		if (typeof start !== "number")
+			var relativeStart = 0;
+		else if (start < 0)
+			var relativeStart = Math.max(this.size + start, 0);
+		else
+			var relativeStart = Math.min(start, this.size);
 		
-		return new exports.File(this.__entry, contentType || this.type, length > 0 ? this.__start + start : 0, length);
+		if (typeof end !== "number")
+			var relativeEnd = this.size;
+		else if (end < 0)
+			var relativeEnd = Math.max(this.size + end, 0);
+		else
+			var relativeEnd = Math.min(end, this.size);
+		
+		return new exports.File(this.__entry, this.__size, this.__start + relativeStart, this.__start + relativeEnd, contentType);
 	}
 	
 	exports.FileReader = function (filesystem) {
@@ -136,9 +202,11 @@ if (typeof webinos.file === 'undefined')
 	exports.FileReader.prototype.error = undefined;
 	
 	exports.FileReader.prototype.readAsArrayBuffer = function (blob) {
+		throw new DOMException("NotSupportedError", "reading as ArrayBuffer is not supported");
 	}
 	
 	exports.FileReader.prototype.readAsBinaryString = function (blob) {
+		throw new DOMException("NotSupportedError", "reading as binary string is not supported");
 	}
 	
 	exports.FileReader.prototype.readAsText = function (blob, encoding) {
@@ -150,11 +218,11 @@ if (typeof webinos.file === 'undefined')
 			return function (params, successCallback, errorCallback) {
 				this.readyState = params[0].readyState;
 				this.result = params[0].result;
-				this.error = params[0].error ? exports.FileError.deserialize(params[0].error) : null;
+				this.error = params[0].error /* ? dom.DOMError.deserialize(params[0].error) : null */;
 				
-				attributeFun.call(this)(exports.events.ProgressEvent.deserialize(params[1], this));
-			};
-		};
+				attributeFun.call(this)(dom.ProgressEvent.deserialize(params[1], this));
+			}
+		}
 		
 		eventListener.onloadstart = utils.bind(eventCallback(function () {
 			return utils.callback(this.onloadstart, this);
@@ -182,14 +250,16 @@ if (typeof webinos.file === 'undefined')
 
 		rpc.registerCallbackObject(eventListener);
 		
-		rpc.utils.notify(this.__filesystem.__service, 'readAsText', eventListener.api)
+		rpc.utils.notify(this.__filesystem.__service, "readAsText", eventListener.api)
 				(exports.Blob.serialize(blob), encoding);
 	}
 	
 	exports.FileReader.prototype.readAsDataURL = function (blob) {
+		throw new DOMException("NotSupportedError", "reading as data url is not supported");
 	}
 	
 	exports.FileReader.prototype.abort = function () {
+		throw new DOMException("NotSupportedError", "aborting is not supported");
 	}
 	
 	exports.FileWriter = function (entry) {
@@ -204,36 +274,32 @@ if (typeof webinos.file === 'undefined')
 	
 	exports.FileWriter.serialize = function (writer) {
 		return {
-			// readyState: writer.readyState,
+			readyState: writer.readyState,
+			error: writer.error ? exports.FileError.serialize(writer.error) : null,
 			position: writer.position,
 			length: writer.length,
-			error: writer.error ? exports.FileError.serialize(writer.error) : null,
 			__entry: exports.Entry.serialize(writer.__entry)
-		};
+		}
 	}
 	
 	exports.FileWriter.deserialize = function (service, object) {
 		var writer = new exports.FileWriter(exports.Entry.deserialize(service, object.__entry));
 		
 		writer.readyState = object.readyState;
+		writer.error = object.error;
 		writer.position = object.position;
 		writer.length = object.length;
-		writer.error = object.error;
 		
 		return writer;
 	}
 	
 	exports.FileWriter.prototype.readyState = exports.FileWriter.INIT;
+	exports.FileWriter.prototype.error = undefined;
+	
 	exports.FileWriter.prototype.position = 0;
 	exports.FileWriter.prototype.length = 0;
-	exports.FileWriter.prototype.error = undefined;
 
 	exports.FileWriter.prototype.write = function (data) {
-		if (this.readyState == exports.FileWriter.WRITING)
-			throw new exports.FileException(exports.FileException.INVALID_STATE_ERR);
-		
-		this.readyState = exports.FileWriter.WRITING;
-		
 		var eventListener = new RPCWebinosService({
 			api: Math.floor(Math.random() * 100)
 		});
@@ -241,13 +307,14 @@ if (typeof webinos.file === 'undefined')
 		var eventCallback = function (attributeFun) {
 			return function (params, successCallback, errorCallback) {
 				this.readyState = params[0].readyState;
-				this.position = params[0].position;
-				this.length = params[0].length;
 				this.error = params[0].error ? exports.FileError.deserialize(params[0].error) : null;
 				
-				attributeFun.call(this)(exports.events.ProgressEvent.deserialize(params[1], this));
-			};
-		};
+				this.position = params[0].position;
+				this.length = params[0].length;
+				
+				attributeFun.call(this)(dom.ProgressEvent.deserialize(params[1], this));
+			}
+		}
 		
 		eventListener.onwritestart = utils.bind(eventCallback(function () {
 			return utils.callback(this.onwritestart, this);
@@ -275,7 +342,7 @@ if (typeof webinos.file === 'undefined')
 
 		rpc.registerCallbackObject(eventListener);
 		
-		rpc.utils.notify(this.__entry.filesystem.__service, 'write', eventListener.api)
+		rpc.utils.notify(this.__entry.filesystem.__service, "write", eventListener.api)
 				(exports.FileWriter.serialize(this), exports.Blob.serialize(data));
 	}
 	
@@ -290,11 +357,6 @@ if (typeof webinos.file === 'undefined')
 	}
 	
 	exports.FileWriter.prototype.truncate = function (size) {
-		if (this.readyState == exports.FileWriter.WRITING)
-			throw new exports.FileException(exports.FileException.INVALID_STATE_ERR);
-		
-		this.readyState = exports.FileWriter.WRITING;
-		
 		var eventListener = new RPCWebinosService({
 			api: Math.floor(Math.random() * 100)
 		});
@@ -302,13 +364,14 @@ if (typeof webinos.file === 'undefined')
 		var eventCallback = function (attributeFun) {
 			return function (params, successCallback, errorCallback) {
 				this.readyState = params[0].readyState;
-				this.position = params[0].position;
-				this.length = params[0].length;
 				this.error = params[0].error ? exports.FileError.deserialize(params[0].error) : null;
 				
-				attributeFun.call(this)(exports.events.ProgressEvent.deserialize(params[1], this));
-			};
-		};
+				this.position = params[0].position;
+				this.length = params[0].length;
+				
+				attributeFun.call(this)(dom.ProgressEvent.deserialize(params[1], this));
+			}
+		}
 		
 		eventListener.onwritestart = utils.bind(eventCallback(function () {
 			return utils.callback(this.onwritestart, this);
@@ -336,11 +399,12 @@ if (typeof webinos.file === 'undefined')
 
 		rpc.registerCallbackObject(eventListener);
 		
-		rpc.utils.notify(this.__entry.filesystem.__service, 'truncate', eventListener.api)
+		rpc.utils.notify(this.__entry.filesystem.__service, "truncate", eventListener.api)
 				(exports.FileWriter.serialize(this), size);
 	}
 	
 	exports.FileWriter.prototype.abort = function () {
+		throw new exports.FileException(exports.FileException.SECURITY_ERR);
 	}
 
 	exports.LocalFileSystem = function (object) {
@@ -354,7 +418,7 @@ if (typeof webinos.file === 'undefined')
 	exports.LocalFileSystem.prototype.constructor = exports.LocalFileSystem;
 
 	exports.LocalFileSystem.prototype.requestFileSystem = function (type, size, successCallback, errorCallback) {
-		utils.bind(rpc.utils.request(this, 'requestFileSystem', null, function (result) {
+		utils.bind(rpc.utils.request(this, "requestFileSystem", null, function (result) {
 			utils.callback(successCallback, this)(exports.FileSystem.deserialize(this, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(exports.FileError.deserialize(error));
@@ -362,7 +426,7 @@ if (typeof webinos.file === 'undefined')
 	}
 
 	exports.LocalFileSystem.prototype.resolveLocalFileSystemURL = function (url, successCallback, errorCallback) {
-		utils.bind(rpc.utils.request(this, 'resolveLocalFileSystemURL', null, function (result) {
+		utils.bind(rpc.utils.request(this, "resolveLocalFileSystemURL", null, function (result) {
 			utils.callback(successCallback, this)(exports.Entry.deserialize(this, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(exports.FileError.deserialize(error));
@@ -371,7 +435,7 @@ if (typeof webinos.file === 'undefined')
 
 	exports.FileSystem = function (service, name, realPath) {
 		this.name = name;
-		this.root = new exports.DirectoryEntry(this, '/');
+		this.root = new exports.DirectoryEntry(this, "/");
 
 		this.__service = service;
 		this.__realPath = realPath;
@@ -381,7 +445,7 @@ if (typeof webinos.file === 'undefined')
 		return {
 			name: filesystem.name,
 			__realPath: filesystem.__realPath
-		};
+		}
 	}
 
 	exports.FileSystem.deserialize = function (service, object) {
@@ -401,7 +465,7 @@ if (typeof webinos.file === 'undefined')
 			fullPath: entry.fullPath,
 			isFile: entry.isFile,
 			isDirectory: entry.isDirectory
-		};
+		}
 	}
 
 	exports.Entry.deserialize = function (service, object) {
@@ -429,7 +493,7 @@ if (typeof webinos.file === 'undefined')
 	}
 
 	exports.Entry.prototype.copyTo = function (parent, newName, successCallback, errorCallback) {
-		utils.bind(rpc.utils.request(this.filesystem.__service, 'copyTo', null, function (result) {
+		utils.bind(rpc.utils.request(this.filesystem.__service, "copyTo", null, function (result) {
 			utils.callback(successCallback, this)(exports.Entry.deserialize(this.filesystem.__service, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(exports.FileError.deserialize(error));
@@ -437,7 +501,7 @@ if (typeof webinos.file === 'undefined')
 	}
 
 	exports.Entry.prototype.getMetadata = function (successCallback, errorCallback) {
-		utils.bind(rpc.utils.request(this.filesystem.__service, 'getMetadata', null, function (result) {
+		utils.bind(rpc.utils.request(this.filesystem.__service, "getMetadata", null, function (result) {
 			utils.callback(successCallback, this)(result);
 		}, function (error) {
 			utils.callback(errorCallback, this)(exports.FileError.deserialize(error));
@@ -445,7 +509,7 @@ if (typeof webinos.file === 'undefined')
 	}
 
 	exports.Entry.prototype.getParent = function (successCallback, errorCallback) {
-		utils.bind(rpc.utils.request(this.filesystem.__service, 'getParent', null, function (result) {
+		utils.bind(rpc.utils.request(this.filesystem.__service, "getParent", null, function (result) {
 			utils.callback(successCallback, this)(exports.Entry.deserialize(this.filesystem.__service, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(exports.FileError.deserialize(error));
@@ -453,7 +517,7 @@ if (typeof webinos.file === 'undefined')
 	}
 
 	exports.Entry.prototype.moveTo = function (parent, newName, successCallback, errorCallback) {
-		utils.bind(rpc.utils.request(this.filesystem.__service, 'moveTo', null, function (result) {
+		utils.bind(rpc.utils.request(this.filesystem.__service, "moveTo", null, function (result) {
 			utils.callback(successCallback, this)(exports.Entry.deserialize(this.filesystem.__service, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(exports.FileError.deserialize(error));
@@ -461,7 +525,7 @@ if (typeof webinos.file === 'undefined')
 	}
 
 	exports.Entry.prototype.remove = function (successCallback, errorCallback) {
-		utils.bind(rpc.utils.request(this.filesystem.__service, 'remove', null, function (result) {
+		utils.bind(rpc.utils.request(this.filesystem.__service, "remove", null, function (result) {
 			utils.callback(successCallback, this)();
 		}, function (error) {
 			utils.callback(errorCallback, this)(exports.FileError.deserialize(error));
@@ -470,7 +534,7 @@ if (typeof webinos.file === 'undefined')
 
 	// TODO Transmit filesystem url.
 	exports.Entry.prototype.toURL = function (mimeType) {
-		return '';
+		throw new exports.FileException(exports.FileException.SECURITY_ERR);
 	}
 
 	exports.DirectoryEntry = function (filesystem, fullPath) {
@@ -486,12 +550,12 @@ if (typeof webinos.file === 'undefined')
 		return new exports.DirectoryReader(this);
 	}
 
-	exports.DirectoryEntry.prototype.isPrefixOf = function (_path) {
-		return path.isPrefixOf(this.fullPath, _path);
+	exports.DirectoryEntry.prototype.isPrefixOf = function (fullPath) {
+		return path.isPrefixOf(this.fullPath, fullPath);
 	}
 
 	exports.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {
-		utils.bind(rpc.utils.request(this.filesystem.__service, 'getDirectory', null, function (result) {
+		utils.bind(rpc.utils.request(this.filesystem.__service, "getDirectory", null, function (result) {
 			utils.callback(successCallback, this)(exports.Entry.deserialize(this.filesystem.__service, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(exports.FileError.deserialize(error));
@@ -499,7 +563,7 @@ if (typeof webinos.file === 'undefined')
 	}
 
 	exports.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
-		utils.bind(rpc.utils.request(this.filesystem.__service, 'getFile', null, function (result) {
+		utils.bind(rpc.utils.request(this.filesystem.__service, "getFile", null, function (result) {
 			utils.callback(successCallback, this)(exports.Entry.deserialize(this.filesystem.__service, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(exports.FileError.deserialize(error));
@@ -507,7 +571,7 @@ if (typeof webinos.file === 'undefined')
 	}
 
 	exports.DirectoryEntry.prototype.removeRecursively = function (successCallback, errorCallback) {
-		utils.bind(rpc.utils.request(this.filesystem.__service, 'removeRecursively', null, function (result) {
+		utils.bind(rpc.utils.request(this.filesystem.__service, "removeRecursively", null, function (result) {
 			utils.callback(successCallback, this)();
 		}, function (error) {
 			utils.callback(errorCallback, this)(exports.FileError.deserialize(error));
@@ -522,7 +586,7 @@ if (typeof webinos.file === 'undefined')
 	exports.DirectoryReader.prototype.__length = 10;
 
 	exports.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
-		utils.bind(rpc.utils.request(this.__entry.filesystem.__service, 'readEntries', null, function (result) {
+		utils.bind(rpc.utils.request(this.__entry.filesystem.__service, "readEntries", null, function (result) {
 			this.__start = result.__start;
 			this.__length = result.__length;
 
@@ -544,7 +608,7 @@ if (typeof webinos.file === 'undefined')
 	exports.FileEntry.prototype.isFile = true;
 
 	exports.FileEntry.prototype.createWriter = function (successCallback, errorCallback) {
-		utils.bind(rpc.utils.request(this.filesystem.__service, 'createWriter', null, function (result) {
+		utils.bind(rpc.utils.request(this.filesystem.__service, "createWriter", null, function (result) {
 			utils.callback(successCallback, this)(exports.FileWriter.deserialize(this.filesystem.__service, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(exports.FileError.deserialize(error));
@@ -552,7 +616,7 @@ if (typeof webinos.file === 'undefined')
 	}
 
 	exports.FileEntry.prototype.file = function (successCallback, errorCallback) {
-		utils.bind(rpc.utils.request(this.filesystem.__service, 'file', null, function (result) {
+		utils.bind(rpc.utils.request(this.filesystem.__service, "file", null, function (result) {
 			utils.callback(successCallback, this)(exports.Blob.deserialize(this.filesystem.__service, result));
 		}, function (error) {
 			utils.callback(errorCallback, this)(exports.FileError.deserialize(error));
