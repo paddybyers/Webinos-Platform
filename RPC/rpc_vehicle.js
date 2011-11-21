@@ -119,7 +119,7 @@ function get(vehicleDataId, vehicleDataHandler, errorCB){
 		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
 		break;
 	case "lights-signal-warn":
-		vehicleDataHandler(generateLightWiperControlsignalEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
 		break;
 	case "lights-parking":
 		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
@@ -792,7 +792,7 @@ function generateClimateControlfrontEvent(zone){
 				var acstatus = Math.round(Math.random()*true); 
 	            var ventMode = Math.round(Math.random()*true);   
                 var ventLevel = Math.floor(Math.random()*10);
-                if (desiredTemperaturedriver > 16 && acstatus == 0 && ventMode == 0){
+                if (desiredTemperaturefront > 16 && acstatus == 0 && ventMode == 0){
                 console.log(zone + " desired temperature is " + desiredTemperaturefront);   
                 return new ClimateControlEvent(zone, desiredTemperaturefront, acstatus, ventLevel, ventMode);
                 }else{
