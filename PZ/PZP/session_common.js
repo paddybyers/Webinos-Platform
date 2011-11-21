@@ -147,11 +147,18 @@ exports.checkClient = function (self, cn){
 
 /*  It removes the connected PZP details.
  */
-exports.removeClient = function(self, cn) {
-	if(self.connected_pzp[cn]) {
-		delete self.connected_pzp[cn];
-	} else if(self.connected_pzh[cn]) {
-		delete self.connected_pzh[cn];
+exports.removeClient = function(self, conn) {
+	var i;
+	for (i in self.connected_pzp) {
+		if(conn.socket.remoteAddress === self.connected_pzp[i].address) {
+			delete self.connected_pzp[i];
+		}
+	}
+	
+	for (i in self.connected_pzh) {
+		if(conn.socket.remoteAddress === self.connected_pzh[i].address) {
+			delete self.connected_pzh[i];
+		}
 	}
 };
 

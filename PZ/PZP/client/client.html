@@ -32,7 +32,6 @@
 			var payload = {status: 'startPZH', 
 				servername: document.getElementById('servername').value, 
 				serverport: document.getElementById('serverport').value, 
-				httpserver: document.getElementById('httpport').value, 
 				value: config}; 
 			var options = {type: 'prop', payload: payload};
 			webinos.message_send(null, options, null, null);                	   
@@ -118,7 +117,9 @@
 	</ul>
 	
 	<div id = "pzh" style="background-color:#0879a9">
+		<p style="color:white" align="right"> Help Available on Redmine to start PZH <a href="http://dev.webinos.org/redmine/projects/wp4/wiki/Running_PZH"> Running PZH </a>
 		<center> <p style="color:white"> Multiple PZH can be initiated, used this tab for starting local PZH	</p> </center>
+
 		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
 			<tr><th>Config </th> <th> Value </th> </tr>
 			<tr><td>Country </td><td><input type="text" id="country" value=""/></td></tr>
@@ -134,13 +135,13 @@
 			<tr><td><i> (Info: This should be IP address on which PZH can be accessed via PZP) </i></td></tr>
 			<tr><td>Server Port </td><td><input type="text" id="serverport" value="443"/></td></tr>
 			<tr><td><i> (Info: If already this port is in use, next available port will be used)</i></td></tr>			
-			<tr><td>HTTPS Server Port</td><td> <input type="text" id="httpport" value="8081"/></td></tr>
-			<tr><td><i> (Info:PZH certificate is available to download at this address)</i></td></tr>
 		</table>
 			<center> <button id="startPZH" class="button">Start PZH </button> </center>
 	</div>
 	<div id = "pzp" style="background-color:#0879a9">	
+		<p style="color:white" align="right"> Help Available on Redmine to start PZP <a href="http://dev.webinos.org/redmine/projects/wp4/wiki/Running_PZP"> Running PZP </a>
 		<center> <p style="color:white"> Start Multiple PZP's, Just change common name field</p> </center>
+
 		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
 			<tr><th>Config </th> <th> Value </th> </tr>
 			<tr><td>Country </td><td><input type="text" id="pzpcountry" value=""/></td> </tr>
