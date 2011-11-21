@@ -20,11 +20,11 @@ var passfile_validation = sc.f(
 					},
 					password: {
 						type:'string'
-					},
+					}
 				},
 				additionalProperties: false
-			},
-		},
+			}
+		}
 	},
 
 	true,
@@ -33,7 +33,7 @@ var passfile_validation = sc.f(
 	function (res, callback){
 		callback(null, res);
 	}
-)
+);
 
 var authfile_validation = sc.f(
 	{
@@ -55,11 +55,11 @@ var authfile_validation = sc.f(
 					},
 					authMethodDetails: {
 						type:'string'
-					},
+					}
 				},
 				additionalProperties: false
-			},
-		},
+			}
+		}
 	},
 
 	true,
@@ -68,7 +68,7 @@ var authfile_validation = sc.f(
 	function (res, callback){
 		callback(null, res);
 	}
-)
+);
 
 if (typeof webinos === "undefined") {
 	var webinos = {};
@@ -142,44 +142,66 @@ webinos.authentication.authenticate = function (params, successCB, errorCB, obje
 		username = params[0];
 		webinos.authentication.isAuthenticated(params, function (authenticated) {
 			if (authenticated === false) {
-				ask("Password", function (password) {
-					newly_authenticated = false;
+				ask("Password", function (err, password) {
+					if (err === null || err === undefined) {
+						newly_authenticated = false;
 					
-					// commented out due to lack of zipper module in node.js 0.6.1
-					//secstore.open(storePass, storeFile, storeDir, function (err) {	
-					//	if (err === undefined || err === null) {
-							try {
-								passfile = JSON.parse(fs.readFileSync(password_filename) + "");
+						// commented out due to lack of zipper module in node.js 0.6.1
+						//secstore.open(storePass, storeFile, storeDir, function (err) {	
+						//	if (err === undefined || err === null) {
+								try {
+									passfile = JSON.parse(fs.readFileSync(password_filename) + "");
 
-								passfile_validation(passfile, function(e, result){
-									if (e !== undefined && e !== null) {
-										error.code = AuthError.prototype.UNKNOWN_ERROR;
-										error.message = "Validation error in " + password_filename;
-										errorCB(error);
-									}
-									else {
-										for (p in passfile) {
-											if (passfile[p].username === username && passfile[p].password === password) {
-												buffer = {"username" : username, "lastAuthTime" : getAuthTime() , "authMethod" : "password", "authMethodDetails" : "console inserted password"}
-												newly_authenticated = true;
-												break;
-											}
-										}
-									}
-								});
-
-								if (newly_authenticated === true) {
-									authfile = JSON.parse(fs.readFileSync(authstatus_filename) + "");
-
-									authfile_validation(authfile, function(e, result){
+									passfile_validation(passfile, function(e, result){
 										if (e !== undefined && e !== null) {
 											error.code = AuthError.prototype.UNKNOWN_ERROR;
-											error.message = "Validation error in " + authstatus_filename;
+											error.message = "Validation error in " + password_filename;
 											errorCB(error);
 										}
 										else {
-											authfile.push(buffer);
-											fs.writeFileSync(authstatus_filename, JSON.stringify(authfile), 'utf-8');
+											for (p in passfile) {
+												if (passfile[p].username === username && passfile[p].password === password) {
+													buffer = {"username" : username, "lastAuthTime" : getAuthTime() , "authMethod" : "password", "authMethodDetails" : "console inserted password"};
+													newly_authenticated = true;
+													break;
+												}
+											}
+										}
+									});
+
+									if (newly_authenticated === true) {
+										authfile = JSON.parse(fs.readFileSync(authstatus_filename) + "");
+
+										authfile_validation(authfile, function(e, result){
+											if (e !== undefined && e !== null) {
+												error.code = AuthError.prototype.UNKNOWN_ERROR;
+												error.message = "Validation error in " + authstatus_filename;
+												errorCB(error);
+											}
+											else {
+												authfile.push(buffer);
+												fs.writeFileSync(authstatus_filename, JSON.stringify(authfile), 'utf-8');
+
+												// commented out due to lack of zipper module in node.js 0.6.1
+												//secstore.close(storePass, storeFile, storeDir, function (err) {	
+												//	if (err !== undefined && err !== null) {
+												//		errorCB(err);
+												//	}
+												//	else {
+														webinos.authentication.getAuthenticationStatus([username], function (authStatus) {
+															successCB("User authenticated\n" + authStatus);
+														},
+														function (err) {
+															errorCB(err);
+														});
+												//	}
+												//});
+											}
+										});
+
+									}
+									else {
+										if (newly_authenticated === false) {
 
 											// commented out due to lack of zipper module in node.js 0.6.1
 											//secstore.close(storePass, storeFile, storeDir, function (err) {	
@@ -187,42 +209,25 @@ webinos.authentication.authenticate = function (params, successCB, errorCB, obje
 											//		errorCB(err);
 											//	}
 											//	else {
-													webinos.authentication.getAuthenticationStatus([username], function (authStatus) {
-														successCB("User authenticated\n" + authStatus);
-													},
-													function (err) {
-														errorCB(err);
-													});
+													error.code = AuthError.prototype.UNKNOWN_ERROR;
+													error.message = "Wrong username or password";
+													errorCB(error);
 											//	}
 											//});
 										}
-									});
-
-								}
-								else {
-									if (newly_authenticated === false) {
-
-										// commented out due to lack of zipper module in node.js 0.6.1
-										//secstore.close(storePass, storeFile, storeDir, function (err) {	
-										//	if (err !== undefined && err !== null) {
-										//		errorCB(err);
-										//	}
-										//	else {
-												error.code = AuthError.prototype.UNKNOWN_ERROR;
-												error.message = "Wrong username or password";
-												errorCB(error);
-										//	}
-										//});
 									}
 								}
-							}
-							catch (e) {
-								errorCB(e);
-							}
-					//	} else {		
-					//		errorCB(err);
-					//	}
-					//});
+								catch (e) {
+									errorCB(e);
+								}
+						//	} else {		
+						//		errorCB(err);
+						//	}
+						//});
+					}
+					else {
+						errorCB(err);
+					}
 				});
 			}
 			else {
@@ -294,33 +299,52 @@ getAuthTime = function () {
 
 ask = function (question, callback) {
 	"use strict";
-	var pswd = "", passwd,
+	var pswd = "", passwd, error= {}, invalid_char,
 	stdin = process.stdin, stdout = process.stdout;
 
 	stdin.resume();
 	tty.setRawMode(true); // modified to comply with node.js 0.6.1
+	invalid_char = false;
 	stdout.write(question + ": ");
 
 	passwd = function (char, key) {
-		if (key.name === 'enter') {
-			stdout.write("\n");
-			tty.setRawMode(false); // modified to comply with node.js 0.6.1
-			stdin.pause();
-			callback(pswd);
-			pswd = "";
+
+		if (key !== undefined) { // key parameter is undefined when the acquired character is a number
+			if (key.ctrl && key.name === 'c') {
+				tty.setRawMode(false); // modified to comply with node.js 0.6.1
+				process.exit();
+			}
+			switch (key.name) {
+				case "enter":
+					stdout.write("\n");
+					tty.setRawMode(false); // modified to comply with node.js 0.6.1
+					stdin.pause();
+					if (invalid_char === true) {
+						error.code = AuthError.prototype.UNKNOWN_ERROR;
+						// we don't use an error message like "invalid character" to avoid information leakage
+						error.message = "Wrong username or password";
+						callback(error, pswd);
+					}
+					else {
+						callback(null, pswd);
+					}
+					pswd = "";
+					break;
+				case "backspace":
+					pswd = pswd.substring(0, pswd.length - 1);
+					break;
+				// invalid characters
+				case "space":
+				case "tab":
+					invalid_char = true;
+					break;
+				default:
+					pswd = pswd + char;
+			}
 		}
 		else {
-			if (key.name === 'backspace') {
-				pswd = pswd.substring(0, pswd.length - 1);
-			}
-			else {
-				if (key.ctrl && key.name === 'c') {
-					tty.setRawMode(false); // modified to comply with node.js 0.6.1
-					process.exit();
-				}
-				else {
-					pswd = pswd + key.name;
-				}
+			if (char !== undefined ) { // when the acquired character is a number, only char parameter is defined
+					pswd = pswd + char;
 			}
 		}
 	};
