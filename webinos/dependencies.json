@@ -1,11 +1,18 @@
-{"api": {
-  "attestation": {
-    "name": "Attestation",
-    "location": "/webinos/api/attestation"
+{
+  "api": {
+    "test-module": {
+      "name": "Test module",
+      "location": "/webinos/api/test-module"
+    },
+    "attestation": {
+      "name": "Attestation",
+      "location": "/webinos/api/attestation"
+    }
   },
-  "test": {
-    "name": "Attestation",
-    "location": "/webinos/api/attestation"
+  "manager": {
+    "context": {
+      "name": "Context manager",
+      "location": "/webinos/common/manager/context"
+    }
   }
-}
 }
