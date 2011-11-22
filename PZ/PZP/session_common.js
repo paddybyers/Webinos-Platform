@@ -12,14 +12,25 @@ exports.debug = function(msg) {
 // This is a device id through which we recognize device
 // TODO: For any device, currently only ethernet mac address is being used
 exports.getId = function (self, callback) {
-	var id;
 	console.log('PZ Common: Selected Platform - ' + process.platform);
 	if(process.platform === 'cygwin') {
 		var req = "getmac -V -FO CSV | awk -F \',\' \'{if(match($1, \"Local Area Connection\")) print $3;}\'";
 		child_process.exec(req, function (error, stdout, stderr) {
 			//console.log('PZ Common: GetID stdout: ' + stdout);
 			//console.log('PZ Common: GetID stderr: ' + stderr);
-			id = stdout.split('\n');
+			var id = stdout.split('\n');
+			if (error !== null) {
+				console.log('PZ Common: GetID exec error: ' + error);
+			} else {
+				callback.call(self, id[0]);
+			}	
+		});
+	} else if (process.platform === 'win32') {
+		var req = 'for /f "tokens=3 delims=," %a in (\'"getmac /v /nh /fo csv"\') do @echo %a && exit /b';
+		child_process.exec(req, function (error, stdout, stderr) {
+//			console.log('PZ Common: GetID stdout: ' + stdout);
+//			console.log('PZ Common: GetID stderr: ' + stderr);
+			var id = stdout.split('\n');
 			if (error !== null) {
 				console.log('PZ Common: GetID exec error: ' + error);
 			} else {
@@ -31,7 +42,7 @@ exports.getId = function (self, callback) {
 		child_process.exec(req, function (error, stdout, stderr) {
 			//console.log('PZ Common: GetID stdout: ' + stdout);
 			//console.log('PZ Common: GetID stderr: ' + stderr);
-			id = stdout.split('\n');
+			var id = stdout.split('\n');
 			if (error !== null) {
 				console.log('PZ Common: GetID exec error: ' + error);
 			} else {
