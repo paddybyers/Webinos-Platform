@@ -1,0 +1,11 @@
+{"api": {
+  "attestation": {
+    "name": "Attestation",
+    "location": "/webinos/api/attestation"
+  },
+  "test": {
+    "name": "Attestation",
+    "location": "/webinos/api/attestation"
+  }
+}
+}
