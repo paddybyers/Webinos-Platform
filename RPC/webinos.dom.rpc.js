@@ -23,7 +23,7 @@
 		serialize: function (event) {
 			return {
 				type: event.type,
-				eventPhase: event.eventPhase,
+				// eventPhase: event.eventPhase,
 				// stopPropagation: event.stopPropagation,
 				// stopImmediatePropagation: event.stopImmediatePropagation,
 				// canceled: event.canceled,
@@ -33,7 +33,7 @@
 				cancelable: event.cancelable,
 				// defaultPrevented: event.defaultPrevented,
 				// isTrusted: event.isTrusted,
-				timeStamp: event.timeStamp
+				// timeStamp: event.timeStamp
 			}
 		}
 	}
