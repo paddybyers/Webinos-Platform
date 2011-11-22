@@ -19,16 +19,21 @@ if (typeof module === "undefined") {
 	
 	exports.utils = {}
 	
+	/**
+	 * Splits a Unix-style path into root, directory, basename and extension.
+	 * 
+	 * @param {String} path The path.
+	 * @returns {String[]} [root, directory, basename, extension]
+	 */
 	exports.utils.split = function (path) {
 		var result = /^(\/?)([\s\S]+\/(?!$)|\/)?((?:[\s\S]+?)?(\.[^.]*)?)$/.exec(path);
 		
-		// [root, directory, basename, extension]
 		return [result[1] || "", result[2] || "", result[3] || "", result[4] || ""];
 	}
 	
 	/**
-	 * Normalizes a path array, i.e., an array without slashes, empty elements, or device names (C:\), by resolving
-	 * . and .. elements. Relative and absolute paths are not distinguished.
+	 * Normalizes a path array, i.e., an array without slashes, or empty elements, by resolving . and .. elements.
+	 * Relative and absolute paths are not distinguished.
 	 * 
 	 * @param {String[]} parts The path array.
 	 * @param {Boolean} [allowAboveRoot=false] Whether the path is allowed to go above the root.
@@ -84,7 +89,7 @@ if (typeof module === "undefined") {
 	}
 	
 	exports.extname = function(path) {
-		return splitPath(path)[3];
+		return exports.utils.split(path)[3];
 	}
 
 	/**
@@ -142,8 +147,6 @@ if (typeof module === "undefined") {
 	 * 
 	 * @param {String} path The path.
 	 * @returns {Boolean} True if path is absolute, false otherwise.
-	 * 
-	 * TODO Use it, also internally!
 	 */
 	exports.isAbsolute = function (path) {
 		return path.charAt(0) == "/";
@@ -208,7 +211,7 @@ if (typeof module === "undefined") {
 	 * @param {String} to Target path;
 	 * @returns {String} The relative path.
 	 * 
-	 * TODO Check if paths are absolute (resolve if not?).
+	 * TODO Check if paths are absolute (resolve if not? fallback prefix?).
 	 */
 	exports.relative = function (from, to) {
 		var fromParts = exports.normalize(from).split("/");
