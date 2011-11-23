@@ -9,9 +9,9 @@
 	var sessionPzh = require('./session_pzh.js');
 	var sessionPzp = {};
 	var utils = require('./session_common.js');
-	var webinosMessage = require("./messaging.js");
+		var webinosMessage = require("./messagehandler.js");
 
-	sessionPzp.send = function (object, message, address) {
+	sessionPzp.send = function (message, address, object) {
 		object.sendMessage((message), address);
 	};
  
@@ -333,9 +333,9 @@
 			self.serverName = data2.from;
 			self.sessionId = data2.to;
 
-			webinosMessage.setGet(self.sessionId);
-			webinosMessage.setObject(self);
-			webinosMessage.setSend(sessionPzp.send);
+			webinosMessage.setGetOwnId(self.sessionId);
+			webinosMessage.setObjectRef(self);
+			webinosMessage.setSendMessage(sessionPzp.send);
 			msg = webinosMessage.registerSender(self.sessionId, self.serverName);
 			self.sendMessage(msg, self.serverName);
 			self.startServer(function() {
@@ -390,9 +390,10 @@
 		// Forward message to message handler
 		else { 
 			utils.debug('PZP ('+self.config.sessionId+') Message Forward to Message Handler' ); 
-			webinosMessage.setGet(self.sessionId);
-			webinosMessage.setObject(self);
-			webinosMessage.setSend(sessionPzp.send);
+			webinosMessage.setGetOwnId(self.sessionId);
+			webinosMessage.setObjectRef(self);
+			webinosMessage.setSendMessage(sessionPzp.send);
+			webinos.message.setSeparator("/");
 			webinosMessage.onMessageReceived(data2);
 		}
 	};
@@ -442,9 +443,10 @@
 				}		
 				utils.debug("PZP Client (" + self.config.sessionId +
 					")  Message Forward to Message Handler");
-				webinosMessage.setGet(self.sessionId);
-				webinosMessage.setObject(self);
-				webinosMessage.setSend(sessionPzp.send);
+				webinosMessage.setGetOwnId(self.sessionId);
+				webinosMessage.setObjectRef(self);
+				webinosMessage.setSendMessage(sessionPzp.send);
+				webinos.message.setSeparator("/");
 				webinosMessage.onMessageReceived(data1);
 
 			  	process.nextTick(function () {
@@ -549,9 +551,10 @@
 					}
 				} else {
 					 // Message is forwarded to Message handler function, onMessageReceived
-					webinosMessage.setGet(self.sessionId);
-					webinosMessage.setSend(sessionPzp.send);
-					webinosMessage.setObject(self);
+					webinosMessage.setGetOwnId(self.sessionId);
+					webinosMessage.setSendMessage(sessionPzp.send);
+					webinosMessage.setObjectRef(self);
+					webinos.message.setSeparator("/");
 					webinosMessage.onMessageReceived(parse);
 				}
 				} catch(err) {
@@ -792,9 +795,10 @@
 				} else {
 					if( typeof sessionPzp !== "undefined" && 
 						sessionPzp !== null) {
-						webinosMessage.setGet(sessionPzp.instance.sessionId);
-						webinosMessage.setObject(sessionPzp.instance);
-						webinosMessage.setSend(sessionPzp.send);
+						webinosMessage.setGetOwnId(sessionPzp.instance.sessionId);
+						webinosMessage.setObjectRef(sessionPzp.instance);
+						webinosMessage.setSendMessage(sessionPzp.send);
+						webinos.message.setSeparator("/");
 						webinosMessage.onMessageReceived(msg, msg.to);
 					}
 				}

@@ -7,13 +7,14 @@
 	var connected_pzp = null;
 	var connected_pzh = null;
 	var findServiceBindAddress = null;
-	webinos.message_send_messaging = function(object, message, to) {
+/*	webinos.message_send_messaging = function(object, message, to) {
 		webinos.message_send(to, message, null, null);
-	};
+	}; */
 	
 	webinos.message_send = function(to, rpc, successCB, errorCB) {
 		var type, id = 0;	
 		if(rpc.type !== undefined && rpc.type === "prop") {
+		console.log("rpc type is prop");
 			type = "prop";
 			rpc = rpc.payload;	
 		} else {
@@ -43,6 +44,7 @@
 			channel.send(JSON.stringify(options));
 		}
 	}
+	
 	webinos.getSessionId = function() {
 		return sessionid;
 	}
@@ -69,9 +71,11 @@
 	 */
 	 function createCommChannel(successCB) {
 		try{
-			channel  = new WebSocket('ws://'+window.location.hostname+':81');
+			//channel  = new WebSocket('ws://'+window.location.hostname+':81');
+			channel  = new WebSocket('ws://'+window.location.hostname+':8080');
 		} catch(e) {
-			channel  = new MozWebSocket('ws://'+window.location.hostname+':81');
+			//channel  = new MozWebSocket('ws://'+window.location.hostname+':81');
+			channel  = new MozWebSocket('ws://'+window.location.hostname+':8080');
 		}
 				
 		channel.onmessage = function(ev) {
@@ -97,7 +101,9 @@
 				}
 				$("<option value="+pzhid+" >" + pzhid+ "</option>").appendTo("#pzh_pzp_list");						
 				$("</optgroup>").appendTo("#pzh_pzp_list");
-				webinos.message.setGet(sessionid);
+				//webinos.message.setGet(sessionid);
+				webinos.message.setGetOwnId(sessionid);
+				
 				var msg = webinos.message.registerSender(sessionid , pzpid);
 				webinos.message_send(pzpid, msg, null, null);
 			} else if(data.type === "prop" && data.payload.status === "info") {

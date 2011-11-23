@@ -1,7 +1,7 @@
 (function() {
 
 if (typeof exports !== "undefined") {
-	var webinosMessage = require("./messaging.js");
+	var webinosMessage = require("./messagehandler.js");
 	var sessionPzh = {};
 	var utils = require('./session_common.js');
 }
@@ -31,7 +31,7 @@ function Pzh() {
 	this.lastMsg = '';
 };
 
-sessionPzh.send = function (object, message, address) {
+sessionPzh.send = function (message, address, object) {
 	object.sendMessage((message), address);
 }
 
@@ -129,12 +129,12 @@ Pzh.prototype.connect = function () {
 	self.config.sessionId = self.config.common.split(':')[0];
 	
 	// Registering getownid value in message handler
-	webinosMessage.setGet(self.config.sessionId);
+	webinosMessage.setGetOwnId(self.config.sessionId);
 	
 	// send function to be used by message handler
-	webinosMessage.setSend(sessionPzh.send);
+	webinosMessage.setSendMessage(sessionPzh.send);
 
-	webinosMessage.setObject(self);
+	webinosMessage.setObjectRef(self);
 
 	self.connected_pzh[self.config.sessionId] = {'socket': '', 
 				'name': self.config.sessionId, 
@@ -366,11 +366,13 @@ Pzh.prototype.processMsg = function(conn,data) {
 			' which is not registered : ' + parse.from);
 		}
 	} else { // Message is forwarded to Message handler function, onMessageReceived
-		webinosMessage.setGet(self.config.sessionId);
-		webinosMessage.setSend(sessionPzh.send);
-		webinosMessage.setObject(self);
+		webinosMessage.setGetOwnId(self.config.sessionId);
+	
+		webinosMessage.setSendMessage(sessionPzh.send);
+		webinosMessage.setObjectRef(self);
 		if(payload !== null) 
 			parse.payload = payload;
+		webinos.message.setSeparator("/");
 		webinosMessage.onMessageReceived(parse);
 	}
 };
@@ -553,6 +555,7 @@ Pzh.prototype.connectOtherPZH = function(server, port) {
 				conn_pzh.write(buf);
 
 			} else {
+				webinos.message.setSeparator("/");
 				webinosMessage.onMessageReceived(parse);
 			}
 				
