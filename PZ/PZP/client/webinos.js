@@ -71,11 +71,9 @@
 	 */
 	 function createCommChannel(successCB) {
 		try{
-			//channel  = new WebSocket('ws://'+window.location.hostname+':81');
-			channel  = new WebSocket('ws://'+window.location.hostname+':8080');
+			channel  = new WebSocket('ws://'+window.location.hostname+':81');
 		} catch(e) {
-			//channel  = new MozWebSocket('ws://'+window.location.hostname+':81');
-			channel  = new MozWebSocket('ws://'+window.location.hostname+':8080');
+			channel  = new MozWebSocket('ws://'+window.location.hostname+':81');
 		}
 				
 		channel.onmessage = function(ev) {
