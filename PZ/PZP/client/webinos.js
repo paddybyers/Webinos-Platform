@@ -7,9 +7,6 @@
 	var connected_pzp = null;
 	var connected_pzh = null;
 	var findServiceBindAddress = null;
-/*	webinos.message_send_messaging = function(object, message, to) {
-		webinos.message_send(to, message, null, null);
-	}; */
 	
 	webinos.message_send = function(to, rpc, successCB, errorCB) {
 		var type, id = 0;	
@@ -28,7 +25,7 @@
 		if(typeof rpc.method !== undefined && rpc.method === 'ServiceDiscovery.findServices')
 			id = rpc.params[2];
 			
-		var options = {"type": type, 
+		var message = {"type": type, 
 						"id": id, 
 						"from": sessionid, 
 						"to": to, 
@@ -38,10 +35,10 @@
 		if(rpc.register !== "undefined" && rpc.register === true) {
 			channel.send(JSON.stringify(rpc));
 		} else {
-			webinos.message.createMessageId(options, successCB, errorCB);
+			webinos.message.createMessageId(message, successCB, errorCB);
 			console.log('WebSocket Client: Message Sent');
-			console.log(options);
-			channel.send(JSON.stringify(options));
+			console.log(message);
+			channel.send(JSON.stringify(message));
 		}
 	}
 	
@@ -175,6 +172,7 @@
 			else{
 				var tmp = new typeMap[baseServiceObj.api](baseServiceObj);
 			}
+			
 			webinos.ServiceDiscovery.registeredServices++;
 			callback.onFound(tmp);
 		}

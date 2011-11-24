@@ -10,7 +10,7 @@
 	else if (typeof webinos.utils !== 'undefined')
 		var utils = webinos.utils;
 	
-	if (typeof utils !== 'undefined')
+	if (typeof utils !== 'undefined') {
 		utils.rpc = {
 			request: function (service, method, objectRef, successCallback, errorCallback, responseto, msgid) {
 				return function () {
@@ -36,6 +36,7 @@
 				};
 			}
 		};
+	}
 
 write = null;
 
