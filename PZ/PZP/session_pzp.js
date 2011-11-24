@@ -598,6 +598,17 @@
 		server.listen(self.pzp_serverPort, self.ipaddr);
 	};
 	
+	/**
+	 * Get the session id for this PZP if available.
+	 */
+	sessionPzp.getSessionId = function() {
+		debugger;
+		if (typeof sessionPzp.instance !== 'undefined') {
+			return sessionPzp.instance.sessionId;
+		}
+		return undefined;
+	};
+	
 	/* starts pzp, creates client, start servers and event listeners
 	 * @param server name
 	 * @param port: port on which PZH is running
@@ -816,6 +827,7 @@
 		exports.startWebSocketServer = sessionPzp.startWebSocketServer;
 		exports.send = sessionPzp.send; 
 		exports.instance = sessionPzp.instance;
+		exports.getSessionId = sessionPzp.getSessionId; 
 	}
 
 }());

@@ -225,6 +225,12 @@ webinos.rpc.handleMessage = function (message, responseto, msgid){
  * is invoked if an RPC response with same id was received
  */
 webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto, msgid) {
+	if (typeof rpc.serviceAddress !== 'undefined') {
+		// this only happens in the web browser
+		webinos.message_send(rpc.serviceAddress, rpc, callback, errorCB); // TODO move the whole mmessage_send function here?
+		return;
+	}
+	
 	if (typeof callback === 'function'){
     	rpc.id = Math.floor(Math.random()*101);
 		var cb = {};
@@ -265,6 +271,11 @@ webinos.rpc.createRPC = function (service, method, params) {
 	if (typeof service === "object") {
 		// e.g. FileReader@2375443534.truncate
 		rpc.method = service.api + "@" + service.id + "." + method;
+		
+		// TODO find a better way to store the service address?
+		if (typeof service.serviceAddress !== 'undefined') {
+			rpc.serviceAddress = service.serviceAddress;
+		}
 	} else {
 		rpc.method = service + "." + method;
 	}
@@ -342,7 +353,7 @@ webinos.rpc.unregisterObject = function (callback) {
  * 
  */
 webinos.rpc.findServices = function (serviceType) {
-	results = new Array();
+	var results = [];
 
 	var cstar = serviceType.api.indexOf("*");
 	if(cstar !== -1){
@@ -357,7 +368,6 @@ webinos.rpc.findServices = function (serviceType) {
 					}
 				}
 			}
-		return results;
 		}
 		//*, *c
 		else {
@@ -368,7 +378,6 @@ webinos.rpc.findServices = function (serviceType) {
 						results.push(webinos.rpc.objects[i][j]);
 					}
 				}
-                return results; 		
 			}
 			else {
 				var restString = serviceType.api.substr(1);
@@ -379,7 +388,6 @@ webinos.rpc.findServices = function (serviceType) {
  						}
  					}
  				}
- 				return results;
 			}
 		}
       
@@ -388,10 +396,18 @@ webinos.rpc.findServices = function (serviceType) {
 		for (var i in webinos.rpc.objects) {
 			if (i === serviceType.api) {
 				console.log("findService: found matching service(s) for ServiceType: " + serviceType.api);
-				return webinos.rpc.objects[i];
+
+				results = webinos.rpc.objects[i];
 			}
 		} 
 	}
+
+	// add address where this service is available, namely this pzp sessionid
+	for (var i=0; i<results.length; i++) {
+		results[i].serviceAddress = Pzp.getSessionId();
+	}
+	
+	return results;
 };
 
 /**
@@ -416,11 +432,13 @@ this.RPCWebinosService = function (obj) {
 		this.api = '';
 		this.displayName = '';
 		this.description = '';
+		this.serviceAddresss = '';
 	} else {
 		this.id = obj.id || '';
 		this.api = obj.api || '';
 		this.displayName = obj.displayName || '';
 		this.description = obj.description || '';
+		this.serviceAddress = obj.serviceAddress || '';
 	}
 };
 
@@ -452,6 +470,8 @@ if (typeof exports !== 'undefined'){
 	// none webinos modules
 	var md5 = require('./md5.js');
 
+	// webinos related modules
+	var Pzp = require('./session_pzp.js');
 	require('./rpc_servicedisco.js');
 
 	
