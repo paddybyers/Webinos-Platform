@@ -16,7 +16,6 @@
 #include <openssl/pem.h>
 #include <openssl/asn1.h>
 
-
 #include <string.h>
 #include <iostream>
 #include <fstream>
@@ -71,9 +70,8 @@ void KeyGenerator::Initialize(Handle<Object> target) {
  
 /*
  * This functions generates RSA private key.
- * Input Parameters
- *	 bits: Bits for key to be generated
- *  file-name: File Key Name
+ * @param bits: Bits for key to be generated
+ * @param file-name: File Key Name
  */
 Handle<Value> KeyGenerator::GenPrivateKey(const Arguments& args) {
 	HandleScope scope;
@@ -112,17 +110,16 @@ Handle<Value> KeyGenerator::GenPrivateKey(const Arguments& args) {
 }
 
 /* This function generates self signed certificate. This is generic function called by PZP and PZH. 
- * Input Parameters used in certificate generation
- * Country: Country Name
- * State: Country/State Name
- * City: City Name
- * Organization: Organization
- * OrganizationUnit: Organization Unit
- * CommonName: This field holds device friendly name and as well as Device MAC Address
- * Email: Usually Email of the person to be contacted for certificate
- * Days: Number of days the key is valid for
- * Outfile: Generated file
- * KeyFile: private key
+ * @param Country: Country Name
+ * @param State: Country/State Name
+ * @param City: City Name
+ * @param Organization: Organization
+ * @param OrganizationUnit: Organization Unit
+ * @param CommonName: This field holds device friendly name and as well as Device MAC Address
+ * @param Email: Usually Email of the person to be contacted for certificate
+ * @param Days: Number of days the key is valid for
+ * @param Outfile: Generated file
+ * @param KeyFile: private key
  */
 Handle<Value> KeyGenerator::GenSelfSignedCertificate(const Arguments& args) {
 	HandleScope scope;
@@ -231,12 +228,12 @@ Handle<Value> KeyGenerator::GenSelfSignedCertificate(const Arguments& args) {
 }
 
 /*
- * Only difference from above function is signing is different, here master certificate is used for signing PZP and PZH certificate
- * Input Parameters:
- * CertInput: Contents of client certificate
- * Days: Number of days certificate is valid for
- * WriteToFile: File in which result will be written
- * ServerFile: Server certificate information
+ * Only difference from above function is signing is different,
+ * here master certificate is used for signing PZP and PZH certificate
+ * @param CertInput: Contents of client certificate
+ * @param Days: Number of days certificate is valid for
+ * @param WriteToFile: File in which result will be written
+ * @param ServerFile: Server certificate information
  */
 
 Handle<Value> KeyGenerator::GenCertifiedCertificate(const Arguments& args) {

@@ -1,0 +1,196 @@
+<html>
+<head>
+	<title>webinos | Hello Gear</title>
+	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
+	<script type="text/javascript" src="/rpc.js"></script>
+	<script type="text/javascript" src="/client/webinos.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.5.2.js"></script>
+		<script type="text/javascript">
+			
+			$(document).ready(function() {
+					var vehicle = null;		
+					var listeners = new Array();
+					var _vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passenger-front', 'climate-passenger-rear-left','passenger-rear-right','lights-fog-front','lights-fog-rear','lights-signal-right','lights-signal-warn','lights-parking-hibeam','lights-head','lights-head','wiper-front-wash','wiper-rear-wash','wiper-automatic','wiper-front-once','wiper-rear-once','wiper-front-level1','wiper-front-level2','destination-reached','destination-changed','destination-cancelled','parksensors-front','parksensors-rear','tripcomputer', 'shift'); 
+					postMessage('Info','Page loaded. Please Initialize');
+					
+					var handleShiftData = function(event){
+						postMessage("info","new Shift-Event received.");
+						$('#info').html("gear: <br />" + event.gear);
+					};
+					
+					var handleTripData = function(data){
+						postMessage("info","new TripComputer-Event received.");
+						$('#info').empty();
+						$('#info').append("<p>Average Consumption1: "+ data.averageConsumption1 +"</p>");
+						$('#info').append("<p>Average Consumption2: "+ data.averageConsumption2 +"</p>");
+						$('#info').append("<p>Average Speed1: "+ data.averageSpeed1 +"</p>");
+						$('#info').append("<p>Average Speed2: "+ data.averageSpeed2 +"</p>");
+						$('#info').append("<p>Trip distance: "+ data.tripDistance +"</p>");
+						$('#info').append("<p>Mileage "+ data.mileage +"</p>");
+						$('#info').append("<p>Range " 	+ data.range +"</p>");
+						
+					}
+					
+					
+					var handleParkSensorsData = function(data){
+						postMessage("info","new ParkSensorsData received for position: " + data.position);
+						$('#info').empty();
+						$('#info').append("<p>Position: "+ data.position +"</p>");
+						$('#info').append("<p>Left: "+ data.left +"</p>");
+						$('#info').append("<p>Middle Left: "+ data.midLeft +"</p>");
+						$('#info').append("<p>Middle Right: "+ data.midRight +"</p>");
+						$('#info').append("<p>Right: "+ data.right +"</p>");
+						
+					}
+						
+					var errorCB = function(error){
+						postMessage('error', "ERROR:" + error.message);
+						console.log('error' + error.message);
+					};
+					$('#vehicleDataId').change(function(){
+						var listenerRegistered = false;
+						for(i=0; i < listeners.length; i++){
+							if(listeners[i] == $('#vehicleDataId').val()){
+								listenerRegistered = true;
+								break;	
+							}	
+						}
+						if(listenerRegistered){
+							$('#removeListener').removeAttr('disabled');
+							$('#addListener').attr('disabled', 'true');	
+						}else{					
+							$('#addListener').removeAttr('disabled');
+							$('#removeListener').attr('disabled', 'true');
+
+						}
+						
+						
+					});
+					
+					
+					
+					$('#getData').bind('click', function(){
+						vehicle.get($('#vehicleDataId').val(), getMessageHandler($('#vehicleDataId').val()) ,errorCB);
+						});
+						
+						
+					$('#init').click(function(e) {
+                           webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
+                	    	
+							console.log("service found...");
+							
+							vehicle = service;
+							postMessage("Connected Vehicle System. Please choose a function");
+							$('#addListener').removeAttr('disabled');
+							$('#getData').removeAttr('disabled');
+							$('#vehicleDataId').removeAttr('disabled');
+							//$('#requestGuidance').removeAttr('disabled');
+							
+							$('#info').html("<img src='ajaxloader.gif'>");
+							
+							$('#findService').attr('disabled', 'true');
+							$('#findService').val('Vehicle found');
+						
+                	}});
+                    });
+					
+					$('#addListener').bind('click', function(){
+						
+
+						vehicle.addEventListener($('#vehicleDataId').val(), getMessageHandler($('#vehicleDataId').val()), false);
+						listeners.push($('#vehicleDataId').val());
+						
+						$('#removeListener').removeAttr('disabled');
+						$('#addListener').attr('disabled', 'true');	
+						
+					});
+					$('#removeListener').bind('click', function(){
+						vehicle.removeEventListener($('#vehicleDataId').val(), getMessageHandler($('#vehicleDataId').val()), false);
+						postMessage('info','Listener removed for' + $('#vehicleDataId').val());
+						$('#info').html("<img src='ajaxloader.gif'>");
+						for(i = 0; listeners.length; i++){
+							if(listeners[i] == $('#vehicleDataId').val()){
+								listeners.splice(i,1);
+								break;	
+							}
+					}
+						$('#addListener').removeAttr('disabled');
+						$('#removeListener').attr('disabled', 'true');
+					});
+						
+					$(window).unload(function(e) {
+                        for(i= 0; i < listeners.length; i++){
+						console.log('Removing listener for ' + listeners[i]);
+							vehicle.removeEventListener(listeners[i],getMessageHandler(listeners[i]), false);
+						}
+                    });
+						
+					function postMessage(type,message){
+						var time = new Date();
+						$("#message").html(message + " (" + time.toUTCString() +")");
+						if(type == "error"){
+							$("#status").addClass('error');
+						}else{
+							$("#status").removeClass('error');
+						}
+					}
+					function getMessageHandler(vehicleDataId){
+						switch(vehicleDataId){
+							case "shift":
+								return handleShiftData;
+								break;
+							case "tripcomputer":
+								return handleTripData;
+								break;
+							case "parksensors-front":
+								return handleParkSensorsData;
+								break;
+							case "parksensors-rear":
+								return handleParkSensorsData;
+								break;
+							default:
+								return handleShiftData;
+						}						
+					}
+				
+		
+				         	    
+					for(i=0; i < _vehicleDataIds.length; i++){
+						$('#vehicleDataId').append(new Option(_vehicleDataIds[i],_vehicleDataIds[i],true,true));
+					}				
+					
+			});			
+			
+</script>
+</head>
+<body>
+<div id="content">
+	<div id="header">
+		<h1><img src="testbed_logo.png"></h1>
+     </div>
+     <div id="functions">
+		<h2>Testfunctions:</h2>
+        <!-- <h3>First Step</h3>	
+        <p><input type="button" id="findService" value="initialize" class="button"/></p>  -->
+		<h3>Access vehicle data</h3>
+        <p>
+            <input type="button" id="init" value="initialize System" class="button"/><br />
+            <select id="vehicleDataId" disabled>
+            </select><br/>
+            <input type="button" id="getData" value="get Data" disabled class="button"/><br />
+            <input type="button" id="addListener" value="add EventListener" disabled class="button"/><br>
+            <input type="button" id="removeListener" value="remove EventListener" disabled class="button"/><br>
+            </p>
+         <h3>Navigationfunctions</h3>
+			<input type="button" id="requestGuidance" value="request Guidance" disabled class="button"/>
+            <input type="button" id="findDestinations" value="find POI" disabled class="button"/>
+		</p>
+    </div>
+
+<div id="info"></div>
+
+<div id="status">STATUS: <span id="message">Please connect to PZH</span></div>
+</div>
+
+</body>
+</html>

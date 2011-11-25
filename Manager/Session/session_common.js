@@ -1,7 +1,9 @@
 var  fs = require('fs'),
+     crypto = require('crypto'),	
 	x,
 	generator;
 
+// node.js has changed directory structure. Might be not required in future
 x = process.version;
 x = x.split('.');
 if ( x[1] >= 5) {
@@ -10,7 +12,8 @@ if ( x[1] >= 5) {
 	generator = require('./build/default/generator.node');
 }
 
-exports.readConfig = function (self) {
+//read config.txt to load values needed for certificate creation and file name
+exports.readConfig = function (session, self) {
 	fs.readFile('config.txt', function (err , data){
 		if (err) {
 			throw err;
@@ -23,65 +26,43 @@ exports.readConfig = function (self) {
 
 		for(i = 0; i < data1.length; i += 1) {
 			if(data1[i][0] === 'country') {
-				self.config.country = data1[i][1];
+				session.config.country = data1[i][1];
 			} else if(data1[i][0] === 'state') {
-				self.config.state = data1[i][1];
+				session.config.state = data1[i][1];
 			} else if(data1[i][0] === 'city') {
-				self.config.city = data1[i][1];
+				session.config.city = data1[i][1];
 			} else if(data1[i][0] === 'organization') {
-				self.config.orgname = data1[i][1];
+				session.config.orgname = data1[i][1];
 			} else if(data1[i][0] === 'organizationUnit') {
-				self.config.orgunit = data1[i][1];
+				session.config.orgunit = data1[i][1];
 			} else if(data1[i][0] === 'common') {
-				self.config.common = data1[i][1];
+				session.config.common = data1[i][1];
 			} else if(data1[i][0] === 'email') {
-				self.config.email = data1[i][1];
+				session.config.email = data1[i][1];
 			} else if(data1[i][0] === 'days') {
-				self.config.days = data1[i][1];
+				session.config.days = data1[i][1];
 			} else if(data1[i][0] === 'keyName') {
-				self.config.keyname = data1[i][1];
+				session.config.keyname = data1[i][1];
 			} else if(data1[i][0] === 'keySize') {
-				self.config.keysize = data1[i][1];
+				session.config.keysize = data1[i][1];
 			} else if(data1[i][0] === 'certName') {
-				self.config.certname = data1[i][1];
+				session.config.certname = data1[i][1];
 			} else if(data1[i][0] === 'caName') {
-				self.config.caname = data1[i][1];
+				session.config.caname = data1[i][1];
 			} else if (data1[i][0] === 'clientCertName') {
-				self.config.clientcertname = data1[i][1];
+				session.config.clientcertname = data1[i][1];
 			} else if (data1[i][0] === 'masterKeyName') {
-				self.config.masterkeyname = data1[i][1];
+				session.config.masterkeyname = data1[i][1];
 			} else if (data1[i][0] === 'masterKeySize') {
-				self.config.masterkeysize = data1[i][1];
+				session.config.masterkeysize = data1[i][1];
 			} else if (data1[i][0] === 'masterCertName') {
-				self.config.mastercertname = data1[i][1];
+				session.config.mastercertname = data1[i][1];
 			}
 		}
 		self.emit('readConfig', 'configuration read from config.txt');
 	});
 };
-
-exports.checkFiles = function(self) {
-	fs.readFile(self.config.keyname, function (err) {
-		if (err) {
-			// Bits for key to be generated | KeyName
-			generator.genPrivateKey(self.config.keysize, self.config.keyname);
-			generator.genSelfSignedCertificate(self.config.country,
-					self.config.state,
-					self.config.city,
-					self.config.orgname,
-					self.config.orgunit,
-					self.config.common,
-					self.config.email,
-					self.config.days,
-					self.config.certname,
-					self.config.keyname);
-			self.emit('generatedCert','true');
-			return;	
-		}
-		self.emit('generatedCert','false');
-	});
-};
-
+//This is used for generating id for session. This code is currently not used.
 exports.generateSessionId = function(cn, options) {
 	var temp, obj = {}, id, tmp;
 	obj={'commnonname':cn, 'sessionid':''};
@@ -99,33 +80,39 @@ exports.generateSessionId = function(cn, options) {
 	return obj;
 };
 
-exports.serverConfig = function(config) {
-	var options = {
-		key: fs.readFileSync(config.keyname),
-		cert: fs.readFileSync(config.certname),
-		ca: /*[*/fs.readFileSync(config.mastercertname),/*,fs.readFileSync('othrecert.pem')],*/// This is self signed certificate, so PZH is its own CA
-		requestCert:true, // This field controls whether client certificate will be fetched for mutual authentication
-		requestUnauthorized:false
-	};
-	return options
-}
-
-exports.removeClient = function(self, conn) {
-	for(i = 0; i < webinos.session.pzh.connected_pzp.length; i += 1) {
-		if(webinos.session.pzh.connected_pzp[i].socket.socket.remotePort === conn.socket.remotePort) {
-			for( j =0; j < self.connected_client.length; j += 1) {
-				if(self.connected_client[j].sessionid === webinos.session.pzh.connected_pzp[i].session) { 
-					console.log('PZ Common: Removed client: '+self.connected_client[j].sessionid );
-					self.connected_client.pop(j);
-					break;
-				}
-			}
-			webinos.session.pzh.connected_pzp.pop(i);
-			break;
+/* generate self signed certificates if certificates are not present. 
+ * This results in native code call.Create self signed certificate for PZH. 
+ * It performs following functionality
+ * 1. openssl genrsa -out server-key.pem
+ * 2. openssl req -new -key server-key.pem -out server-csr.pem
+ * 3. openssl x509 -req -days 30 -in server-csr.pem -signkey server-key.pem -out server-cert.pem
+ * 
+ */
+exports.generateSelfSignedCert = function(session, self) {
+	fs.readFile(session.config.keyname, function (err) {
+		if (err) {
+			// Bits for key to be generated | KeyName
+			generator.genPrivateKey(session.config.keysize, session.config.keyname);
+			generator.genSelfSignedCertificate(session.config.country,
+					session.config.state,
+					session.config.city,
+					session.config.orgname,
+					session.config.orgunit,
+					session.config.common,
+					session.config.email,
+					session.config.days,
+					session.config.certname,
+					session.config.keyname);
+			self.emit('generatedCert','true');
+			return;	
 		}
-	}
+		self.emit('generatedCert','false');
+	});
 };
 
+/* This creates certificate signed by master certificate on PZH. This function
+ *  is used twice on PZH only. This results in native code call.
+ */
 exports.generateServerCertifiedCert = function(cert, config) {
 	generator.genCertifiedCertificate(cert,
 		config.days,
@@ -137,6 +124,9 @@ exports.generateServerCertifiedCert = function(cert, config) {
 		});
 };
 
+/* This is called once from PZH to generate master certificate for PZH.
+ * This results in native code call.
+ */
 exports.generateClientCertifiedCert = function(cert, config) {
 	generator.genCertifiedCertificate(cert,
 		config.days,
@@ -148,6 +138,9 @@ exports.generateClientCertifiedCert = function(cert, config) {
 		});
 };
 
+/* Before adding client it checks if client is already present or not.
+ * Not used currently
+ */
 exports.checkClient = function (connected_client, cn){
 	var found = false;
 	for(i = 0; i < connected_client.length; i += 1) {
@@ -159,28 +152,37 @@ exports.checkClient = function (connected_client, cn){
 	return found;
 };
 
-exports.masterCert = function (self) {
+/*  It removes the connected PZP details.
+ */
+exports.removeClient = function(client, conn) {
+	for (myKey in client){
+		if(client[myKey] === conn) {
+			console.log('PZ Common : removed client ' + myKey );
+			break;
+		}
+	}
+};
+
+/* This is called once from PZH to generate master certificate for PZH. 
+ * This results in native code call.
+ */
+exports.generateMasterCert = function (session, self) {
 	console.log('PZ Common: generating master server key');
 	// Bits for key to be generated | KeyName
-	generator.genPrivateKey(self.config.masterkeysize, self.config.masterkeyname);
+	generator.genPrivateKey(session.config.masterkeysize, session.config.masterkeyname);
 
 	console.log('PZ Common: generating master server cert');
 	// Country, State, City, OrgName, OrgUnit, Common, Email, Days, CertificateName
-	self.config.common = 'MasterCert:' + self.config.common;
-	generator.genSelfSignedCertificate(self.config.country,
-						self.config.state,
-						self.config.city,
-						self.config.orgname,
-						self.config.orgunit,
-						self.config.common,
-						self.config.email,
-						self.config.days,
-						self.config.mastercertname,
-						self.config.masterkeyname);
-};
-
-exports.addTrustedCert = function(self) {
-	console.log('PZ Common: Add Cert ');
-	generator.addTrustedCert();
+	session.config.common = 'MasterCert:' + session.config.common;
+	generator.genSelfSignedCertificate(session.config.country,
+						session.config.state,
+						session.config.city,
+						session.config.orgname,
+						session.config.orgunit,
+						session.config.common,
+						session.config.email,
+						session.config.days,
+						session.config.mastercertname,
+						session.config.masterkeyname);
 };
 
