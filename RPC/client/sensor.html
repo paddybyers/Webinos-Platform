@@ -6,6 +6,7 @@
 	<script type="text/javascript" src="/client/webinos.sensors.js"></script>
 	<script type="text/javascript"
 		src="http://code.jquery.com/jquery-1.5.2.js"></script>
+	<script type="text/javascript" src="/messagehandler.js"></script>
 	<script type="text/javascript">
 
 	function logObj(obj, name){
@@ -14,11 +15,15 @@
 			if (typeof obj[myKey] == 'object') logObj(obj[myKey], name + "." + myKey);
 		}
 	}
+	var address;
 	
             $(document).ready(function() {
             	    sensors = [];
                     $('#findService').bind('click', function() {
-                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/sensors.temperature'), {onFound: function (service) {
+						address = $('#pzh_pzp_list').val();
+
+                	    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://webinos.org/api/sensors.temperature'), 
+						{onFound: function (service) {
                 	    	sensors.push(service);
                 	    	$('#messages').append('<li> New Sensor found: ' + service.api + '</li>');
 
@@ -92,6 +97,7 @@
 	<div >
 		<div >
 			<p>
+				<div> PZH PZP LIST : <select id="pzh_pzp_list"> <option> </option> </select> <br> </div>
 				<button id="findService">Find Sensors</button>
 				<button id="cls">Clear</button>
 				<button id="bind">Bind Sensors</button>

@@ -1,17 +1,63 @@
 (function() {
-
+	if (typeof webinos === "undefined") webinos = {};
+	var channel = null;
+	var sessionid = null;
+	var pzpid = null;
+	var pzhid = null;
+	var connected_pzp = null;
+	var connected_pzh = null;
+	var findServiceBindAddress = null;
 	
-	channel = null;
-	function write(text){
-		if (channel != null){
-			channel.send(text);
+	webinos.message_send = function(to, rpc, successCB, errorCB) {
+		var type, id = 0;	
+		if(rpc.type !== undefined && rpc.type === "prop") {
+		console.log("rpc type is prop");
+			type = "prop";
+			rpc = rpc.payload;	
+		} else {
+			type = "JSONRPC";
 		}
-		else{
-			var toSend = text;
-			createCommChannel(function (){
-				channel.send(toSend);
-			});
+		if(rpc.fromObjectRef === undefined)
+			rpc.fromObjectRef = Math.floor(Math.random()*1001);
+		if(rpc.id === undefined)
+			rpc.id = Math.floor(Math.random()*1001);
+		
+		if(typeof rpc.method !== undefined && rpc.method === 'ServiceDiscovery.findServices')
+			id = rpc.params[2];
+			
+		var message = {"type": type, 
+						"id": id, 
+						"from": sessionid, 
+						"to": to, 
+						"resp_to": sessionid, 
+						"payload": rpc
+						};
+		if(rpc.register !== "undefined" && rpc.register === true) {
+			channel.send(JSON.stringify(rpc));
+		} else {
+			webinos.message.createMessageId(message, successCB, errorCB);
+			console.log('WebSocket Client: Message Sent');
+			console.log(message);
+			channel.send(JSON.stringify(message));
 		}
+	}
+	
+	webinos.getSessionId = function() {
+		return sessionid;
+	}
+	webinos.getPZPId = function() {
+		return pzpid;
+	}
+	webinos.getPZHId = function() {
+		return pzhid;
+	}
+	webinos.getOtherPZP = function() {
+		return otherpzp;
+	}
+	webinos.findServiceBindAddress = function(address) {
+		if(typeof address !== "undefined" && address!== "null")
+			findServiceBindAddress = address;
+		return findServiceBindAddress;
 	}
 	
 	/**
@@ -20,30 +66,58 @@
 	 * for now this channel is used for sending RPC, later the webinos
 	 * messaging/eventing system will be used
 	 */
-	function createCommChannel (successCB){
+	 function createCommChannel(successCB) {
 		try{
-		channel  = new WebSocket('ws://'+window.location.hostname+':8080');
-		}catch(e){
-			channel  = new MozWebSocket('ws://'+window.location.hostname+':8080');
+			channel  = new WebSocket('ws://'+window.location.hostname+':81');
+		} catch(e) {
+			channel  = new MozWebSocket('ws://'+window.location.hostname+':81');
 		}
-		channel.onopen = function() {
-			webinos.rpc.setWriter(write);
-			if (typeof successCB === 'function') successCB();
-		};
+				
 		channel.onmessage = function(ev) {
-			webinos.rpc.handleMessage(ev.data);
+			console.log('WebSocket Client: Message Received');
+			console.log(JSON.parse(ev.data));
+			var data = JSON.parse(ev.data);
+			if(data.type === "prop" && data.payload.status === 'registeredBrowser') {
+				sessionid = data.to;
+				pzpid = data.from;				
+				pzhid = data.payload.pzh;
+				connected_pzp = data.payload.connected_pzp;
+				connected_pzh = data.payload.connected_pzh;
+				$("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
+				var i;
+				for(i =0; i < connected_pzp.length; i++) {
+					$("<option value=" + connected_pzp[i] + " >" +connected_pzp[i] + "</option>").appendTo("#pzh_pzp_list");					
+				}
+				$("<option value="+pzpid+" >" + pzpid+ "</option>").appendTo("#pzh_pzp_list");						
+				$("</optgroup>").appendTo("#pzh_pzp_list");
+				$("<optgroup label = 'PZH' >").appendTo("#pzh_pzp_list");
+				for(i =0; i < connected_pzh.length; i++) {
+					$("<option value=" + connected_pzh[i] + " >" + + "</option>").appendTo("#pzh_pzp_list");					
+				}
+				$("<option value="+pzhid+" >" + pzhid+ "</option>").appendTo("#pzh_pzp_list");						
+				$("</optgroup>").appendTo("#pzh_pzp_list");
+				//webinos.message.setGet(sessionid);
+				webinos.message.setGetOwnId(sessionid);
+				
+				var msg = webinos.message.registerSender(sessionid , pzpid);
+				webinos.message_send(pzpid, msg, null, null);
+			} else if(data.type === "prop" && data.payload.status === "info") {
+               	//document.getElementById("message").innerHTML = "";
+				$('#message').append('<li>'+data.payload.message+'</li>');				
+			} else if(data.type === "prop" && data.payload.status === "pzp_info") {
+				$("<option value=" + data.payload.message + " >" +data.payload.message + "</option>").appendTo("#pzp_list");				
+				$('#message').append('<li> PZP just joined: '+data.payload.message+'</li>');	
+			} else {
+				//webinos.message.setGet(sessionid);
+				//webinos.message.setObject(this);
+				//webinos.message.setSend(webinos.message_send_messaging);
+				webinos.message.onMessageReceived(data, data.to);
+			}
 		};
 	}
 	createCommChannel ();
 	
-	
-	
-	
 	if (typeof webinos === 'undefined') webinos = {}; 
-	
-	
-	
-
 	
 	///////////////////// WEBINOS INTERNAL COMMUNICATION INTERFACE ///////////////////////////////
 
@@ -60,7 +134,8 @@
 	webinos.ServiceDiscovery = {};
 	webinos.ServiceDiscovery.registeredServices = 0;
 	
-	webinos.ServiceDiscovery.findServices = function (serviceType, callback) {
+	webinos.ServiceDiscovery.findServices = function (address, serviceType, callback) {
+		findServiceBindAddress = address;
 		// pure local services..
 		if (serviceType == "BlobBuilder"){
 			var tmp = new BlobBuilder();
@@ -73,6 +148,7 @@
 			var baseServiceObj = params;
 			
 			console.log("servicedisco: service found.");
+			$('#message').append('<li> Found Service: '+baseServiceObj.api+'</li>');				
 			
 			var typeMap = {};
 			if (typeof webinos.file !== 'undefined' && typeof webinos.file.LocalFileSystem !== 'undefined')
@@ -102,8 +178,8 @@
 			callback.onFound(tmp);
 		}
 		
-		var rpc = webinos.rpc.createRPC("ServiceDiscovery", "findServices", [serviceType]);
-		
+		var id = Math.floor(Math.random()*1001);
+		var rpc = webinos.rpc.createRPC("ServiceDiscovery", "findServices", [serviceType, sessionid, id]);
 		rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID
 		
 		var callback2 = new RPCWebinosService({api:rpc.fromObjectRef});
@@ -113,7 +189,7 @@
 		};
 		webinos.rpc.registerCallbackObject(callback2);
 		
-		webinos.rpc.executeRPC(rpc);
+		webinos.message_send(findServiceBindAddress, rpc, callback2);
 		
 		return;
 	};

@@ -7,6 +7,8 @@ Manager/Context/Storage/data/context.json
 
 # ignore generated certificates
 *.pem
+*.csr
+*.srl
 
 # ignore backup files
 *~

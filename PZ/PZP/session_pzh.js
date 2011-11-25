@@ -1,7 +1,7 @@
 (function() {
 
 if (typeof exports !== "undefined") {
-	var webinosMessage = require("./messagehandler.js");
+	var webinosMessage = require("../../RPC/messagehandler.js");
 	var sessionPzh = {};
 	var utils = require('./session_common.js');
 }
@@ -302,7 +302,7 @@ Pzh.prototype.processMsg = function(conn,data) {
 	if(parse.type === 'prop' && payload.status === 'clientCert' ) {
 		var i, id, id1=0;
 		fs.readdir(__dirname, function(err, files) {
-			for(i in files) {
+			for(var i=0; i<files.length; i++) {
 				if( (files[i].indexOf('pzh',0) === 0) &&  
 				(files[i].indexOf('client_certified', 0) !== -1)) {
 					id = files[i].split('_');
@@ -384,7 +384,7 @@ Pzh.prototype.configurePZH = function(contents, callback) {
 	var name, i, k, j;
 	var flag = true, common = '', data1;
 	fs.readdir(__dirname, function(err, files) {
-		for(i in files) {
+		for(var i=0; i<files.length; i++) {
 			if( (files[i].indexOf('pzh',0) === 0) &&  files[i].indexOf('key.pem', 0) !== -1) {
 				id = files[i].split('_');
 				data1 = contents.toString().split('\n');

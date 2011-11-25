@@ -4,7 +4,8 @@
     <script src="jquery-1.6.4.min.js"></script>
     <script type="text/javascript" src="../rpc.js"></script>
 	<script type="text/javascript" src="webinos.js"></script>
-       
+	<script type="text/javascript" src="/messagehandler.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
     <script>
         jQuery(window).ready(function(){
             jQuery("#btnInit").click(initiate_geolocation);
@@ -18,7 +19,8 @@
 	
 		function bindservice() {
 		    // bind geolocation rpc service
-		    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
+			var address = $('#pzh_pzp_list').val();
+		    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
 		    	geoLocationService = service;
 		    	document.getElementById('position').innerHTML = "Geolocation rpc service found";   	
 		    }});	    
@@ -105,6 +107,7 @@
   </head>
   <body>
   	<p><div style="background-color:lightgray; border:1px solid black">
+		PZH PZP LIST : <select id="pzh_pzp_list"> <option> </option> </select> <br>
   		<input type="radio" name="locmethod" value="webinos" id="loc_webinos" checked="checked">webinos RPC geolocation</input> <br>
 		<input type="radio" name="locmethod" value="html5" id="loc_html5">HTML5 client-side navigator.geolocation</input>
   	</div></p>

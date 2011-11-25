@@ -3,7 +3,7 @@
 	if (typeof webinos === "undefined") {
 		webinos = {};
 	}
-	if (typeof exports !== "undefined") {
+	if (typeof module !== "undefined") {
 		rpc = require("./rpc.js");
 	}
 	else {

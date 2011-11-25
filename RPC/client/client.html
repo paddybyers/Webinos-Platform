@@ -1,327 +1,216 @@
 <html>
 <head>
-<title>webinos rpc</title>
-	<script type="text/javascript" src="/webinos.utils.js"></script>
+<title>PZH PZP Testbed</title>
 	<script type="text/javascript" src="/rpc.js"></script>
 	<script type="text/javascript" src="/client/webinos.js"></script>
-	<script type="text/javascript" src="/client/webinos.file.js"></script>
+	<script type="text/javascript" src="/client/jsrender.js"></script>
+	<script type="text/javascript" src="/messagehandler.js"></script>
 	<script type="text/javascript" src="/client/get42.js"></script>
-	<script type="text/javascript"
-		src="http://code.jquery.com/jquery-1.5.2.js"></script>
-	<script type="text/javascript"
-	src="http://ajax.googleapis.com/ajax/libs/dojo/1.6.1/dojo/dojo.xd.js"></script>
+	<link rel="stylesheet" type="text/css" href="/client/jquery-ui-1.8.16.custom.css"/>
+	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
+	<script type="text/javascript" src="/client/jquery.js"></script>
+	<script type="text/javascript" src="/client/jquery-ui.js"></script>
+	<script type="text/javascript" src="/client/dojo.js"></script>
 	<script type="text/javascript">
             $(document).ready(function() {
-            		var reader = null;
-            	    var fileSaver = null;
-            	    var fileWriter = null;
-            	    var test = [];
-            	    var geoLocationService = null;
-            	    var context = null;
-            	    
-                    $('#findService').bind('click', function() {
-                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/file.read'), {onFound: function (service) {
-                	    	reader = service;
-                	    }});
-                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/file.save'), {onFound: function (service) {
-                	    	fileSaver = service;
-                	    }});
-                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/file.write'), {onFound: function (service) {
-                	    	fileWriter = service;
-                	    }});
-                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/test'), {onFound: function (service) {
-                	    	test.push(service);
-                	    }});
-                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), {onFound: function (service) {
-                	    	context = service;
-                	    }});
-                    });
-                    
-                    $('#contextTest').bind('click',function(){
-                    	context.find('lala',function(result){document.getElementById("fileContent").value =result;})
-                    });
-                    
-                    $('#get42').bind('click', function() {
-                    	for (var i=0; i<test.length; i++) {
-	                    	test[i].get42(function (result){
-    	                		alert(result);
-        	            		alert(test[i].testAttr);
-            	        	});
-                    	}
-                    }); 
-                    
-                    $('#echo').bind('click', function() {
-                    	for (var i=0; i<test.length; i++) {
-	                    	test[i].echoAttr.echo(document.getElementById("fileContent").value, function (result){
-	                    		alert(result);
-	                    	});
-                    	}
-                    }); 
-                    
-                    $('#cls').bind('click', function() {
-                    	document.getElementById("messages").innerHTML = "";
-                    	document.getElementById("fileContent").value = "";
-                    }); 
-                    
-                    $('#getFileContent').bind('click', function() {
-                       reader.bind(function () {
-                       //var reader = new webinos.WebinosFileReader();
-                       		reader.readAsText($('#messageText').val());
-                       		reader.onload = function (result) {
-                       			reader.unbind();
-            	    			//$('#messages').append('<li>Result: ' + result + '</li>');
-                       			document.getElementById("fileContent").value = result;
-                       			$('#messages').append('<li>Got Reader Result (see box)</li>');
-            	    		};
-                       		reader.onerror = function (error) {
-                       			reader.unbind();
-               	    			$('#messages').append('<li>Result: Error Code: ' +  error + '</li>');
-            	    		};
-            	    	
-                       });
-            	    	
-            	    	$('#messages').append('<li> Requesting file Read</li>');
-                    }); 
-                    
-                    
-                    $('#fileSaver').bind('click', function() {
-                       fileSaver.bind(function () {
-                    	   
-                    	   webinos.ServiceDiscovery.findServices("BlobBuilder", {onFound: function (service) {
-                    	   
-                    	   var fileName = $('#messageText').val();
-                    	   
-                    	   service.append(document.getElementById("fileContent").value);
-                    	   var tmp = fileSaver.saveAs(service.getBlob(),fileName);
-                    	   service.append(" Arbritrary appendix to given text.");
-                    	   //var tmp2 = fileSaver.saveAs(service.getBlob(),fileName + "2");
-                    	   
-                    	   tmp.onwriteend = function () {
-                    		   $('#messages').append('<li> Writing done.</li>'); 
-                    	   };
-                    	   /*
-                    	   tmp2.onwriteend = function () {
-                    		   $('#messages').append('<li> Writing done 2.</li>'); 
-                    	   };*/
-                    	   
-                    	   tmp.onwritestart = function () {
-                    		   $('#messages').append('<li> Write started.</li>');
-                    	   };
-                    	   
-                    	   tmp.onwrite = function () {
-                    		   $('#messages').append('<li> Writing...</li>');
-                    	   };
-                    	   
-                    	   tmp.onerror = function (error) {
-                    		   $('#messages').append('<li> Writing error! Code: ' + error.code + '</li>');
-                    	   };
-                    	   
-                    	   $('#messages').append('<li> Accessing FileSaver Constants (INIT, WRITING, DONE, readyState): '
-                    			   + tmp.INIT + ' '
-                    			   + tmp.WRITING + ' '
-                    			   + tmp.DONE + ' '
-                    			   + tmp.readyState + ' '
-                    			   + '</li>'); 
-                    	   }});
-                       });
-                    });
-                    
-                    $('#fileWriter').bind('click', function() {
-                    	fileWriter.bind(function () {
-                     	   
-                      	    webinos.ServiceDiscovery.findServices("BlobBuilder", {onFound: function (service) {
-                    	    
-                      	      var fileName = $('#messageText').val();
-                        	   
-                      	    service.append(document.getElementById("fileContent").value);
-                        	   var tmp = fileWriter.writeAs(fileName);
-                        	   
-                        	   tmp.onwriteend = function () {
-                        		   $('#messages').append('<li> Writing done.</li>'); 
-                        	   };
-                        	   
-                        	   tmp.onwritestart = function () {
-                        		   $('#messages').append('<li> Writing started.</li>');
-                        	   };
-                        	   
-                        	   tmp.onwrite = function () {
-                        		   $('#messages').append('<li> Writing...</li>');
-                        	   };
-                        	   
-                        	   tmp.onerror = function (error) {
-                        		   $('#messages').append('<li> Writing error! Code: ' + error.code + '</li>');
-                        	   };
-                        	   
-                        	   $('#messages').append('<li> Accessing FileWriter Constants (INIT, WRITING, DONE, readyState): '
-                        			   + tmp.INIT + ' '
-                        			   + tmp.WRITING + ' '
-                        			   + tmp.DONE + ' '
-                        			   + tmp.readyState + ' '
-                        			   + '</li>'); 
-                         	   
-                        	   tmp.write(service.getBlob());
-                    	    }});
-                        });
-                     }); 
-                    
-                    $('#fileWriterTruncate').bind('click', function() {
-                    	fileWriter.bind(function () {
-                     	   
-                      	    webinos.ServiceDiscovery.findServices("BlobBuilder", {onFound: function (service) {
-                    	    
-                      	      var fileName = $('#messageText').val();
-                        	   
-                      	    service.append(document.getElementById("fileContent").value);
-                        	  
-                      	    var tmp = fileWriter.writeAs(fileName);
-                        	   
-                        	   tmp.onwriteend = function () {
-                        		   $('#messages').append('<li> Truncate done.</li>'); 
-                        	   };
-                        	   
-                        	   tmp.onwritestart = function () {
-                        		   $('#messages').append('<li> Truncate started.</li>');
-                        	   };
-                        	   
-                        	   tmp.onwrite = function () {
-                        		   $('#messages').append('<li> Truncateing...</li>');
-                        	   };
-                        	   
-                        	   tmp.onerror = function (error) {
-                        		   $('#messages').append('<li> Truncate error: ' + error.target.error.name + '</li>');
-                        	   };
-                        	   
-                        	   tmp.truncate($('#truncate').val());
-                    	    }});
-                        });
-                     }); 
-            });
-        </script>
-        <script type="text/javascript">
-	dojo.require("dojo.hash");
+		//Abot added to change the address
+		//var cServerHostname = window.location.hostname;
+	    	//document.getElementById('servername').value = cServerHostname;
+		//document.getElementById('pzpservername').value = cServerHostname;	
+		//document.getElementById('pzpipaddr').value = cServerHostname;
+		$("#tabs").tabs();
+		
+            	$('#startPZH').bind('click', function() {
+			var config = 'country='+ document.getElementById('country').value + '\n' +
+				'state='+ document.getElementById('state').value + '\n' +
+				'city='+ document.getElementById('city').value + '\n' +
+				'organization='+ document.getElementById('org').value + '\n' +
+				'organizationUnit='+ document.getElementById('orgunit').value + '\n' +
+				'common='+ document.getElementById('common').value + '\n' +
+				'email='+ document.getElementById('email').value + '\n' +
+				'days='+ document.getElementById('days').value + '\n';
+			var payload = {status: 'startPZH', 
+				servername: document.getElementById('servername').value, 
+				serverport: document.getElementById('serverport').value, 
+				value: config}; 
+			var options = {type: 'prop', payload: payload};
+			webinos.message_send(null, options, null, null);                	   
+                });
 
-	dojo.addOnLoad(function () {
-		var filesystem;
-
-		var cwd = dojo.byId('cwd');
-		var ls = dojo.byId('ls');
-
-		var update = function (hash) {
-			dojo.empty(ls);
-
-			var fullPath = dojo.queryToObject(hash).fullPath;
-
-			filesystem.root.getDirectory(fullPath, null, function (entry) {
-				cwd.innerHTML = entry.fullPath;
-
-				entry.getParent(function (parent) {
-					var item = dojo.create('li', null, ls);
-
-					dojo.create('a', {
-						href: '#' + dojo.objectToQuery({
-							fullPath: parent.fullPath
-						}),
-						innerHTML: '..'
-					}, item, 'first');
+                $('#startPZP').bind('click', function() {
+			var config = 'pzh_name='+ document.getElementById('servername').value+ '\n' +
+				'country='+ document.getElementById('pzpcountry').value + '\n' +
+				'state='+ document.getElementById('pzpstate').value + '\n' +
+				'city='+ document.getElementById('pzpcity').value + '\n' +
+				'organization='+ document.getElementById('pzporg').value + '\n' +
+				'organizationUnit='+ document.getElementById('pzporgunit').value + '\n' +
+				'common='+ document.getElementById('pzpcommon').value + '\n' +
+				'email='+ document.getElementById('pzpemail').value + '\n' +
+				'days='+ document.getElementById('pzpdays').value + '\n';
 					
-					var reader = entry.createReader();
-
-					var successCallback = function (entries) {
-						entries.forEach(function (entry) {
-							var item = dojo.create('li', null, ls);
-
-							if (entry.isFile)
-								item.innerHTML = entry.name;
-							else if (entry.isDirectory)
-								dojo.create('a', {
-									href: '#' + dojo.objectToQuery({
-										fullPath: entry.fullPath
-									}),
-									innerHTML: entry.name
-								}, item);
-						});
-
-						if (entries.length > 0)
-							reader.readEntries(successCallback, errorCallback);
-					};
-
-					var errorCallback = function (error) {
-						alert("Error reading directory (#" + error.code + ")");
-					};
-
-					reader.readEntries(successCallback, errorCallback);
-				}, function (error) {
-					alert("Error retrieving parent directory (#" + error.code + ")");
-				});
-			}, function (error) {
-				alert("Error retrieving directory entry (#" + error.code + ")");
-			});
-		}
-
-		dojo.subscribe("/dojo/hashchange", update);
-
-		webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/file"), {
-			onFound: function (service) {
-				service.bind(function () {
-					service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 1024, function (_filesystem) {
-						filesystem = _filesystem;
-
-						if (dojo.hash() == '')
-							dojo.hash(dojo.objectToQuery({
-								fullPath: filesystem.root.fullPath
-							}));
-
-						update(dojo.hash());
-					}, function (error) {
-						alert("Error requesting filesystem (#" + error.code + ")");
-					});
-				});
+			var payload = {status: 'startPZP', 
+				servername: document.getElementById('pzpservername').value,
+				serverport: document.getElementById('pzpserverport').value,
+				pzpserverport: document.getElementById('pzpport').value,
+				ipaddr:document.getElementById('pzpipaddr').value,
+				value: config}; 
+			
+			var options = {type: 'prop', payload: payload};
+			webinos.message_send(null, options, null, null);
+		});            
+		
+		$('#connectPZH').bind('click', function() {
+			var payload = {status: 'connectPZH', 
+				servername: document.getElementById('pzh_ip_addr').value,
+				serverport: document.getElementById('pzh_port').value}; 
+			var options = {type: 'prop', payload: payload};
+			webinos.message_send(null, options, null, null);
+                 });
+                 
+		$('#downloadCert').bind('click', function() {
+			var payload = {status: 'downloadCert', 
+				servername: document.getElementById('pzh_ip_addr').value,
+				serverport: document.getElementById('pzh_http_port').value}; 
+			var options = {type: 'prop', payload: payload};
+			webinos.message_send(null, options, null, null);
+                 });
+                    
+                 var test = [];
+                 $('#findService').bind('click', function() {
+                    	var address = $('#pzh_pzp_list').val();
+                    	if (address === "null" || address === "undefined") {
+                    		alert("Select from list which you node you want to  connect");
+                    	} else {
+				webinos.ServiceDiscovery.findServices(address, 
+				new ServiceType('http://webinos.org/api/test'), 
+					{onFound: function (service) {
+						test.push(service);		
+				}});
 			}
 		});
+                    
+              $('#get42').bind('click', function() {
+			for (var i=0; i<test.length; i++) {
+				test[i].get42(function (result){
+					alert(result);
+					alert(test[i].testAttr);
+				});
+            		}           	
+            	}); 
 	});
 </script>
 </head>
 <body>
-<table border="1"  style="height: 100%; width: 100%;">
-<tr valign="top" >
-<td width="50%">
-	<div >
-		<div >
-			<p>
-				<button id="findService">Find Service</button>
-				<button id="get42">get42</button>
-				<button id="echo">echo</button>
-				<button id="cls">Clear</button>
-				<button id="getFileContent">Get File Content</button>
-		    	<button id="fileSaver">Save with FileSaver</button>
-		    	<button id="fileWriter">Save with FileWriter</button>
-		    	<button id="fileWriterTruncate">Truncate</button>
-		    	<button id="contextTest">Context test</button>
-		     	<input type="text" id="truncate" />
-			</p>
-			<p>
-				<label for="messageText">File Name</label> <input type="text"
-					id="messageText" />
-					<br>
-				<label for="fileContent">File Content</label> 
-				<br>
-				<textarea rows='8' size = 500
-					id="fileContent"></textarea>
-			</p>
-		</div>
-		<div >
-			<ul id="messages">
-			</ul>
-		</div>
+<center><div id="header"> <h1><img src="testbed_logo.png"></h1> </div></center>
+<div class="pzh-pzp">
+<div id = "tabs">
+	<ul>
+		<li> <a href="#pzh"> PZH </a> </li>
+		<li> <a href="#pzp"> PZP </a> </li>
+		<li> <a href="#connect_pzh"> Connect PZH </a> </li>
+		<li> <a href="#get42_example"> Get42 Example </a> </li>
+		<li> <a href="#contact"> Contact </a> </li>
+		<li> <a href="#geolocation"> GeoLocation </a> </li>
+		<li> <a href="#discovery"> Discovery </a> </li>
+		<li> <a href="#sensor"> Sensor </a> </li>
+		<li> <a href="#file-api"> File API </a> </li>
+	</ul>
+	
+	<div id = "pzh" style="background-color:#0879a9">
+		<p style="color:white" align="right"> Help Available on Redmine to start PZH <a href="http://dev.webinos.org/redmine/projects/wp4/wiki/Running_PZH"> Running PZH </a>
+		<center> <p style="color:white"> Multiple PZH can be initiated, used this tab for starting local PZH	</p> </center>
+
+		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
+			<tr><th>Config </th> <th> Value </th> </tr>
+			<tr><td>Country </td><td><input type="text" id="country" value=""/></td></tr>
+			<tr><td>State</td><td> <input type="text" id="state" value=""/></td></tr>
+			<tr><td>City </td><td><input type="text" id="city" value=""/></td></tr>
+			<tr><td>Org </td><td><input type="text" id="org" value="Webinos"/></td></tr>
+			<tr><td>OrgUnit </td><td><input type="text" id="orgunit" value="WP4"/></td> </tr>
+			<tr><td>Common</td><td> <input type="text" id="common" value="WebinosLocalPZH" /> </td> </tr>
+			<tr><td><i> (Info: This name should be different for each PZH)</i></td><td> </td></tr>
+			<tr><td>Email </td><td><input type="text" id="email" value="internal@webinos.org"/></td></tr>
+			<tr><td>Days</td><td> <input type="text" id="days" value="180"/></td>	</tr>
+			<tr><td>Server Name </td><td><input type="text" id="servername" value="localhost"/></td></tr>
+			<tr><td><i> (Info: This should be IP address on which PZH can be accessed via PZP) </i></td></tr>
+			<tr><td>Server Port </td><td><input type="text" id="serverport" value="443"/></td></tr>
+			<tr><td><i> (Info: If already this port is in use, next available port will be used)</i></td></tr>			
+		</table>
+			<center> <button id="startPZH" class="button">Start PZH </button> </center>
 	</div>
- </td>
- <td width="50%" >
-	<div >
-		<p id="cwd"></p>
-		<ul id="ls"></ul>
+	<div id = "pzp" style="background-color:#0879a9">	
+		<p style="color:white" align="right"> Help Available on Redmine to start PZP <a href="http://dev.webinos.org/redmine/projects/wp4/wiki/Running_PZP"> Running PZP </a>
+		<center> <p style="color:white"> Start Multiple PZP's, Just change common name field</p> </center>
+
+		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
+			<tr><th>Config </th> <th> Value </th> </tr>
+			<tr><td>Country </td><td><input type="text" id="pzpcountry" value=""/></td> </tr>
+			<tr><td>State</td><td> <input type="text" id="pzpstate" value=""/></td></tr>
+			<tr><td>City </td><td><input type="text" id="pzpcity" value=""/></td></tr>
+			<tr><td>Org </td><td><input type="text" id="pzporg" value="Webinos"/></td></tr>
+			<tr><td>OrgUnit </td><td><input type="text" id="pzporgunit" value="WP4"/></td></tr>
+			<tr><td>Common</td><td> <input type="text" id="pzpcommon" value="Desktop"/></td></tr>
+			<tr><td><i> (Info: This name should be different for each PZP)</i></td><td> </td></tr>
+			<tr><td>Email </td><td><input type="text" id="pzpemail" value="internal@webinos.org"/></td></tr>
+			<tr><td>Days</td><td> <input type="text" id="pzpdays" value="180"/></td>	</tr>
+			<tr><td>PZH Address </td><td><input type="text" id="pzpservername" value="79.125.104.127"/></td></tr> <!--  -->
+			<tr><td><i> (Info: This should match with PZH address you want to connect)</i></td><td> </td></tr>
+			<tr><td>PZH Port </td><td><input type="text" id="pzpserverport" value="443"/></td></tr>
+			<tr><td><i> (Info: This should match with PZH Port)</i></td><td> </td></tr>
+			<tr><td>PZP Server Address</td><td><input type="text" id="pzpipaddr" value="localhost"/></td></tr>
+			<tr><td><i> (Info: This address is used for starting PZP Server)</i></td><td> </td></tr>
+			<tr><td>PZP Server Port Number</td><td><input type="text" id="pzpport" value="8000"/></td>	</tr>	
+			<tr><td><i> (Info: PZP server listens on this port)</i></td><td> </td></tr>
+		</table>
+			<center>><button id="startPZP" class="button">Start PZP </button></center>
 	</div>
-</td>
-</tr>
-</table>
+	<div id = "connect_pzh" style="background-color:#0879a9">
+		<center> <p style="color:white"></p> </center>
+		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
+			<tr> <td> PZH Address: </td> <td><input type="text" id="pzh_ip_addr" value="79.125.104.127"/></td></tr>
+			<tr> <td> PZH Port: </td> <td><input type="text" id="pzh_http_port" value="81"/></td></tr>
+		</table>
+			<center> <button id="downloadCert" class="button"> Download Certificate </button> </center>
+		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
+			<tr> <td> PZH Address: </td> <td><input type="text" id="pzh_ip_addr" value="79.125.104.127"/></td></tr>
+			<tr> <td> PZH Port: </td> <td><input type="text" id="pzh_port" value="443"/></td></tr>
+		</table>		
+			<center> <button id="connectPZH" class="button"> Connect PZH </button> </center>
+
+	</div>
+	<div id = "get42_example" style="background-color:#0879a9"> 
+		<table style="background-color:lightgray; border:3px solid #0879a9">
+				<tr> <td>
+					Select from the list Available PZP & PZH to find Service
+					<select id="pzh_pzp_list"> <option> </option> </select> </td>
+					<td> <button id="findService" class="button"> Find Service </button> </td></tr>
+					<tr> <td><p><i> Find Service will determine where your code will be executed</i></p> 
+				</td> <td> </td> </tr>
+				<tr> <td>
+					<button id="get42" class="button">Get 42</button>
+				</td> <td> </td> </tr>				
+		</table>
+	</div>
+	 
+	<div id = "contact" style="background-color:#0879a9">
+		<embed src="contacts/contactsClient.html" width="100%" height="100%">
+	</div>
+	<div id="geolocation" style="background-color:#0879a9">
+		<embed src="geolocation.html" width="100%" height="100%">
+	</div>
+	<div id="sensor" style="background-color:#0879a9">
+		<embed src="sensor.html"width="100%" height="100%">
+	</div>
+	<div id="discovery" style="background-color:#0879a9">
+		<embed src="discoveryUI.html" width="100%" height="100%">
+	</div>
+	<div id="file-api" style="background-color:#0879a9">
+		<embed src="file-api-demo.html" width="100%" height="100%">
+	</div>
+	
+</div>
+</div>
+
+<div id="status">STATUS: <span id="message"></span></div>
 </body>
 </html>

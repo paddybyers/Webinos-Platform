@@ -1,20 +1,18 @@
 //This RPC implementation should be compliant to JSON RPC 2.0
 //as specified @ http://jsonrpc.org/spec.html
 
-if (typeof webinos === 'undefined')
-	webinos = {};
+(function () {
+	if (typeof webinos === 'undefined')
+		webinos = {};
 
-if (typeof webinos.rpc === 'undefined')
-	webinos.rpc = {};
+	if (typeof webinos.rpc === 'undefined')
+		webinos.rpc = {};
 
-if (typeof module === 'undefined')
-	var exports = webinos.rpc;
-else
-	var exports = module.exports = webinos.rpc;
+	if (typeof module === 'undefined')
+		var exports = webinos.rpc;
+	else
+		var exports = module.exports = webinos.rpc;
 
-(function (exports) {
-	var contextEnabled = typeof process === 'undefined' || (process.version >= 'v0.4.0' && process.version < 'v0.5.0');
-	
 	if (typeof module !== 'undefined')
 		var utils = require('./webinos.utils.js');
 	else
@@ -22,7 +20,7 @@ else
 	
 	exports.utils = {};
 
-	exports.utils.request = function (service, method, objectRef, successCallback, errorCallback) {
+	exports.utils.request = function (service, method, objectRef, successCallback, errorCallback, responseto, msgid) {
 		return function () {
 			var params = Array.prototype.slice.call(arguments);
 			var message = exports.createRPC(service, method, params);
@@ -34,7 +32,7 @@ else
 		};
 	}
 
-	exports.utils.notify = function (service, method, objectRef) {
+	exports.utils.notify = function (service, method, objectRef, responseto, msgid) {
 		return function () {
 			var params = Array.prototype.slice.call(arguments);
 			var message = exports.createRPC(service, method, params);
@@ -46,13 +44,18 @@ else
 		};
 	}
 
+	var contextEnabled = typeof process === 'undefined' || (process.version >= 'v0.4.0' && process.version < 'v0.5.0');
+	
   write = null;
 
+  /*
+   * used to store objectRefs for callbacks that get invoked more than once
+   */ 
+  var objRefCachTable = {};
 
   webinos.rpc.awaitingResponse = {};
   webinos.rpc.objects = {};
   webinos.rpc.responseToMapping = [];
-
 
   function logObj(obj, name){
     for (var myKey in obj){
@@ -72,10 +75,9 @@ else
    * Handles a new JSON RPC message (as string)
    */
   webinos.rpc.handleMessage = function (message, responseto, msgid){
-    console.log("New websocket packet");
-    console.log("Message" + message);
+    console.log("New packet from messaging");
     console.log("Response to" + responseto);
-    var myObject = JSON.parse(message);
+    var myObject = message;
     logObj(myObject, "rpc");
 
     //received message is RPC request
@@ -130,10 +132,12 @@ else
           var id = myObject.id;
 
           if (typeof myObject.fromObjectRef !== 'undefined' && myObject.fromObjectRef != null) {
+            // callback registration case (one request to many responses)
 
             webinos.rpc.responseToMapping[myObject.fromObjectRef] = responseto;
 
-            //webinos.rpc.objects[service][method](
+            objRefCachTable[myObject.fromObjectRef] = {responseTo:responseto, msgId: msgid};
+
             includingObject[method](
                 myObject.params, 
                 function (result) {
@@ -143,7 +147,7 @@ else
                   if (typeof result !== 'undefined') res.result = result;
                   else res.result = {};
                   res.id = id;						
-                  webinos.rpc.executeRPC(res, responseto, msgid);
+                  webinos.rpc.executeRPC(res, null, null, responseto, msgid);
                 },
                 function (error){
                   if (typeof id === 'undefined') return;
@@ -154,13 +158,13 @@ else
                   res.error.code = 32000;  //webinos specific error code representing that an API specific error occured
                   res.error.message = "Method Invocation returned with error";
                   res.id = id;
-                  webinos.rpc.executeRPC(res, responseto, msgid);
+                  webinos.rpc.executeRPC(res, null, null, responseto, msgid);
                 }, 
                 myObject.fromObjectRef
             );
           }
           else {
-            //webinos.rpc.objects[service][method](
+            // default request-response case
             includingObject[method](
                 myObject.params, 
                 function (result) {
@@ -170,7 +174,6 @@ else
                   if (typeof result !== 'undefined') res.result = result;
                   else res.result = {};
                   res.id = id;
-                  //webinos.rpc.executeRPC(res, responseto);
                   webinos.rpc.executeRPC(res, null, null, responseto, msgid);
 
                   // CONTEXT LOGGING HOOK
@@ -186,7 +189,7 @@ else
                   res.error.code = 32000;
                   res.error.message = "Method Invocation returned with error";
                   res.id = id;
-                  webinos.rpc.executeRPC(res, responseto, msgid);
+                  webinos.rpc.executeRPC(res, null, null, responseto, msgid);
                 }
             );
           }
@@ -225,6 +228,12 @@ else
    * is invoked if an RPC response with same id was received
    */
   webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto, msgid) {
+    if (typeof rpc.serviceAddress !== 'undefined') {
+      // this only happens in the web browser
+      webinos.message_send(rpc.serviceAddress, rpc, callback, errorCB); // TODO move the whole mmessage_send function here?
+      return;
+    }
+
     if (typeof callback === 'function'){
       rpc.id = Math.floor(Math.random()*101);
       var cb = {};
@@ -232,17 +241,19 @@ else
       if (typeof errorCB === 'function') cb.onError = errorCB;
       if (typeof rpc.id !== 'undefined') webinos.rpc.awaitingResponse[rpc.id] = cb;
     }
-    else{
-      if (typeof callback !== 'undefined' && typeof responseto === 'undefined') responseto = callback;
+    else if (rpc.method && rpc.method.indexOf('@') === -1) {
+      var objectRef = rpc.method.split('.')[0];
+      if (typeof objRefCachTable[objectRef] !== 'undefined') {
+        responseto = objRefCachTable[objectRef].responseTo;
+	    msgid = objRefCachTable[objectRef].msgId;
+      }
     }
 
     //TODO check if rpc is request on a specific object (objectref) and get mapped responseto / destination session
 
     //TODO remove stringify when integrating with Message Routing/Ziran
-    write(JSON.stringify(rpc), responseto, msgid);
-
+    write(rpc, responseto, msgid);
   };
-
 
   /**
    * Creates a JSON RPC 2.0 compliant object.
@@ -262,6 +273,11 @@ else
     if (typeof service === "object") {
       // e.g. FileReader@2375443534.truncate
       rpc.method = service.api + "@" + service.id + "." + method;
+
+      // TODO find a better way to store the service address?
+      if (typeof service.serviceAddress !== 'undefined') {
+        rpc.serviceAddress = service.serviceAddress;
+      }
     } else {
       rpc.method = service + "." + method;
     }
@@ -339,7 +355,7 @@ else
    * 
    */
   webinos.rpc.findServices = function (serviceType) {
-    results = new Array();
+    var results = [];
     var cstar = serviceType.api.indexOf("*");
     if(cstar !== -1){
       //*c*
@@ -353,7 +369,6 @@ else
             }
           }
         }
-        return results;
       }
       //*, *c
       else {
@@ -364,7 +379,6 @@ else
               results.push(webinos.rpc.objects[i][j]);
             }
           }
-          return results; 		
         }
         else {
           var restString = serviceType.api.substr(1);
@@ -375,7 +389,6 @@ else
               }
             }
           }
-          return results;
         }
       }
 
@@ -384,9 +397,15 @@ else
       for (var i in webinos.rpc.objects) {
         if (i === serviceType.api) {
           console.log("findService: found matching service(s) for ServiceType: " + serviceType.api);
-          return webinos.rpc.objects[i];
+          results = webinos.rpc.objects[i];
         }
       } 
+      // add address where this service is available, namely this pzp sessionid
+      for (var i=0; i<results.length; i++) {
+        results[i].serviceAddress = Pzp.getSessionId();
+      }
+
+      return results;
     }
   };
 
@@ -412,11 +431,13 @@ else
       this.api = '';
       this.displayName = '';
       this.description = '';
+      this.serviceAddresss = '';
     } else {
       this.id = obj.id || '';
       this.api = obj.api || '';
       this.displayName = obj.displayName || '';
       this.description = obj.description || '';
+      this.serviceAddress = obj.serviceAddress || '';
     }
   };
 
@@ -448,6 +469,8 @@ else
     // none webinos modules
     var md5 = require('./md5.js');
 
+    // webinos related modules
+    var Pzp = require('../PZ/PZP/session_pzp.js');
     require('./rpc_servicedisco.js');
 
 
@@ -483,4 +506,4 @@ else
       }
     }
   }
-})(exports);
+})();

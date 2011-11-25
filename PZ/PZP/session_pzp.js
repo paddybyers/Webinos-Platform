@@ -9,7 +9,7 @@
 	var sessionPzh = require('./session_pzh.js');
 	var sessionPzp = {};
 	var utils = require('./session_common.js');
-	var webinosMessage = require("./messagehandler.js");
+	var webinosMessage = require("../../RPC/messagehandler.js");
 
 	sessionPzp.send = function (message, address, object) {
 		object.sendMessage((message), address);
@@ -144,7 +144,7 @@
 		var flag = true, common = '', data1;
 
 		fs.readdir(__dirname, function(err, files) {
-			for(i in files) {
+			for(var i=0; i<files.length; i++) {
 				if( (files[i].indexOf('pzp',0) === 0) &&  
 				files[i].indexOf('master_cert.pem', 0) !== -1) {
 					id = files[i].split('_');
