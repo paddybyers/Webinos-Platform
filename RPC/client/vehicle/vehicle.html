@@ -3,13 +3,14 @@
 	<title>webinos | vehicle testbed</title>
 	<link rel="icon" href="webinos.ico" type="image/x-icon">
 	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
-	<script type="text/javascript" src="/rpc.js"></script>
-	<script type="text/javascript" src="/client/webinos.js"></script>
-	<script type="text/javascript" src="/messagehandler.js"></script>
 	<script type="text/javascript" src="../jquery-1.6.4.min.js"></script>
 	<script type="text/javascript" src="./fancybox/jquery.mousewheel-3.0.4.pack.js"></script>
 	<script type="text/javascript" src="./fancybox/jquery.fancybox-1.3.4.pack.js"></script>
 	<script type="text/javascript" src="jcanvas.min.js"></script>
+	<script type="text/javascript" src="/rpc.js"></script>
+	<script type="text/javascript" src="/client/webinos.js"></script>
+	<script type="text/javascript" src="/messagehandler.js"></script>
+
 	<link rel="stylesheet" type="text/css" href="./fancybox/jquery.fancybox-1.3.4.css" media="screen" />
 	
 		<script type="text/javascript">
@@ -126,7 +127,9 @@
 						
 						
 					$('#init').click(function(e) {
-                           webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
+					
+							var address = $('#pzh_pzp_list').val();
+                           webinos.ServiceDiscovery.findServices(address,new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
                 	    	
 							console.log("service found...");
 							
@@ -709,6 +712,7 @@
         <p><input type="button" id="findService" value="initialize" class="button"/></p>  -->
 		<h3>Access vehicle data</h3>
         <p>
+        	<select id="pzh_pzp_list"> <option> </option> </select><br />
             <input type="button" id="init" value="initialize System" class="button"/><br />
             <select id="vehicleDataId" disabled>
             </select><br/>
