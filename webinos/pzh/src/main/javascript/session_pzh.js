@@ -1,9 +1,9 @@
 (function() {
 
 if (typeof exports !== "undefined") {
-	var webinosMessage = require("../../RPC/messagehandler.js");
+	var webinosMessage = require("../../../../common/rpc/src/main/javascript/messagehandler.js");
 	var sessionPzh = {};
-	var utils = require('./session_common.js');
+	var utils = require('../../../../pzp/src/main/javascript/session_common.js');
 }
 
 // Global variables and node modules that are required

@@ -470,17 +470,17 @@
     var md5 = require('./md5.js');
 
     // webinos related modules
-    var Pzp = require('../PZ/PZP/session_pzp.js');
-    require('./rpc_servicedisco.js');
+    var Pzp = require('../../../../../pzp/src/main/javascript/session_pzp.js');
+    require('../../../../../api/servicedisco/src/main/javascript/rpc_servicedisco.js');
 
 
     //add your RPC Implementations here!
     var modules = [
-                   './rpc_test2.js',
-                   './rpc_test.js',
-                   './rpc_file.js',
-                   './webinos.file.rpc.js',
-                   './rpc_geolocation.js',
+                   '../../../../../api/get42/src/main/javascript/rpc_test2.js',
+                   '../../../../../api/get42/src/main/javascript/rpc_test.js',
+//                   '../../../../../api/file/src/main/javascript/rpc_file.js',
+                   '../../../../../api/file/src/main/javascript/webinos.file.rpc.js',
+                   '../../../../../api/geolocation/src/main/javascript/rpc_geolocation.js',
                    './rpc_vehicle.js',
                    './rpc_sensors.js',
                    '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',

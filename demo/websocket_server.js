@@ -7,7 +7,7 @@ if (typeof webinos === "undefined") {
 	webinos = {};
 	webinos.session = {};
 }
-webinos.session.pzp = require('../PZ/PZP/session_pzp.js');
+webinos.session.pzp = require('../webinos/pzp/src/main/javascript/session_pzp.js');
 
 var hostname = '' , serverPort = 0, webServerPort = 0;
 process.argv.forEach(function(val, index, array) {

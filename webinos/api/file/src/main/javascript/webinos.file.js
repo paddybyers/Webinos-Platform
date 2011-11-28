@@ -21,7 +21,7 @@
 
 	var dom = require("./webinos.dom.js");
 	var path = require("./webinos.path.js");
-	var utils = require("./webinos.utils.js");
+	var utils = require("../../../../../common/rpc/src/main/javascript/webinos.utils.js");
 
 	// TODO Extract utilities to webinos.file.utils.js?
 	exports.utils = {}
