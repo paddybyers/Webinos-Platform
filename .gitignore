@@ -1,6 +1,9 @@
 # ignore context db
 Manager/Context/Storage/data/context.json
 
+# ignore generated webinos.js
+demo/client/webinos.js
+
 # ignore eclipse project files
 /.project
 /.settings
