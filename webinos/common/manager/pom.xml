@@ -16,5 +16,6 @@
 
   <modules>
     <!-- One module tag per child module -->
+    <module>context</module>
   </modules>
 </project>
