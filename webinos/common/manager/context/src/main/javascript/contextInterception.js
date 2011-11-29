@@ -20,13 +20,15 @@ webinos.context.ContextData = function(method, params, results) {
   this.results = results;
 };
 //Require the database class
-var databasehelper = require('./../Storage/src/main/javascript/persist');
+var databasehelper = require('../../../lib/JSORMDB/src/main/javascript/persist');
 
 //Initialize helper classes
 var pathclass = require('path');
 var Fs = require('fs');
 
-var dbpath = pathclass.resolve('../Manager/Context/Storage/data/log.json');
+var dbpath = pathclass.resolve('../webinos/common/manager/context/data/log.json');
+//var dbpath = "./../../../data/log.json";
+console.log
 console.log("Log DB Initialized");
 var logCount = 0;
 
@@ -63,7 +65,8 @@ webinos.context.logContext = function(myObj, res) {
   //console.log('Is it not context? ' + !(myData.call.api =='http://webinos.org/api/context'));
   if (!(myData.call.api =='http://webinos.org/api/context'))
   {
-    webinos.context.database.insert(dataIn);
+
+    webinos.context.database.insert([dataIn]);
     logCount +=1;
     console.log(" Context Data Saved");
     console.log(logCount);
