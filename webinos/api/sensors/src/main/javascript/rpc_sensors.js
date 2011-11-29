@@ -1,5 +1,5 @@
 if (typeof webinos === 'undefined') var webinos = {};
-webinos.rpc = require('./rpc.js');
+webinos.rpc = require('../../../../../common/rpc/src/main/javascript/rpc.js');
 
 var simTemp = false;
 var objectRefs = new Array();

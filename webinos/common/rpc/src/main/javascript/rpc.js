@@ -474,6 +474,7 @@
     require('../../../../../api/servicedisco/src/main/javascript/rpc_servicedisco.js');
 
 
+	var oldRpcLocation = '../../../../../../RPC/';
     //add your RPC Implementations here!
     var modules = [
                    '../../../../../api/get42/src/main/javascript/rpc_test2.js',
@@ -481,15 +482,13 @@
 //                   '../../../../../api/file/src/main/javascript/rpc_file.js',
                    '../../../../../api/file/src/main/javascript/webinos.file.rpc.js',
                    '../../../../../api/geolocation/src/main/javascript/rpc_geolocation.js',
-                   './rpc_vehicle.js',
-                   './rpc_sensors.js',
-                   '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
-                   './UserProfile/Server/UserProfileServer.js',
-                   './tv/provider/webinos.rpc.tv.js',
-                   // './../Manager/Context/Interception/contextInterception.js',
-                   './rpc_contacts.js',
-                   // './Context/webinos.rpc.context.js',
-                   './bluetooth_module/bluetooth.rpc.server.js'
+                   oldRpcLocation + 'rpc_vehicle.js',
+                   '../../../../../api/sensors/src/main/javascript/rpc_sensors.js',
+                   oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
+                   oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
+                   oldRpcLocation + 'tv/provider/webinos.rpc.tv.js',
+                   oldRpcLocation + 'rpc_contacts.js',
+                   oldRpcLocation + 'bluetooth_module/bluetooth.rpc.server.js'
                    ];
 
     if (contextEnabled) {

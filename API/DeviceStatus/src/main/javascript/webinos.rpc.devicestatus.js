@@ -1,7 +1,7 @@
 (function () {
 	"use strict";
 
-	var rpc = require('../../../../../RPC/rpc.js'),
+	var rpc = require('../../../../../RPC/'+rpcfilePath +'rpc.js'),
 	devicestatusmodule = require('./webinos.devicestatus.js').devicestatus,
 	RemoteDeviceStatusManager = new rpc.RPCWebinosService({
 		api: 'http://wacapps.net/api/devicestatus',
