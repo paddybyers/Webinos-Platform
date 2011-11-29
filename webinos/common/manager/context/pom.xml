@@ -8,10 +8,10 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>context</artifactId>
+  <artifactId>context_manager</artifactId>
   <packaging>pom</packaging>
 
-  <name>context</name>
+  <name>Context manager</name>
   <url>http://www.webinos.org</url>
 
   <!-- Uncomment the plugin executions you need. If you're component structure is correct, everything will run as it should. -->
