@@ -10,9 +10,9 @@
     }
   },
   "manager": {
-    "context": {
+    "context_manager": {
       "name": "Context manager",
-      "location": "/webinos/common/manager/context"
+      "location": "/webinos/common/manager/context_manager"
     }
   }
 }
