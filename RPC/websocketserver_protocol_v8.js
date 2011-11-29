@@ -6,7 +6,7 @@ var WebSocketServer = require('websocket').server;
 var http = require("http"),  
 url = require("url"),  
 path = require("path"),
-rpc = require("./rpc.js"),
+rpc = require("../webinos/common/rpc/src/main/javascript/rpc.js"),
 fs = require("fs");  
 
 //Static resources
