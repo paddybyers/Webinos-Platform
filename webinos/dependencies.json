@@ -12,7 +12,7 @@
   "manager": {
     "context_manager": {
       "name": "Context manager",
-      "location": "/webinos/common/manager/context_manager"
+      "location": "/common/manager/context_manager"
     }
   }
 }
