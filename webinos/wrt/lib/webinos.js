@@ -349,9 +349,7 @@
 		arguments = destinations;
 		var successCb = callOnSuccess;
 		var errorCb = callOnError;
-		
 		var rpc = webinos.rpc.createRPC(this, "requestGuidance", arguments);
-		
 		webinos.rpc.executeRPC(rpc,
 			function(){
 				callOnSuccess();
