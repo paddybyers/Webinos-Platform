@@ -69,7 +69,7 @@ webinos.context.logContext = function(myObj, res) {
     webinos.context.database.insert([dataIn]);
     logCount +=1;
     console.log(" Context Data Saved");
-    console.log(logCount);
+    //console.log(logCount);
 
     webinos.context.saveContext(dataIn);
 

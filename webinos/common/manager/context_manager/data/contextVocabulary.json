@@ -82,42 +82,35 @@
                   ],
                   "inputs" : [
                      {
-                        "logged" : true,
-                        "objectName" : "PositionOptions",
-                        "type" : "object",
-                        "values" : [
-                           {
-                              "logged" : false,
-                              "objectName" : "enableHighAccuracy",
-                              "type" : "boolean"
-                           },
-                           {
-                              "logged" : false,
-                              "objectName" : "maximumAge",
-                              "type" : "long"
-                           },
-                           {
-                              "logged" : false,
-                              "objectName" : "timeout",
-                              "type" : "long"
-                           }
-                        ]
+                        "logged" : false,
+                        "objectName" : "enableHighAccuracy",
+                        "type" : "boolean"
+                     },
+                     {
+                        "logged" : false,
+                        "objectName" : "maximumAge",
+                        "type" : "long"
+                     },
+                     {
+                        "logged" : false,
+                        "objectName" : "timeout",
+                        "type" : "long"
                      }
                   ],
                   "objectName" : "watchPosition",
                   "outputs" : [
                      {
                         "logged" : false,
-                        "objectName" : " DOMTimeStamp",
+                        "objectName" : "timestamp",
                         "type" : "DOMTimeStamp"
                      },
                      {
                         "logged" : true,
-                        "objectName" : " Position",
+                        "objectName" : "coords",
                         "type" : "object",
                         "values" : [
                            {
-                              "logged" : true,
+                              "logged" : false,
                               "objectName" : "accuracy",
                               "type" : "double"
                            },
@@ -127,7 +120,7 @@
                               "type" : "double"
                            },
                            {
-                              "logged" : true,
+                              "logged" : false,
                               "objectName" : "altitudeAccuracy",
                               "type" : "double"
                            },
@@ -177,42 +170,35 @@
                   ],
                   "inputs" : [
                      {
-                        "logged" : true,
-                        "objectName" : "PositionOptions",
-                        "type" : "object",
-                        "values" : [
-                           {
-                              "logged" : false,
-                              "objectName" : "enableHighAccuracy",
-                              "type" : "boolean"
-                           },
-                           {
-                              "logged" : false,
-                              "objectName" : "maximumAge",
-                              "type" : "long"
-                           },
-                           {
-                              "logged" : false,
-                              "objectName" : "timeout",
-                              "type" : "long"
-                           }
-                        ]
+                        "logged" : false,
+                        "objectName" : "enableHighAccuracy",
+                        "type" : "boolean"
+                     },
+                     {
+                        "logged" : false,
+                        "objectName" : "maximumAge",
+                        "type" : "long"
+                     },
+                     {
+                        "logged" : false,
+                        "objectName" : "timeout",
+                        "type" : "long"
                      }
                   ],
                   "objectName" : "getCurrentPosition",
                   "outputs" : [
                      {
                         "logged" : false,
-                        "objectName" : " DOMTimeStamp",
+                        "objectName" : "timestamp",
                         "type" : "DOMTimeStamp"
                      },
                      {
                         "logged" : true,
-                        "objectName" : " Position",
+                        "objectName" : "coords",
                         "type" : "object",
                         "values" : [
                            {
-                              "logged" : true,
+                              "logged" : false,
                               "objectName" : "accuracy",
                               "type" : "double"
                            },
@@ -222,7 +208,7 @@
                               "type" : "double"
                            },
                            {
-                              "logged" : true,
+                              "logged" : false,
                               "objectName" : "altitudeAccuracy",
                               "type" : "double"
                            },
