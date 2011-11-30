@@ -1,5 +1,6 @@
 # ignore context db
 Manager/Context/Storage/data/context.json
+webinos/common/manager/context_manager/data/log.json
 
 # ignore generated webinos.js
 demo/client/webinos.js
