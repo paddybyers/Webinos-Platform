@@ -20,13 +20,13 @@ webinos.context.ContextData = function(method, params, results) {
   this.results = results;
 };
 //Require the database class
-var databasehelper = require('../../../lib/JSORMDB/src/main/javascript/persist');
+var databasehelper = require('.../contrib/JSORMDB/src/main/javascript/persist');
 
 //Initialize helper classes
 var pathclass = require('path');
 var Fs = require('fs');
 
-var dbpath = pathclass.resolve(__dirname + '/../../../' +'data/log.json');
+var dbpath = pathclass.resolve(__dirname + '/../' +'data/log.json');
 //var dbpath = "./../../../data/log.json";
 console.log
 console.log("Log DB Initialized");

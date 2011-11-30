@@ -12,10 +12,10 @@
   { "email": "webinos-wp4-ml@fokus.fraunhofer.de"
   , "url": ""
   }
-, "directories": { 
-                  "lib": "./lib"
+, "directories": { "lib": "./lib"
+                 , "contrib": "./contrib"
                  }
-, "main": "./src/main/javascript/contextInterception.js"
+, "main": "./lib/contextInterception.js"
 , "dependencies":
   { "JSORMDB": "1.3"
   }

@@ -5,14 +5,14 @@ if (typeof webinos === 'undefined') {
 if (typeof webinos.context === 'undefined')
   webinos.context = {};
 
-var databasehelper = require('../../../lib/JSORMDB/src/main/javascript/persist');
+var databasehelper = require('../contrib/JSORMDB/src/main/javascript/persist');
 
 //Initialize helper classes
 var pathclass = require('path');
 var Fs = require('fs');
 console.log("current directory:");
-console.log(pathclass.resolve(__dirname + '/../../../' +'data/contextVocabulary.json'));
-var vocdbpath = pathclass.resolve(__dirname + '/../../../' +'data/contextVocabulary.json');
+console.log(pathclass.resolve(__dirname + '/../' +'data/contextVocabulary.json'));
+var vocdbpath = pathclass.resolve(__dirname + '/../' +'data/contextVocabulary.json');
 //console.log("CONTEXT Vocabulary DB Initialized");
 //var contextdbpath = pathclass.resolve('../Manager/Context/Storage/data/context.json');
 //console.log("CONTEXT  DB Initialized");

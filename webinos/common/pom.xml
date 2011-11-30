@@ -16,7 +16,7 @@
 
   <modules>
     <!-- One module tag per child module -->
-    <module>rpc</module>
+    <!--<module>rpc</module>-->
     <module>manager</module>
   </modules>
 </project>
