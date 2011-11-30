@@ -20,7 +20,7 @@ webinos.context.ContextData = function(method, params, results) {
   this.results = results;
 };
 //Require the database class
-var databasehelper = require('.../contrib/JSORMDB/src/main/javascript/persist');
+var databasehelper = require('../contrib/JSORMDB/src/main/javascript/persist');
 
 //Initialize helper classes
 var pathclass = require('path');
