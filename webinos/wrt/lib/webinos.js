@@ -323,13 +323,59 @@
 		}
 	};
 	
-	Vehicle.prototype.requestGuidance = function(successCB, errorCB, destinations){
-		console.log('request guidance');
+	Vehicle.prototype.POI = function(name, position, address){
+		this.name = name;
+		this.position = position;
+		this.address = address;
+	}
+	
+	Vehicle.prototype.Address = function(country, region, county, city, street, streetNumber, premises, additionalInformation, postalCode){
+		this.county = county;
+		this.regions = region;
+		this.county = city;
+		this.street = streetNumber;
+		this.premises = premises;
+		this.addtionalInformation = additionalInformation;
+		this.postalCode = postalCode;
+	}
+	
+	Vehicle.prototype.LatLng = function(lat, lng){
+		this.latitude = lat;
+		this.longitude = lng;
+	}
+	
+	
+	Vehicle.prototype.requestGuidance = function(callOnSuccess, callOnError, destinations){
+		arguments = destinations;
+		var successCb = callOnSuccess;
+		var errorCb = callOnError;
 		
+		var rpc = webinos.rpc.createRPC(this, "requestGuidance", arguments);
+		
+		webinos.rpc.executeRPC(rpc,
+			function(){
+				callOnSuccess();
+			},
+			function(error){
+				callOnError(error);
+			}
+		);
 	};
-	Vehicle.prototype.findDestination = function(destinationCB, errorCB, search){
-		console.log('Find Destination...');
+	
+	Vehicle.prototype.findDestination = function(callOnSuccess, callOnError, search){
+		arguments = search;
+		
+		var rpc = webinos.rpc.createRPC(this, "findDestination", arguments);
+				webinos.rpc.executeRPC(rpc,
+			function(results){
+				callOnSuccess(results);
+			},
+			function(error){
+				callOnError(error);
+			}
+		);		
 	};
+
 	
 	 ///////////////////// CONTEXT INTERFACE ///////////////////////////////
   var Context;
