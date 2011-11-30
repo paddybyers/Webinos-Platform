@@ -119,7 +119,23 @@
 						
 					});
 					
+					$('#pzh_pzp_list').change(function(){
 					
+						if($('#pzh_pzp_list').val() != ''){
+							$('#init').removeAttr('disabled');
+						}else{
+							$('#init').attr('disabled','true');
+						}
+					});
+					
+					$('#vehicleDataId').change(function(){
+					
+						if($('#vehicleDataId').val().indexOf('destination') != -1){
+							$('#getData').attr('disabled','true');
+						}else{
+							$('#getData').removeAttr('disabled');
+						}
+					});
 					
 					$('#getData').bind('click', function(){
 						vehicle.get($('#vehicleDataId').val(), getMessageHandler($('#vehicleDataId').val()) ,errorCB);
@@ -713,7 +729,7 @@
 		<h3>Access vehicle data</h3>
         <p>
         	<select id="pzh_pzp_list"> <option> </option> </select><br />
-            <input type="button" id="init" value="initialize System" class="button"/><br />
+            <input type="button" id="init" value="initialize System" class="button" disabled/><br />
             <select id="vehicleDataId" disabled>
             </select><br/>
             <input type="button" id="getData" value="get Data" disabled class="button"/><br />
