@@ -7,7 +7,6 @@ if (typeof webinos === 'undefined') var webinos = {};
 rpcfilePath = '../webinos/common/rpc/lib/';
 webinos.rpc = require(rpcfilePath +'rpc.js');
 
-
 function ShiftEvent(value){
 	this.gear = value;
 }
