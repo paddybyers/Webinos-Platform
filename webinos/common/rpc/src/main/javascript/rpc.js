@@ -45,7 +45,7 @@
 	}
 
 	var contextEnabled = typeof process === 'undefined' || (process.version >= 'v0.4.0' && process.version < 'v0.5.0');
-	contextEnabled = true;
+
   write = null;
 
   /*
@@ -481,6 +481,7 @@
     var module_root = __dirname + '/../../../'; //locate the root dir of the module
     var root = JSON.parse(fs.readFileSync(module_root + 'dependencies.json'));//load the webinos root folder path
     var dependencies = JSON.parse(fs.readFileSync(module_root + root.root.location + '/dependencies.json'));//load the webinos dependencies file
+    
 	  //Fix for modules located in old rpc folder
     var oldRpcLocation = '../../../../../../RPC/';
     //add your RPC Implementations here!
@@ -501,8 +502,8 @@
 
     if (contextEnabled) {
       //push the relative to the module folder that contains the context_manager
-    	modules.push(module_root  + root.root.location + dependencies.manager.context_manager.location);
-    	modules.push('./Context/webinos.rpc.context.js');
+    	modules.push(module_root  + root.root.location + dependencies.manager.context_manager.location);    	
+    	modules.push(module_root  + root.root.location + dependencies.api.context.location);
     }
     
     for (var i = 0; i <modules.length; i++){

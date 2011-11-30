@@ -10,8 +10,9 @@ var databasehelper = require('../../../lib/JSORMDB/src/main/javascript/persist')
 //Initialize helper classes
 var pathclass = require('path');
 var Fs = require('fs');
-
-var vocdbpath = pathclass.resolve('../webinos/common/manager/context/data/contextVocabulary.json');
+console.log("current directory:");
+console.log(pathclass.resolve(__dirname + '/../../../' +'data/contextVocabulary.json'));
+var vocdbpath = pathclass.resolve(__dirname + '/../../../' +'data/contextVocabulary.json');
 //console.log("CONTEXT Vocabulary DB Initialized");
 //var contextdbpath = pathclass.resolve('../Manager/Context/Storage/data/context.json');
 //console.log("CONTEXT  DB Initialized");

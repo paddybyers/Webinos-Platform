@@ -26,7 +26,7 @@ var databasehelper = require('../../../lib/JSORMDB/src/main/javascript/persist')
 var pathclass = require('path');
 var Fs = require('fs');
 
-var dbpath = pathclass.resolve('../webinos/common/manager/context/data/log.json');
+var dbpath = pathclass.resolve(__dirname + '/../../../' +'data/log.json');
 //var dbpath = "./../../../data/log.json";
 console.log
 console.log("Log DB Initialized");

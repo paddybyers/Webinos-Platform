@@ -7,6 +7,10 @@
     "attestation": {
       "name": "Attestation",
       "location": "/webinos/api/attestation"
+     },
+    "context": {
+      "name": "Context",
+      "location": "/api/context"
     }
   },
   "manager": {
