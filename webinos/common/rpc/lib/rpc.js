@@ -492,6 +492,7 @@
 				   webinosRoot + dependencies.api.events.location + 'lib/events.js',
                    oldRpcLocation + 'rpc_vehicle.js',
                    webinosRoot + dependencies.api.sensors.location + 'lib/rpc_sensors.js',
+
                    oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
                    oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
                    oldRpcLocation + 'tv/provider/webinos.rpc.tv.js',
