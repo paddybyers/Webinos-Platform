@@ -27,3 +27,9 @@ target
 
 #ignore reports folders
 reports
+
+#ignore modules for vehicle connection
+webinos/api/vehicle/src/main/javascript/cds_con
+webinos/api/vehicle/src/main/javascript/cds_con/car.js
+webinos/api/vehicle/src/main/javascript/cds_con/jsonrpc.js 
+node_modules
