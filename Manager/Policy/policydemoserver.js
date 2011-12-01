@@ -1,13 +1,32 @@
 
 var http = require('http');
 var fs = require('fs');
+var os = require('os');
 var url = require('url');
 var util = require('util');
 var pmlib = require('./policymanager.js');
 var pm;
+var rootPath;
 
 var usersList = ["user1", "user2", "user3"];
 var usersListDisplay = ["1: PZ owner", "2: PZ friend", "3: unknown"];
+
+// Console.log redefinition
+if (os.platform()=='android') {
+	console.log = function(dataLog) {
+		var id = fs.openSync("/sdcard/console.log", "a");
+		fs.writeSync(id, dataLog+"\n", null, 'utf8');
+		fs.closeSync(id);
+	}
+}
+
+//path definition
+if (os.platform()=='android') {
+	rootPath = '/sdcard/webinos/policy';
+}
+else {
+	rootPath = '.';
+}
 
 var featureList = [
 	"http://webinos.org/api/authentication",
@@ -81,7 +100,8 @@ http.createServer(function(request, response){
 		response.end(string);
 	}
 	else {
-		var filename = "."+path;
+		//var filename = "."+path;
+		var filename = rootPath+path;
 		fs.readFile(filename, function(err, file) {
 			if(err) {
 				console.log("Error: file "+filename+" not found");
@@ -124,8 +144,8 @@ function getPolicyTable(fileName, appCert) {
 }
 
 function copyPolicyFile(fileName) {
-	var data = fs.readFileSync(fileName);
-	fs.writeFileSync("policy.xml", data);
+	var data = fs.readFileSync(rootPath+"/"+fileName);
+	fs.writeFileSync(rootPath+"/"+"policy.xml", data);
 }
 
 function checkFeature(featureName, userId, appCert) {
