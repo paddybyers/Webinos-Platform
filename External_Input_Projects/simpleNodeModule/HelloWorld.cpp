@@ -1,6 +1,7 @@
-#include <v8.h>
-#include <node.h>
+#define BUILDING_NODE_EXTENSION 1
 
+#include <node.h>
+#include <v8.h>
 using namespace node;
 using namespace v8;
 
@@ -9,14 +10,14 @@ class HelloWorld: ObjectWrap
 private:
   int m_count;
 public:
-  static Persistent<FunctionTemplate> s_ct;
+  //static Persistent<FunctionTemplate> s_ct;
   static void Init(Handle<Object> target)
   {
     HandleScope scope;
 
     Local<FunctionTemplate> t = FunctionTemplate::New(New);
 
-    s_ct = Persistent<FunctionTemplate>::New(t);
+    Persistent<FunctionTemplate> s_ct = Persistent<FunctionTemplate>::New(t);
     s_ct->InstanceTemplate()->SetInternalFieldCount(1);
     s_ct->SetClassName(String::NewSymbol("HelloWorld"));
 
