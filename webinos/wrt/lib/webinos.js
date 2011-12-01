@@ -165,7 +165,7 @@
 			if (typeof DeviceStatusManager !== 'undefined') typeMap['http://wacapps.net/api/devicestatus'] = DeviceStatusManager;
 			if (typeof Contacts !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/contacts'] = Contacts;
 			if (typeof Context !== 'undefined') typeMap['http://webinos.org/api/context'] = Context;
-//			if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
+			if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
 			// elevate baseServiceObj to usable local WebinosService object
 			
 //			if (baseServiceObj.api === 'http://webinos.org/api/sensors.temperature'){
@@ -174,7 +174,6 @@
 //			else{
 				var tmp = new typeMap[baseServiceObj.api](baseServiceObj);
 //			}
-			console.log('fs: '+ TestModule);
 			webinos.ServiceDiscovery.registeredServices++;
 			callback.onFound(tmp);
 		}
