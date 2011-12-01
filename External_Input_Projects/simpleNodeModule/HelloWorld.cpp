@@ -3,14 +3,6 @@
 
 using namespace node;
 using namespace v8;
-extern "C" {
-  static void init (Handle<Object> target)
-  {
-    HelloWorld::Init(target);
-  }
-
-  NODE_MODULE(helloworld, init);
-}
 
 class HelloWorld: ObjectWrap
 {
@@ -57,4 +49,13 @@ public:
     Local<String> result = String::New("Hello World");
     return scope.Close(result);
   }
- }
+ };
+
+extern "C" {
+  static void init (Handle<Object> target)
+  {
+    HelloWorld::Init(target);
+  }
+
+  NODE_MODULE(helloworld, init);
+};
