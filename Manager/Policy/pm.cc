@@ -8,6 +8,12 @@
 using namespace node;
 using namespace v8;
 
+#ifdef ANDROID
+	static const string policyFileName = "/sdcard/webinos/policy/policy.xml";
+#else
+	static const string policyFileName = "./policy.xml";
+#endif
+
 class PolicyManagerInt: ObjectWrap{
 
 private:  
@@ -37,7 +43,7 @@ public:
 	static Handle<Value> New(const Arguments& args)  {
 		HandleScope scope;
 		PolicyManagerInt* pmtmp = new PolicyManagerInt();
-		pmtmp->pminst = new PolicyManager("./policy.xml");
+		pmtmp->pminst = new PolicyManager(policyFileName);
 		pmtmp->Wrap(args.This());
 		return args.This();
 	}
@@ -59,7 +65,19 @@ public:
 		map<string, vector<string>*> * subject_attrs = new map<string, vector<string>*>();
 		(*subject_attrs)["user-id"] = new vector<string>();
 		(*subject_attrs)["user-key-cn"] = new vector<string>();
+		(*subject_attrs)["user-key-fingerprint"] = new vector<string>();
+		(*subject_attrs)["user-key-root-cn"] = new vector<string>();
+		(*subject_attrs)["user-key-root-fingerprint"] = new vector<string>();
+		
+		(*subject_attrs)["distributor-key-cn"] = new vector<string>();
+		(*subject_attrs)["distributor-key-fingerprint"] = new vector<string>();
+		(*subject_attrs)["distributor-key-root-cn"] = new vector<string>();
 		(*subject_attrs)["distributor-key-root-fingerprint"] = new vector<string>();
+
+		(*subject_attrs)["author-key-cn"] = new vector<string>();
+		(*subject_attrs)["author-key-fingerprint"] = new vector<string>();
+		(*subject_attrs)["author-key-root-cn"] = new vector<string>();
+		(*subject_attrs)["author-key-root-fingerprint"] = new vector<string>();
 
 		map<string, vector<string>*> * resource_attrs = new map<string, vector<string>*>();
 		(*resource_attrs)["api-feature"] = new vector<string>();
@@ -91,14 +109,64 @@ public:
 				(*subject_attrs)["user-key-cn"]->push_back(*userKeyCn);
 				LOGD("Parameter user-key-cn : %s", *userKeyCn);
 			}
+			if (siTmp->ToObject()->Has(String::New("userKeyFingerprint"))) {
+				v8::String::AsciiValue userKeyFingerprint(siTmp->ToObject()->Get(String::New("userKeyFingerprint")));
+				(*subject_attrs)["user-key-fingerprint"]->push_back(*userKeyFingerprint);
+				LOGD("Parameter user-key-fingerprint : %s", *userKeyFingerprint);
+			}
+			if (siTmp->ToObject()->Has(String::New("userKeyRootCn"))) {
+				v8::String::AsciiValue userKeyRootCn(siTmp->ToObject()->Get(String::New("userKeyRootCn")));
+				(*subject_attrs)["user-key-root-cn"]->push_back(*userKeyRootCn);
+				LOGD("Parameter user-key-root-cn : %s", *userKeyRootCn);
+			}
+			if (siTmp->ToObject()->Has(String::New("userKeyRootFingerprint"))) {
+				v8::String::AsciiValue userKeyRootFingerprint(siTmp->ToObject()->Get(String::New("userKeyRootFingerprint")));
+				(*subject_attrs)["user-key-root-fingerprint"]->push_back(*userKeyRootFingerprint);
+				LOGD("Parameter user-key-root-fingerprint : %s", *userKeyRootFingerprint);
+			}
 		}
 
 		if (args[0]->ToObject()->Has(String::New("widgetInfo"))) {
-			v8::Local<Value> siTmp = args[0]->ToObject()->Get(String::New("widgetInfo"));
-			if (siTmp->ToObject()->Has(String::New("distributorKeyRootFingerprint"))) {
-				v8::String::AsciiValue distributorKeyRootFingerprint(siTmp->ToObject()->Get(String::New("distributorKeyRootFingerprint")));
+			v8::Local<Value> wiTmp = args[0]->ToObject()->Get(String::New("widgetInfo"));
+			if (wiTmp->ToObject()->Has(String::New("distributorKeyCn"))) {
+				v8::String::AsciiValue distributorKeyCn(wiTmp->ToObject()->Get(String::New("distributorKeyCn")));
+				(*subject_attrs)["distributor-key-cn"]->push_back(*distributorKeyCn);
+				LOGD("Parameter distributor-key-cn : %s", *distributorKeyCn);
+			}
+			if (wiTmp->ToObject()->Has(String::New("distributorKeyFingerprint"))) {
+				v8::String::AsciiValue distributorKeyFingerprint(wiTmp->ToObject()->Get(String::New("distributorKeyFingerprint")));
+				(*subject_attrs)["distributor-key-fingerprint"]->push_back(*distributorKeyFingerprint);
+				LOGD("Parameter distributor-key-fingerprint : %s", *distributorKeyFingerprint);
+			}
+			if (wiTmp->ToObject()->Has(String::New("distributorKeyRootCn"))) {
+				v8::String::AsciiValue distributorKeyRootCn(wiTmp->ToObject()->Get(String::New("distributorKeyRootCn")));
+				(*subject_attrs)["distributor-key-root-cn"]->push_back(*distributorKeyRootCn);
+				LOGD("Parameter distributor-key-root-cn : %s", *distributorKeyRootCn);
+			}
+			if (wiTmp->ToObject()->Has(String::New("distributorKeyRootFingerprint"))) {
+				v8::String::AsciiValue distributorKeyRootFingerprint(wiTmp->ToObject()->Get(String::New("distributorKeyRootFingerprint")));
 				(*subject_attrs)["distributor-key-root-fingerprint"]->push_back(*distributorKeyRootFingerprint);
 				LOGD("Parameter distributor-key-root-fingerprint : %s", *distributorKeyRootFingerprint);
+			}
+			if (wiTmp->ToObject()->Has(String::New("authorKeyCn"))) {
+				v8::String::AsciiValue authorKeyCn(wiTmp->ToObject()->Get(String::New("authorKeyCn")));
+				(*subject_attrs)["author-key-cn"]->push_back(*authorKeyCn);
+				LOGD("Parameter author-key-cn : %s", *authorKeyCn);
+			}
+			if (wiTmp->ToObject()->Has(String::New("authorKeyFingerprint"))) {
+				v8::String::AsciiValue authorKeyFingerprint(wiTmp->ToObject()->Get(String::New("authorKeyFingerprint")));
+				(*subject_attrs)["author-key-fingerprint"]->push_back(*authorKeyFingerprint);
+				LOGD("Parameter author-key-fingerprint : %s", *authorKeyFingerprint);
+			}
+			if (wiTmp->ToObject()->Has(String::New("authorKeyRootCn"))) {
+				v8::String::AsciiValue authorKeyRootCn(wiTmp->ToObject()->Get(String::New("authorKeyRootCn")));
+				(*subject_attrs)["author-key-root-cn"]->push_back(*authorKeyRootCn);
+				LOGD("Parameter author-key-root-cn : %s", *authorKeyRootCn);
+			}
+			if (wiTmp->ToObject()->Has(String::New("authorKeyRootFingerprint"))) {
+				v8::String::AsciiValue authorKeyRootFingerprint(wiTmp->ToObject()->Get(String::New("authorKeyRootFingerprint")));
+				(*subject_attrs)["author-key-root-fingerprint"]->push_back(*authorKeyRootFingerprint);
+				LOGD("Parameter author-key-root-fingerprint : %s", *authorKeyRootFingerprint);
 			}
 		}
 
@@ -130,7 +198,7 @@ public:
 
 		//TODO: Reload policy file
 		delete pmtmp->pminst;
-		pmtmp->pminst = new PolicyManager("./policy.xml");
+		pmtmp->pminst = new PolicyManager(policyFileName);
 
 		Local<Integer> result = Integer::New(0);
 		

@@ -16,7 +16,7 @@
 
 if (typeof webinos === 'undefined')
   var webinos = {};
-webinos.rpc = require('./rpc.js');
+webinos.rpc = require(rpcfilePath +'rpc.js');
 
 //require.paths.unshift(__dirname +"/contacts_module");
 //var contacts_module = require("contacts_module");

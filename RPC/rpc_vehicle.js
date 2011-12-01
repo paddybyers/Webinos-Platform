@@ -3,9 +3,8 @@
 * First Author: Simon Isenberg, Second Author: Krishna Bangalore
 */
 
-
 if (typeof webinos === 'undefined') var webinos = {};
-webinos.rpc = require('./rpc.js');
+webinos.rpc = require(rpcfilePath +'rpc.js');
 
 
 function ShiftEvent(value){

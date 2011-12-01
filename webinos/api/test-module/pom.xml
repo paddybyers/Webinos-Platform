@@ -33,7 +33,7 @@
 	      <artifactId>exec-maven-plugin</artifactId>
 	      <executions>
 	        <execution>
-	          <id>jasmine-node-testing-js</id>
+	          <id>jasmine-node-testing</id>
 	          <goals>
 	            <goal>exec</goal>
 	          </goals>

@@ -17,6 +17,7 @@
   <modules>
     <!-- One module tag per child module -->
     <module>test-module</module>
-    <module>attestation</module>
+    <!--<module>attestation</module>-->
+    <!--<module>context</module>-->
   </modules>
 </project>

@@ -1,7 +1,7 @@
 //rpc for tv module
 (function () {
 	if (typeof webinos === 'undefined') var webinos = {};
-	webinos.rpc = require('../../rpc.js');
+	webinos.rpc = require('../../' + rpcfilePath +'rpc.js');
 	var tvmodule = require('./webinos.server.tv.js').tv;
 
 	var RemoteTVManager = new RPCWebinosService({
