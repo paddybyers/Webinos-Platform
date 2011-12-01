@@ -1,5 +1,5 @@
 if (typeof webinos === 'undefined') var webinos = {};
-webinos.rpc = require('../../../common/rpc/src/main/javascript/rpc.js');
+webinos.rpc = require('../../../common/rpc/lib/rpc.js');
 (function () {
 
   var RemoteContextManager = new RPCWebinosService({

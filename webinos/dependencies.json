@@ -11,6 +11,26 @@
     "context": {
       "name": "Context",
       "location": "/api/context"
+    },
+    "file": {
+      "name": "File API",
+      "location": "/api/file"
+    },
+    "geolocation": {
+      "name": "Geolocation",
+      "location": "/api/geolocation"
+    },
+    "get42": {
+      "name": "get42",
+      "location": "/api/get42"
+    },
+    "sensors": {
+      "name": "Sensors",
+      "location": "/api/sensors"
+    },
+    "servicedisco": {
+      "name": "ServiceDiscovery",
+      "location": "/api/servicedisco"
     }
   },
   "manager": {
