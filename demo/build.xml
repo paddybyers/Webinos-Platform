@@ -10,8 +10,8 @@
         <jscompiler compilationlevel="whitespace" output="${basedir}/client/webinos.js">
             <sources dir="${basedir}/../webinos/">
                 <file name="common/rpc/lib/rpc.js"/>
-                <file name="common/rpc/lib/messagehandler.js"/>
-    			<file name="common/rpc/lib/webinos.utils.js"/>
+            	<file name="common/manager/messaging/lib/messagehandler.js"/>
+            	<file name="common/rpc/lib/webinos.utils.js"/>
 			    <file name="common/rpc/contrib/md5.js"/>
     			<file name="wrt/lib/webinos.js"/>
 <!--   			<file name="wrt/lib/webinos.file.js"/>
