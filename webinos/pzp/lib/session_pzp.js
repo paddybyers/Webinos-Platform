@@ -8,8 +8,8 @@
 	"use strict";
 
 	if (typeof exports !== "undefined") {
-		var sessionPzh = require('../../../../pzh/src/main/javascript/session_pzh.js'),
-		messaging = require("../../../../common/rpc/src/main/javascript/messagehandler.js"),
+		var sessionPzh = require('../../pzh/lib/session_pzh.js'),
+		messaging = require("../../common/manager/messaging/lib/messagehandler.js"),
 		utils = require('./session_common.js');
 	}
 	var tls = require('tls'),

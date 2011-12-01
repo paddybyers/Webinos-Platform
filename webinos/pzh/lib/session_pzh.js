@@ -1,8 +1,8 @@
 (function() {
 
 if (typeof exports !== "undefined") {
-	var messaging = require("../../../../common/rpc/src/main/javascript/messagehandler.js"),
-	utils = require('../../../../pzp/src/main/javascript/session_common.js');
+	var messaging = require("../../common/manager/messaging/lib/messagehandler.js"),
+	utils = require('../../pzp/lib/session_common.js');
 }
 
 // Global variables and node modules that are required
