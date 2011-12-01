@@ -149,8 +149,8 @@
                   res.id = id;						
                   webinos.rpc.executeRPC(res, undefined, undefined, responseto, msgid);
                   // CONTEXT LOGGING HOOK
-                  if (contextEnabled)
-                    webinos.context.logContext(myObject,res);
+                  if (contextEnabled){}
+                    //webinos.context.logContext(myObject,res);
                 },
                 function (error){
                   if (typeof id === 'undefined') return;
