@@ -9,7 +9,7 @@
 	var sessionPzh = require('../../pzh/lib/session_pzh.js');
 	var sessionPzp = {};
 	var utils = require('./session_common.js');
-	var webinosMessage = require("../../common/rpc/lib/messagehandler.js");
+	var webinosMessage = require("../../common/manager/messaging/lib/messagehandler.js");
 
 	sessionPzp.send = function (message, address, object) {
 		object.sendMessage((message), address);

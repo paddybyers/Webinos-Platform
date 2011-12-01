@@ -37,6 +37,10 @@
     "context_manager": {
       "name": "Context manager",
       "location": "/common/manager/context_manager"
+    },
+    "messaging": {
+      "name": "Messaging Manager",
+      "location": "/common/manager/messaging"
     }
   }
 }

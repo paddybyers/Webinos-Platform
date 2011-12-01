@@ -4,7 +4,7 @@
 		webinos = {};
 	}
 	if (typeof module !== "undefined") {
-		rpc = require("./rpc.js");
+		rpc = require("../../../rpc/lib/rpc.js");
 	}
 	else {
 		rpc = webinos.rpc; 
