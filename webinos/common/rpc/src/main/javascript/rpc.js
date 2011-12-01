@@ -477,10 +477,20 @@
     require('../../../../../api/servicedisco/src/main/javascript/rpc_servicedisco.js');
 
     //Loading modules Dieter's way
+    /*
     var fs = require('fs');
     var module_root = __dirname + '/../../../'; //locate the root dir of the module
     var root = JSON.parse(fs.readFileSync(module_root + 'dependencies.json'));//load the webinos root folder path
     var dependencies = JSON.parse(fs.readFileSync(module_root + root.root.location + '/dependencies.json'));//load the webinos dependencies file
+    */
+    // Alternative 
+    var moduleRoot = require('../../../dependencies.json');
+    var dependencies = require('../../../' + moduleRoot.root.location + '/dependencies.json'); 
+    var webinosRoot = '../../../' + moduleRoot.root.location
+    
+    
+    console.log(root.root.location);
+    console.log(dependencies.manager.context_manager.location);
     
 	  //Fix for modules located in old rpc folder
     var oldRpcLocation = '../../../../../../RPC/';
@@ -502,8 +512,11 @@
 
     if (contextEnabled) {
       //push the relative to the module folder that contains the context_manager
-    	modules.push(module_root  + root.root.location + dependencies.manager.context_manager.location);    	
-    	modules.push(module_root  + root.root.location + dependencies.api.context.location);
+    	//modules.push(module_root  + root.root.location + dependencies.manager.context_manager.location);    	
+    	//modules.push(module_root  + root.root.location + dependencies.api.context.location);
+      
+      modules.push(webinosRoot + dependencies.manager.context_manager.location);
+      modules.push(webinosRoot  + dependencies.api.context.location);
     }
     
     for (var i = 0; i <modules.length; i++){
