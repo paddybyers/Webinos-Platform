@@ -26,7 +26,7 @@
 				'common='+ document.getElementById('common').value + '\n' +
 				'email='+ document.getElementById('email').value + '\n' +
 				'days='+ document.getElementById('days').value + '\n';
-			var payload = {status: 'startPZH', 
+			var payload = {status: 'startPzh', 
 				servername: document.getElementById('servername').value, 
 				serverport: document.getElementById('serverport').value, 
 				value: config}; 
@@ -44,20 +44,23 @@
 				'common='+ document.getElementById('pzpcommon').value + '\n' +
 				'email='+ document.getElementById('pzpemail').value + '\n' +
 				'days='+ document.getElementById('pzpdays').value + '\n';
-					
-			var payload = {status: 'startPZP', 
+
+			var payload = {status: 'startPzp', 
 				servername: document.getElementById('pzpservername').value,
 				serverport: document.getElementById('pzpserverport').value,
-				pzpserverport: document.getElementById('pzpport').value,
-				ipaddr:document.getElementById('pzpipaddr').value,
+				
 				value: config}; 
 			
 			var options = {type: 'prop', payload: payload};
 			webinos.message_send(null, options, null, null);
-		});            
-		
+		});
+                $('#disconnectPZP').bind('click', function() {
+                	var options = {type: 'prop', payload: {status:'disconnectPzp'}};
+					webinos.message_send(null, options, null, null);
+                
+		});
 		$('#connectPZH').bind('click', function() {
-			var payload = {status: 'connectPZH', 
+			var payload = {status: 'connectPzh', 
 				servername: document.getElementById('pzh_ip_addr').value,
 				serverport: document.getElementById('pzh_port').value}; 
 			var options = {type: 'prop', payload: payload};
@@ -93,7 +96,8 @@
 					alert(test[i].testAttr);
 				});
             		}           	
-            	}); 
+            	});
+           
 	});
 </script>
 </head>
@@ -140,6 +144,7 @@
 		<center> <p style="color:white"> Start Multiple PZP's, Just change common name field</p> </center>
 
 		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
+			
 			<tr><th>Config </th> <th> Value </th> </tr>
 			<tr><td>Country </td><td><input type="text" id="pzpcountry" value=""/></td> </tr>
 			<tr><td>State</td><td> <input type="text" id="pzpstate" value=""/></td></tr>
@@ -149,17 +154,17 @@
 			<tr><td>Common</td><td> <input type="text" id="pzpcommon" value="Desktop"/></td></tr>
 			<tr><td><i> (Info: This name should be different for each PZP)</i></td><td> </td></tr>
 			<tr><td>Email </td><td><input type="text" id="pzpemail" value="internal@webinos.org"/></td></tr>
-			<tr><td>Days</td><td> <input type="text" id="pzpdays" value="180"/></td>	</tr>
-			<tr><td>PZH Address </td><td><input type="text" id="pzpservername" value="79.125.104.127"/></td></tr> <!--  -->
+			<tr><td>Days</td><td> <input type="text" id="pzpdays" value="180"/></td>	</tr>		
+			<tr><td>PZH Address </td><td><input type="text" id="pzpservername" value="localhost"/></td></tr> <!--  -->
 			<tr><td><i> (Info: This should match with PZH address you want to connect)</i></td><td> </td></tr>
 			<tr><td>PZH Port </td><td><input type="text" id="pzpserverport" value="443"/></td></tr>
 			<tr><td><i> (Info: This should match with PZH Port)</i></td><td> </td></tr>
-			<tr><td>PZP Server Address</td><td><input type="text" id="pzpipaddr" value="localhost"/></td></tr>
-			<tr><td><i> (Info: This address is used for starting PZP Server)</i></td><td> </td></tr>
-			<tr><td>PZP Server Port Number</td><td><input type="text" id="pzpport" value="8000"/></td>	</tr>	
-			<tr><td><i> (Info: PZP server listens on this port)</i></td><td> </td></tr>
-		</table>
-			<center>><button id="startPZP" class="button">Start PZP </button></center>
+		</table>			
+			<center>
+				<button id="startPZP" class="button">Start PZP </button>
+				<button id="disconnectPZP" class="button">Disconnect PZP </button>
+			</center>
+			
 	</div>
 	<div id = "connect_pzh" style="background-color:#0879a9">
 		<center> <p style="color:white"></p> </center>
