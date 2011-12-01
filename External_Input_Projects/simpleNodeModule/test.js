@@ -1,5 +1,5 @@
-console.log(__dirname + "\\HelloWorld.node");
-var helloWorld = require(__dirname + "\\HelloWorld.node");
+console.log(__dirname + "/build/default/helloworld.node");
+var helloWorld = require(__dirname + "/build/default/helloworld.node");
 tester = new helloWorld.HelloWorld();
 console.log("Test");
-console.log(tester.Hello());
+console.log(tester.hello());
