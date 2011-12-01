@@ -3,10 +3,16 @@
 
 	var policyManager,
 	exec = require('child_process').exec;
+	var os = require('os');
 
 	policyManager = function() {
 		// Load the native module
-		this.pmNativeLib = (process.versions.node < "0.6.0" ) ? require('./build/default/pm.node') : require('./build/Release/pm.node');
+		if (os.platform()=='android') {
+			this.pmNativeLib = require('pm');
+		}
+		else {
+			this.pmNativeLib = (process.versions.node < "0.6.0" ) ? require('./build/default/pm.node') : require('./build/Release/pm.node');
+		}
 		this.pmCore = new this.pmNativeLib.PolicyManagerInt();
 	}
 

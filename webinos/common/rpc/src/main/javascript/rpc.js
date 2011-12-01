@@ -45,7 +45,7 @@
 	}
 
 	var contextEnabled = typeof process === 'undefined' || (process.version >= 'v0.4.0' && process.version < 'v0.5.0');
-	
+
   write = null;
 
   /*
@@ -148,6 +148,9 @@
                   else res.result = {};
                   res.id = id;						
                   webinos.rpc.executeRPC(res, null, null, responseto, msgid);
+                  // CONTEXT LOGGING HOOK
+                  if (contextEnabled)
+                    webinos.context.logContext(myObject,res);
                 },
                 function (error){
                   if (typeof id === 'undefined') return;
@@ -473,8 +476,24 @@
     var Pzp = require('../../../../../pzp/src/main/javascript/session_pzp.js');
     require('../../../../../api/servicedisco/src/main/javascript/rpc_servicedisco.js');
 
-
-	var oldRpcLocation = '../../../../../../RPC/';
+    //Loading modules Dieter's way
+    /*
+    var fs = require('fs');
+    var module_root = __dirname + '/../../../'; //locate the root dir of the module
+    var root = JSON.parse(fs.readFileSync(module_root + 'dependencies.json'));//load the webinos root folder path
+    var dependencies = JSON.parse(fs.readFileSync(module_root + root.root.location + '/dependencies.json'));//load the webinos dependencies file
+    */
+    // Alternative 
+    var moduleRoot = require('../../../dependencies.json');
+    var dependencies = require('../../../' + moduleRoot.root.location + '/dependencies.json'); 
+    var webinosRoot = '../../../' + moduleRoot.root.location
+    
+    
+    console.log(root.root.location);
+    console.log(dependencies.manager.context_manager.location);
+    
+	  //Fix for modules located in old rpc folder
+    var oldRpcLocation = '../../../../../../RPC/';
     //add your RPC Implementations here!
     var modules = [
                    '../../../../../api/get42/src/main/javascript/rpc_test2.js',
@@ -492,8 +511,12 @@
                    ];
 
     if (contextEnabled) {
-    	modules.push('./../Manager/Context/Interception/contextInterception.js');
-    	modules.push('./Context/webinos.rpc.context.js');
+      //push the relative to the module folder that contains the context_manager
+    	//modules.push(module_root  + root.root.location + dependencies.manager.context_manager.location);    	
+    	//modules.push(module_root  + root.root.location + dependencies.api.context.location);
+      
+      modules.push(webinosRoot + dependencies.manager.context_manager.location);
+      modules.push(webinosRoot  + dependencies.api.context.location);
     }
     
     for (var i = 0; i <modules.length; i++){

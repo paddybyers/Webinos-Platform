@@ -1,5 +1,5 @@
 
-var simplenod = require("../../../main/javascript/simplenod.js");
+var simplenod = require("../../lib/simplenod.js");
 
 describe("test.namespaces.Can say hello2", function() {
 

@@ -53,7 +53,7 @@
                       <jslint options="white,node,vars" haltOnFailure="false">
                         <predef>Ext,Utils</predef>
                         <formatter type="xml" destFile="${basedir}/target/junit.xml" />
-                        <fileset dir="${basedir}/src/main/javascript" includes="**/*.js" />
+                        <fileset dir="${basedir}/lib" includes="**/*.js" />
                       </jslint>
                     </target>
                 </configuration>
@@ -75,29 +75,13 @@
             <executions>
               <!-- Execute Jasmine-node tests on JS files -->
               <execution>
-                <id>jasmine-node-testing-js</id>
+                <id>jasmine-node-testing</id>
                 <phase>test</phase>
                 <configuration>
                   <executable>jasmine-node</executable>
                   <arguments>
                     <argument>--junitreport</argument>
-                    <argument>src/test/javascript/jasmine</argument>
-                  </arguments>
-                  <successCodes>
-                    <param>0</param>
-                    <param>1</param>
-                  </successCodes>
-                </configuration>
-              </execution>
-              <!-- Execute Jasmine-node tests on node modules -->
-              <execution>
-                <id>jasmine-node-testing-c</id>
-                <phase>test</phase>
-                <configuration>
-                  <executable>jasmine-node</executable>
-                  <arguments>
-                    <argument>--junitreport</argument>
-                    <argument>src/test/cc/jasmine</argument>
+                    <argument>test/jasmine</argument>
                   </arguments>
                   <successCodes>
                     <param>0</param>
@@ -115,7 +99,7 @@
                     <argument>configure</argument>
                     <argument>build</argument>
                   </arguments>
-                  <workingDirectory>${basedir}/src/main/cc</workingDirectory>
+                  <workingDirectory>${basedir}/src</workingDirectory>
                   <successCodes>
                     <param>0</param>
                     <param>1</param>
@@ -138,10 +122,10 @@
               <directory>reports</directory>
             </fileset>
             <fileset>
-              <directory>src/main/cc/build</directory>
+              <directory>src/build</directory>
             </fileset>
             <fileset>
-              <directory>src/main/cc</directory>
+              <directory>src</directory>
               <includes>
                 <include>**/.lock-wscript</include>
               </includes>

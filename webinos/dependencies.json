@@ -7,12 +7,16 @@
     "attestation": {
       "name": "Attestation",
       "location": "/webinos/api/attestation"
+     },
+    "context": {
+      "name": "Context",
+      "location": "/api/context"
     }
   },
   "manager": {
-    "context": {
+    "context_manager": {
       "name": "Context manager",
-      "location": "/webinos/common/manager/context"
+      "location": "/common/manager/context_manager"
     }
   }
 }
