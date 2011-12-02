@@ -1,5 +1,6 @@
-#define BUILDING_NODE_EXTENSION 1
-
+/*#define BUILDING_NODE_EXTENSION 1
+this is passed in the compiler options instead to avoid adding overhead in linux build
+*/
 #include <node.h>
 #include <v8.h>
 using namespace node;
@@ -10,7 +11,6 @@ class HelloWorld: ObjectWrap
 private:
   int m_count;
 public:
-  //static Persistent<FunctionTemplate> s_ct;
   static void Init(Handle<Object> target)
   {
     HandleScope scope;
