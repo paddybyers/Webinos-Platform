@@ -44,11 +44,11 @@ Pzh.prototype.prepMsg = function(from, to, status, message) {
 Pzh.prototype.sendMessage = function(message, address, conn) {
 	"use strict";
 	var buf, self = this;
-	utils.debug('PZH ('+self.sessionId+') SendMessage to address ' + address ); 
 	try{
-		buf = new Buffer('#'+JSON.stringify(message)+'#');		
+		buf = new Buffer('#'+JSON.stringify(message)+'#');
+		console.log('PZH Send Message ' + JSON.stringify(message));
 		if (self.connectedPzh[address]) {
-			utils.debug('PZH ('+self.sessionId+') Msg fwd to connected PZH ');
+			utils.debug('PZH ('+self.sessionId+') Msg fwd to connected PZH ' + address);
 			self.connectedPzh[address].socket.pause();
 			self.connectedPzh[address].socket.write(buf);
 			process.nextTick(function () {
@@ -56,7 +56,7 @@ Pzh.prototype.sendMessage = function(message, address, conn) {
 			});
 		} else if (self.connectedPzp[address]) {
 			self.connectedPzp[address].socket.pause();
-			utils.debug('PZH ('+self.sessionId+') Msg fwd to connected PZP ');
+			utils.debug('PZH ('+self.sessionId+') Msg fwd to connected PZP ' + address);
 			self.connectedPzp[address].socket.write(buf);
 			process.nextTick(function () {
 				self.connectedPzp[address].socket.resume();
@@ -226,11 +226,11 @@ Pzh.prototype.processMsg = function(conn, data) {
 	if(parse.type === 'prop' && parse.payload.status === 'clientCert' ) {
 		var i, id, id1=0;
 		try{
-			utils.generateClientCertifiedCert(self, function(result) {
+			utils.generateClientCertifiedCert(self, parse.payload.message, function(result) {
 				if(result === 'done') {
 				var payload = {'clientCert': fs.readFileSync(self.config.clientcert).toString(),
 					'masterCert':fs.readFileSync(self.config.mastercertname).toString()};
-				var msg = self.prepMsg(parse.from, self.sessionId, 'signedCert', payload);
+				var msg = self.prepMsg(self.sessionId, null, 'signedCert', payload);
 				self.sendMessage(msg, null, conn);
 				}
 			});
@@ -241,19 +241,21 @@ Pzh.prototype.processMsg = function(conn, data) {
 		}
 	} else if (parse.type === 'prop' && parse.payload.status === 'pzpDetails') {
 		if(self.connectedPzp[parse.from]) {
-			self.connectedPzp[parse.from].port = parse.payload.message.port;
-			var otherPzp = [];
+			self.connectedPzp[parse.from].port = parse.payload.message;
+			var otherPzp = [], newPzp = false;
 			for(mykey in self.connectedPzp) {
-				if(mykey !== parse.from) {
-					otherPzp.push({'port': parse.payload.message, 
+				if(mykey === parse.from)
+					newPzp = true;
+				otherPzp.push({'port': self.connectedPzp[mykey].port, 
 					'name':mykey,
-					'address':self.connectedPzp[mykey].address});
-					msg = self.prepMsg(self.sessionId, mykey, 'pzpUpdate', 
-						otherPzp.toString());
-					self.sendMessage(msg, mykey);
-				}
-				
-			}
+					'address':self.connectedPzp[mykey].address,
+					'newPzp': newPzp});
+			} 
+			msg = self.prepMsg(self.sessionId, mykey, 'pzpUpdate', otherPzp);
+
+			for(mykey in self.connectedPzp) 
+				self.sendMessage(msg, mykey);
+			
 		} else {
 			utils.debug('PZH ('+self.sessionId+') Received PZP details from entity' +
 			' which is not registered : ' + parse.from);
@@ -287,7 +289,7 @@ sessionPzh.startPzh = function(contents, server, port, callback) {
 
 			__pzh.sock.on('listening', function() {
 				utils.debug('PZH ('+__pzh.sessionId+') Listening on PORT ' + __pzh.port);
-				callback.call(__pzh, 'startedPZH');
+				callback.call(__pzh, 'startedPzh');
 			});
 			__pzh.sock.listen(__pzh.port, server);
 		});
@@ -397,7 +399,7 @@ sessionPzh.startWebSocketServer = function(hostname, serverPort, webServerPort) 
 					msg.payload.servername, 
 					msg.payload.serverport, 
 					function(result) {
-						if(result === 'startedPZH') {
+						if(result === 'startedPzh') {
 							var info = {"type":"prop", 
 							"payload":{"status": "info", 
 							"message":"PZH started"}}; 

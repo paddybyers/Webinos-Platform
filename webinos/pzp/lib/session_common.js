@@ -1,6 +1,7 @@
 var  fs = require('fs'),
 	crypto = require('crypto'),
-	child_process = require('child_process');
+	child_process = require('child_process'),
+	messaging = require("../../common/manager/messaging/lib/messagehandler.js");
 
 var debug = true;
 
@@ -131,7 +132,8 @@ exports.generateServerCertifiedCert = function(self, config, callback) {
  * This results in native code call.
  */
  
-exports.generateClientCertifiedCert = function(self, callback) {
+exports.generateClientCertifiedCert = function(self, cert, callback) {
+	var id, id1;
 	fs.readdir(__dirname, function(err, files) {
 		for(var i=0; i<files.length; i++) {
 			if( (files[i].indexOf('pzh',0) === 0) &&  
@@ -147,7 +149,7 @@ exports.generateClientCertifiedCert = function(self, callback) {
 
 		// If we could get this information from within key exchange in openssl,
 		// it would not require certificate
-		fs.writeFile(self.config.tempcsr, payload.message, function() {
+		fs.writeFile(self.config.tempcsr, cert, function() {
 			var req = 'openssl x509 -req -days ' + self.config.days + 
 			' -in ' + self.config.tempcsr +' -CAcreateserial -CAkey ' + self.config.masterkeyname + 
 			' -CA ' + self.config.mastercertname + ' -out ' + self.config.clientcert;
@@ -268,7 +270,7 @@ var send = function (message, address, object) {
 };
 
 var setMessagingParam = function(self){
-	var messaging = require("../../../../common/rpc/src/main/javascript/messagehandler.js");
+
 	messaging.setGetOwnId(self.sessionId);
 	messaging.setObjectRef(self);
 	messaging.setSendMessage(send);
@@ -281,7 +283,6 @@ exports.setMessagingParam = setMessagingParam;
 * @param data, message forwarded to messaging  
 */
 exports.sendMessageMessaging = function(self, data) {
-	var messaging = require("../../../../common/rpc/src/main/javascript/messagehandler.js");
 	setMessagingParam(self);
 	if(typeof data.to !== 'undefined')
 		messaging.onMessageReceived(data, data.to);

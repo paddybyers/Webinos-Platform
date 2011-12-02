@@ -19,6 +19,9 @@
 		if(rpc.id === undefined)
 			rpc.id = Math.floor(Math.random()*1001);
 		
+		if(findServiceBindAddress !== null && (to === "" || to !== findServiceBindAddress)) {
+			to = findServiceBindAddress;
+		}
 		if(typeof rpc.method !== undefined && rpc.method === 'ServiceDiscovery.findServices')
 			id = rpc.params[2];
 			
@@ -52,7 +55,7 @@
 		return otherpzp;
 	}
 	webinos.findServiceBindAddress = function(address) {
-		if(typeof address !== "undefined" && address!== "null")
+		if(typeof address !== "undefined")
 			findServiceBindAddress = address;
 		return findServiceBindAddress;
 	}
@@ -83,7 +86,7 @@
 				pzhId = data.payload.message.pzhId;
 				connectedPzp = data.payload.message.connectedPzp;
 				connectedPzh = data.payload.message.connectedPzh;
-				("#pzh_pzp_list").empty();
+				$(".pzh_pzp_list").empty();
 				$("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
 				var i;
 				for(i =0; i < connectedPzp.length; i++) {
@@ -91,27 +94,28 @@
 				}
 				$("<option value="+pzpId+" >" + pzpId+ "</option>").appendTo("#pzh_pzp_list");						
 				$("</optgroup>").appendTo("#pzh_pzp_list");
-				$("<optgroup label = 'PZH' >").appendTo("#pzh_pzp_list");
+				$("<optgroup label = 'PZH' id ='pzh_list' >").appendTo("#pzh_pzp_list");
 				for(i =0; i < connectedPzh.length; i++) {
 					$("<option value=" + connectedPzh[i] + " >" + + "</option>").appendTo("#pzh_pzp_list");					
 				}
 				$("<option value="+pzhId+" >" + pzhId+ "</option>").appendTo("#pzh_pzp_list");						
 				$("</optgroup>").appendTo("#pzh_pzp_list");
-				//webinos.message.setGet(sessionid);
 				webinos.message.setGetOwnId(sessionid);
 				
 				var msg = webinos.message.registerSender(sessionid , pzpId);
 				webinos.message_send(pzpId, msg, null, null);
 			} else if(data.type === "prop" && data.payload.status === "info") {
-               	//document.getElementById("message").innerHTML = "";
-				$('#message').append('<li>'+data.payload.message+'</li>');				
-			} else if(data.type === "prop" && data.payload.status === "pzp_info") {
-				$("<option value=" + data.payload.message + " >" +data.payload.message + "</option>").appendTo("#pzp_list");				
-				$('#message').append('<li> PZP just joined: '+data.payload.message+'</li>');	
+				$('#message').append('<li>'+data.payload.message+'</li>');
+			} else if(data.type === "prop" && data.payload.status === "update") {
+				if(typeof data.payload.message.pzp !== "undefined")
+					$("<option value=" + data.payload.message.pzp + " >" +data.payload.message.pzp + "</option>").appendTo("#pzp_list");
+				else
+					$("<option value=" + data.payload.message.pzh + " >" +data.payload.message.pzh + "</option>").appendTo("#pzh_list");
+
 			} else {
-				//webinos.message.setGet(sessionid);
-				//webinos.message.setObject(this);
-				//webinos.message.setSend(webinos.message_send_messaging);
+				webinos.message.setGetOwnId(sessionid);
+				webinos.message.setObjectRef(this);
+				webinos.message.setSendMessage(webinos.message_send_messaging);
 				webinos.message.onMessageReceived(data, data.to);
 			}
 		};
