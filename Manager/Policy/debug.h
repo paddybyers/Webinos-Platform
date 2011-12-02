@@ -18,11 +18,21 @@
 #define MY_DEBUG_H
 
 #define  LOG_TAG  "POLICY_MANAGER_NATIVE"
+//#define __WEBINOS_DEBUG
 
-//#define  LOGD(...) 	{ FILE* tmp = fopen("./dbg.log", "a"); fprintf(tmp, __VA_ARGS__);	fprintf(tmp, "\n");	fclose(tmp);}													
-#define  LOGD(...) 
-//#define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#ifdef __WEBINOS_DEBUG
 
-#include <stdio.h>
+  #ifdef ANDROID
+    #define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+  #else
+    #include <stdio.h>
+    #define  LOGD(...) 	{ FILE* tmp = fopen("./dbg.log", "a"); fprintf(tmp, __VA_ARGS__);	fprintf(tmp, "\n");	fclose(tmp);}
+  #endif  //ANDROID
 
-#endif
+#else
+
+  #define  LOGD(...)
+
+#endif //__WEBINOS_DEBUG
+
+#endif  //MY_DEBUG_H
