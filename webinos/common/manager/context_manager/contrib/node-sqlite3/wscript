@@ -168,7 +168,7 @@ def build(bld):
   # in order to review linker errors (v8, libev/eio references can be ignored)
   #obj.env['LINKFLAGS_MACBUNDLE'] = ['-bundle']
   obj.target = TARGET
-  obj.source = "src/sqlite3.cc src/database.cc src/statement.cc"
+  obj.source = "src/node_sqlite3.cc src/database.cc src/statement.cc"
   obj.uselib = "SQLITE3"
 
 def shutdown():

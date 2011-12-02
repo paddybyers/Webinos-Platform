@@ -1,4 +1,11 @@
-Building on Windows
+Building on Linux
+
+Go to to node-sqlite3 and run
+node-waf configure
+node-waf build
+
+
+Building on Windows (with build instructions for node)
 
 NOTE: Requires Visual Studio 2010. I didn't test with the Express version, but it should do.
 
