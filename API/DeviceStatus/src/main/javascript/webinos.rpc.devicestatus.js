@@ -1,6 +1,7 @@
 (function () {
 	"use strict";
 
+	rpcfilePath = '../webinos/common/rpc/lib/';
 	var rpc = require('../../../../../RPC/'+rpcfilePath +'rpc.js'),
 	devicestatusmodule = require('./webinos.devicestatus.js').devicestatus,
 	RemoteDeviceStatusManager = new rpc.RPCWebinosService({

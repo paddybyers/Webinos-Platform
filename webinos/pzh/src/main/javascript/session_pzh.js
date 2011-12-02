@@ -1,7 +1,7 @@
 (function() {
 
 if (typeof exports !== "undefined") {
-	var webinosMessage = require("../../../../common/rpc/src/main/javascript/messagehandler.js");
+	var webinosMessage = require("../../../../common/rpc/lib/messagehandler.js");
 	var sessionPzh = {};
 	var utils = require('../../../../pzp/src/main/javascript/session_common.js');
 }

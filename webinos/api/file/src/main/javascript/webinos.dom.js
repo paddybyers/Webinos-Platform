@@ -3,7 +3,7 @@
 	
 	var EventEmitter = require("events").EventEmitter;
 	
-	var utils = require("../../../../../common/rpc/src/main/javascript/webinos.utils.js");
+	var utils = require("../../../../../common/rpc/lib/webinos.utils.js");
 	
 	exports.DOMException = function (type, message) {
 		if (typeof type !== "string")

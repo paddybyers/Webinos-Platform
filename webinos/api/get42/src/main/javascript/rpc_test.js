@@ -1,5 +1,5 @@
 if (typeof webinos === 'undefined') var webinos = {};
-webinos.rpc = require('../../../../../common/rpc/src/main/javascript/rpc.js');
+webinos.rpc = require('../../../../../common/rpc/lib/rpc.js');
 
 function get42 (params, successCB, errorCB, objectRef){
 	console.log("get42 was invoked");

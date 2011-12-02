@@ -3,7 +3,7 @@
 
 	var dom = require("./webinos.dom.rpc.js");
 	var file = require("./webinos.file.js");
-	var rpc = require("../../../../../common/rpc/src/main/javascript/rpc.js");
+	var rpc = require("../../../../../common/rpc/lib/rpc.js");
 
 	exports = exports;
 	

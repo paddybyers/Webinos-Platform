@@ -1,5 +1,5 @@
 if (typeof webinos === 'undefined') var webinos = {};
-webinos.rpc = require('../../../../../common/rpc/src/main/javascript/rpc.js');
+webinos.rpc = require('../../../../../common/rpc/lib/rpc.js');
 
 function findServices (params, successCB, errorCB, objectRef){
 	var responseTo, msgid, serviceType = params[0];

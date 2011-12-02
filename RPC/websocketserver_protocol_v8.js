@@ -1,14 +1,14 @@
 var WEBSOCKET_SERVER_PORT = 8080;
 var WEBSERVER_PORT = 8081; //Ports <1024 require sudo on linux/osx for the node script to start which is not advised
 
-rpcfilePath = '../webinos/common/rpc/src/main/javascript/';
+rpcfilePath = '../webinos/common/rpc/lib/';
 
 //Requires
 var WebSocketServer = require('websocket').server;
 var http = require("http"),  
 url = require("url"),  
 path = require("path"),
-rpc = require("../webinos/common/rpc/src/main/javascript/rpc.js"),
+rpc = require("../webinos/common/rpc/lib/rpc.js"),
 fs = require("fs");  
 
 //Static resources

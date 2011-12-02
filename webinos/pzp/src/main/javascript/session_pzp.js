@@ -4,12 +4,17 @@
  ** WebSocket Server to allow websocket connection with the browser
  * It is dependent on session common and messaging
  */
+
+var moduleRoot = require('../../../dependencies.json');
+var dependencies = require('../../../' + moduleRoot.root.location + '/dependencies.json'); 
+var webinosRoot = '../../../' + moduleRoot.root.location;
+
 (function () {
 	"use strict";
-	var sessionPzh = require('../../../../pzh/src/main/javascript/session_pzh.js');
+	var sessionPzh = require(webinosRoot + dependencies.pzh.location + 'src/main/javascript/session_pzh.js');
 	var sessionPzp = {};
 	var utils = require('./session_common.js');
-	var webinosMessage = require("../../../../common/rpc/src/main/javascript/messagehandler.js");
+	var webinosMessage = require(webinosRoot + dependencies.rpc.location + 'lib/messagehandler.js');
 
 	sessionPzp.send = function (message, address, object) {
 		object.sendMessage((message), address);

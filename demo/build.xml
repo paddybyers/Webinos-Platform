@@ -9,10 +9,10 @@
     <target name="gen-webinos-js">
         <jscompiler compilationlevel="whitespace" output="${basedir}/client/webinos.js">
             <sources dir="${basedir}/../webinos/">
-                <file name="common/rpc/src/main/javascript/rpc.js"/>
-                <file name="common/rpc/src/main/javascript/messagehandler.js"/>
-			    <file name="common/rpc/src/main/javascript/md5.js"/>
-    			<file name="common/rpc/src/main/javascript/webinos.utils.js"/>
+                <file name="common/rpc/lib/rpc.js"/>
+                <file name="common/rpc/lib/messagehandler.js"/>
+			    <file name="common/rpc/contrib/md5.js"/>
+    			<file name="common/rpc/lib/webinos.utils.js"/>
     			<file name="wrt/src/main/javascript/webinos.js"/>
 <!--    			<file name="wrt/src/main/javascript/webinos.file.js"/>
     			<file name="api/file/src/main/javascript/webinos.path.js"/> -->
