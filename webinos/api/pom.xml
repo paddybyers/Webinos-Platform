@@ -19,5 +19,6 @@
     <module>test-module</module>
     <!--<module>attestation</module>-->
     <!--<module>context</module>-->
+    <!--<module>devicestatus</module>-->
   </modules>
 </project>

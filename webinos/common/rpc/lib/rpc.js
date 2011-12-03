@@ -502,7 +502,7 @@
                    '../../../api/geolocation/lib/rpc_geolocation.js',
                    '../../../api/sensors/lib/rpc_sensors.js',
                    oldRpcLocation + 'rpc_vehicle.js',
-                   oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
+                   '../../../api/devicestatus/lib/webinos.rpc.devicestatus.js',
                    oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
                    oldRpcLocation + 'tv/provider/webinos.rpc.tv.js',
                    oldRpcLocation + 'rpc_contacts.js',

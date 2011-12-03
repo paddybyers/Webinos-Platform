@@ -31,6 +31,10 @@
     "servicedisco": {
       "name": "ServiceDiscovery",
       "location": "/api/servicedisco"
+    },
+    "devicestatus": {
+      "name": "DeviceStatus",
+      "location": "/api/devicestatus"
     }
   },
   "manager": {
@@ -41,6 +45,11 @@
     "messaging": {
       "name": "Messaging Manager",
       "location": "/common/manager/messaging"
+    },
+    "policy_manager": {
+      "name": "Policy Manager",
+      "location": "/common/manager/policy_manager"
     }
+
   }
 }
