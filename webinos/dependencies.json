@@ -32,7 +32,7 @@
       "name": "Sensors",
       "location": "api/sensors/"
     },
-    "servicedisco": {
+    "service_discovery": {
       "name": "ServiceDiscovery",
       "location": "api/servicedisco/"
     },
