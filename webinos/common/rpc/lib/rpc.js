@@ -501,6 +501,7 @@
                    '../../../api/file/lib/webinos.file.rpc.js',
                    '../../../api/geolocation/lib/rpc_geolocation.js',
                    '../../../api/sensors/lib/rpc_sensors.js',
+				    '../../../api/events/lib/events.js',
                    oldRpcLocation + 'rpc_vehicle.js',
                    '../../../api/devicestatus/lib/webinos.rpc.devicestatus.js',
                    oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
