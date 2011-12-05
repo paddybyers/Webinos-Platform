@@ -163,6 +163,7 @@
 			if (typeof TestModule !== 'undefined') typeMap['http://webinos.org/api/test'] = TestModule;
 			if (typeof WebinosGeolocation !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/geolocation'] = WebinosGeolocation;
 			if (typeof Vehicle !== 'undefined') typeMap['http://webinos.org/api/vehicle'] = Vehicle;
+			if (typeof EventsModule !== 'undefined') typeMap['http://webinos.org/api/events'] = EventsModule;
 			if (typeof Sensor !== 'undefined') typeMap['http://webinos.org/api/sensors'] = Sensor;
 			if (typeof UserProfileIntModule !== 'undefined') typeMap['UserProfileInt'] = UserProfileIntModule;
 			if (typeof TVManager !== 'undefined') typeMap['http://webinos.org/api/tv'] = TVManager;
