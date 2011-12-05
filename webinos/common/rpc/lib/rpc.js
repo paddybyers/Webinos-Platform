@@ -489,6 +489,7 @@
 //                   '../../../../../api/file/src/main/javascript/rpc_file.js',
                    webinosRoot + dependencies.api.file.location + 'lib/webinos.file.rpc.js',
                    webinosRoot + dependencies.api.geolocation.location + 'lib/rpc_geolocation.js',
+				   webinosRoot + dependencies.api.events.location + 'lib/events.js',
                    oldRpcLocation + 'rpc_vehicle.js',
                    webinosRoot + dependencies.api.sensors.location + 'lib/rpc_sensors.js',
                    oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
