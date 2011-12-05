@@ -1,6 +1,10 @@
 //This RPC implementation should be compliant to JSON RPC 2.0
 //as specified @ http://jsonrpc.org/spec.html
 
+var moduleRoot = require('../dependencies.json');
+var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
+var webinosRoot = '../' + moduleRoot.root.location;
+
 (function () {
 	if (typeof webinos === 'undefined')
 		webinos = {};
@@ -470,39 +474,24 @@
     exports.ServiceType = ServiceType;
 
     // none webinos modules
-    var md5 = require('../contrib//md5.js');
+    var md5 = require('../contrib/md5.js');
 
     // webinos related modules
-    var Pzp = require('../../../pzp/lib/session_pzp.js');
-    require('../../../api/servicedisco/lib/rpc_servicedisco.js');
-
-    //Loading modules Dieter's way
-    /*
-    var fs = require('fs');
-    var module_root = __dirname + '/../../../'; //locate the root dir of the module
-    var root = JSON.parse(fs.readFileSync(module_root + 'dependencies.json'));//load the webinos root folder path
-    var dependencies = JSON.parse(fs.readFileSync(module_root + root.root.location + '/dependencies.json'));//load the webinos dependencies file
-    */
-    // Alternative 
-    var moduleRoot = require('../dependencies.json');
-    var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json'); 
-    var webinosRoot = '../' + moduleRoot.root.location
-    
-    
-    console.log(root.root.location);
-    console.log(dependencies.manager.context_manager.location);
+    var Pzp = require(webinosRoot + dependencies.pzp.location + '/src/main/javascript/session_pzp.js');
+    require(webinosRoot + dependencies.api.service_discovery.location + 'src/main/javascript/rpc_servicedisco.js');
     
 	  //Fix for modules located in old rpc folder
-    var oldRpcLocation = '../../../../../../RPC/';
+    var oldRpcLocation = webinosRoot + '../RPC/';
     //add your RPC Implementations here!
     var modules = [
-                   '../../../api/get42/lib/rpc_test2.js',
-                   '../../../api/get42/lib/rpc_test.js',
-                   '../../../api/file/lib/webinos.file.rpc.js',
-                   '../../../api/geolocation/lib/rpc_geolocation.js',
-                   '../../../api/sensors/lib/rpc_sensors.js',
+                   webinosRoot + dependencies.api.get42.location + 'src/main/javascript/rpc_test2.js',
+                   webinosRoot + dependencies.api.get42.location + 'src/main/javascript/rpc_test.js',
+//                   '../../../../../api/file/src/main/javascript/rpc_file.js',
+                   webinosRoot + dependencies.api.file.location + 'src/main/javascript/webinos.file.rpc.js',
+                   webinosRoot + dependencies.api.geolocation.location + 'src/main/javascript/rpc_geolocation.js',
                    oldRpcLocation + 'rpc_vehicle.js',
-                   '../../../api/devicestatus/lib/webinos.rpc.devicestatus.js',
+                   webinosRoot + dependencies.api.sensors.location + 'src/main/javascript/rpc_sensors.js',
+                   oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
                    oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
                    oldRpcLocation + 'tv/provider/webinos.rpc.tv.js',
                    oldRpcLocation + 'rpc_contacts.js',

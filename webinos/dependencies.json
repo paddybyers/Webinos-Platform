@@ -1,55 +1,70 @@
 {
   "api": {
+    "get42": {
+      "name": "Get 42",
+      "location": "api/get42/"
+    },
     "test-module": {
       "name": "Test module",
-      "location": "/webinos/api/test-module"
+      "location": "api/test-module/"
     },
     "attestation": {
       "name": "Attestation",
-      "location": "/webinos/api/attestation"
+      "location": "api/attestation/"
      },
     "context": {
       "name": "Context",
-      "location": "/api/context"
+      "location": "api/context/"
     },
     "file": {
       "name": "File API",
-      "location": "/api/file"
+      "location": "api/file/"
     },
     "geolocation": {
       "name": "Geolocation",
-      "location": "/api/geolocation"
+      "location": "api/geolocation/"
     },
     "get42": {
       "name": "get42",
-      "location": "/api/get42"
+      "location": "api/get42/"
     },
     "sensors": {
       "name": "Sensors",
-      "location": "/api/sensors"
+      "location": "api/sensors/"
     },
     "servicedisco": {
       "name": "ServiceDiscovery",
-      "location": "/api/servicedisco"
+      "location": "api/servicedisco/"
     },
     "devicestatus": {
       "name": "DeviceStatus",
-      "location": "/api/devicestatus"
+      "location": "api/devicestatus/"
     }
   },
   "manager": {
     "context_manager": {
       "name": "Context manager",
-      "location": "/common/manager/context_manager"
+      "location": "common/manager/context_manager/"
     },
     "messaging": {
       "name": "Messaging Manager",
-      "location": "/common/manager/messaging"
+      "location": "common/manager/messaging/"
     },
     "policy_manager": {
       "name": "Policy Manager",
-      "location": "/common/manager/policy_manager"
+      "location": "common/manager/policy_manager/"
     }
-
+  },
+  "rpc": {
+    "name": "RPC",
+    "location": "common/rpc/"
+  },
+  "pzp": {
+    "name": "PZP",
+    "location": "pzp/"
+  },
+  "pzh": {
+    "name": "PZH",
+    "location": "pzh/"
   }
 }
