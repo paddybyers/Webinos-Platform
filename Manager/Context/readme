@@ -1,7 +1,0 @@
-The Context manager must be able to
-
-receive context events from other parts of the architecture
-securely store all context events and data
-full fill context query requests, using either PZP or PZP stores
-guarantee no unauthorised access is allowed to the context inerface
-The Context Manager should be implemented in Javascript using node.js and make use of secure or encrypted storage
