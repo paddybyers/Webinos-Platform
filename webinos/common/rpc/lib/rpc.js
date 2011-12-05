@@ -481,7 +481,7 @@ var webinosRoot = '../' + moduleRoot.root.location;
     require(webinosRoot + dependencies.api.service_discovery.location + 'src/main/javascript/rpc_servicedisco.js');
     
 	  //Fix for modules located in old rpc folder
-    var oldRpcLocation = '../../../../RPC/';
+    var oldRpcLocation = webinosRoot + '../RPC/';
     //add your RPC Implementations here!
     var modules = [
                    webinosRoot + dependencies.api.get42.location + 'src/main/javascript/rpc_test2.js',
