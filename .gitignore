@@ -5,8 +5,8 @@ Manager/Context/Storage/data/context.json
 demo/client/webinos.js
 
 # ignore eclipse project files
-/.project
-/.settings
+.project
+.settings
 
 # ignore generated certificates
 *.pem

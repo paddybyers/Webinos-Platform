@@ -1,9 +1,0 @@
-The Widget manager must be able to
-
-securely store a wgt file
-process a wgt file accordign to W3C + webinos rules and validate certificates
-process feature elements and warp elements - passing infromation to WRT and the policy manager as required
-process "service" elemental on the manifest
-recieve messages bound for this application, passing to the service element as required
-deal with the nested widget concepts
-The core manager should be wrapped in node.js functions. However, we may decide to reuse exising C code - and integrate via node.js native extensions

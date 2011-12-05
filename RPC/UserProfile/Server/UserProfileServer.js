@@ -1,5 +1,6 @@
 var w3cfile = require('./../../impl_file.js');
 if (typeof webinos === 'undefined') var webinos = {};
+rpcfilePath = '../webinos/common/rpc/lib/';
 webinos.rpc = require('../../' + rpcfilePath+ 'rpc.js');
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

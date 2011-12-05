@@ -73,22 +73,6 @@
             <artifactId>exec-maven-plugin</artifactId>
             <version>1.2.1</version>
             <executions>
-              <!-- Execute Jasmine-node tests on JS files -->
-              <execution>
-                <id>jasmine-node-testing</id>
-                <phase>test</phase>
-                <configuration>
-                  <executable>jasmine-node</executable>
-                  <arguments>
-                    <argument>--junitreport</argument>
-                    <argument>test/jasmine</argument>
-                  </arguments>
-                  <successCodes>
-                    <param>0</param>
-                    <param>1</param>
-                  </successCodes>
-                </configuration>
-              </execution>
               <!-- Compile c files to node modules -->
               <execution>
                 <id>node-waf</id>
@@ -100,6 +84,22 @@
                     <argument>build</argument>
                   </arguments>
                   <workingDirectory>${basedir}/src</workingDirectory>
+                  <successCodes>
+                    <param>0</param>
+                    <param>1</param>
+                  </successCodes>
+                </configuration>
+              </execution>
+              <!-- Execute Jasmine-node tests on JS files -->
+              <execution>
+                <id>jasmine-node-testing</id>
+                <phase>test</phase>
+                <configuration>
+                  <executable>jasmine-node</executable>
+                  <arguments>
+                    <argument>--junitreport</argument>
+                    <argument>test/jasmine</argument>
+                  </arguments>
                   <successCodes>
                     <param>0</param>
                     <param>1</param>
