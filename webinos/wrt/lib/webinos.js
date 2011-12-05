@@ -35,7 +35,9 @@
 		if(rpc.register !== "undefined" && rpc.register === true) {
 			channel.send(JSON.stringify(rpc));
 		} else {
-			webinos.message.createMessageId(message, successCB, errorCB);
+            console.log('creating callback');
+            
+            webinos.message.createMessageId(message, successCB, errorCB);
 			console.log('WebSocket Client: Message Sent');
 			console.log(message);
 			channel.send(JSON.stringify(message));
@@ -279,7 +281,9 @@
 	Vehicle.prototype.addEventListener = function(vehicleDataId, eventHandler, capture) {
 		if(_vehicleDataIds.indexOf(vehicleDataId) != -1){	
 			var rpc = webinos.rpc.createRPC(this, "addEventListener", vehicleDataId);
-			rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
+			
+            
+            rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
 			
 			_referenceMapping.push([rpc.fromObjectRef, eventHandler]);
 			console.log('# of references' + _referenceMapping.length);

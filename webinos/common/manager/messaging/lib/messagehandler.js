@@ -281,8 +281,8 @@
 			{
 				if(message.payload) 
 				{	
-			        if(message.to != message.resp_to)
-			        {   
+			       if(message.to != message.resp_to)
+			       {   
 						console.log(message.payload);
 						var resp = message.resp_to;
 						var msgid = message.id;
@@ -300,8 +300,26 @@
 			        	}
 			        	if(messageCallbacks[message.id])
 			        	{
-			        		messageCallbacks[message.id].onSuccess(message.payload.result);
+                                        messageCallbacks[message.id].onSuccess(message.payload.result);
+                        
+                        
+			        		message.payload = message.payload;
+			        		if(typeof message.payload.method !== "undefined")
+			        		{
+			        			logObj(message, "Message forwarded to RPC to handle callback");
+			        			var resp = message.resp_to;
+			        			var msgid = message.id;	       
+			        			rpc.handleMessage(message.payload, resp, msgid);
+			        		}
+			        		else
+			        		{
+			        			messageCallbacks[message.id].onSuccess(message.payload.result);
+			        		}
+>>>>>>> temporaly changes to messaging system to investigate problems with addEventListener in vehicle API
 			        	}
+                        
+                        
+                        
 			        }
 				}
 				else
