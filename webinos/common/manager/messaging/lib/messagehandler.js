@@ -289,22 +289,18 @@
 						rpc.handleMessage(message.payload, resp, msgid);
 			        } 
 			        else
-			        { 
-			        	//this is a message respnose to me 
+			        {
+			        	if(typeof message.payload.method !== "undefined")
+			        	{
+			        		// FIXME: can we call rpc.handleMessage here without checking messageCallbacks[] for message.id? 
+			        		logObj(message, "Message forwarded to RPC to handle callback");
+			        		var resp = message.resp_to;
+			        		var msgid = message.id;	       
+			        		rpc.handleMessage(message.payload, resp, msgid);
+			        	}
 			        	if(messageCallbacks[message.id])
 			        	{
-			        		message.payload = message.payload;
-			        		if(typeof message.payload.method !== "undefined")
-			        		{
-			        			logObj(message, "Message forwarded to RPC to handle callback");
-			        			var resp = message.resp_to;
-			        			var msgid = message.id;	       
-			        			rpc.handleMessage(message.payload, resp, msgid);
-			        		}
-			        		else
-			        		{
-			        			messageCallbacks[message.id].onSuccess(message.payload.result);
-			        		}
+			        		messageCallbacks[message.id].onSuccess(message.payload.result);
 			        	}
 			        }
 				}
