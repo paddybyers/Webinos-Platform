@@ -68,12 +68,11 @@
 	 */
 	 function createCommChannel(successCB) {
 		try{
-			var port = self.location.toString().split('/')[2];
-			port = port.split(':')[1];
-			port = parseInt(port) - 1;
+			var port = parseInt(location.port) + 1;
+			if (isNaN(port)) port = 81;
 			channel  = new WebSocket('ws://'+window.location.hostname+':'+port);
 		} catch(e) {
-			channel  = new MozWebSocket('ws://'+window.location.hostname+':'+parseInt(port)-1);
+			channel  = new MozWebSocket('ws://'+window.location.hostname+':'+port);
 		}
 				
 		channel.onmessage = function(ev) {
