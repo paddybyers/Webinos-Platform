@@ -173,12 +173,13 @@
 			if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
 			// elevate baseServiceObj to usable local WebinosService object
 			
-//			if (baseServiceObj.api === 'http://webinos.org/api/sensors.temperature'){
-//				var tmp = new typeMap['http://webinos.org/api/sensors'](baseServiceObj);
-//			}
-//			else{
+			if (baseServiceObj.api === 'http://webinos.org/api/sensors.temperature'){
+				var tmp = new typeMap['http://webinos.org/api/sensors'](baseServiceObj);
+			}
+			else{
 				var tmp = new typeMap[baseServiceObj.api](baseServiceObj);
-//			}
+			}
+
 			webinos.ServiceDiscovery.registeredServices++;
 			callback.onFound(tmp);
 		}
