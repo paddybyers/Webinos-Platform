@@ -1,10 +1,6 @@
 //This RPC implementation should be compliant to JSON RPC 2.0
 //as specified @ http://jsonrpc.org/spec.html
 
-var moduleRoot = require('../dependencies.json');
-var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
-var webinosRoot = '../' + moduleRoot.root.location;
-
 (function () {
 	if (typeof webinos === 'undefined')
 		webinos = {};
@@ -472,6 +468,10 @@ var webinosRoot = '../' + moduleRoot.root.location;
     exports.findServices = webinos.rpc.findServices;
     exports.RPCWebinosService = RPCWebinosService;
     exports.ServiceType = ServiceType;
+		
+		var moduleRoot = require('../dependencies.json');
+		var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
+		var webinosRoot = '../' + moduleRoot.root.location;
 
     // none webinos modules
     var md5 = require('../contrib/md5.js');
