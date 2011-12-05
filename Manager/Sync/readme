@@ -1,6 +1,0 @@
-The Sync manager must be able to
-
-resynchronise JSON data between the PZP and PZH
-The sync manager should be written in Javascript on node.js
-
-Early implementations may make use of 3rd part sync libraries
