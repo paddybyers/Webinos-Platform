@@ -7,14 +7,14 @@
 
 	policyManager = function() {
 		// Load the native module
-		if (os.platform()=='android') {
+		if (os.platform()==='android') {
 			this.pmNativeLib = require('pm'); 
 		}
 		else {
 			this.pmNativeLib = (process.versions.node < "0.6.0" ) ? require('../src/build/default/pm.node') : require('../src/build/Release/pm.node');
 		}
 		this.pmCore = new this.pmNativeLib.PolicyManagerInt();
-	}
+	};
 
 	policyManager.prototype.enforceRequest = function(request, errorCallback, successCallback /*, successCallbackParams*/ ) {
 		var res = this.pmCore.enforceRequest(request);
@@ -33,7 +33,7 @@
 				case 3:
 				case 4:		var child = exec("xmessage -buttons allow,deny -print 'Access request to " + request.resourceInfo.apiFeature  + "'",
 							function (error, stdout, stderr) {	
-								if (stdout == "allow\n") {
+								if (stdout === "allow\n") {
 									successCallback.apply(this, successCallbackParams);
 								}
 								else {
@@ -46,12 +46,12 @@
 			}
 		}
 		return (res);
-	}
+	};
 
 	policyManager.prototype.reloadPolicy = function() {
 		this.pmCore.reloadPolicy();
 		return;
-	}
+	};
 
 	exports.policyManager = policyManager;
 
