@@ -4,6 +4,10 @@
       "name": "Get 42",
       "location": "api/get42/"
     },
+	"events": {
+      "name": "Events API",
+      "location": "api/events/"
+    },
     "test-module": {
       "name": "Test module",
       "location": "api/test-module/"
