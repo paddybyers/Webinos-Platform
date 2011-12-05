@@ -13,6 +13,9 @@
 	
 		<script type="text/javascript">
 			
+			var vehicle;
+			var geolocation;
+			
 			$(document).ready(function() {
 					var vehicle = null;		
 					var listeners = new Array();
@@ -43,6 +46,17 @@
 						$('#info').append("<p>Mileage "+ data.mileage +"</p>");
 						$('#info').append("<p>Range " 	+ data.range +"</p>");
 						
+					}
+					
+					var positionHandler = function(data){
+						postMessage("info", "Geolocation changed");
+						$('#info').empty();
+						$('#info').append("<p>Time: "+ data.timestamp +"</p>");
+						$('#info').append("<p>Latitude: "+ data.coords.latitude +"</p>");
+						$('#info').append("<p>Longitude: "+ data.coords.longitude +"</p>");
+						$('#info').append("<p>Accuracy: "+ data.coords.accuracy +"</p>");
+						$('#info').append("<p>Speed: "+ data.coords.speed +"</p>");
+						$('#info').append("<p>Heading: "+ data.coords.heading +"</p>");
 					}
 					
 					//name, street, streetNumber, postalCode, city, country
@@ -142,25 +156,43 @@
 						
 					$('#init').click(function(e) {
 					
-							var address = $('#pzh_pzp_list').val();
-                           webinos.ServiceDiscovery.findServices(address,new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
+						var address = $('#pzh_pzp_list').val();
+                        webinos.ServiceDiscovery.findServices(address,new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
                 	    	
-							console.log("service found...");
+								console.log("service found...");
 							
-							vehicle = service;
-							postMessage("Connected Vehicle System. Please choose a function");
-							$('#addListener').removeAttr('disabled');
-							$('#getData').removeAttr('disabled');
-							$('#startPdc').removeAttr('disabled');
-							$('#vehicleDataId').removeAttr('disabled');
-							//$('#requestGuidance').removeAttr('disabled');
+								vehicle = service;
+								postMessage("Connected Vehicle System. Please choose a function");
+								$('#addListener').removeAttr('disabled');
+								$('#getData').removeAttr('disabled');
+								$('#startPdc').removeAttr('disabled');
+								$('#vehicleDataId').removeAttr('disabled');
+								//$('#requestGuidance').removeAttr('disabled');
 							
-							$('#info').html("<img src='ajaxloader.gif'>");
+								$('#info').html("<img src='ajaxloader.gif'>");
 							
-							$('#findService').attr('disabled', 'true');
-							$('#findService').val('Vehicle found');
+								$('#findService').attr('disabled', 'true');
+								$('#findService').val('Vehicle found');
 						
-                	}});
+						}});
+						
+						webinos.ServiceDiscovery.findServices(address,new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
+                	    	
+								console.log("geolocation service found...");
+							
+								geolocation = service;
+								$('#getLocation').removeAttr('disabled');
+								$('#watchPosition').removeAttr('disabled');
+							
+								$('#info').html("<img src='ajaxloader.gif'>");
+							
+								$('#findService').attr('disabled', 'true');
+								$('#findService').val('Geolocation found');
+						
+						}});
+						
+						
+						
                     });
 					
 					startPdc
@@ -185,15 +217,24 @@
 										
 					
 					$('#addListener').bind('click', function(){
-						
-
 						vehicle.addEventListener($('#vehicleDataId').val(), getMessageHandler($('#vehicleDataId').val()), false);
 						listeners.push($('#vehicleDataId').val());
-						
 						$('#removeListener').removeAttr('disabled');
 						$('#addListener').attr('disabled', 'true');	
-						
+
 					});
+					
+					$('#getLocation').bind('click', function(){
+					
+					/*
+					void getCurrentPosition(in PositionCallback successCallback,
+                           in optional PositionErrorCallback errorCallback,
+                           in optional PositionOptions options);
+					*/
+						geolocation.getCurrentPosition(positionHandler, errorCB, null);
+					
+					});
+					
 					$('#removeListener').bind('click', function(){
 						vehicle.removeEventListener($('#vehicleDataId').val(), getMessageHandler($('#vehicleDataId').val()), false);
 						postMessage('info','Listener removed for' + $('#vehicleDataId').val());
@@ -722,22 +763,25 @@
      </div>
      <div id="functions">
 		<h2>Testfunctions:</h2>
-        <!-- <h3>First Step</h3>	
-        <p><input type="button" id="findService" value="initialize" class="button"/></p>  -->
-		<h3>Access vehicle data</h3>
-        <p>
-        	<select id="pzh_pzp_list"> <option> </option> </select><br />
+        <select id="pzh_pzp_list"> <option> </option> </select><br />
             <input type="button" id="init" value="initialize System" class="button" disabled/><br />
+		<h3>Vehicle Data (Vehicle API)</h3>
+        <p>
+        	
             <select id="vehicleDataId" disabled>
             </select><br/>
             <input type="button" id="getData" value="get Data" disabled class="button"/><br />
             <input type="button" id="addListener" value="add EventListener" disabled class="button"/><br>
             <input type="button" id="removeListener" value="remove EventListener" disabled class="button"/><br>
             </p>
-         <h3>Navigationfunctions</h3>
+         <h3>Navigationfunctions (Vehicle API)</h3>
 			<input type="button" id="requestGuidance" value="request Guidance" disabled class="button"/>
             <input type="button" id="findDestinations" value="find POI" disabled class="button"/>
-            <h3>Apps</h3>
+        <h3>Geolocation API</h3>
+        	<input type="button" id="getLocation" value="get current Position" disabled class="button"/>
+            <input type="button" id="watchPosition" value="watch Position" disabled class="button"/>
+
+        <h3>Apps</h3>
 <input type="button" id="startPdc" value="PDC App" disabled class="button"/>
 <a href="#pdcApp"  id="pdcLauncher" title="Parkdistance App">Inline</a>
 		</p>
