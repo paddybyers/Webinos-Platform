@@ -238,6 +238,7 @@
     }
 
     if (typeof callback === 'function'){
+      rpc.id = Math.floor(Math.random()*101);
       var cb = {};
       cb.onResult = callback;
       if (typeof errorCB === 'function') cb.onError = errorCB;
@@ -252,7 +253,7 @@
     }
 
     //TODO check if rpc is request on a specific object (objectref) and get mapped responseto / destination session
-
+    console.log('RPC MESSAGE' + rpc);
     //TODO remove stringify when integrating with Message Routing/Ziran
     write(rpc, responseto, msgid);
   };
