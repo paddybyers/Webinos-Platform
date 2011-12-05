@@ -477,20 +477,20 @@ var webinosRoot = '../' + moduleRoot.root.location;
     var md5 = require('../contrib/md5.js');
 
     // webinos related modules
-    var Pzp = require(webinosRoot + dependencies.pzp.location + '/src/main/javascript/session_pzp.js');
-    require(webinosRoot + dependencies.api.service_discovery.location + 'src/main/javascript/rpc_servicedisco.js');
+    var Pzp = require(webinosRoot + dependencies.pzp.location + 'lib/session_pzp.js');
+    require(webinosRoot + dependencies.api.service_discovery.location + 'lib/rpc_servicedisco.js');
     
 	  //Fix for modules located in old rpc folder
     var oldRpcLocation = webinosRoot + '../RPC/';
     //add your RPC Implementations here!
     var modules = [
-                   webinosRoot + dependencies.api.get42.location + 'src/main/javascript/rpc_test2.js',
-                   webinosRoot + dependencies.api.get42.location + 'src/main/javascript/rpc_test.js',
+                   webinosRoot + dependencies.api.get42.location + 'lib/rpc_test2.js',
+                   webinosRoot + dependencies.api.get42.location + 'lib/rpc_test.js',
 //                   '../../../../../api/file/src/main/javascript/rpc_file.js',
-                   webinosRoot + dependencies.api.file.location + 'src/main/javascript/webinos.file.rpc.js',
-                   webinosRoot + dependencies.api.geolocation.location + 'src/main/javascript/rpc_geolocation.js',
+                   webinosRoot + dependencies.api.file.location + 'lib/webinos.file.rpc.js',
+                   webinosRoot + dependencies.api.geolocation.location + 'lib/rpc_geolocation.js',
                    oldRpcLocation + 'rpc_vehicle.js',
-                   webinosRoot + dependencies.api.sensors.location + 'src/main/javascript/rpc_sensors.js',
+                   webinosRoot + dependencies.api.sensors.location + 'lib/rpc_sensors.js',
                    oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
                    oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
                    oldRpcLocation + 'tv/provider/webinos.rpc.tv.js',
