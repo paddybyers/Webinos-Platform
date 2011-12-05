@@ -9,4 +9,15 @@ describe("Keystore", function() {
     var secOut = ks.get(secretKey);
     expect(secOut).toEqual(secret);
   });
+
+  it('delete the simple secret', function() {
+    var secretKey = "mySecret";
+    ks.delete(secretKey);
+  });
+
+  it('delete a non-existing secret', function() {
+    var secretKey = "noSecret";
+    expect(ks.delete(secretKey)).toThrow(new TypeError("TypeError: No matching results"));
+  });
+
 });

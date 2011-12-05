@@ -72,3 +72,13 @@ void __freeSecretResource(void * secret) throw(::KeyStoreException)
   gchar * secretMem = static_cast<gchar *>(secret);
   ::gnome_keyring_free_password(secretMem);
 }
+
+void __delete(const char * svc) throw(::KeyStoreException)
+{
+  std::string account(userName());
+  GnomeKeyringResult r = ::gnome_keyring_delete_password_sync(GNOME_KEYRING_NETWORK_PASSWORD,"user",account.c_str(),"server",svc,NULL);
+  if (r != GNOME_KEYRING_RESULT_OK) {
+    throw ::KeyStoreException(::gnome_keyring_result_to_message(r));
+  }
+}
+

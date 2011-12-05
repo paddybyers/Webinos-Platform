@@ -100,3 +100,9 @@ void __freeSecretResource(void * secret) throw(::KeyStoreException)
     throwPSError(rStatus);
   }
 }
+
+void __delete(const char * svc) throw(::KeyStoreException)
+{
+  throw ::KeyStoreException("delete not currently supported");
+}
+
