@@ -17,7 +17,7 @@ describe("Keystore", function() {
 
   it('delete a non-existing secret', function() {
     var secretKey = "noSecret";
-    expect(ks.delete(secretKey)).toThrow(new TypeError("TypeError: No matching results"));
+    expect(function(){ks.delete(secretKey);}).toThrow();
   });
 
 });

@@ -103,6 +103,14 @@ void __freeSecretResource(void * secret) throw(::KeyStoreException)
 
 void __delete(const char * svc) throw(::KeyStoreException)
 {
-  throw ::KeyStoreException("delete not currently supported");
+  UInt32 secretLength = 0;
+  void * secret = 0;
+  std::string account(userName());
+  SecKeychainItemRef itemRef = findItem(svc,account,&secret,&secretLength);
+  OSStatus dStatus = ::SecKeychainItemDelete(itemRef);
+  if (dStatus != noErr) {
+    throwPSError(dStatus);
+  }
+  __freeSecretResource(secret);
 }
 
