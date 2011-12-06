@@ -332,6 +332,32 @@
 		url = require('url'),
 		path = require('path'),
 		WebSocketServer = require('websocket').server;
+		
+		function getContentType(uri) {
+		    var contentType = {"Content-Type": "text/plain"};
+		    switch (uri.substr(uri.lastIndexOf('.'))) {
+		    case '.js':
+		    	contentType = {"Content-Type": "application/x-javascript"};
+		    	break;
+		    case '.html':
+		    	contentType = {"Content-Type": "text/html"};
+		    	break;
+		    case '.css':
+		    	contentType = {"Content-Type": "text/css"};
+		    	break;
+		    case '.jpg':
+		    	contentType = {"Content-Type": "image/jpeg"};
+		    	break;
+		    case '.png':
+		    	contentType = {"Content-Type": "image/png"};
+		    	break;
+		    case '.gif':
+		    	contentType = {"Content-Type": "image/gif"};
+		    	break;
+		    }
+		    return contentType;
+		}
+
 		var cs = http.createServer(function(request, response) {  
 			var uri = url.parse(request.url).pathname;  
 			var filename = path.join(process.cwd(), uri);  
@@ -349,7 +375,7 @@
 						response.end();  
 						return;  
 					}
-					response.writeHead(200);  
+					response.writeHead(200, getContentType(filename));  
 					response.write(file, "binary");  
 					response.end();
 				});

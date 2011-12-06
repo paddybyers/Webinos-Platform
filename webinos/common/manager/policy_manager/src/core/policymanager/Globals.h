@@ -32,29 +32,8 @@ enum EvalResponse {WGINFO_ERR, REF_ERR, POLICY_ERR, EVAL_OK};
 #define permit_overrides_algorithm		"permit-overrides"
 #define first_applicable_algorithm  		"first-applicable"
 
-#define BONDI_API_FEATURE				"api-feature"
-#define BONDI_DEVICE_CAPABILITY 		"device-cap"
-#define BONDI_LOAD_WIDGET 			"http://bondi.omtp.org/lifecycle/widget-instantiate"
-#define BONDI_PACKAGE_FILESYSTEM 		"http://bondi.omtp.org/api/1.1/filesystem"
-#define BONDI_PACKAGE_APPCONFIG 		"http://bondi.omtp.org/api/1.1/appconfig"
-#define BONDI_PACKAGE_MESSAGING 		"http://bondi.omtp.org/api/1.1/messaging"
-#define BONDI_PACKAGE_GEOLOCATION 	"http://bondi.omtp.org/api/1.1/geolocation"
-#define BONDI_PACKAGE_CONTACT 		"http://bondi.omtp.org/api/1.1/pim.contact"
-#define BONDI_PACKAGE_DEVICESTATUS	"http://bondi.omtp.org/api/1.1/devicestatus"
-#define BONDI_PACKAGE_UI				"http://bondi.omtp.org/api/1.1/ui"
-#define BONDI_PACKAGE_GALLERY		"http://bondi.omtp.org/api/1.1/gallery"
-#define BONDI_PACKAGE_CALENDAR		"http://bondi.omtp.org/api/1.1/pim.calendar"
-
-#define FILESYSTEM_READ				"http://bondi.omtp.org/api/1.1/filesystem.read"
-#define FILESYSTEM_WRITE				"http://bondi.omtp.org/api/1.1/filesystem.write"
-#define GEOLOCATION_POSITION 			"http://bondi.omtp.org/api/1.1/geolocation.position"
-#define MESSAGING_SMS_SEND			"http://bondi.omtp.org/api/1.1/messaging.sms.send"
-#define MESSAGING_SMS_GET			"http://bondi.omtp.org/api/1.1/messaging.sms.get"
-#define MESSAGING_SMS_SUBSCRIBE 		"http://bondi.omtp.org/api/1.1/messaging.sms.subscribe"
-#define PIM_CONTACT_READ				"http://bondi.omtp.org/api/1.1/pim.contact.read"
-#define PIM_CONTACT_WRITE			"http://bondi.omtp.org/api/1.1/pim.contact.write"
-#define PIM_CALENDAR_READ			"http://bondi.omtp.org/api/1.1/pim.calendar.read"
-#define PIM_CALENDAR_WRITE			"http://bondi.omtp.org/api/1.1/pim.calendar.write"
+#define API_FEATURE			"api-feature"
+#define DEVICE_CAPABILITY 		"device-cap"
 
 string modFunction(const string& func, const string& val);
 

@@ -22,7 +22,7 @@
                 	    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://webinos.org/api/events'), 
 						{onFound: function (service) {
                 	    	sensors.push(service);
-                	    	$('#messages').append('<li> New Sensor found: ' + service.api + '</li>');
+                	    	$('#messages').append('<li> EventAPI found: ' + service.api + '</li>');
 
                 	    	logObj(service, "Service");
                 	    }});
@@ -38,7 +38,7 @@
                         	sensors[act].bind(function(){
                         		
                         		logObj(sensors,"sensors");
-                        		$('#messages').append('<li> Sensor ' + sensors[act].api + ' bound.</li>');
+                        		$('#messages').append('<li> Events API ' + sensors[act].api + ' bound.</li>');
                            	});
                         }
             	    	
@@ -56,7 +56,13 @@
                     $('#register').bind('click', function() {
                     	for (var i = 0; i < sensors.length; i++){
                     		var act = i;
-                    		sensors[act].addWebinosEventListener();
+                    		sensors[act].addWebinosEventListener(function (event) {
+                    			console.log("New event received");
+                    			
+                    			$("#textIn").val(event.payload);
+                    			
+                    			logObj(event,"event");
+                    		});
                         }
                      }); 
                      
@@ -65,7 +71,18 @@
                     		var act = i;
                     		sensors[act].removeWebinosEventListener();
                         }
-                     }); 
+                     });
+                     
+                     $('#send').bind('click', function() {
+                    	for (var i = 0; i < sensors.length; i++){
+                    		var act = i;
+                    		var ev = sensors[act].createWebinosEvent();
+                    		
+                    		ev.payload = $("#textOut").val();
+                    		console.log(ev.payLoad);
+                    		ev.dispatchWebinosEvent();
+                        }
+                     });  
 
             });
         </script>
@@ -82,6 +99,11 @@
 		    	<button id="create">Create Event</button>
 		    	<button id="register">Register Event Listener</button>
 		    	<button id="remove">Remove Event Listener</button>
+		    	<button id="send">Send Event</button>
+			</p>
+			<p>
+				<textarea id="textOut" rows="5" cols="40">Type your Message here</textarea>
+				<textarea id="textIn" rows="5" cols="40" readonly>Incoming Messages will appear here</textarea>
 			</p>
 			<p>
 				<ul id="sensorResult">

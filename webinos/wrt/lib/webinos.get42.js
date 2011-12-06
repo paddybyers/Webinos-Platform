@@ -4,14 +4,15 @@
 		this.base = WebinosService;
 		this.base(obj);
 		
+		var that = this;
+		
 		this._testAttr = "HelloWorld";
 		this.__defineGetter__("testAttr", function (){
-			return this._testAttr + " Success";
+			return that._testAttr + " Success";
 		});
 		
 		this.echoAttr = {};
 
-		var that = this;
 		this.echoAttr.echo = function (attr, successCB) {
 			var rpc = webinos.rpc.createRPC(that, "echoAttr.echo", [ attr]);
 			webinos.rpc.executeRPC(rpc,
