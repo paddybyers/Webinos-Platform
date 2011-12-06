@@ -8,13 +8,17 @@
   },
   'targets': [
     {
-      'target_name': '<(module_name)',
-      'type': '<(library)',
-	  'product_name':'<(module_name)',
-	  'product_extension':'node',
       'sources': [
         'HelloWorld.cpp',
       ],
+	  
+	  'target_name': '<(module_name)',
+      'type': '<(library)',
+	  'product_name':'<(module_name)',
+	  'product_extension':'node',
+	  'product_dir':'build/default',
+	  #remove the default lib prefix on each library
+      'product_prefix':'',
 
       'defines': [
         'ARCH="<(target_arch)"',
