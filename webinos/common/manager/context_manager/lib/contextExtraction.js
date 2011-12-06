@@ -10,23 +10,27 @@ var databasehelper = require('../contrib/JSORMDB/src/main/javascript/persist');
 //Initialize helper classes
 var pathclass = require('path');
 var Fs = require('fs');
-console.log("current directory:");
-console.log(pathclass.resolve(__dirname + '/../' +'data/contextVocabulary.json'));
 var vocdbpath = pathclass.resolve(__dirname + '/../' +'data/contextVocabulary.json');
-//console.log("CONTEXT Vocabulary DB Initialized");
-//var contextdbpath = pathclass.resolve('../Manager/Context/Storage/data/context.json');
-//console.log("CONTEXT  DB Initialized");
 
-//webinos.context.vocdatabase = new databasehelper.JSONDatabase({path : vocdbpath,transactional : false});
-//webinos.context.contextdatabase = new databasehelper.JSONDatabase({path : vocdbpath,transactional : false});
+//Test the SQLite DB
+require('./contextDBpzhManager.js')
+//Test the SQLite DB
 
 webinos.context.saveContext = function(dataIn, success, fail) {
 
   var contextVocJSON = JSON.parse(Fs.readFileSync(vocdbpath, 'utf-8'));
-
-
-  var paramstolog = [];
-  var resultstolog = [];
+  var contextItem = {};
+  contextItem.API = {};
+  contextItem.device = {}; 
+  contextItem.application = {};
+  contextItem.session = {};
+  contextItem.contextObject = {};
+  contextItem.method = {};
+  contextItem.timestamp = {};
+  contextItem.paramstolog = [];
+  contextItem.resultstolog = [];
+  
+  
   var findObjectsToStore = function(vocList, callList, arrayToFill){
     for (callItem in callList){
       for (vocItem in vocList){
@@ -48,12 +52,6 @@ webinos.context.saveContext = function(dataIn, success, fail) {
     }
 
   }
-
-  //Find all methods in all APIs
-  //Find all input values for all methods
-  //
-
-  //function to find
 
   //Find API
   for(APIIndex in contextVocJSON){
@@ -83,32 +81,57 @@ webinos.context.saveContext = function(dataIn, success, fail) {
               }
               //Found our method!
               if (expectedInputsLength == inputsCount){
+                
+                contextItem.API = API.APIname;
+                contextItem.device = {}; 
+                contextItem.application = {};
+                contextItem.session = {};
+                contextItem.contextObject = cObject.objectName;
+                contextItem.method = method.objectName;
+                contextItem.timestamp = {};
+                findObjectsToStore(method.inputs,dataIn.params,contextItem.paramstolog);
+                findObjectsToStore(method.outputs,dataIn.result,contextItem.resultstolog);
+                
+                
                 console.log("Context Object found!");
-                console.log("API : " + API.APIname );
+                console.log("API : " + contextItem.API );
                 console.log("Method : " + method.objectName);
                 console.log("Context Object : " + cObject.objectName);
-                findObjectsToStore(method.inputs,dataIn.params,paramstolog);
-               
-                findObjectsToStore(method.outputs,dataIn.result,resultstolog);
+
                 console.log("Params to store in Context DB:");
-                console.log(paramstolog);
+                console.log(contextItem.paramstolog);
                 console.log("Outputs to store in Context DB:");
-                console.log(resultstolog);
+                console.log(contextItem.resultstolog);
+                var contextData = [];
+                contextData[0] = contextItem;
+                webinos.context.DB.insert(contextData)
+                console.log("Context data saved to Context DB");
                 break;
               }
 
             }
             else{
+              contextItem.API = API.APIname;
+              contextItem.device = {}; 
+              contextItem.application = {};
+              contextItem.session = {};
+              contextItem.contextObject = cObject.objectName;
+              contextItem.method = method.objectName;
+              contextItem.timestamp = {};
+              contextItem.paramstolog = [];
+              findObjectsToStore(method.outputs,dataIn.result,resultstolog);
+              
+              
               console.log("Context Object found!");
               console.log("API : " + API.APIname );
               console.log("Method : " + method.objectName);
               console.log("Context Object : " + cObject.objectName);
 
-              findObjectsToStore(method.outputs,dataIn.result,resultstolog);
+              
               console.log("Params to store in Context DB:");
-              console.log(paramstolog);
+              console.log(contextItem.paramstolog);
               console.log("Outputs to store in Context DB:");
-              console.log(resultstolog);
+              console.log(contextItem.resultstolog);
               break;
             }
           }

@@ -26,76 +26,38 @@ var databasehelper = require('../contrib/JSORMDB/src/main/javascript/persist');
 var pathclass = require('path');
 var Fs = require('fs');
 
-var dbpath = pathclass.resolve(__dirname + '/../' +'data/log.json');
-//var dbpath = "./../../../data/log.json";
-console.log
-console.log("Log DB Initialized");
-var logCount = 0;
+var moduleRoot = require('../dependencies.json');
+var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
+var webinosRoot = '../' + moduleRoot.root.location;
+var dbpath = pathclass.resolve(__dirname + '/../' + webinosRoot + '/storage/context/pzp/log.json');
+require('./contextExtraction.js');
 
-var cExtraction =  require('./contextExtraction.js');
-
-/*
-pathclass.exists(pathclass.dirname(dbpath) + "/temp", function (exists) {
-  if (! exists)
-  {
-    console.log("Context temp folder created")
-    Fs.mkdirSync(pathclass.dirname(dbpath) + "/temp", 0755);
-  }
-
-});
- */
 
 
 //Open the database
-//webinos.context.database = new databasehelper.JSONDatabase({path : pathclass.dirname(dbpath) + "/temp/" + pathclass.basename(dbpath),transactional : false});	
+	
 webinos.context.database = new databasehelper.JSONDatabase({path : dbpath,transactional : false});
-webinos.context.logContext = function(myObj, res) {
+console.log("Log DB Initialized");
 
+webinos.context.logContext = function(myObj, res) {
   if (!res['result']) res['result']={};
 
-  console.log(myObj);
+  //console.log(myObj);
   // Create the data object to log
   var myData = new webinos.context.ContextData(myObj['method'],myObj['params'], res['result']);
 
   var dataIn = {timestamp:myData.timestamp, api: myData.call.api, hash: myData.call.hash, method: myData.call.method, params:myData.params, result:myData.results};
-  //var dataIn = [{timestamp:myData.timestamp, call: myData.call, params:myData.params, result:myData.results}];
-  //var dataIn = [{timestamp:myData.timestamp, call: myData.call, params:myData.params, result:myData.results}];
 
-  //console.log('Prepare to log ' + myData.call.api );
-  //console.log('Is it not context? ' + !(myData.call.api =='http://webinos.org/api/context'));
+  //Don't log Context API calls
   if (!(myData.call.api =='http://webinos.org/api/context'))
   {
-
     webinos.context.database.insert([dataIn]);
-    logCount +=1;
     console.log(" Context Data Saved");
-    //console.log(logCount);
-
     webinos.context.saveContext(dataIn);
-
-
   }
-
-
-//Code to decrypt, unzip and re-encrypt the database for testing purposes
-  /*
-  securestore.decryptFile(dbpath + ".zip", pass, function() {
-          securestore.unzipFile(dbpath + ".zip", function() {
-            console.log("Unzipped");
-            securestore.encryptFile(dbpath + ".zip", pass, function() {});
-          });
-        });
-   */
-
-
-  //webinos.context.database.insert(dataIn);
-
-  //console.log(logCount);
-
-
 };
-webinos.context.find = function(findwhat, success,fail){
 
+webinos.context.find = function(findwhat, success,fail){
   var where = {field: "method", compare: "equals", value: "onchannelchangeeventhandler"};
   var fields = {params: true};
   var query = {where: where, fields: fields};
@@ -106,7 +68,6 @@ webinos.context.find = function(findwhat, success,fail){
     if (output[element.params.name] == null) output[element.params.name] = 1;
     else output[element.params.name] +=1;
   });
-
   success(output);
   console.log("closing up");
 
