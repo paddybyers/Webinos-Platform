@@ -682,45 +682,36 @@
 
 	WebinosGeolocation.prototype = new WebinosService;
 
-	WebinosGeolocation.prototype.getCurrentPosition = function (PositionCB, PositionErrorCB, PositionOptions) {  // according to webinos api definition 
-			var rpc = webinos.rpc.createRPC(this, "getCurrentPosition", PositionOptions); // RPC service name, function, position options
-			webinos.rpc.executeRPC(rpc,
-					function (position){  // this is called on success
-						PositionCB(position); 
-					},
-					function (error){ // this is called on error
-						PositionErrorCB(error);
-					}
-			);
-		};
+	WebinosGeolocation.prototype.getCurrentPosition = function (PositionCB, PositionErrorCB, PositionOptions) { 
+		var rpc = webinos.rpc.createRPC(this, "getCurrentPosition", PositionOptions); // RPC service name, function, position options
+		webinos.rpc.executeRPC(rpc, function (position) {
+			PositionCB(position); 
+		},
+		function (error) {
+			PositionErrorCB(error);
+		});
+	};
 
-	WebinosGeolocation.prototype.watchPosition = function (PositionCB, PositionErrorCB, PositionOptions) {   // not yet working
-			var rpc = webinos.rpc.createRPC(this, "watchPosition", PositionOptions); // RPC service name, function, options
-			rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
+	WebinosGeolocation.prototype.watchPosition = function (PositionCB, PositionErrorCB, PositionOptions) {
+		var watchIdKey = Math.floor(Math.random()*101);
+		
+		var rpc = webinos.rpc.createRPC(this, "watchPosition", [PositionOptions, watchIdKey]);
+		rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
 
-			var callback = new RPCWebinosService({api:rpc.fromObjectRef});
-			callback.onEvent = function (position) {
-				console.log(position);
-				PositionCB(position[0]); 
-			};
-			webinos.rpc.registerCallbackObject(callback);
-			
-			var watchId = webinos.rpc.executeRPC(rpc);
-			
-			return(watchId);
+		var callback = new RPCWebinosService({api:rpc.fromObjectRef});
+		callback.onEvent = function (position) {
+			PositionCB(position); 
 		};
+		webinos.rpc.registerCallbackObject(callback);
 
-	WebinosGeolocation.prototype.clearWatch = function (watchId) {   // not yet working
-			var rpc = webinos.rpc.createRPC(this, "clearWatch", watchId); 
-			webinos.rpc.executeRPC(rpc,
-					function (result){  // this is called on success
-						alert("successfully cleared watch");
-					},
-					function (error){ // this is called on error
-						alert("error upon clearWatch: " + error);
-					}
-			);
-		};
-	
+		webinos.rpc.executeRPC(rpc);
+
+		return watchIdKey;
+	};
+
+	WebinosGeolocation.prototype.clearWatch = function (watchId) {
+		var rpc = webinos.rpc.createRPC(this, "clearWatch", [watchId]); 
+		webinos.rpc.executeRPC(rpc, function() {}, function() {});
+	};
 	
 }());

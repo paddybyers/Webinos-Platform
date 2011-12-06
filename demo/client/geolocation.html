@@ -93,7 +93,7 @@
         	
         	document.getElementById('debug').innerHTML = JSON.stringify(PositionOptions); // for debug
         	
-        	geoLocationService.watchPosition(handle_geolocation_query, handle_errors, PositionOptions);  
+        	watchId = geoLocationService.watchPosition(handle_geolocation_query, handle_errors, PositionOptions);  
  		}
 
         function clear_watch() { 
