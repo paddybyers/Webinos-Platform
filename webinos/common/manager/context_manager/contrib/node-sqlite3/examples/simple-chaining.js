@@ -3,7 +3,7 @@
  */
 "use strict";
 
-var sqlite3 = require('sqlite3').verbose();
+var sqlite3 = require('../sqlite3.js').verbose();
 var db;
 
 function createDb() {
