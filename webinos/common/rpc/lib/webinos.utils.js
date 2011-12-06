@@ -4,10 +4,7 @@ if (typeof module === "undefined") {
 	
 	if (typeof webinos.utils === "undefined")
 		webinos.utils = {}
-	
-	var exports = webinos.utils;
-} else
-	var exports = module.exports;
+}
 
 (function (exports) {
 	"use strict";
@@ -116,4 +113,4 @@ if (typeof module === "undefined") {
 		this.prev = prev;
 		this.next = next;
 	}
-})(exports);
+})(typeof module === "undefined" ? webinos.utils : module.exports);

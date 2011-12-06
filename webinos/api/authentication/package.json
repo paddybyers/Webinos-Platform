@@ -1,0 +1,29 @@
+{ "name": "authentication"
+, "publishConfig": { "tag": "alpha" }
+, "description": "authentication API"
+, "keywords": ["webinos", "authentication" , "API"]
+, "version": "0.0.1"
+, "homepage": "http://webinos.org/"
+, "author": "Cesare Cameroni <cesare.cameroni@polito.it>"
+, "repository":
+  { "type": "git"
+  , "url": "http://dev.webinos.org/git/wp4.git"
+  }
+, "bugs":
+  { "email": "webinos-wp4-ml@fokus.fraunhofer.de"
+  , "url": ""
+  }
+, "directories": { "lib": "./lib"
+                 , "node_modules": "./node_modules"
+                 , "src": "./src"
+                 }
+, "main": "./lib/authentication.js"
+, "dependencies":
+  { "schema": "0.2.0"
+  }
+, "bundleDependencies":
+  [ "fs"
+  , "tty"
+  , "util"
+  ]
+}

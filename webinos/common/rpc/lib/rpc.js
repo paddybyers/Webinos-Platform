@@ -238,7 +238,6 @@
     }
 
     if (typeof callback === 'function'){
-      rpc.id = Math.floor(Math.random()*101);
       var cb = {};
       cb.onResult = callback;
       if (typeof errorCB === 'function') cb.onError = errorCB;
@@ -272,6 +271,7 @@
 
     var rpc = {};
     rpc.jsonrpc = "2.0";
+    rpc.id = Math.floor(Math.random()*101);
 
     if (typeof service === "object") {
       // e.g. FileReader@2375443534.truncate

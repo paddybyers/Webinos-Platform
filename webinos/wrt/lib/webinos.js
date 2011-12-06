@@ -173,12 +173,13 @@
 			if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
 			// elevate baseServiceObj to usable local WebinosService object
 			
-//			if (baseServiceObj.api === 'http://webinos.org/api/sensors.temperature'){
-//				var tmp = new typeMap['http://webinos.org/api/sensors'](baseServiceObj);
-//			}
-//			else{
+			if (baseServiceObj.api === 'http://webinos.org/api/sensors.temperature'){
+				var tmp = new typeMap['http://webinos.org/api/sensors'](baseServiceObj);
+			}
+			else{
 				var tmp = new typeMap[baseServiceObj.api](baseServiceObj);
-//			}
+			}
+
 			webinos.ServiceDiscovery.registeredServices++;
 			callback.onFound(tmp);
 		}
@@ -695,25 +696,17 @@
 
 	WebinosGeolocation.prototype.watchPosition = function (PositionCB, PositionErrorCB, PositionOptions) {   // not yet working
 			var rpc = webinos.rpc.createRPC(this, "watchPosition", PositionOptions); // RPC service name, function, options
-			// rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
-			/* /create the result callback
-			callback = {};
-			callback.locationUpdate = function (params, successCallback, errorCallback, objectRef) {
-				alert("watchPosition update: " + JSON.stringify(params));
-				PositionCB(params);
+			rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
+
+			var callback = new RPCWebinosService({api:rpc.fromObjectRef});
+			callback.onEvent = function (position) {
+				console.log(position);
+				PositionCB(position[0]); 
 			};
+			webinos.rpc.registerCallbackObject(callback);
 			
-			//register the object as being remotely accessible
-			webinos.rpc.registerObject(rpc.fromObjectRef, callback);			
-			*/
-			var watchId = webinos.rpc.executeRPC(rpc,
-					function (position){  // this is called on success
-						PositionCB(position); 
-					},
-					function (error){ // this is called on error
-						PositionErrorCB(error);
-					}
-			);
+			var watchId = webinos.rpc.executeRPC(rpc);
+			
 			return(watchId);
 		};
 
