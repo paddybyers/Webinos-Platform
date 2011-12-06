@@ -31,9 +31,9 @@
             'PLATFORM="win32"',
           ],
           'libraries': [ '-l<(NODE_ROOT)/<(node_lib_folder)/node.lib' ],
-        },
+        }],
         [ 'OS=="mac"', {
-          # 'libraries': [ '-framework Carbon' ],
+          
         }],
         [ 'OS=="linux"', {
           
