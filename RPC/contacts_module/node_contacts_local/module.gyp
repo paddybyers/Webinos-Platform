@@ -1,7 +1,7 @@
 {
   'variables': {
     #Specify the module name here
-    'module_name': 'helloworld',
+    'module_name': 'localcontacts',
 	#These are required variables to make a proper node module build
     'target_arch': 'ia32',
 	'library': 'shared_library',
@@ -13,7 +13,9 @@
 	  'product_name':'<(module_name)',
 	  'product_extension':'node',
       'sources': [
-        'HelloWorld.cpp',
+        'src/MorkAddressBook.cpp',
+		'src/MorkParser.cpp',
+		'src/node_contacts_mork.cpp',
       ],
 
       'defines': [
