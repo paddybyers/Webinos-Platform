@@ -149,6 +149,10 @@
 						}
 					});
 					
+					$('#clear').bind('click', function(){
+						$('#info').empty();
+					});
+					
 					$('#getData').bind('click', function(){
 						vehicle.get($('#vehicleDataId').val(), getMessageHandler($('#vehicleDataId').val()) ,errorCB);
 						});
@@ -174,6 +178,8 @@
 								$('#findService').attr('disabled', 'true');
 								$('#findService').val('Vehicle found');
 						
+						
+								disableInit();
 						}});
 						
 						webinos.ServiceDiscovery.findServices(address,new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
@@ -188,15 +194,21 @@
 							
 								$('#findService').attr('disabled', 'true');
 								$('#findService').val('Geolocation found');
-						
+								disableInit();
 						}});
 						
 						
-						
+				
                     });
 					
-					startPdc
+					var disableInit = function(){
+						$('#init').val('Connected');
+						$('#init').addClass('running');
+						
+						$('#pzh_pzp_list').attr('disabled','true');
+						
 					
+					}	
 					var pdcActivated = false;
 					
 					$('#startPdc').bind('click', function(){
@@ -226,12 +238,32 @@
 					
 					$('#getLocation').bind('click', function(){
 					
-					/*
-					void getCurrentPosition(in PositionCallback successCallback,
-                           in optional PositionErrorCallback errorCallback,
-                           in optional PositionOptions options);
-					*/
 						geolocation.getCurrentPosition(positionHandler, errorCB, null);
+					});
+					
+					var bindingToPosition = false;
+					var ps;
+					
+					$('#watchPosition').bind('click', function(){
+						
+						var params = new Object();
+						params.timeout = 100;
+						params.maximumAge = 100;
+						params.enableHighAccuracy = false;
+						
+						if(!bindingToPosition){
+							$('#watchPosition').val('remove position watcher');
+							bindingToPosition = true;
+							ps = geolocation.watchPosition(positionHandler,errorCB, params);
+							
+							alert(ps);
+						
+						}else{
+							bindingToPosition = false;
+							$('#watchPosition').val('add position watcher');
+							geolocation.clearWatch(ps);
+						}
+						
 					
 					});
 					
@@ -779,10 +811,11 @@
             <input type="button" id="findDestinations" value="find POI" disabled class="button"/>
         <h3>Geolocation API</h3>
         	<input type="button" id="getLocation" value="get current Position" disabled class="button"/>
-            <input type="button" id="watchPosition" value="watch Position" disabled class="button"/>
+            <input type="button" id="watchPosition" value="add position watcher" disabled class="button"/>
 
         <h3>Apps</h3>
 <input type="button" id="startPdc" value="PDC App" disabled class="button"/>
+<input type="button" id="clear" value="clear Log"  class="button"/>
 <a href="#pdcApp"  id="pdcLauncher" title="Parkdistance App">Inline</a>
 		</p>
     </div>

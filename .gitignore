@@ -30,7 +30,8 @@ target
 reports
 
 #ignore modules for vehicle connection
-webinos/api/vehicle/src/main/javascript/cds_con
-webinos/api/vehicle/src/main/javascript/cds_con/car.js
-webinos/api/vehicle/src/main/javascript/cds_con/jsonrpc.js 
+webinos/api/vehicle/contrib/vb-con/
+webinos/api/vehicle/contrib/vb-con/vc.js
+webinos/api/vehicle/contrib/vb-con/jsonrpc.js 
+webinos/api/vehicle/lib/webinos.vehicle.rpc.js
 node_modules
