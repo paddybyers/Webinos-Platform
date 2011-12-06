@@ -315,7 +315,6 @@
 			        		{
 			        			messageCallbacks[message.id].onSuccess(message.payload.result);
 			        		}
->>>>>>> temporaly changes to messaging system to investigate problems with addEventListener in vehicle API
 			        	}
                         
                         

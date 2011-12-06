@@ -6,7 +6,7 @@ var watchIdTable = {};
 
 var counter = 0; // var used for debugging only;
 try{
-	var vehicleSystem = require('../../../../vehicle/src/main/javascript/cds_con/car.js');
+	var vehicleSystem = require('../../vehicle/contrib/vb-con/vc.js');
 	var vehicleBusAvailable = vehicleSystem.available;
 	var car = vehicleSystem.most;
 }catch(e){
@@ -42,7 +42,6 @@ function getCurrentPosition (params, successCB, errorCB, objectRef){
   		position.timestamp = d.toUTCString(); //NEEDS BE CONVERTED TO UTC
   		
   		position.coords = new Object();
-  		
   		position.coords.latitude = car.position.latitude.get() / Math.pow(2,32) * 360;
   		position.coords.longitude = car.position.longitude.get() / Math.pow(2,32) * 360;
 		position.coords.accuracy = 99;
@@ -110,16 +109,15 @@ function getCurrentPosition (params, successCB, errorCB, objectRef){
 }
 
 function watchPosition (args, successCB, errorCB, objectRef) {
-	
-    if(vehicleBusAvailable){
-		listeners.push([successCB, errorCB, objectRef]);	
+	 if(vehicleBusAvailable){
+		listeners.push([successCB, errorCB, objectRef, args[1]]);	
 		if(!listeningToPosition){
 			car.position.bind(vehicleBusHandler);
 			listeningToPosition = true;
 		}
 		console.log(listeners.length + " listener(s) watching");
 	}else{
-    
+   
     var tint = 2000;
 	var params = args[0];
 	if (params.maximumAge) tint = params.maximumAge;
@@ -135,11 +133,7 @@ function watchPosition (args, successCB, errorCB, objectRef) {
 	// initial position
 	getPos();
 
-	var watchId = setInterval(function() {
-		// periodically position
-		getPos();
-
-	}, tint);
+	var watchId = setInterval(function() {getPos(); }, tint);
 	
 	var watchIdKey = args[1];
 	watchIdTable[watchIdKey] = watchId;
@@ -159,7 +153,7 @@ var listeningToPosition = false;
 function vehicleBusHandler(data){
 	
 	var position = new Object();
-  		
+  	console.log(data);
   	d = new Date();
   	position.timestamp = d.toUTCString(); //NEEDS BE CONVERTED TO UTC
   		
@@ -173,16 +167,33 @@ function vehicleBusHandler(data){
 	
 	
 	for(var i = 0; i < listeners.length; i++){
-		returnPosition(position, function(e) {var rpc = webinos.rpc.createRPC(listeners[i][2], 'onEvent', [e]); webinos.rpc.executeRPC(rpc);}, listeners[i][1], listeners[i][2]);
+		returnPosition(position, function(position) {var rpc = webinos.rpc.createRPC(listeners[i][2], 'onEvent', position); webinos.rpc.executeRPC(rpc);}, listeners[i][1], listeners[i][2]);
 	}
 }
 
 function clearWatch (params, successCB, errorCB, objectRef) {
-	var watchIdKey = params[0];
-	var watchId = watchIdTable[watchIdKey];
-	delete watchIdTable[watchIdKey];
 	
-	clearInterval(watchId);
+	var watchIdKey = params[0];
+	
+	if(vehicleBusAvailable){
+		for(var i = 0; i < listeners.length; i++){
+			if(listeners[i][3] == watchIdKey){
+				listeners.splice(i,1);
+				console.log('object# ' + watchIdKey + " removed.");
+				break;
+			}
+		}
+		if(listeners.length == 0){
+			car.position.unbind(vehicleBusHandler);
+			console.log('disabled geolocation listening');
+		}
+	}else{
+		
+		var watchId = watchIdTable[watchIdKey];
+		delete watchIdTable[watchIdKey];
+	
+		clearInterval(watchId);
+	}
 }
 
 var GeolocationModule = new RPCWebinosService({
