@@ -26,5 +26,6 @@
     <module>get42</module>
     <module>sensors</module>
     <module>servicedisco</module>
+    <module>test-module</module>
   </modules>
 </project>
