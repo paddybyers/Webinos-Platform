@@ -17,8 +17,8 @@ call "%VS100COMNTOOLS%..\..\vc\vcvarsall.bat"
 if not defined VCINSTALLDIR goto msbuild-not-found
 :start-compilation
 echo Compiling...
-@rem filename "don't strip comments" "no banner" "disable intrinsic functions" "preproc def _Windll and BUILDING_NODE_EXTENSION=1" "no optimization" "calling conversion __cdecl" "no analysis" "the /I adds some folders in the include path" "no clr. This is deprecated and should be changed but I am working on a gyp file instead of this bat"
-cl.exe helloworld.cpp /c /nologo /Oi- /D "_WINDLL" /D "BUILDING_NODE_EXTENSION=1" /Od /Gd /analyze- /I%node_path%\src\ /I%node_path%\deps\v8\include\ /I%node_path%\deps\uv\include\ /clr:noAssembly
+@rem filename "don't strip comments" "no banner" "disable intrinsic functions" "no optimization" "calling conversion __cdecl" "no analysis" "the /I adds some folders in the include path" "no clr. This is deprecated and should be changed but I am working on a gyp file instead of this bat"
+cl.exe helloworld.cpp /c /nologo /Oi- /Od /Gd /analyze- /I%node_path%\src\ /I%node_path%\deps\v8\include\ /I%node_path%\deps\uv\include\ /clr:noAssembly
 if errorlevel 1 goto exit-error
 echo Done compiling. Linking...
 echo Using %nodelibpath%\node.lib file to link to
