@@ -1,6 +1,7 @@
 {
   'variables': {
     'target_arch': 'ia32',
+	'library': 'shared_library',
   },
   'targets': [
     {

@@ -14,7 +14,7 @@ if not defined node_lib_folder if exist "%node_path%\Debug\node.lib" set node_li
 if not defined node_lib_folder goto nodebuild-not-found
 
 @rem Generate visual studio solution
-python %gyp_path%\gyp -f msvs -G msvs_version=2010 helloworld.gyp -Dlibrary=shared_library --depth=. -Dnode_path=%node_path% -Dnode_lib_folder=%node_lib_folder%
+python %gyp_path%\gyp -f msvs -G msvs_version=2010 helloworld.gyp --depth=. -Dnode_path=%node_path% -Dnode_lib_folder=%node_lib_folder%
 if errorlevel 1 goto exit-error
 echo Finished
 goto exit
