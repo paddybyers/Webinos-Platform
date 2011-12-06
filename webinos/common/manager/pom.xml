@@ -20,5 +20,6 @@
     <module>keystore</module>
     <module>messaging</module>
     <module>policy_manager</module>
+    <module>storage</module>
   </modules>
 </project>
