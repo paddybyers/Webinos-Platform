@@ -2,7 +2,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>org.webinos</groupId>
-    <artifactId>_parent_id_</artifactId>
+    <artifactId>api</artifactId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
@@ -11,7 +11,7 @@
   <artifactId>devicestatus</artifactId>
   <packaging>pom</packaging>
 
-  <name>devicestatus</name>
+  <name>Device Status API</name>
   <url>http://www.webinos.org</url>
 
   <!-- Uncomment the plugin executions you need. If you're component structure is correct, everything will run as it should. -->
@@ -35,6 +35,13 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
           <executions>
+            <!-- Runs node-waf on the src folder -->
+            <execution>
+              <id>node-waf</id>
+              <goals>
+                <goal>exec</goal>
+              </goals>
+            </execution>
             <!-- Runs jasmine node tests specified in .spec.js files in the jasmine test folder
             <execution>
               <id>jasmine-node-testing</id>
@@ -42,15 +49,7 @@
                 <goal>exec</goal>
               </goals>
             </execution>
-              -->
-            <!-- Runs node-waf on the src folder
-            <execution>
-              <id>node-waf</id>
-              <goals>
-                <goal>exec</goal>
-              </goals>
-            </execution>
-              -->
+            -->
           </executions>
       </plugin>
     </plugins>
