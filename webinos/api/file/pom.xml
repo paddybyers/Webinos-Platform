@@ -31,7 +31,15 @@
       <plugin>
 	      <groupId>org.codehaus.mojo</groupId>
 	      <artifactId>exec-maven-plugin</artifactId>
-	      <executions>
+					<executions>
+            <!-- Runs node-waf on the src folder
+            <execution>
+              <id>node-waf</id>
+              <goals>
+                <goal>exec</goal>
+              </goals>
+            </execution>
+						-->
 	        <!-- <execution>
 	          <id>jasmine-node-testing</id>
 	          <goals>

@@ -1,8 +1,10 @@
 if (typeof webinos === 'undefined') var webinos = {};
 webinos.rpc = require('../../../common/rpc/lib/rpc.js');
 
-var counter = 0; // var used for debugging only;
+// store running timer objects in this table under given key from caller
+var watchIdTable = {};
 
+var counter = 0; // var used for debugging only;
 
 function getCurrentPosition (params, successCB, errorCB, objectRef){
 	var error = {};
@@ -62,27 +64,38 @@ function getCurrentPosition (params, successCB, errorCB, objectRef){
 	
 }
 
-
-function watchPosition (params, successCB, errorCB, objectRef) {
+function watchPosition (args, successCB, errorCB, objectRef) {
 	var tint = 2000;
+	var params = args[0];
 	if (params.maximumAge) tint = params.maximumAge;
 	
-	var watchId = setInterval( function () {
-		
-		getCurrentPosition (params, function(e) {
-			var rpc = webinos.rpc.createRPC(objectRef, 'onEvent', [e]);
+	function getPos() {
+		// call getCurrentPosition and pass back the position
+		getCurrentPosition(params, function(e) {
+			var rpc = webinos.rpc.createRPC(objectRef, 'onEvent', e);
 			webinos.rpc.executeRPC(rpc);
 		}, errorCB, objectRef);
-		
+	}
+	
+	// initial position
+	getPos();
+
+	var watchId = setInterval(function() {
+		// periodically position
+		getPos();
+
 	}, tint);
 	
+	var watchIdKey = args[1];
+	watchIdTable[watchIdKey] = watchId;
 }
-	
 
-function clearWatch (params, successCB, errorCB, objectRef){	
-	clearInterval(params.watchId);
-	successCB("cleared watch" + params.watchId);
+function clearWatch (params, successCB, errorCB, objectRef) {
+	var watchIdKey = params[0];
+	var watchId = watchIdTable[watchIdKey];
+	delete watchIdTable[watchIdKey];
 	
+	clearInterval(watchId);
 }
 
 var GeolocationModule = new RPCWebinosService({
