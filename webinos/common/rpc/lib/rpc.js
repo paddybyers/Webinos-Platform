@@ -44,7 +44,7 @@
 		};
 	}
 
-	var contextEnabled = typeof process === 'undefined' || (process.version >= 'v0.4.0' && process.version < 'v0.5.0');
+	var contextEnabled = false;
 
   write = null;
 
@@ -150,7 +150,7 @@
                   webinos.rpc.executeRPC(res, undefined, undefined, responseto, msgid);
                   // CONTEXT LOGGING HOOK
                   if (contextEnabled){}
-                    //webinos.context.logContext(myObject,res);
+                    webinos.context.logContext(myObject,res);
                 },
                 function (error){
                   if (typeof id === 'undefined') return;
