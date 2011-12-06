@@ -18,6 +18,7 @@
    				<file name="wrt/lib/webinos.file.js"/>
     			<file name="wrt/lib/webinos.get42.js"/>
     			<file name="wrt/lib/webinos.sensors.js"/>
+            	<file name="wrt/lib/webinos.events.js"/>
             </sources>
         </jscompiler>
     </target>
