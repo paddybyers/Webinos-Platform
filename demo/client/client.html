@@ -88,18 +88,18 @@
 				}});
 			}
 		});
-                    
-              $('#get42').bind('click', function() {
-			for (var i=0; i<test.length; i++) {
-				test[i].get42(function (result){
+        
+		$('#get42').bind('click', function() {
+			for ( var i = 0; i < test.length; i++) {
+				test[i].get42(function(result) {
 					alert(result);
-					alert(test[i].testAttr);
 				});
-            		}           	
-            	});
-           
+				alert(test[i].testAttr);
+			}
+		});
+
 	});
-</script>
+	</script>
 </head>
 <body>
 <center><div id="header"> <h1><img src="testbed_logo.png"></h1> </div></center>
