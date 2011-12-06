@@ -19,5 +19,7 @@
     <module>context_manager</module>
     <module>policy_manager</module>
     <module>keystore</module>
+    <module>storage</module>
+    
   </modules>
 </project>
