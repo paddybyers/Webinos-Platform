@@ -255,9 +255,6 @@
 							$('#watchPosition').val('remove position watcher');
 							bindingToPosition = true;
 							ps = geolocation.watchPosition(positionHandler,errorCB, params);
-							
-							alert(ps);
-						
 						}else{
 							bindingToPosition = false;
 							$('#watchPosition').val('add position watcher');

@@ -42,11 +42,11 @@ function getCurrentPosition (params, successCB, errorCB, objectRef){
   		position.timestamp = d.toUTCString(); //NEEDS BE CONVERTED TO UTC
   		
   		position.coords = new Object();
-  		position.coords.latitude = car.position.latitude.get() / Math.pow(2,32) * 360;
-  		position.coords.longitude = car.position.longitude.get() / Math.pow(2,32) * 360;
+  		position.coords.latitude = Math.floor((car.position.latitude.get() / Math.pow(2,32) * 360) * 10000)/10000; 
+  		position.coords.longitude = Math.floor((car.position.longitude.get() / Math.pow(2,32) * 360) * 10000)/10000;
 		position.coords.accuracy = 99;
 		position.coords.heading = car.heading.get();
-		position.coords.speed = ((car.speed.get() / 10) / 3600) * 1000 ; // meters per second 
+		position.coords.speed = Math.floor(((car.speed.get() / 10) / 3600) * 1000 *1000) / 1000 ; // meters per second 
  		returnPosition(position, successCB, errorCB, objectRef);
 		return;
 		
@@ -159,11 +159,11 @@ function vehicleBusHandler(data){
   		
   	position.coords = new Object();
   		
-  	position.coords.latitude = data.latitude / Math.pow(2,32) * 360;
-  	position.coords.longitude = data.longitude / Math.pow(2,32) * 360;
+  	position.coords.latitude = Math.floor((data.latitude / Math.pow(2,32) * 360) * 10000)/10000;
+  	position.coords.longitude = Math.floor((data.longitude / Math.pow(2,32) * 360) * 10000)/10000;
 	position.coords.accuracy = 99;
 	position.coords.heading = car.heading.get();
-	position.coords.speed = ((car.speed.get() / 10) / 3600) * 1000 ; // meters per second
+	position.coords.speed = Math.floor(((car.speed.get() / 10) / 3600) * 1000 *1000) / 1000 ; // meters per second
 	
 	
 	for(var i = 0; i < listeners.length; i++){
@@ -185,6 +185,7 @@ function clearWatch (params, successCB, errorCB, objectRef) {
 		}
 		if(listeners.length == 0){
 			car.position.unbind(vehicleBusHandler);
+			listeningToPosition = false;
 			console.log('disabled geolocation listening');
 		}
 	}else{
