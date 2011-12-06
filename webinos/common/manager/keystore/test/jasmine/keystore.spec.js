@@ -1,6 +1,6 @@
-var ks = require('../../src/cc/build/Release/keystore.node');
+var ks = require('../../src/build/Release/keystore.node');
 
-describe("Keystore", function() {
+describe("Manager.Keystore", function() {
   
   it('add and return a simple secret', function() {
     var secretKey = "mySecret";
