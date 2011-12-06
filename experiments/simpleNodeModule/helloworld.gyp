@@ -7,11 +7,6 @@
       'target_name': 'helloworld',
       'type': '<(library)',
 	  
-      'include_dirs': [
-        '<(node_path)/src',
-        '<(node_path)/deps/v8/include',
-        '<(node_path)/deps/uv/include',
-      ],
       'sources': [
         'HelloWorld.cpp',
       ],
@@ -28,7 +23,12 @@
             # we need to use node's preferred "win32" rather than gyp's preferred "win"
             'PLATFORM="win32"',
           ],
-          'libraries': [ '-l<(node_path)/Debug/node.lib' ]
+          'libraries': [ '-l<(node_path)/<(node_lib_folder)/node.lib' ],
+		  'include_dirs': [
+            '<(node_path)/src',
+            '<(node_path)/deps/v8/include',
+            '<(node_path)/deps/uv/include',
+			],
         },{ # POSIX
           'defines': [ '__POSIX__' ],
           'sources': [ #we can have different sources for secure store for example
@@ -42,11 +42,7 @@
           'libraries': [ '-framework Carbon' ],
         }],
         [ 'OS=="linux"', {
-          'sources': [ 'src/platform_linux.cc' ],
-          'libraries': [
-            '-ldl',
-            '-lutil' # needed for openpty
-          ],
+          
         }],
         [ 'OS=="freebsd"', {
           'sources': [ 'src/platform_freebsd.cc' ],
