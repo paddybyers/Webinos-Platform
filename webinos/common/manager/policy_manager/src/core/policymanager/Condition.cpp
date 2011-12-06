@@ -217,19 +217,19 @@ ConditionResponse Condition::evaluateEnvironment(Request* req){
 ConditionResponse Condition::evaluateFeatures(Request* req){
 	LOGD("[COND EVALUATE FEAT] 1 : %d",resource_attrs.size());
 	map<string,vector<match_info_str*> >::iterator it;
-	vector<match_info_str*> my_features = (it = resource_attrs.find(BONDI_API_FEATURE))!=resource_attrs.end() 
+	vector<match_info_str*> my_features = (it = resource_attrs.find(API_FEATURE))!=resource_attrs.end() 
 			? it->second 
 			: vector<match_info_str*>();
 	
 	map<string, vector<string>* > requestResource_attrs = req->getResourceAttrs();
-	map<string, vector<string>* >::iterator rraIT = requestResource_attrs.find(BONDI_API_FEATURE);
+	map<string, vector<string>* >::iterator rraIT = requestResource_attrs.find(API_FEATURE);
 	vector<string>* req_features = (rraIT != requestResource_attrs.end())
 			? rraIT->second
 			: NULL;
 	
 	bool found;	
-	bool anyUndetermined = resource_attrs.find(BONDI_API_FEATURE)!= resource_attrs.end() 
-			&& requestResource_attrs.find(BONDI_API_FEATURE) == requestResource_attrs.end();	
+	bool anyUndetermined = resource_attrs.find(API_FEATURE)!= resource_attrs.end() 
+			&& requestResource_attrs.find(API_FEATURE) == requestResource_attrs.end();	
 
 	if(combine == AND){
 		// find any No Match
@@ -283,7 +283,7 @@ ConditionResponse Condition::evaluateCapabilities(Request* req){
 	
 	for(map<string, vector<match_info_str*> >::iterator it = resource_attrs.begin(); it!= resource_attrs.end(); it++)
 	{
-		if (it->first != BONDI_API_FEATURE)
+		if (it->first != API_FEATURE)
 
 		{
 			if(requestResource_attrs.find(it->first) == requestResource_attrs.end())
@@ -302,7 +302,7 @@ ConditionResponse Condition::evaluateCapabilities(Request* req){
 
 	for(map<string, vector<string>* >::iterator itr = requestResource_attrs.begin(); itr!= requestResource_attrs.end(); itr++)
 	{
-		if (itr->first != BONDI_API_FEATURE)
+		if (itr->first != API_FEATURE)
 		{
 //			LOGD("REQ Capabilities %s", itr->first.data());
 //			LOGD("REQ Capabilities size %d", itr->second->size());
