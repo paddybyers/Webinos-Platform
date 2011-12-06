@@ -40,6 +40,10 @@
       "name": "Sensors",
       "location": "api/sensors/"
     },
+    "vehicle": {
+      "name": "Vehicle",
+      "location": "api/vehicle/"
+    },
     "service_discovery": {
       "name": "ServiceDiscovery",
       "location": "api/servicedisco/"

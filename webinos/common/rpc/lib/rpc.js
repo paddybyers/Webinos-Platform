@@ -147,10 +147,10 @@
                   if (typeof result !== 'undefined') res.result = result;
                   else res.result = {};
                   res.id = id;						
-                  webinos.rpc.executeRPC(res, null, null, responseto, msgid);
+                  webinos.rpc.executeRPC(res, undefined, undefined, responseto, msgid);
                   // CONTEXT LOGGING HOOK
-                  if (contextEnabled)
-                    webinos.context.logContext(myObject,res);
+                  if (contextEnabled){}
+                    //webinos.context.logContext(myObject,res);
                 },
                 function (error){
                   if (typeof id === 'undefined') return;
@@ -161,7 +161,7 @@
                   res.error.code = 32000;  //webinos specific error code representing that an API specific error occured
                   res.error.message = "Method Invocation returned with error";
                   res.id = id;
-                  webinos.rpc.executeRPC(res, null, null, responseto, msgid);
+                  webinos.rpc.executeRPC(res, undefined, undefined, responseto, msgid);
                 }, 
                 myObject.fromObjectRef
             );
@@ -177,7 +177,7 @@
                   if (typeof result !== 'undefined') res.result = result;
                   else res.result = {};
                   res.id = id;
-                  webinos.rpc.executeRPC(res, null, null, responseto, msgid);
+                  webinos.rpc.executeRPC(res, undefined, undefined, responseto, msgid);
 
                   // CONTEXT LOGGING HOOK
                   if (contextEnabled)
@@ -192,7 +192,7 @@
                   res.error.code = 32000;
                   res.error.message = "Method Invocation returned with error";
                   res.id = id;
-                  webinos.rpc.executeRPC(res, null, null, responseto, msgid);
+                  webinos.rpc.executeRPC(res, undefined, undefined, responseto, msgid);
                 }
             );
           }
@@ -238,6 +238,7 @@
     }
 
     if (typeof callback === 'function'){
+      rpc.id = Math.floor(Math.random()*101);
       var cb = {};
       cb.onResult = callback;
       if (typeof errorCB === 'function') cb.onError = errorCB;
@@ -252,7 +253,7 @@
     }
 
     //TODO check if rpc is request on a specific object (objectref) and get mapped responseto / destination session
-
+    console.log('RPC MESSAGE' + rpc);
     //TODO remove stringify when integrating with Message Routing/Ziran
     write(rpc, responseto, msgid);
   };
@@ -490,8 +491,9 @@
                    webinosRoot + dependencies.api.file.location + 'lib/webinos.file.rpc.js',
                    webinosRoot + dependencies.api.geolocation.location + 'lib/rpc_geolocation.js',
 				   webinosRoot + dependencies.api.events.location + 'lib/events.js',
-                   oldRpcLocation + 'rpc_vehicle.js',
                    webinosRoot + dependencies.api.sensors.location + 'lib/rpc_sensors.js',
+                   webinosRoot + dependencies.api.vehicle.location + 'lib/webinos.vehicle.vc.rpc.js',
+
                    oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
                    oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
                    oldRpcLocation + 'tv/provider/webinos.rpc.tv.js',

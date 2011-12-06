@@ -20,6 +20,7 @@
     			<file name="wrt/lib/webinos.sensors.js"/>
             	<file name="wrt/lib/webinos.events.js"/>
                 <file name="wrt/lib/webinos.geolocation.js"/>
+                <file name="wrt/lib/webinos.vehicle.js"/>
             </sources>
         </jscompiler>
     </target>

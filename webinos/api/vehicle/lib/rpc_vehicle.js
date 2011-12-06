@@ -7,7 +7,6 @@ if (typeof webinos === 'undefined') var webinos = {};
 rpcfilePath = '../webinos/common/rpc/lib/';
 webinos.rpc = require(rpcfilePath +'rpc.js');
 
-
 function ShiftEvent(value){
 	this.gear = value;
 }
@@ -57,7 +56,7 @@ function ClimateControlEvent(zone, desiredTemperature, acstatus, ventLevel, vent
 	this.ventMode = ventMode;
 }
 
-function LightWiperControlEvent(controlId, active){
+function ControlEvent(controlId, active){
 	this.controlId = controlId;
 	this.active = active;
 }
@@ -107,49 +106,49 @@ function get(vehicleDataId, vehicleDataHandler, errorCB){
 		vehicleDataHandler(generateClimateControlrearrightEvent(vehicleDataId[0]));
 		break;	
     case "lights-fog-front":
-		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateControlEvent(vehicleDataId[0]));
 		break;
     case "lights-fog-rear":
-		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateControlEvent(vehicleDataId[0]));
 		break;	
     case "lights-signal-left":
-		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateControlEvent(vehicleDataId[0]));
 		break;		
     case "lights-signal-right":
-		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateControlEvent(vehicleDataId[0]));
 		break;
 	case "lights-signal-warn":
-		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateControlEvent(vehicleDataId[0]));
 		break;
 	case "lights-parking":
-		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateControlEvent(vehicleDataId[0]));
 		break;
 	case "lights-hibeam":
-		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateControlEvent(vehicleDataId[0]));
 		break;
 	case "lights-head":
-		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateControlEvent(vehicleDataId[0]));
 		break;
     case "wiper-front-wash":
-		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateControlEvent(vehicleDataId[0]));
 		break;
     case "wiper-rear-wash":
-		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateControlEvent(vehicleDataId[0]));
 		break;	
     case "wiper-automatic":
-		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateControlEvent(vehicleDataId[0]));
 		break;		
     case "wiper-front-once":
-		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateControlEvent(vehicleDataId[0]));
 		break;
 	case "wiper-rear-once":
-		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateControlEvent(vehicleDataId[0]));
 		break;
 	case "wiper-front-level1":
-		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateControlEvent(vehicleDataId[0]));
 		break;
 	case "wiper-front-level2":
-		vehicleDataHandler(generateLightWiperControlEvent(vehicleDataId[0]));
+		vehicleDataHandler(generateControlEvent(vehicleDataId[0]));
 		break;
 	default:
 	  errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
@@ -839,91 +838,91 @@ function handleLightsWiperControlEvents(controlId){
         console.log("random Time:" + randomTime);
 	for(i = 0; i < objectRefs.length; i++){
 			if(objectRefs[i][1] == "lights-fog-front"){
-                	var lcEvent = generateLightWiperControlEvent(controlId);
+                	var lcEvent = generateControlEvent(controlId);
 					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", lcEvent);
 					console.log("random lcData:" + lcEvent.active);
                  	webinos.rpc.executeRPC(json);
 			}
 			if(objectRefs[i][1] == "lights-fog-rear"){
-                	var lcEvent = generateLightWiperControlEvent(controlId);
+                	var lcEvent = generateControlEvent(controlId);
 					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", lcEvent);
 					console.log("random lcData:" + lcEvent.active);
                  	webinos.rpc.executeRPC(json);
 			}
 			if(objectRefs[i][1] == "lights-signal-left"){
-                	var lcEvent = generateLightWiperControlEvent(controlId);
+                	var lcEvent = generateControlEvent(controlId);
 					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", lcEvent);
 					console.log("random lcData:" + lcEvent.active);
                  	webinos.rpc.executeRPC(json);
 			}
 			if(objectRefs[i][1] == "lights-signal-right"){
-                	var lcEvent = generateLightWiperControlEvent(controlId);
+                	var lcEvent = generateControlEvent(controlId);
 					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", lcEvent);
 					console.log("random lcData:" + lcEvent.active);
                  	webinos.rpc.executeRPC(json);
 			}
 			if(objectRefs[i][1] == "lights-signal-warn"){
-                	var lcEvent = generateLightWiperControlEvent(controlId);
+                	var lcEvent = generateControlEvent(controlId);
 					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", lcEvent);
 					console.log("random lcData:" + lcEvent.active);
                  	webinos.rpc.executeRPC(json);
 			}
 			if(objectRefs[i][1] == "lights-parking"){
-                	var lcEvent = generateLightWiperControlEvent(controlId);
+                	var lcEvent = generateControlEvent(controlId);
 					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", lcEvent);
 					console.log("random lcData:" + lcEvent.active);
                  	webinos.rpc.executeRPC(json);
 			}
 			if(objectRefs[i][1] == "light-Hibeam"){
-                	var lcEvent = generateLightWiperControlEvent(controlId);
+                	var lcEvent = generateControlEvent(controlId);
 					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", lcEvent);
 					console.log("random lcData:" + lcEvent.active);
                  	webinos.rpc.executeRPC(json);
 			}
 			if(objectRefs[i][1] == "lights-Head"){
-                	var lcEvent = generateLightWiperControlEvent(controlId);
+                	var lcEvent = generateControlEvent(controlId);
 					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", lcEvent);
 					console.log("random lcData:" + lcEvent.active);
                  	webinos.rpc.executeRPC(json);
 			}
 			if(objectRefs[i][1] == "wiper-front-wash"){
-                	var wcEvent = generateLightWiperControlEvent(controlId);
+                	var wcEvent = generateControlEvent(controlId);
 					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", wcEvent);
 					console.log("random wcData:" + wcEvent.active);
                  	webinos.rpc.executeRPC(json);
 			}
 			if(objectRefs[i][1] == "wiper-rear-wash"){
-                	var wcEvent = generateLightWiperControlEvent(controlId);
+                	var wcEvent = generateControlEvent(controlId);
 					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", wcEvent);
 					console.log("random wcData:" + wcEvent.active);
                  	webinos.rpc.executeRPC(json);
 			}
 			if(objectRefs[i][1] == "wiper-automatic"){
-                	var wcEvent = generateLightWiperControlEvent(controlId);
+                	var wcEvent = generateControlEvent(controlId);
 					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", wcEvent);
 					console.log("random wcData:" + wcEvent.active);
                  	webinos.rpc.executeRPC(json);
 			}
 			if(objectRefs[i][1] == "wiper-front-once"){
-                	var wcEvent = generateLightWiperControlEvent(controlId);
+                	var wcEvent = generateControlEvent(controlId);
 					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", wcEvent);
 					console.log("random wcData:" + wcEvent.active);
                  	webinos.rpc.executeRPC(json);
 			}
 			if(objectRefs[i][1] == "wiper-rear-once"){
-                	var wcEvent = generateLightWiperControlEvent(controlId);
+                	var wcEvent = generateControlEvent(controlId);
 					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", wcEvent);
 					console.log("random wcData:" + wcEvent.active);
                  	webinos.rpc.executeRPC(json);
 			}
 			if(objectRefs[i][1] == "wiper-front-level1"){
-                	var wcEvent = generateLightWiperControlEvent(controlId);
+                	var wcEvent = generateControlEvent(controlId);
 					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", wcEvent);
 					console.log("random wcData:" + wcEvent.active);
                  	webinos.rpc.executeRPC(json);
 			}
 			if(objectRefs[i][1] == "wiper-front-level2"){
-                	var wcEvent = generateLightWiperControlEvent(controlId);
+                	var wcEvent = generateControlEvent(controlId);
 					json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", wcEvent);
 					console.log("random wcData:" + wcEvent.active);
                  	webinos.rpc.executeRPC(json);
@@ -934,17 +933,15 @@ function handleLightsWiperControlEvents(controlId){
 	}
 }
 
-function generateLightWiperControlEvent(controlId){
+function generateControlEvent(controlId){
 			var active = Math.round(Math.random()*true);
 			//var lcEvent; //    if(cEvent.controlId == "lights-hibeam"){
                         if(active == 0){
                             console.log("Turned ON");
-							return new LightWiperControlEvent(controlId,active);	
+							return new ControlEvent(controlId,active);	
                      }else{
                             console.log("Turned OFF");
-							return new LightWiperControlEvent(controlId,active);	
+							return new ControlEvent(controlId,active);	
                      }
-                }
 
-			
-        
+}        
