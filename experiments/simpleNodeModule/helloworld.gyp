@@ -16,6 +16,12 @@
         'ARCH="<(target_arch)"',
         'PLATFORM="<(OS)"',
       ],
+	  
+      'include_dirs': [
+        '<(NODE_ROOT)/src',
+        '<(NODE_ROOT)/deps/v8/include',
+        '<(NODE_ROOT)/deps/uv/include',
+      ],
 
       'conditions': [
         [ 'OS=="win"', {
@@ -24,23 +30,10 @@
             # we need to use node's preferred "win32" rather than gyp's preferred "win"
             'PLATFORM="win32"',
           ],
-          'libraries': [ '-l<(node_path)/<(node_lib_folder)/node.lib' ],
-		  'include_dirs': [
-            '<(node_path)/src',
-            '<(node_path)/deps/v8/include',
-            '<(node_path)/deps/uv/include',
-			],
-        },{ # POSIX
-          'defines': [ '__POSIX__' ],
-          'sources': [ #we can have different sources for secure store for example
-            'src/node_signal_watcher.cc',
-            'src/node_stat_watcher.cc',
-            'src/node_io_watcher.cc',
-          ]
-        }],
+          'libraries': [ '-l<(NODE_ROOT)/<(node_lib_folder)/node.lib' ],
+        },
         [ 'OS=="mac"', {
-          'sources': [ 'src/platform_darwin.cc' ],
-          'libraries': [ '-framework Carbon' ],
+          # 'libraries': [ '-framework Carbon' ],
         }],
         [ 'OS=="linux"', {
           
