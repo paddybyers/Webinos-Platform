@@ -19,6 +19,7 @@
     			<file name="wrt/lib/webinos.get42.js"/>
     			<file name="wrt/lib/webinos.sensors.js"/>
             	<file name="wrt/lib/webinos.events.js"/>
+                <file name="wrt/lib/webinos.geolocation.js"/>
             </sources>
         </jscompiler>
     </target>
