@@ -147,7 +147,7 @@
                   if (typeof result !== 'undefined') res.result = result;
                   else res.result = {};
                   res.id = id;						
-                  webinos.rpc.executeRPC(res, null, null, responseto, msgid);
+                  webinos.rpc.executeRPC(res, undefined, undefined, responseto, msgid);
                   // CONTEXT LOGGING HOOK
                   if (contextEnabled)
                     webinos.context.logContext(myObject,res);
@@ -161,7 +161,7 @@
                   res.error.code = 32000;  //webinos specific error code representing that an API specific error occured
                   res.error.message = "Method Invocation returned with error";
                   res.id = id;
-                  webinos.rpc.executeRPC(res, null, null, responseto, msgid);
+                  webinos.rpc.executeRPC(res, undefined, undefined, responseto, msgid);
                 }, 
                 myObject.fromObjectRef
             );
@@ -177,7 +177,7 @@
                   if (typeof result !== 'undefined') res.result = result;
                   else res.result = {};
                   res.id = id;
-                  webinos.rpc.executeRPC(res, null, null, responseto, msgid);
+                  webinos.rpc.executeRPC(res, undefined, undefined, responseto, msgid);
 
                   // CONTEXT LOGGING HOOK
                   if (contextEnabled)
@@ -192,7 +192,7 @@
                   res.error.code = 32000;
                   res.error.message = "Method Invocation returned with error";
                   res.id = id;
-                  webinos.rpc.executeRPC(res, null, null, responseto, msgid);
+                  webinos.rpc.executeRPC(res, undefined, undefined, responseto, msgid);
                 }
             );
           }

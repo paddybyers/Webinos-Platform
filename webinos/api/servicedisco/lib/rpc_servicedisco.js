@@ -13,7 +13,7 @@ function findServices (params, successCB, errorCB, objectRef){
 	for (var i=0; i<services.length; i++) {
 		console.log('rpc.findService: calling found callback for ' + services[i].id);
 		var rpc = webinos.rpc.createRPC(objectRef, 'onservicefound', services[i]);
-		webinos.rpc.executeRPC(rpc, null, null, responseTo, msgid);
+		webinos.rpc.executeRPC(rpc, undefined, undefined, responseTo, msgid);
 	}
 }
 

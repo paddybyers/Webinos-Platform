@@ -102,7 +102,7 @@
 				webinos.message.setGetOwnId(sessionid);
 				
 				var msg = webinos.message.registerSender(sessionid , pzpId);
-				webinos.message_send(pzpId, msg, null, null);
+				webinos.message_send(pzpId, msg);
 			} else if(data.type === "prop" && data.payload.status === "info") {
 				$('#message').append('<li>'+data.payload.message+'</li>');
 			} else if(data.type === "prop" && data.payload.status === "update") {
@@ -195,7 +195,7 @@
 		};
 		webinos.rpc.registerCallbackObject(callback2);
 		
-		webinos.message_send(findServiceBindAddress, rpc, callback2);
+		webinos.message_send(findServiceBindAddress, rpc);
 		
 		return;
 	};
