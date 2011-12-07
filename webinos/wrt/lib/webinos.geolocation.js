@@ -1,12 +1,24 @@
-
-var WebinosGeolocation = function (obj) {
+(function() {
+	
+WebinosGeolocation = function (obj) {
 	this.base = WebinosService;
 	this.base(obj);
 };
 
 WebinosGeolocation.prototype = new WebinosService;
 
-WebinosGeolocation.prototype.getCurrentPosition = function (PositionCB, PositionErrorCB, PositionOptions) { 
+WebinosGeolocation.prototype.bindService = function (bindCB, serviceId) {
+	// actually there should be an auth check here or whatever, but we just always bind
+	this.getCurrentPosition = getCurrentPosition;
+	this.watchPosition = watchPosition;
+	this.clearWatch = clearWatch;
+	
+	if (typeof bindCB.onBind === 'function') {
+		bindCB.onBind(this);
+	};
+}
+
+function getCurrentPosition(PositionCB, PositionErrorCB, PositionOptions) { 
 	var rpc = webinos.rpc.createRPC(this, "getCurrentPosition", PositionOptions); // RPC service name, function, position options
 	webinos.rpc.executeRPC(rpc, function (position) {
 		PositionCB(position); 
@@ -16,7 +28,7 @@ WebinosGeolocation.prototype.getCurrentPosition = function (PositionCB, Position
 	});
 };
 
-WebinosGeolocation.prototype.watchPosition = function (PositionCB, PositionErrorCB, PositionOptions) {
+function watchPosition(PositionCB, PositionErrorCB, PositionOptions) {
 	var watchIdKey = Math.floor(Math.random()*101);
 
 	var rpc = webinos.rpc.createRPC(this, "watchPosition", [PositionOptions, watchIdKey]);
@@ -33,7 +45,9 @@ WebinosGeolocation.prototype.watchPosition = function (PositionCB, PositionError
 	return watchIdKey;
 };
 
-WebinosGeolocation.prototype.clearWatch = function (watchId) {
+function clearWatch(watchId) {
 	var rpc = webinos.rpc.createRPC(this, "clearWatch", [watchId]); 
 	webinos.rpc.executeRPC(rpc, function() {}, function() {});
 };
+
+})();

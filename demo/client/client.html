@@ -90,8 +90,16 @@
 			}
 		});
         
+        $('#bind').bind('click', function() {
+            for (var i=0; i<test.length; i++) {
+                test[i].bindService({onBind:function(service) {
+                    $('#messages').append('<li> TEST API' + service.api + ' bound.</li>');
+                }});
+            }
+        });
+                     
 		$('#get42').bind('click', function() {
-			for ( var i = 0; i < test.length; i++) {
+			for (var i=0; i<test.length; i++) {
 				test[i].get42(function(result) {
 					alert(result);
 				});
@@ -99,6 +107,13 @@
 			}
 		});
 
+        $('#echo-fun').bind('click', function() {
+            for (var i=0; i<test.length; i++) {
+                test[i].echoAttr.echo('foo', function(result) {
+                    alert(result);
+                });
+            }
+        });
 	});
 	</script>
 </head>
@@ -192,8 +207,12 @@
 					<tr> <td><p><i> Find Service will determine where your code will be executed</i></p> 
 				</td> <td> </td> </tr>
 				<tr> <td>
+                    <button id="bind" class="button">Bind</button>
+				</td> <td> 
 					<button id="get42" class="button">Get 42</button>
-				</td> <td> </td> </tr>				
+                </td> <td> 
+                    <button id="echo-fun" class="button">Echo</button>
+				</td> </tr>				
 		</table>
 	</div>
 	 

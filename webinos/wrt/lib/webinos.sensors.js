@@ -6,7 +6,7 @@
 	};
 	Sensor.prototype = new WebinosService;
 	
-	Sensor.prototype.bind = function(success) {
+	Sensor.prototype.bindService = function(success) {
 		 	
 		var self = this;
 		

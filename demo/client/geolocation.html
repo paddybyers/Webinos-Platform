@@ -7,23 +7,30 @@
     <script>
         jQuery(window).ready(function(){
             jQuery("#btnInit").click(initiate_geolocation);
+            jQuery("#btnFind").click(findservice); 
+            jQuery("#btnBind").click(bindservice);
             jQuery("#btnWatch").click(initiate_watch);  
             jQuery("#btnClear").click(clear_watch); 
-            jQuery("#btnFind").click(bindservice); 
         });
 
 		var geoLocationService = null;
 		var watchId = null;
 	
-		function bindservice() {
-		    // bind geolocation rpc service
-			var address = $('#pzh_pzp_list').val();
-		    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
-		    	geoLocationService = service;
-		    	document.getElementById('position').innerHTML = "Geolocation rpc service found";   	
-		    }});	    
-		}
-	
+        function findservice() {
+            var address = $('#pzh_pzp_list').val();
+            webinos.ServiceDiscovery.findServices(address, new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
+                geoLocationService = service;
+                document.getElementById('position').innerHTML = "Geolocation service found";    
+            }});        
+        }
+    
+        function bindservice() {
+            // bind geolocation rpc service
+            geoLocationService.bindService({onBind: function (service) {
+                document.getElementById('position').innerHTML = "bound Geolocation service";    
+            }});        
+        }
+    
         function initiate_geolocation() {       	
         	var PositionOptions = {};
          	if (document.getElementById('acc_high').checked) PositionOptions.enableHighAccuracy = true;
@@ -123,6 +130,7 @@
   	
     <p><div>
       <button id="btnFind" >Find Geolocation Service</button>
+      <button id="btnBind" >Bind Webinos Geolocation Service</button>
       <button id="btnInit" >Find my location</button>
       <button id="btnWatch" >Watch my location</button>
       <button id="btnClear" >Stop watching</button>
