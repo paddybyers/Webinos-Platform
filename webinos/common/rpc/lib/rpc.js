@@ -494,11 +494,12 @@
                    webinosRoot + dependencies.api.sensors.location + 'lib/rpc_sensors.js',
                    webinosRoot + dependencies.api.vehicle.location + 'lib/webinos.vehicle.rpc.js',
 
-                   oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
-                   oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
-                   oldRpcLocation + 'tv/provider/webinos.rpc.tv.js',
-                   oldRpcLocation + 'rpc_contacts.js',
-                   oldRpcLocation + 'bluetooth_module/bluetooth.rpc.server.js'
+		   // Disabled as these cause webinos from functioning
+                   //oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
+                   //oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
+                   //oldRpcLocation + 'tv/provider/webinos.rpc.tv.js',
+                   //oldRpcLocation + 'rpc_contacts.js',
+                   //oldRpcLocation + 'bluetooth_module/bluetooth.rpc.server.js'
                    ];
 
     if (contextEnabled) {
