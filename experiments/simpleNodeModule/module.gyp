@@ -3,7 +3,6 @@
     #Specify the module name here
     'module_name': 'helloworld',
 	#These are required variables to make a proper node module build
-    'target_arch': 'ia32',
 	'library': 'shared_library',
   },
   'targets': [
@@ -21,7 +20,6 @@
       'product_prefix':'',
 
       'defines': [
-        'ARCH="<(target_arch)"',
         'PLATFORM="<(OS)"',
 		'_LARGEFILE_SOURCE',
 		'_FILE_OFFSET_BITS=64',
@@ -52,13 +50,11 @@
 		   },
         }],
         [ 'OS=="mac"', {
-		  'cflags': ['-Wall', '-pthread', '-m32',],
-		  'cflags_cc': [ '-fno-rtti', '-fno-exceptions' ],
-		  'ldflags': [             
-    		  '-bundle',  
+		  'link_settings': {
+		  'ldflags': [              
               '-undefined dynamic_lookup',
-			  '-m32',
 		   ],
+		   },
         }],
         [ 'OS=="linux"', {
           
