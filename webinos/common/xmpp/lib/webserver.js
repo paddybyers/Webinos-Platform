@@ -35,8 +35,14 @@ function handler(request, response) {
     // determine file to serve
     var filename = path.join("www/" + pathname);
     
+	var moduleRoot = require('../dependencies.json');
+	var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
+	var webinosRoot = '../' + moduleRoot.root.location;
+
+	var rpc = require(webinosRoot + dependencies.rpc.location + "lib/rpc.js");
+
     // the rpc stuff is not in the www tree, so get around that
-    filename = filename.replace(/^www\/rpc\//, "../../rpc/lib/");
+    filename = filename.replace(/^www\/rpc\//, webinosRoot + dependencies.rpc.location + "lib/");
     
     // now serve the file
     fs.readFile(filename, function (err, data) {

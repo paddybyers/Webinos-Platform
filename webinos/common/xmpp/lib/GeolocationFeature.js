@@ -7,8 +7,13 @@
 
 var GenericFeature = require('./GenericFeature.js');
 var sys = require('util');
-var rpc = require("../../rpc/lib/rpc.js");
 var logger = require('nlogger').logger('GeolocationFeature.js');
+
+var moduleRoot = require('../dependencies.json');
+var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
+var webinosRoot = '../' + moduleRoot.root.location;
+
+var rpc = require(webinosRoot + dependencies.rpc.location + "lib/rpc.js");
 
 /*
  * Geolocation feature, defined as subclass of GenericFeature

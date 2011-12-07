@@ -9,7 +9,12 @@ var sys = require('util');
 var EventEmitter = require('events').EventEmitter;
 var uniqueId = Math.round(Math.random() * 10000);
 var logger = require('nlogger').logger('GenericFeature.js');
-var rpc = require("../../rpc/lib/rpc.js");
+
+var moduleRoot = require('../dependencies.json');
+var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
+var webinosRoot = '../' + moduleRoot.root.location;
+
+var rpc = require(webinosRoot + dependencies.rpc.location + "lib/rpc.js");
 
 /*
  * 'Class' definition of generic webinos feature
