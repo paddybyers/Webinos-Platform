@@ -499,8 +499,8 @@
 				   webinosRoot + dependencies.api.events.location + 'lib/events.js',
                    webinosRoot + dependencies.api.sensors.location + 'lib/rpc_sensors.js',
                    webinosRoot + dependencies.api.tv.location + 'lib/webinos.rpc_tv.js',
-                   webinosRoot + dependencies.api.vehicle.location + 'lib/webinos.vehicle.vc.rpc.js' //,
-                   webinosRoot + dependencies.api.deviceorientation.location + 'lib/webinos.deviceorientation.rpc.js',
+                   webinosRoot + dependencies.api.vehicle.location + 'lib/webinos.vehicle.vc.rpc.js',
+                   webinosRoot + dependencies.api.deviceorientation.location + 'lib/webinos.deviceorientation.rpc.js' //,
                     // Disabled as these cause webinos from functioning
                    //oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
                    //oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
