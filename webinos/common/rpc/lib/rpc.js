@@ -249,8 +249,6 @@
       var objectRef = rpc.method.split('.')[0];
       if (typeof objRefCachTable[objectRef] !== 'undefined') {
         responseto = objRefCachTable[objectRef].responseTo;
-	    //msgid = objRefCachTable[objectRef].msgId;
-        msgid = Math.floor(Math.random()*10001);
       }
     }
 

@@ -152,7 +152,14 @@
 		var options = {};
 	    options.to = respto;
 	    options.resp_to = respto;
-	    options.id = msgid;
+	    
+	    if (typeof msgid !== undefined && msgid != null){
+	    	options.id = msgid;
+	    }
+	    else{
+	    	//TODO calling write function from RPC does not allow to register call-backs yet
+	    	msgid = 1 + Math.floor(Math.random() * 1024);
+	    }
 	    
 		options.payload = rpc;
 		message = webinos.message.createMessage(options);
