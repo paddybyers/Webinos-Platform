@@ -4,6 +4,7 @@
     'module_name': 'helloworld',
 	#These are required variables to make a proper node module build
 	'library': 'shared_library',
+	'target_arch': 'x86_64',
   },
   'targets': [
     {
@@ -20,6 +21,7 @@
       'product_prefix':'',
 
       'defines': [
+	    'ARCH="<(target_arch)"',
         'PLATFORM="<(OS)"',
 		'_LARGEFILE_SOURCE',
 		'_FILE_OFFSET_BITS=64',
@@ -50,11 +52,9 @@
 		   },
         }],
         [ 'OS=="mac"', {
-		  'link_settings': {
-		  'ldflags': [              
+		  'libraries': [ #this is a hack to specify this linker option in make              
               '-undefined dynamic_lookup',
 		   ],
-		   },
         }],
         [ 'OS=="linux"', {
           
