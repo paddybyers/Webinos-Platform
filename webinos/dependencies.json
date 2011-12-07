@@ -48,6 +48,10 @@
       "name": "Vehicle",
       "location": "api/vehicle/"
     },
+    "deviceorientation": {
+      "name": "Device Orientation",
+      "location": "api/deviceorientation/"
+    },
     "service_discovery": {
       "name": "ServiceDiscovery",
       "location": "api/servicedisco/"
