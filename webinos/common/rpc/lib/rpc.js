@@ -492,6 +492,7 @@
                    webinosRoot + dependencies.api.geolocation.location + 'lib/rpc_geolocation.js',
 				   webinosRoot + dependencies.api.events.location + 'lib/events.js',
                    webinosRoot + dependencies.api.sensors.location + 'lib/rpc_sensors.js',
+                   webinosRoot + dependencies.api.tv.location + 'lib/webinos.rpc_tv.js',
                    webinosRoot + dependencies.api.vehicle.location + 'lib/webinos.vehicle.rpc.js' //,
 
 		   // Disabled as these cause webinos from functioning
