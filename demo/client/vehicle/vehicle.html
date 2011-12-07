@@ -229,6 +229,9 @@
 						
                         webinos.ServiceDiscovery.findServices(address,new ServiceType('http://webinos.org/api/deviceorientation'), {onFound: function (service) {
 								orientation = service;
+								
+								orientation.bindService({onBind: function (service) {}});
+								
 								postMessage("info","Deviceorientation available. Please select a listener");
 								$('#deviceorientationType').removeAttr('disabled');
 								$('#addListenerOrientation').removeAttr('disabled');

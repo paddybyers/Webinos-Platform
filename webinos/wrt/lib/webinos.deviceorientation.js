@@ -1,4 +1,6 @@
-var WebinosDeviceOrientation = function (obj) {
+(function() {
+
+WebinosDeviceOrientation = function (obj) {
 	this.base = WebinosService;
 	this.base(obj);
 };
@@ -8,7 +10,18 @@ var _eventIdsDo = new Array('deviceorientation', 'compassneedscalibration', 'dev
 
 WebinosDeviceOrientation.prototype = new WebinosService;
 
-WebinosDeviceOrientation.prototype.addEventListener = function (type, listener, useCapture) {
+WebinosDeviceOrientation.prototype.bindService = function (bindCB, serviceId) {
+	// actually there should be an auth check here or whatever, but we just always bind
+	this.addEventListener = addEventListener;
+	this.removeEventListener = removeEventListener;
+	this.dispatchEvent = dispatchEvent;
+	
+	if (typeof bindCB.onBind === 'function') {
+		bindCB.onBind(this);
+	};
+}
+
+function addEventListener(type, listener, useCapture) {
     
     if(_eventIdsDo.indexOf(type) != -1){	
     
@@ -32,7 +45,7 @@ WebinosDeviceOrientation.prototype.addEventListener = function (type, listener, 
 };
 
 
-WebinosDeviceOrientation.prototype.removeEventListener = function (type, listener, useCapture) {
+function removeEventListener(type, listener, useCapture) {
         console.log("LISTENER"+ listener);
 
 
@@ -59,7 +72,8 @@ WebinosDeviceOrientation.prototype.removeEventListener = function (type, listene
     }
 };
 
-WebinosDeviceOrientation.prototype.dispatchEvent = function (event) {
+function dispatchEvent(event) {
     //TODO
 };
 
+})();
