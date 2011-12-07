@@ -15,6 +15,8 @@ var webinosRoot = '../' + moduleRoot.root.location;
 
 var rpc = require(webinosRoot + dependencies.rpc.location + "lib/rpc.js");
 
+var geolocation = require(webinosRoot + dependencies.api.geolocation.location + "lib/rpc_geolocation.js");
+
 /*
  * Geolocation feature, defined as subclass of GenericFeature
  *
@@ -51,7 +53,7 @@ function GeolocationFeature() {
 		var payload = JSON.parse(params);
 		var conn = this.uplink;
 
-		this.getCurrentPosition(payload, function(result) {
+		geolocation.GeolocationModule.getCurrentPosition(payload, function(result) {
 			logger.debug("The answer is: " + JSON.stringify(result));
 			logger.debug("Sending it back via XMPP...");
 			conn.answer(stanza, JSON.stringify(result));
@@ -62,48 +64,10 @@ function GeolocationFeature() {
 
 	this.on('invoked-from-local', function(featureInvoked, params, successCB, errorCB, objectRef) {
 		logger.trace('on(invoked-from-local)');
-		this.getCurrentPosition(params, successCB, errorCB, objectRef);
+		geolocation.GeolocationModule.getCurrentPosition(params, successCB, errorCB, objectRef);
 		logger.trace('ending on(invoked-from-local)');
 	});
-	
-	this.getCurrentPosition = function(params, successCB, errorCB, objectRef) {
-	  	if (params['method'] == "native") {	
-			var util = require('util');
-		    var exec = require('child_process').exec;
-		    var child;
-			var location = null;
-
-			childCB = function (error, stdout, stderr) {
-			    location = stdout;
-				successCB(location);
-			    if (error !== null) {
-			    	console.log('exec error: ' + error);
-			    }
-			}
-			child = exec('echo this is your location', childCB); 	// see http://nodejs.org/docs/v0.5.4/api/child_processes.html	
-
-		} else { 
-
-			var result={};
-			var http = require('http');
-			var freegeoip = http.createClient(80, 'freegeoip.net');
-			var request = freegeoip.request('GET', '/json/',
-			  {'host': 'freegeoip.net'});
-			request.end();
-			request.on('response', function (response) {
-			  // console.log('STATUS: ' + response.statusCode);
-			  // console.log('HEADERS: ' + JSON.stringify(response.headers));
-			  response.setEncoding('utf8');
-			  response.on('data', function (chunk) {
-			    // console.log('BODY: ' + chunk);
-			    result = JSON.parse(chunk);
-				location = { 'lat': result['latitude'], 'lon': result['longitude'] };
-				successCB(location);
-			  });
-			});		
-		}
-	}
-	
+		
 	//TODO 'this' exposes all functions (and attributes?) to the RPC but only some a selection of features should be exposed.
 	//TODO remote clients use the function 'invoke' to invoke the geolocation feature but it should also be possible to have other functions.
 	//     at this time invoke is handled by the GenericFeature to dispatch the call locally or remotely.

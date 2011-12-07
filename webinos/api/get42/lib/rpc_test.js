@@ -21,7 +21,10 @@ var testModule = new RPCWebinosService({
 	displayName:'Test',
 	description:'Test Module with the life answer.'
 });
+
 testModule.get42 = get42;
 testModule.testAttr = testAttr;
 testModule.echoAttr = echoAttr;
 webinos.rpc.registerObject(testModule);
+
+exports.testModule = testModule;

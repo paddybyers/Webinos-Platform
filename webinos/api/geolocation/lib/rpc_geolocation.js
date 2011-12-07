@@ -206,3 +206,5 @@ GeolocationModule.getCurrentPosition = getCurrentPosition;
 GeolocationModule.watchPosition = watchPosition;
 GeolocationModule.clearWatch = clearWatch;
 webinos.rpc.registerObject(GeolocationModule);  // RPC name
+
+exports.GeolocationModule = GeolocationModule;

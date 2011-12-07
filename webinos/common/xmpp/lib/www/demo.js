@@ -112,7 +112,7 @@ function onServiceHandler(s) {
     // Install handlers that present results of geolocation queries
     if (s.name == 'geolocation') {
         s.onResult = function(location) {
-            $('#' + s.id).html(location.lat + '&deg; / ' + location.lon + "&deg;<br><em>" + s.device + "</em>").effect("pulsate", { times:1 }, 400);
+            $('#' + s.id).html(location.coords.latitude + '&deg; / ' + location.coords.longitude + "&deg;<br><em>" + s.device + "</em>").effect("pulsate", { times:1 }, 400);
         };
         s.onError = function(err) {
             $('#' + s.id).html("<span class=geo-error>" + err + "</span><br><em>" + s.device + "</em>").effect("pulsate", { times:1 }, 400);
@@ -121,7 +121,7 @@ function onServiceHandler(s) {
 
     if (s.name == 'get42') {
         s.onResult = function(result) {
-            $('#' + s.id).html('Value = ' + result.value + "<br><em>" + s.device + "</em>").effect("pulsate", { times:1 }, 400);
+            $('#' + s.id).html('Value = ' + result + "<br><em>" + s.device + "</em>").effect("pulsate", { times:1 }, 400);
         };
         s.onError = function(err) {
             $('#' + s.id).html("<span class=geo-error>" + err + "</span><br><em>" + s.device + "</em>").effect("pulsate", { times:1 }, 400);
