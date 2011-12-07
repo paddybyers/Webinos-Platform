@@ -4,7 +4,7 @@ var fs = require('fs');
 var os = require('os');
 var url = require('url');
 var util = require('util');
-var pmlib = require('../lib/policymanager.js');
+var pmlib;
 var pm;
 var rootPath;
 
@@ -23,9 +23,11 @@ if (os.platform()=='android') {
 //path definition
 if (os.platform()=='android') {
 	rootPath = '/sdcard/webinos/policy';
+	pmlib = require(rootPath + '/lib/policymanager.js');
 }
 else {
 	rootPath = '.';
+	pmlib = require(rootPath + '/../lib/policymanager.js');
 }
 
 var featureList = [
