@@ -49,7 +49,7 @@
       "location": "api/vehicle/"
     },
     "deviceorientation": {
-      "name": "Device Orientation",
+      "name": "Deviceorientation",
       "location": "api/deviceorientation/"
     },
     "service_discovery": {
