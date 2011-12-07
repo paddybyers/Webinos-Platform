@@ -297,7 +297,7 @@
 			        } 
 			        else
 			        {
-			        	if(typeof message.payload.method !== "undefined")
+			        	if(typeof message.payload.method !== "undefined" )
 			        	{
 			        		// FIXME: can we call rpc.handleMessage here without checking messageCallbacks[] for message.id? 
 			        		logObj(message, "Message forwarded to RPC to handle callback");
@@ -305,6 +305,12 @@
 			        		var msgid = message.id;	       
 			        		rpc.handleMessage(message.payload, resp, msgid);
 			        	}
+			        	else{
+			        		if(typeof message.payload.result !== "undefined"){
+			        			rpc.handleMessage(message.payload);
+			        		}
+			        	}
+			        	
 			        	if(messageCallbacks[message.id])
 			        	{
                             messageCallbacks[message.id].onSuccess(message.payload.result);

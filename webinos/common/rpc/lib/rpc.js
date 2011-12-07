@@ -234,12 +234,18 @@
   webinos.rpc.executeRPC = function (rpc, callback, errorCB, responseto, msgid) {
     if (typeof rpc.serviceAddress !== 'undefined') {
       // this only happens in the web browser
-      webinos.message_send(rpc.serviceAddress, rpc, callback, errorCB); // TODO move the whole mmessage_send function here?
+      
+      webinos.message_send(rpc.serviceAddress, rpc);// TODO move the whole mmessage_send function here?
+      
+      var cb = {};
+      cb.onResult = callback;
+      if (typeof errorCB === 'function') cb.onError = errorCB;
+      if (typeof rpc.id !== 'undefined') webinos.rpc.awaitingResponse[rpc.id] = cb;
+      
       return;
     }
 
     if (typeof callback === 'function'){
-      rpc.id = Math.floor(Math.random()*101);
       var cb = {};
       cb.onResult = callback;
       if (typeof errorCB === 'function') cb.onError = errorCB;

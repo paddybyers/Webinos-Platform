@@ -6,7 +6,7 @@
 	
 	var findServiceBindAddress = null;
 	
-	webinos.message_send = function(to, rpc, successCB, errorCB) {
+	webinos.message_send = function(to, rpc) {
 		var type, id = 0;	
 		if(rpc.type !== undefined && rpc.type === "prop") {
 			type = "prop";
@@ -36,8 +36,6 @@
 			channel.send(JSON.stringify(rpc));
 		} else {
             console.log('creating callback');
-            
-            webinos.message.createMessageId(message, successCB, errorCB);
 			console.log('WebSocket Client: Message Sent');
 			console.log(message);
 			channel.send(JSON.stringify(message));
