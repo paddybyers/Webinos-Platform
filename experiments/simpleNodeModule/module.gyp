@@ -4,7 +4,7 @@
     'module_name': 'helloworld',
 	#These are required variables to make a proper node module build
 	'library': 'shared_library',
-	'target_arch': 'x86_64',
+	'target_arch': 'ia32', #Warning: gyp's make.py file hardcodes the -arch i386
   },
   'targets': [
     {
