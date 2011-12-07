@@ -15,12 +15,31 @@
 			
 			var vehicle;
 			var geolocation;
+			var orientation;
+			
+			
+			var listeners;
+			var listenersDeviceOrientation;
+			
+			var _vehicleDataIds;
+			var _deviceOrientationTypes;
+			
 			
 			$(document).ready(function() {
-					var vehicle = null;		
-					var listeners = new Array();
-					var _vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passenger-front', 'climate-passenger-rear-left','climate-passenger-rear-right','lights-fog-front','lights-fog-rear','lights-signal-right','lights-signal-warn','lights-parking','lights-hibeam','lights-head','wiper-front-wash','wiper-rear-wash','wiper-automatic','wiper-front-once','wiper-rear-once','wiper-front-level1','wiper-front-level2','destination-reached','destination-changed','destination-cancelled','parksensors-front','parksensors-rear','tripcomputer','shift'); 
+					vehicle = null;		
+					orienation = null;
+					geolocation = null					
+					
+					listeners = new Array(); //FOR VEHICLE EVENTS
+					listenersDeviceOrientation = new Array(); 
+					
+					_vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passenger-front', 'climate-passenger-rear-left','climate-passenger-rear-right','lights-fog-front','lights-fog-rear','lights-signal-right','lights-signal-warn','lights-parking','lights-hibeam','lights-head','wiper-front-wash','wiper-rear-wash','wiper-automatic','wiper-front-once','wiper-rear-once','wiper-front-level1','wiper-front-level2','destination-reached','destination-changed','destination-cancelled','parksensors-front','parksensors-rear','tripcomputer','shift'); 
+					_deviceOrientationTypes = new Array('deviceorientation','devicemotion', 'compassneedscalibration');
+					
+					
 					postMessage('Info','Page loaded. Please Initialize');
+					
+					
 					
 				$("#pdcLauncher").fancybox({
 				'transitionIn'		: 'fade',
@@ -106,6 +125,18 @@
 						$('#info').append("<p>ControlID: "+ data.controlId +"</p>");
 						$('#info').append("<p>Active: "+ data.active +"</p>");
 					}
+					
+					var handleDeviceOrientation = function(data){
+					
+					}
+					
+					var handleCompassNeedsCalibration = function(data){
+					
+					}
+					
+					var handleDeviceMotion = function(data){
+						alert(data.hello);
+					}
 						
 					var errorCB = function(error){
 						postMessage('error', "ERROR:" + error.message);
@@ -131,6 +162,23 @@
 						
 					});
 					
+					$('#deviceorientationType').change(function(){
+						var listenerRegistered = false;
+						for(i=0; i < listenersDeviceOrientation.length; i++){
+							if(listenersDeviceOrientation[i] == $('#deviceorientationType').val()){
+								listenerRegistered = true;
+								break;	
+							}	
+						}
+						if(listenerRegistered){
+							$('#removeListenerOrientation').removeAttr('disabled');
+							$('#addListenerOrientation').attr('disabled', 'true');	
+						}else{					
+							$('#addListenerOrientation').removeAttr('disabled');
+							$('#removeListenerOrientation').attr('disabled', 'true');
+						}
+					});
+								
 					$('#pzh_pzp_list').change(function(){
 					
 						if($('#pzh_pzp_list').val() != ''){
@@ -162,10 +210,7 @@
 					
 						var address = $('#pzh_pzp_list').val();
                         webinos.ServiceDiscovery.findServices(address,new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
-                	    	
-								console.log("service found...");
-							
-								vehicle = service;
+                	    		vehicle = service;
 								postMessage("Connected Vehicle System. Please choose a function");
 								$('#addListener').removeAttr('disabled');
 								$('#getData').removeAttr('disabled');
@@ -182,16 +227,21 @@
 								disableInit();
 						}});
 						
+                        webinos.ServiceDiscovery.findServices(address,new ServiceType('http://webinos.org/api/deviceorientation'), {onFound: function (service) {
+								orientation = service;
+								postMessage("info","Deviceorientation available. Please select a listener");
+								$('#deviceorientationType').removeAttr('disabled');
+								$('#addListenerOrientation').removeAttr('disabled');
+								disableInit();
+						}});
+						
+					
 						webinos.ServiceDiscovery.findServices(address,new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
-                	    	
 								console.log("geolocation service found...");
-							
 								geolocation = service;
 								$('#getLocation').removeAttr('disabled');
 								$('#watchPosition').removeAttr('disabled');
-							
 								$('#info').html("<img src='ajaxloader.gif'>");
-							
 								$('#findService').attr('disabled', 'true');
 								$('#findService').val('Geolocation found');
 								disableInit();
@@ -233,11 +283,30 @@
 						listeners.push($('#vehicleDataId').val());
 						$('#removeListener').removeAttr('disabled');
 						$('#addListener').attr('disabled', 'true');	
-
 					});
+
+					$('#addListenerOrientation').bind('click', function(){
+						orientation.addEventListener($('#deviceorientationType').val(), getMessageHandler($('#deviceorientationType').val()), false);
+						listenersDeviceOrientation.push($('#deviceorientationType').val());
+						$('#removeListenerOrientation').removeAttr('disabled');
+						$('#addListenerOrientation').attr('disabled', 'true');	
+					});
+
+					$('#removeListenerOrientation').bind('click', function(){
+						orientation.removeEventListener($('#deviceorientationType').val(), getMessageHandler($('#deviceorientationType').val()), false);
+						postMessage('info','Listener removed for' + $('#deviceorientationType').val());
+						for(i = 0; listenersDeviceOrientation.length; i++){
+							if(listenersDeviceOrientation[i] == $('#deviceorientationType').val()){
+								listenersDeviceOrientation.splice(i,1);
+								break;	
+							}
+					}
+						$('#addListenerOrientation').removeAttr('disabled');
+						$('#removeListenerOrientation').attr('disabled', 'true');
+					});
+
 					
 					$('#getLocation').bind('click', function(){
-					
 						geolocation.getCurrentPosition(positionHandler, errorCB, null);
 					});
 					
@@ -283,6 +352,8 @@
 						console.log('Removing listener for ' + listeners[i]);
 							vehicle.removeEventListener(listeners[i],getMessageHandler(listeners[i]), false);
 						}
+						
+						//UNREGISTER LISTENERS FOR DEVICEORIENTATAION
                     });
 						
 					function postMessage(type,message){
@@ -294,8 +365,8 @@
 							$("#status").removeClass('error');
 						}
 					}
-					function getMessageHandler(vehicleDataId){
-						switch(vehicleDataId){
+					function getMessageHandler(type){
+						switch(type){
 							case "shift":
 								return handleShiftData;
 								break;
@@ -376,18 +447,29 @@
 								break;
                             case "wiper-front-level2":
 								return handleLightWiperControlData;
-								break;	
+								break;
+							case "deviceorientation":
+								return handleDeviceOrientation;
+								break;
+							case "devicemotion":
+								return handleDeviceMotion;
+								break;
+							case "compassneedscalibration":
+								return handleCompassNeedsCalibration;
+								break
 							default:
 								return handleShiftData;
 						}						
 					}
 				
-		
-				         	    
-					for(i=0; i < _vehicleDataIds.length; i++){
-						$('#vehicleDataId').append(new Option(_vehicleDataIds[i],_vehicleDataIds[i],true,true));
+			
+			function fillSelectionBox(id, values){        	    
+					for(i=0; i < values.length; i++){
+						$(id).append(new Option(values[i],values[i],true,true));
 					}				
-				
+			}
+			fillSelectionBox('#vehicleDataId',_vehicleDataIds);
+			fillSelectionBox('#deviceorientationType',_deviceOrientationTypes);
 				
 				
 				function drawPdcBase(position){
@@ -809,10 +891,14 @@
         <h3>Geolocation API</h3>
         	<input type="button" id="getLocation" value="get current Position" disabled class="button"/>
             <input type="button" id="watchPosition" value="add position watcher" disabled class="button"/>
-
-        <h3>Apps</h3>
+        <h3>Deviceorientation API</h3>
+        	<select id="deviceorientationType" disabled>
+            </select><br/>
+            <input type="button" id="addListenerOrientation" value="add EventListener" disabled class="button"/>
+			<input type="button" id="removeListenerOrientation" value="remove EventListener" disabled class="button"/><br>
+        <h3>Demo applications</h3>
 <input type="button" id="startPdc" value="PDC App" disabled class="button"/>
-<input type="button" id="clear" value="clear Log"  class="button"/>
+<!-- <input type="button" id="clear" value="clear Log"  class="button"/> -->
 <a href="#pdcApp"  id="pdcLauncher" title="Parkdistance App">Inline</a>
 		</p>
     </div>
