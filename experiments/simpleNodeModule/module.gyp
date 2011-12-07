@@ -52,7 +52,10 @@
 		   },
         }],
         [ 'OS=="mac"', {
-          'libraries': [ '-undefined dynamic_lookup' ],
+		  'ldflags': [             
+    		  '-bundle',  
+              '-undefined dynamic_lookup' 			  
+		   ],
         }],
         [ 'OS=="linux"', {
           
