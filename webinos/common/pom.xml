@@ -18,5 +18,6 @@
     <!-- One module tag per child module -->
     <module>rpc</module>
     <module>manager</module>
+	<module>xmpp</module>
   </modules>
 </project>
