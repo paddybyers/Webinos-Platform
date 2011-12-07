@@ -15,13 +15,13 @@
 	var address;
 	
             $(document).ready(function() {
-            	    sensors = [];
+            	    foundEventAPIs = [];
                     $('#findService').bind('click', function() {
 						address = $('#pzh_pzp_list').val();
 
                 	    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://webinos.org/api/events'), 
 						{onFound: function (service) {
-                	    	sensors.push(service);
+                	    	foundEventAPIs.push(service);
                 	    	$('#messages').append('<li> EventAPI found: ' + service.api + '</li>');
 
                 	    	logObj(service, "Service");
@@ -33,13 +33,13 @@
                     }); 
                     
                     $('#bind').bind('click', function() {
-                        for (var i = 0; i < sensors.length; i++){
+                        for (var i = 0; i < foundEventAPIs.length; i++){
                         	var act = i;
-                        	sensors[act].bind(function(){
+                        	foundEventAPIs[act].bind(function(){
                         		
-                        		logObj(sensors,"sensors");
-                        		$('#messages').append('<li> Events API ' + sensors[act].api + ' bound.</li>');
-                        		$('#messages').append('<li> My APP ID ' + sensors[act].temporaryRandomAppID + ' </li>');
+                        		logObj(foundEventAPIs,"foundEventAPIs");
+                        		$('#messages').append('<li> Events API ' + foundEventAPIs[act].api + ' bound.</li>');
+                        		$('#messages').append('<li> My APP ID ' + foundEventAPIs[act].temporaryRandomAppID + ' </li>');
                            	});
                         }
             	    	
@@ -47,17 +47,17 @@
                     
                     
                     $('#create').bind('click', function() {
-                    	for (var i = 0; i < sensors.length; i++){
+                    	for (var i = 0; i < foundEventAPIs.length; i++){
                     		var act = i;
-                    		sensors[act].createWebinosEvent();
+                    		foundEventAPIs[act].createWebinosEvent();
                         }
             	    	
                     });
                     
                     $('#register').bind('click', function() {
-                    	for (var i = 0; i < sensors.length; i++){
+                    	for (var i = 0; i < foundEventAPIs.length; i++){
                     		var act = i;
-                    		sensors[act].addWebinosEventListener(function (event) {
+                    		foundEventAPIs[act].addWebinosEventListener(function (event) {
                     			console.log("New event received");
                     			
                     			$("#textIn").val(event.payload);
@@ -68,16 +68,16 @@
                      }); 
                      
                      $('#remove').bind('click', function() {
-                    	for (var i = 0; i < sensors.length; i++){
+                    	for (var i = 0; i < foundEventAPIs.length; i++){
                     		var act = i;
-                    		sensors[act].removeWebinosEventListener();
+                    		foundEventAPIs[act].removeWebinosEventListener();
                         }
                      });
                      
                      $('#send').bind('click', function() {
-                    	for (var i = 0; i < sensors.length; i++){
+                    	for (var i = 0; i < foundEventAPIs.length; i++){
                     		var act = i;
-                    		var ev = sensors[act].createWebinosEvent();
+                    		var ev = foundEventAPIs[act].createWebinosEvent();
                     		
                     		ev.payload = $("#textOut").val();
                     		console.log(ev.payLoad);
