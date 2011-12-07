@@ -5,21 +5,22 @@
 	var registeredListeners = {};
 	var registeredDispatchListeners = {};
 	
-	var temporaryRandomAppID = "MyRandomApplicationID" +  Math.floor(Math.random()*1001);
-	
 	var eventService = null;
 	
 	EventsModule = function(obj) {
 		this.base = WebinosService;
 		this.base(obj);
 		eventService = this;
+		
+		
+		this.temporaryRandomAppID = "MyRandomApplicationID" +  Math.floor(Math.random()*1001);
 	};
 	
 	EventsModule.prototype = new WebinosService;
 	
 	EventsModule.prototype.bind = function(success) {
 
-		var rpc = webinos.rpc.createRPC(this, "registerApplication",  temporaryRandomAppID);
+		var rpc = webinos.rpc.createRPC(this, "registerApplication", this.temporaryRandomAppID);
 		rpc.fromObjectRef =  Math.floor(Math.random()*1001);
 		
 		var callback = new RPCWebinosService({api:rpc.fromObjectRef});
@@ -83,7 +84,7 @@
 		req.source = source;
 		
 		//temporary random app ID as source
-		req.source = temporaryRandomAppID;
+		req.source = this.temporaryRandomAppID;
 		
 		
 		req.destination = destination;
