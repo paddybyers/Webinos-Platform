@@ -149,8 +149,9 @@
                   res.id = id;						
                   webinos.rpc.executeRPC(res, undefined, undefined, responseto, msgid);
                   // CONTEXT LOGGING HOOK
-                  if (contextEnabled){}
+                  if (contextEnabled){
                     webinos.context.logContext(myObject,res);
+                  }
                 },
                 function (error){
                   if (typeof id === 'undefined') return;
@@ -248,7 +249,6 @@
       var objectRef = rpc.method.split('.')[0];
       if (typeof objRefCachTable[objectRef] !== 'undefined') {
         responseto = objRefCachTable[objectRef].responseTo;
-	    msgid = objRefCachTable[objectRef].msgId;
       }
     }
 
@@ -492,13 +492,15 @@
                    webinosRoot + dependencies.api.geolocation.location + 'lib/rpc_geolocation.js',
 				   webinosRoot + dependencies.api.events.location + 'lib/events.js',
                    webinosRoot + dependencies.api.sensors.location + 'lib/rpc_sensors.js',
-                   webinosRoot + dependencies.api.vehicle.location + 'lib/webinos.vehicle.rpc.js',
+                   webinosRoot + dependencies.api.tv.location + 'lib/webinos.rpc_tv.js',
+                   webinosRoot + dependencies.api.vehicle.location + 'lib/webinos.vehicle.rpc.js' //,
 
-                   oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
-                   oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
-                   oldRpcLocation + 'tv/provider/webinos.rpc.tv.js',
-                   oldRpcLocation + 'rpc_contacts.js',
-                   oldRpcLocation + 'bluetooth_module/bluetooth.rpc.server.js'
+		   // Disabled as these cause webinos from functioning
+                   //oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
+                   //oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
+                   //oldRpcLocation + 'tv/provider/webinos.rpc.tv.js',
+                   //oldRpcLocation + 'rpc_contacts.js',
+                   //oldRpcLocation + 'bluetooth_module/bluetooth.rpc.server.js'
                    ];
 
     if (contextEnabled) {

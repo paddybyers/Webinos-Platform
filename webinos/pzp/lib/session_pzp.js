@@ -400,9 +400,12 @@
 		});
 
 		httpserver.on('error', function(err) {
+			utils.debug("PZP WSServer: got error " + err);
 			if (err.code === 'EADDRINUSE') {
+				// BUG why make up a port ourselves?
 				serverPort = parseInt(serverPort, 10) +1; 
-				httpserver.listen(serverPort, hostname);				
+				utils.debug("PZP WSServer: address in use, now trying port " + serverPort);
+				httpserver.listen(serverPort, hostname);
 			}
 		});
 
@@ -422,7 +425,7 @@
 			utils.debug("PZP WSServer: Connection accepted.");
 			if(typeof sessionPzp.instance !== "undefined") {
 				sessionPzp.instance.createWebAppSessionId(connection);
-			}			
+			}
 			
 			connection.on('message', function(message) {
 				var self = this;

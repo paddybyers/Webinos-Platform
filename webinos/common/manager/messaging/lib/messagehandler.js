@@ -152,7 +152,14 @@
 		var options = {};
 	    options.to = respto;
 	    options.resp_to = respto;
-	    options.id = msgid;
+	    
+	    if (typeof msgid !== undefined && msgid != null){
+	    	options.id = msgid;
+	    }
+	    else{
+	    	//TODO calling write function from RPC does not allow to register call-backs yet
+	    	msgid = 1 + Math.floor(Math.random() * 1024);
+	    }
 	    
 		options.payload = rpc;
 		message = webinos.message.createMessage(options);
@@ -300,25 +307,8 @@
 			        	}
 			        	if(messageCallbacks[message.id])
 			        	{
-                                        messageCallbacks[message.id].onSuccess(message.payload.result);
-                        
-                        
-			        		message.payload = message.payload;
-			        		if(typeof message.payload.method !== "undefined")
-			        		{
-			        			logObj(message, "Message forwarded to RPC to handle callback");
-			        			var resp = message.resp_to;
-			        			var msgid = message.id;	       
-			        			rpc.handleMessage(message.payload, resp, msgid);
-			        		}
-			        		else
-			        		{
-			        			messageCallbacks[message.id].onSuccess(message.payload.result);
-			        		}
+                            messageCallbacks[message.id].onSuccess(message.payload.result);
 			        	}
-                        
-                        
-                        
 			        }
 				}
 				else

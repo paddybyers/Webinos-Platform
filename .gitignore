@@ -20,6 +20,9 @@ demo/client/webinos.js
 # ignore waf lock files
 .lock-wscript
 
+# ignore vi swap file
+*.swp
+
 #ignore build folders
 build
 

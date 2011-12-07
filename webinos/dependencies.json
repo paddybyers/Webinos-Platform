@@ -40,6 +40,10 @@
       "name": "Sensors",
       "location": "api/sensors/"
     },
+    "tv": {
+      "name": "TV",
+      "location": "api/tv/"
+    },
     "vehicle": {
       "name": "Vehicle",
       "location": "api/vehicle/"
