@@ -4,37 +4,29 @@ webinos/common/manager/context_manager/data/log.json
 
 # ignore generated webinos.js
 demo/client/webinos.js
-
 # ignore eclipse project files
 .project
 .settings
-
 # ignore generated certificates
 *.pem
 *.csr
 *.srl
-
 # ignore backup files
 *~
-
 # ignore waf lock files
 .lock-wscript
-
 # ignore vi swap file
 *.swp
-
 #ignore build folders
 build
-
 #ignore target folders
 target
-
 #ignore reports folders
 reports
-
 #ignore modules for vehicle connection
 webinos/api/vehicle/contrib/vb-con/
 webinos/api/vehicle/contrib/vb-con/vc.js
 webinos/api/vehicle/contrib/vb-con/jsonrpc.js 
 webinos/api/vehicle/lib/webinos.vehicle.rpc.js
 node_modules
+/.metadata/

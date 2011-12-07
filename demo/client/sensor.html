@@ -35,7 +35,7 @@
                     $('#bind').bind('click', function() {
                         for (var i = 0; i < sensors.length; i++){
                         	var act = i;
-                        	sensors[act].bind(function(){
+                        	sensors[act].bindService(function(){
                         		
                         		logObj(sensors,"sensors");
                         		$('#messages').append('<li> Sensor ' + sensors[act].api + ' bound.</li>');

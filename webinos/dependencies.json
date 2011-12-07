@@ -48,6 +48,10 @@
       "name": "Vehicle",
       "location": "api/vehicle/"
     },
+    "deviceorientation": {
+      "name": "Device Orientation",
+      "location": "api/deviceorientation/"
+    },
     "service_discovery": {
       "name": "ServiceDiscovery",
       "location": "api/servicedisco/"
@@ -74,6 +78,10 @@
   "rpc": {
     "name": "RPC",
     "location": "common/rpc/"
+  },
+  "xmpp": {
+	"name": "xmpp",
+	"location": "common/xmpp/"
   },
   "pzp": {
     "name": "PZP",
