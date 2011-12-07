@@ -1,7 +1,6 @@
 package org.webinos.impl;
 
 import org.meshpoint.anode.AndroidContext;
-import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
 import org.meshpoint.anode.type.IValue;
@@ -17,12 +16,8 @@ public class AuthenticationImpl extends AuthenticationManager implements IModule
 	
 	private Context androidContext;
 	
-	AuthenticationImpl(IDLInterface iface) {
-		super(iface);
-	}
-
 	/*****************************
-	 * WebinosAuthentication methods
+	 * AuthenticationManager methods
 	 *****************************/
 	@Override
 	public void authenticate(AuthSuccessCB successCB, AuthErrorCB errorCB) {
@@ -48,12 +43,16 @@ public class AuthenticationImpl extends AuthenticationManager implements IModule
 	@Override
 	public IValue startModule(IModuleContext ctx) {
 		androidContext = ((AndroidContext)ctx).getAndroidContext();
-		return null;
+		/*
+		 * perform any module initialisation here ...
+		 */
+		return this;
 	}
 
 	@Override
 	public void stopModule() {
-		// TODO Auto-generated method stub
-		
+		/*
+		 * perform any module shutdown here ...
+		 */
 	}
 }

@@ -19,8 +19,9 @@ public class SensorImpl extends SensorManager implements IModule {
 
 	private Context androidContext;
 
-	protected SensorImpl(IDLInterface iface) { super(iface); }
-
+	/*****************************
+	 * SensorManager methods
+	 *****************************/
 	@Override
 	public PendingOperation configureSensor(ConfigureSensorOptions options,
 			ConfigureSensorCB successCB, SensorErrorCB errorCB)
@@ -29,16 +30,22 @@ public class SensorImpl extends SensorManager implements IModule {
 		return null;
 	}
 
+	/*****************************
+	 * IModule methods
+	 *****************************/
 	@Override
 	public IValue startModule(IModuleContext ctx) {
 		androidContext = ((AndroidContext)ctx).getAndroidContext();
-		return null;
+		/*
+		 * perform any module initialisation here ...
+		 */
+		return this;
 	}
 
 	@Override
 	public void stopModule() {
-		// TODO Auto-generated method stub
-		
+		/*
+		 * perform any module shutdown here ...
+		 */
 	}
-
 }
