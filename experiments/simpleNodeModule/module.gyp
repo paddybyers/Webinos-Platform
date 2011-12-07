@@ -4,7 +4,7 @@
     'module_name': 'helloworld',
 	#These are required variables to make a proper node module build
 	'library': 'shared_library',
-	'target_arch': 'ia32', #Warning: gyp's make.py file hardcodes the -arch i386
+	'target_arch': 'ia32',
   },
   'targets': [
     {
@@ -52,6 +52,7 @@
 		   },
         }],
         [ 'OS=="mac"', {
+		  #MAC Users don't forget to comment out all line in node\tools\gyp\pylib\gyp\generator\make.py that contain append('-arch i386') (2 instances)
 		  'libraries': [ #this is a hack to specify this linker option in make              
               '-undefined dynamic_lookup',
 		   ],

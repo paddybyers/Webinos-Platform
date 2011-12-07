@@ -3,8 +3,8 @@
     #Specify the module name here
     'module_name': 'localcontacts',
 	#These are required variables to make a proper node module build
-    'target_arch': 'ia32',
 	'library': 'shared_library',
+	'target_arch': 'ia32', 
   },
   'targets': [
     {
@@ -54,7 +54,10 @@
 		   },
         }],
         [ 'OS=="mac"', {
-          'libraries': [ '-undefined dynamic_lookup' ],
+		   #MAC Users don't forget to comment out all line in node\tools\gyp\pylib\gyp\generator\make.py that contain append('-arch i386') (2 instances)
+           'libraries': [ #this is a hack to specify this linker option in make              
+              '-undefined dynamic_lookup',
+		   ],
         }],
         [ 'OS=="linux"', {
           
