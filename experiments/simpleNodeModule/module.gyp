@@ -52,9 +52,12 @@
 		   },
         }],
         [ 'OS=="mac"', {
+		  'cflags': ['-Wall', '-pthread', '-m32',],
+		  'cflags_cc': [ '-fno-rtti', '-fno-exceptions' ],
 		  'ldflags': [             
     		  '-bundle',  
-              '-undefined dynamic_lookup' 			  
+              '-undefined dynamic_lookup',
+			  '-m32',
 		   ],
         }],
         [ 'OS=="linux"', {
