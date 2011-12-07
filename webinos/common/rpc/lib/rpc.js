@@ -149,8 +149,9 @@
                   res.id = id;						
                   webinos.rpc.executeRPC(res, undefined, undefined, responseto, msgid);
                   // CONTEXT LOGGING HOOK
-                  if (contextEnabled){}
+                  if (contextEnabled){
                     webinos.context.logContext(myObject,res);
+                  }
                 },
                 function (error){
                   if (typeof id === 'undefined') return;
@@ -248,7 +249,8 @@
       var objectRef = rpc.method.split('.')[0];
       if (typeof objRefCachTable[objectRef] !== 'undefined') {
         responseto = objRefCachTable[objectRef].responseTo;
-	    msgid = objRefCachTable[objectRef].msgId;
+	    //msgid = objRefCachTable[objectRef].msgId;
+        msgid = Math.floor(Math.random()*10001);
       }
     }
 
