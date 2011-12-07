@@ -1,7 +1,0 @@
-{
-    "color": "auto",
-    "level": {
-        "*": "trace",
-        "my-modules/first": "info"
-    }
-}
