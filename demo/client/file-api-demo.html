@@ -19,10 +19,9 @@
 		var left = new webinos.file.demo.Explorer("table#left");
 		var right = new webinos.file.demo.Explorer("table#right");
 
-		var address = $('#pzh_pzp_list').val();
-		webinos.ServiceDiscovery.findServices(address, new ServiceType("http://webinos.org/api/file"), {
+		webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/file"), {
 			onFound: function (service) {
-				service.bind(function () {
+				service.bindService(function () {
 					service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 1024, function (filesystem) {
 						left.change(filesystem.root);
 						right.change(filesystem.root);

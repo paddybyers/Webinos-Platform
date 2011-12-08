@@ -15,13 +15,7 @@ $(document).ready(function() {
 	//find service by name and link it
 	var findServiceByName = function(serviceName){
 		
-		var address = $('#pzh_pzp_list').val();
-    	if (address === "null" || address === "undefined") {
-    		alert("Select from list which you node you want to  connect");
-    		return;
-    	} 
-		
-	    webinos.ServiceDiscovery.findServices(address,new ServiceType('http://webinos.org/api/tv'), {onFound: function (service) {
+	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/tv'), {onFound: function (service) {
 	    	if(!isServiceDiscovered(serviceName)){
     			discoveredServices[serviceName] = service;
     			log('SERVICE FOUND: '+serviceName);

@@ -4,8 +4,6 @@
 	var sessionid = null;
 	var pzpId, pzhId, connectedPzp, connectdPzh;
 	
-	var findServiceBindAddress = null;
-	
 	webinos.message_send = function(to, rpc) {
 		var type, id = 0;	
 		if(rpc.type !== undefined && rpc.type === "prop") {
@@ -19,8 +17,10 @@
 		if(rpc.id === undefined)
 			rpc.id = Math.floor(Math.random()*1001);
 		
-		if(findServiceBindAddress !== null && (to === "" || to !== findServiceBindAddress)) {
-			to = findServiceBindAddress;
+		if(webinos.getPZPId() !== null && (to === "" || to !== webinos.getPZPId())) {
+			// XXX this was previously findServiceBindAddress, so its value could
+			// have been a pzh as well. what to do?
+			to = webinos.getPZPId();
 		}
 		if(typeof rpc.method !== undefined && rpc.method === 'ServiceDiscovery.findServices')
 			id = rpc.params[2];
@@ -46,18 +46,13 @@
 		return sessionid;
 	}
 	webinos.getPZPId = function() {
-		return pzpid;
+		return pzpId;
 	}
 	webinos.getPZHId = function() {
-		return pzhid;
+		return pzhId;
 	}
 	webinos.getOtherPZP = function() {
 		return otherpzp;
-	}
-	webinos.findServiceBindAddress = function(address) {
-		if(typeof address !== "undefined")
-			findServiceBindAddress = address;
-		return findServiceBindAddress;
 	}
 	
 	/**
@@ -81,7 +76,7 @@
 			var data = JSON.parse(ev.data);
 			if(data.type === "prop" && data.payload.status === 'registeredBrowser') {
 				sessionid = data.to;
-				pzpId = data.from;				
+				pzpId = data.from;			
 				pzhId = data.payload.message.pzhId;
 				connectedPzp = data.payload.message.connectedPzp;
 				connectedPzh = data.payload.message.connectedPzh;
@@ -138,8 +133,7 @@
 	webinos.ServiceDiscovery = {};
 	webinos.ServiceDiscovery.registeredServices = 0;
 	
-	webinos.ServiceDiscovery.findServices = function (address, serviceType, callback) {
-		findServiceBindAddress = address;
+	webinos.ServiceDiscovery.findServices = function (serviceType, callback) {
 		// pure local services..
 		if (serviceType == "BlobBuilder"){
 			var tmp = new BlobBuilder();
@@ -193,8 +187,9 @@
 		};
 		webinos.rpc.registerCallbackObject(callback2);
 		
-		webinos.message_send(findServiceBindAddress, rpc);
-		
+		rpc.serviceAddress = webinos.getPZPId();
+		webinos.rpc.executeRPC(rpc);
+
 		return;
 	};
 	
