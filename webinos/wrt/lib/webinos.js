@@ -228,7 +228,7 @@
 
 	
 	
-	WebinosService.prototype.bind = function(success) {
+	WebinosService.prototype.bindService = function(success) {
 		if (channel == null){ 
 			var x = success;
 			createCommChannel(function () {
