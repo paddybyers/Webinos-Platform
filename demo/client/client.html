@@ -88,7 +88,7 @@
         $('#bind').bind('click', function() {
             for (var i=0; i<test.length; i++) {
                 test[i].bindService({onBind:function(service) {
-                    $('#messages').append('<li> TEST API' + service.api + ' bound.</li>');
+                    $('#message').append('<li> TEST API' + service.api + ' bound.</li>');
                 }});
             }
         });
