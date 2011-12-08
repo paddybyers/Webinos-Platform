@@ -11,7 +11,6 @@
 <script type="text/javascript" src="/client/webinos.file.demo.js"></script>
 <script>
 	var init = function () {
-		var id = Math.floor(Math.random()*1001);
 		$("button#init").attr("disabled", "disabled");
 		$("table#left").css("visibility", "visible");
 		$("table#right").css("visibility", "visible");
@@ -21,13 +20,15 @@
 
 		webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/file"), {
 			onFound: function (service) {
-				service.bindService(function () {
-					service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 1024, function (filesystem) {
-						left.change(filesystem.root);
-						right.change(filesystem.root);
-					}, function (error) {
-						alert("Error requesting filesystem (#" + error.code + ")");
-					}, webinos.getSessionId(), id);
+				service.bindService({
+					onBind: function () {
+						service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 1024, function (filesystem) {
+							left.change(filesystem.root);
+							right.change(filesystem.root);
+						}, function (error) {
+							alert("Error requesting filesystem (#" + error.code + ")");
+						});
+					}
 				});
 			}
 		});
