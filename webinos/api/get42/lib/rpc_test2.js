@@ -3,12 +3,6 @@ webinos.rpc = require('../../../common/rpc/lib/rpc.js');
 
 function get42 (params, successCB, errorCB, objectRef){
 	console.log("get42 was invoked");
-	successCB(42*2);
-}
-
-function echo (params, successCB, errorCB, objectRef){
-	console.log("echo was invoked");
-	//successCB("Bonjour " + params[0]);
 	
 	var er = {};
 	er.code = 1234;
@@ -17,10 +11,20 @@ function echo (params, successCB, errorCB, objectRef){
 	errorCB(er);
 }
 
+function listenFor42 (params, successCB, errorCB, objectRef){
+	console.log("listenerFor42 was invoked");
+	
+	// call the registered listener twice, delivering an object
+	for (var i=0; i<2; i++) {
+		var rpc = webinos.rpc.createRPC(objectRef, 'onEvent', {msg:i + " 42"});
+		webinos.rpc.executeRPC(rpc);
+	}
+}
+
 var testAttr = "Bonjour Attribute";
 
-var echoAttr = {};
-echoAttr.echo = echo;
+var listenAttr = {};
+listenAttr.listenFor42 = listenFor42;
 
 var testModule = new RPCWebinosService({
 	api:'http://webinos.org/api/test',
@@ -29,5 +33,5 @@ var testModule = new RPCWebinosService({
 });
 testModule.get42 = get42;
 testModule.testAttr = testAttr;
-testModule.echoAttr = echoAttr;
+testModule.listenAttr = listenAttr;
 webinos.rpc.registerObject(testModule);

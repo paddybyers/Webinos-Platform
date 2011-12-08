@@ -244,7 +244,7 @@
 	 if (typeof rpc.serviceAddress !== 'undefined') {
       // this only happens in the web browser
       
-      webinos.message_send(rpc.serviceAddress, rpc);// TODO move the whole mmessage_send function here?
+      webinos.message_send(rpc, rpc.serviceAddress);// TODO move the whole mmessage_send function here?
       
       if (typeof callback === 'function'){
     	  var cb = {};
@@ -437,7 +437,7 @@
       } 
       // add address where this service is available, namely this pzp sessionid
       for (var i=0; i<results.length; i++) {
-        results[i].serviceAddress = Pzp.getSessionId();
+        results[i].serviceAddress = Pzp.getPzpSessionId();
       }
 
       return results;

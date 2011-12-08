@@ -5,6 +5,7 @@ if (typeof exports !== "undefined") {
 	utils = require('../../pzp/lib/session_common.js');
 }
 
+
 // Global variables and node modules that are required
 var tls = require('tls'),
 	fs = require('fs'),
@@ -33,6 +34,15 @@ Pzh.prototype.prepMsg = function(from, to, status, message) {
 			'message':message}};
 };
 
+/*
+ * Get the session id for this PZP if available.
+ */
+sessionPzh.getSessionId = function() {
+	if (typeof sessionPzh.instance !== 'undefined') {
+		return sessionPzp.instance.sessionId;
+	}
+	return undefined;
+};
 /*
  * This function is registered with message handler to send message towards rpc. 
  * It searches for correct PZP by looking in connectedPzp. It is searched 

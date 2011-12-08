@@ -267,11 +267,11 @@ exports.processedMsg = function(self, data, dataLen, callback) {
 */
 var send = function (message, address, object) {
 	message.resp_to = object.sessionId;
+	console.log("                                                  SESSION ID: " + object.sessionId);
 	object.sendMessage(message, address);
 };
 
 var setMessagingParam = function(self){
-
 	messaging.setGetOwnId(self.sessionId);
 	messaging.setObjectRef(self);
 	messaging.setSendMessage(send);

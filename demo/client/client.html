@@ -32,7 +32,7 @@
 				serverport: document.getElementById('serverport').value, 
 				value: config}; 
 			var options = {type: 'prop', payload: payload};
-			webinos.message_send(null, options, null, null);                	   
+			webinos.message_send(options);                	   
                 });
 
                 $('#startPZP').bind('click', function() {
@@ -53,11 +53,11 @@
 				value: config}; 
 			
 			var options = {type: 'prop', payload: payload};
-			webinos.message_send(null, options, null, null);
+			webinos.message_send(options);
 		});
                 $('#disconnectPZP').bind('click', function() {
                 	var options = {type: 'prop', payload: {status:'disconnectPzp'}};
-					webinos.message_send(null, options, null, null);
+					webinos.message_send(options);
                 
 		});
 		$('#connectPZH').bind('click', function() {
@@ -65,7 +65,7 @@
 				servername: document.getElementById('pzh_ip_addr').value,
 				serverport: document.getElementById('pzh_port').value}; 
 			var options = {type: 'prop', payload: payload};
-			webinos.message_send(null, options, null, null);
+			webinos.message_send(options);
                  });
                  
 		$('#downloadCert').bind('click', function() {
@@ -73,7 +73,7 @@
 				servername: document.getElementById('pzh_ip_addr').value,
 				serverport: document.getElementById('pzh_http_port').value}; 
 			var options = {type: 'prop', payload: payload};
-			webinos.message_send(null, options, null, null);
+			webinos.message_send(options);
                  });
                     
                  var test = [];
@@ -95,27 +95,23 @@
                      
 		$('#get42').bind('click', function() {
 			for (var i=0; i<test.length; i++) {
-				test[i].get42(function(result) {
+				test[i].get42('foo', function(result) {
 					alert(result);
 				},
 				function(error){
 					alert(error.code + " " + error.message);
 				});
-				alert(test[i].testAttr);
 			}
 		});
 
-        $('#echo-fun').bind('click', function() {
+        $('#listen42').bind('click', function() {
             for (var i=0; i<test.length; i++) {
-                test[i].echoAttr.echo('foo', function(result) {
-                    alert(result);
-                },
-                function(error){
-                	console.log("Received error for echo");
-					alert(error.code + " " + error.message);
-				});
+                test[i].listenerFor42(function(result) {
+                    alert(result.msg);
+                }, {opts: "unused"});
             }
         });
+        
 	});
 	</script>
 </head>
@@ -214,7 +210,7 @@
 				</td> <td> 
 					<button id="get42" class="button">Get 42</button>
                 </td> <td> 
-                    <button id="echo-fun" class="button">Echo</button>
+                    <button id="listen42" class="button">Listener for 42</button>
 				</td> </tr>				
 		</table>
 	</div>
