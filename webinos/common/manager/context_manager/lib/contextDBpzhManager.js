@@ -43,8 +43,6 @@ exports.getrawview = function(success,fail){
       "fldSession AS Session, fldContextObject AS ContextObject, fldMethod AS Method, fldTimestamp AS Timestamp, " +
       "fldDescription AS ValueType, fldValueName AS ValueName, fldValue AS Value FROM vwcontextraw", function (err,row){
     var txtRow = "";
-    console.log(row);
-
       txtRow = txtRow + "ContextRawID : " + row.ContextRawID + 
       " | ContextRawValueID : "  + row.ContextRawValueID +
       " | API : "  + row.API +
