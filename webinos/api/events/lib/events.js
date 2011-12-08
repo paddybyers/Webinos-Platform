@@ -46,20 +46,63 @@ function dispatchWebinosEvent(params, successCB, errorCB, objectRef){
 	//callbacks, referenceTimeout, sync
 	console.log("dispatchWebinosEvent was invoked: Payload: " + params.webinosevent.payload);
 	
+	var useCB = false;
+	if (typeof objectRef !== "undefined"){
+		useCB = true;
+		console.log("Delivery callback defined");
+	}
+	else{
+		console.log("No delivery callback defined");
+	}
 	
-	for (var i = 0; i < registeredListener.length; i++){
+	var outCBParams = {};
+
+	
+	
+	var i;
+	var j;
+	for (i = 0; i < registeredListener.length; i++){
 		
 		console.log("Listener@" + registeredListener[i].source);
 		
-		for (var j = 0; j < connectedApps.length; j++){
+		for (j = 0; j < connectedApps.length; j++){
 			
 			console.log("Listener@" + registeredListener[i].source + " vs. connected app " + connectedApps[j].params);
 			
+			
+			
+			
 			if (registeredListener[i].source == connectedApps[j].params){
-				
             	params.listenerID = registeredListener[i].listenerID;
-				json = webinos.rpc.createRPC(connectedApps[j].objectRef, "handleEvent", params);
-             	webinos.rpc.executeRPC(json);
+
+            	if (useCB){
+            		var current = connectedApps[j];
+            		outCBParams.event = params.webinosevent;
+            		outCBParams.recipient = current;
+            		var cbjson = webinos.rpc.createRPC(objectRef, "onSending", outCBParams);
+            		webinos.rpc.executeRPC(cbjson);
+				}
+            	
+            	console.log("Sending event to connected app " + connectedApps[j].objectRef);
+            	var json = webinos.rpc.createRPC(connectedApps[j].objectRef, "handleEvent", params);
+             	
+				webinos.rpc.executeRPC(json, function () {
+             		//delivered
+					console.log("Delivered Event successfully");
+					if (useCB){
+						var cbjson = webinos.rpc.createRPC(objectRef, "onDelivery", outCBParams);
+             			webinos.rpc.executeRPC(cbjson);
+             		}
+             	},
+             	function () {
+             		//error
+             		console.log("Delivering Event not successful");
+             		if (useCB){
+             			outCBParams.error = "Some ERROR";
+             			var cbjson = webinos.rpc.createRPC(objectRef, "onError", outCBParams);
+             			webinos.rpc.executeRPC(cbjson);
+             		}
+             	});
 				
 			}
 			
