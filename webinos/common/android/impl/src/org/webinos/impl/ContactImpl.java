@@ -1,13 +1,11 @@
 package org.webinos.impl;
 
-import org.meshpoint.anode.idl.IDLInterface;
 import org.webinos.api.contact.Contact;
 
 public class ContactImpl extends Contact {
+	private ContactManagerImpl mgr;
 
-	protected ContactImpl(IDLInterface iface) {
-		super(iface);
-		// TODO Auto-generated constructor stub
+	ContactImpl(ContactManagerImpl mgr) {
+		this.mgr = mgr;
 	}
-
 }

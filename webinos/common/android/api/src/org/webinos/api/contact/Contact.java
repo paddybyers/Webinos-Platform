@@ -2,15 +2,13 @@ package org.webinos.api.contact;
 
 import java.util.Date;
 
+import org.meshpoint.anode.bridge.Env;
 import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 
 public class Contact extends Base {
-
-	protected Contact(IDLInterface iface) {
-		super(iface);
-		// TODO Auto-generated constructor stub
-	}
+	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName(Contact.class.getName());
+	protected Contact() { super(iface); }
 
     public String id;
     public String displayName;
