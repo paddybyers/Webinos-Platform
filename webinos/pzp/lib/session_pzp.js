@@ -466,6 +466,7 @@
 				connection.sendUTF(JSON.stringify(payload));
 			}
 			var messageWS = function(msg, address){
+				msg.resp_to = "virgin_pzp";
 				if(connectedApp[address])
 				connectedApp[address].sendUTF(JSON.stringify(msg));
 			}
