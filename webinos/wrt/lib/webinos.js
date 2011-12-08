@@ -14,14 +14,7 @@
 		}
 		if(rpc.fromObjectRef === undefined)
 			rpc.fromObjectRef = Math.floor(Math.random()*1001);
-		if(rpc.id === undefined)
-			rpc.id = Math.floor(Math.random()*1001);
 		
-		if(webinos.getPZPId() !== null && (to === "" || to !== webinos.getPZPId())) {
-			// XXX this was previously findServiceBindAddress, so its value could
-			// have been a pzh as well. what to do?
-			to = webinos.getPZPId();
-		}
 		if(typeof rpc.method !== undefined && rpc.method === 'ServiceDiscovery.findServices')
 			id = rpc.params[2];
 			

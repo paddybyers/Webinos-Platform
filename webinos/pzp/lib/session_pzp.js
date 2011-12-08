@@ -321,7 +321,7 @@
 	 */
 	sessionPzp.getSessionId = function() {
 		if (typeof sessionPzp.instance !== 'undefined') {
-			return sessionPzp.instance.bindAddress;
+			return sessionPzp.instance.sessionId;
 		}
 		return undefined;
 	};
