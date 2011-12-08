@@ -249,27 +249,5 @@
 		}
 	};
 
-///////////////////// CONTEXT INTERFACE ///////////////////////////////
-  var Context;
-  
-  Context = function(obj) {
-    this.base = WebinosService;
-    this.base(obj);
-  };
-  Context.prototype = new WebinosService;
-  
-  Context.prototype.find = function(what, callOnSuccess, callOnError) { 
-    arguments[0] = what;
-    var rpc = webinos.rpc.createRPC(this, "find", arguments);
-    
-    webinos.rpc.executeRPC(rpc,
-      function(result){
-          callOnSuccess(result);
-      },
-      function(error){
-          callOnError(error);
-      }
-    );
-  };
   
 }());
