@@ -1,13 +1,13 @@
 (function() {
 
-	WebinosContext = function(obj) {
+	Context = function(obj) {
 		this.base = WebinosService;
 		this.base(obj);
 	};
 	
-	WebinosContext.prototype = new WebinosService;
+	Context.prototype = new WebinosService;
 	
-	WebinosContext.prototype.bindService = function (bindCB, serviceId) {
+	Context.prototype.bindService = function (bindCB, serviceId) {
 		// actually there should be an auth check here or whatever, but we just always bind
 		this.find = find;
 		this.executeQuery = executeQuery;
@@ -29,7 +29,7 @@
 		);
 	}
 	 function executeQuery(query, successCB,errorCB) {
-	    var rpc = webinos.rpc.createRPC(this, "find",  query);
+	    var rpc = webinos.rpc.createRPC(this, "executeQuery",  query);
 	    webinos.rpc.executeRPC(rpc,
 	        function (params){
 	          successCB(params);
@@ -39,17 +39,4 @@
 	        }
 	    );
 	  }
-	
-	function echo(attr, successCB, errorCB) {
-		var rpc = webinos.rpc.createRPC(this, "echoAttr.echo", [attr]);
-		webinos.rpc.executeRPC(rpc,
-				function (params){
-					successCB(params);
-				},
-				function (error){
-					errorCB(error);
-				}
-		);
-	}
-	
-}());
+})();
