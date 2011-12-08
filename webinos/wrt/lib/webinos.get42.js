@@ -23,24 +23,28 @@
 		};
 	}
 	
-	function get42(successCB) {
+	function get42(successCB,errorCB) {
 		console.log(this.id);
 		var rpc = webinos.rpc.createRPC(this, "get42",  []);
 		webinos.rpc.executeRPC(rpc,
 				function (params){
 					successCB(params);
 				},
-				function (error){}
+				function (error){
+					errorCB(error);
+				}
 		);
 	}
 	
-	function echo(attr, successCB) {
+	function echo(attr, successCB, errorCB) {
 		var rpc = webinos.rpc.createRPC(this, "echoAttr.echo", [attr]);
 		webinos.rpc.executeRPC(rpc,
 				function (params){
 					successCB(params);
 				},
-				function (error){}
+				function (error){
+					errorCB(error);
+				}
 		);
 	}
 	

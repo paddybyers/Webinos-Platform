@@ -8,7 +8,13 @@ function get42 (params, successCB, errorCB, objectRef){
 
 function echo (params, successCB, errorCB, objectRef){
 	console.log("echo was invoked");
-	successCB("Bonjour " + params[0]);
+	//successCB("Bonjour " + params[0]);
+	
+	var er = {};
+	er.code = 1234;
+	er.message = "Just an Test Error";
+	
+	errorCB(er);
 }
 
 var testAttr = "Bonjour Attribute";

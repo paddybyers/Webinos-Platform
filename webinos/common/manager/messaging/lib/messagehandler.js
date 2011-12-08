@@ -306,7 +306,7 @@
 			        		rpc.handleMessage(message.payload, resp, msgid);
 			        	}
 			        	else{
-			        		if(typeof message.payload.result !== "undefined"){
+			        		if(typeof message.payload.result !== "undefined" || typeof message.payload.error !== "undefined"){
 			        			rpc.handleMessage(message.payload);
 			        		}
 			        	}

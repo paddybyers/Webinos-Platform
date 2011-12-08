@@ -102,6 +102,9 @@
 			for (var i=0; i<test.length; i++) {
 				test[i].get42(function(result) {
 					alert(result);
+				},
+				function(error){
+					alert(error.code + " " + error.message);
 				});
 				alert(test[i].testAttr);
 			}
@@ -111,7 +114,11 @@
             for (var i=0; i<test.length; i++) {
                 test[i].echoAttr.echo('foo', function(result) {
                     alert(result);
-                });
+                },
+                function(error){
+                	console.log("Received error for echo");
+					alert(error.code + " " + error.message);
+				});
             }
         });
 	});

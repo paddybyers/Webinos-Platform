@@ -213,8 +213,10 @@
           }
 
           if (typeof webinos.rpc.awaitingResponse[myObject.id].onError !== 'undefined' && typeof myObject.error !== 'undefined'){
-            if (typeof myObject.error.data !== 'undefined')
-              webinos.rpc.awaitingResponse[myObject.id].onError(myObject.error.data);
+            if (typeof myObject.error.data !== 'undefined'){
+            	console.log("Propagating error to application");
+            	webinos.rpc.awaitingResponse[myObject.id].onError(myObject.error.data);
+            }
             else webinos.rpc.awaitingResponse[myObject.id].onError();
           }
 
