@@ -6,7 +6,7 @@ import org.meshpoint.anode.java.Base;
 import org.webinos.api.PendingOperation;
 
 public abstract class SensorManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName("org.webinos.api.sensor.SensorManager");
+	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName(SensorManager.class.getName());
 	protected SensorManager() { super(iface); }
 	
 	public Double maximumRange;
