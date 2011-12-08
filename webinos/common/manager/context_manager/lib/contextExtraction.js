@@ -29,8 +29,8 @@ webinos.context.saveContext = function(dataIn, success, fail) {
   contextItem.timestamp = {};
   contextItem.paramstolog = [];
   contextItem.resultstolog = [];
-  
-  
+
+
   var findObjectsToStore = function(vocList, callList, arrayToFill){
     for (callItem in callList){
       for (vocItem in vocList){
@@ -81,7 +81,7 @@ webinos.context.saveContext = function(dataIn, success, fail) {
               }
               //Found our method!
               if (expectedInputsLength == inputsCount){
-                
+
                 contextItem.API = API.APIname;
                 contextItem.device = {}; 
                 contextItem.application = {};
@@ -91,8 +91,8 @@ webinos.context.saveContext = function(dataIn, success, fail) {
                 contextItem.timestamp = {};
                 findObjectsToStore(method.inputs,dataIn.params,contextItem.paramstolog);
                 findObjectsToStore(method.outputs,dataIn.result,contextItem.resultstolog);
-                
-                
+
+
                 console.log("Context Object found!");
                 console.log("API : " + contextItem.API );
                 console.log("Method : " + method.objectName);
@@ -120,14 +120,14 @@ webinos.context.saveContext = function(dataIn, success, fail) {
               contextItem.timestamp = {};
               contextItem.paramstolog = [];
               findObjectsToStore(method.outputs,dataIn.result,resultstolog);
-              
-              
+
+
               console.log("Context Object found!");
               console.log("API : " + API.APIname );
               console.log("Method : " + method.objectName);
               console.log("Context Object : " + cObject.objectName);
 
-              
+
               console.log("Params to store in Context DB:");
               console.log(contextItem.paramstolog);
               console.log("Outputs to store in Context DB:");
@@ -139,5 +139,28 @@ webinos.context.saveContext = function(dataIn, success, fail) {
       }
     }
   }
+
+  var sendtoPZH = function(contextData)
+  {
+
+    var connectedPzh = {};
+    var contextPzh = [];
+
+    if (connectedPzh == "null" || connectedPzh == "undefined"){
+      // Generate contectDB insert cache
+    }
+    else{
+      webinos.ServiceDiscovery.findServices(connectedPzh, new ServiceType('http://webinos.org/api/context'),
+          {onFound: function (service){
+            contextPzh.push(service);
+            var query = {};
+            query.type = "DB-insert";
+            query.data = contextData;
+            contextPzh.DB.insert(query);
+          }});
+    }
+  }
   //success(true);
 }
+
+

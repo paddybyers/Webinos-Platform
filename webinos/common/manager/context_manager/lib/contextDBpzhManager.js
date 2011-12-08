@@ -1,12 +1,3 @@
-if (typeof webinos === 'undefined') {
-  webinos = {};
-  console.log("webinos not found");
-}
-if (typeof webinos.context === 'undefined')
-  webinos.context = {};
-if (typeof webinos.context.DB === 'undefined')
-  webinos.context.DB = {};
-
 //var sqlite3 = require('sqlite3').verbose
 var sqlite3 = require('../contrib/node-sqlite3/').verbose();
 var pathclass = require('path');
@@ -16,7 +7,7 @@ var webinosRoot = '../' + moduleRoot.root.location;
 var dbpath = pathclass.resolve(__dirname + '/../' + webinosRoot + '/storage/context/pzh/contextDB.db');
 var db =  new sqlite3.Database(dbpath);
 
-webinos.context.DB.insert = function(contextData, success, fail) {
+exports.insert = function(contextData, success, fail) {
   var inContextRAW = db.prepare("INSERT INTO tblcontextraw (fldAPI, fldDevice, fldApplication, fldSession, fldContextObject, fldMethod, fldTimestamp) VALUES (?,?,?,?,?,?,?)");
   var contextItem = {};
   for (contextItemID=0; contextItemID < contextData.length; contextItemID++) {
@@ -43,4 +34,36 @@ webinos.context.DB.insert = function(contextData, success, fail) {
       }
     });
   }
-}  
+}
+
+exports.getrawview = function(success,fail){
+  var result = [];
+  db.each("SELECT fldcontextrawID AS ContextRawID,  " +
+      "fldcontextrawvalueID AS ContextRawValueID,  fldAPI AS API, fldDevice AS Device, fldApplication AS Application, " +
+      "fldSession AS Session, fldContextObject AS ContextObject, fldMethod AS Method, fldTimestamp AS Timestamp, " +
+      "fldDescription AS ValueType, fldValueName AS ValueName, fldValue AS Value FROM vwcontextraw", function (err,row){
+    var txtRow = "";
+    console.log(row);
+
+      txtRow = txtRow + "ContextRawID : " + row.ContextRawID + 
+      " | ContextRawValueID : "  + row.ContextRawValueID +
+      " | API : "  + row.API +
+      " | Device : "  + row.Device +
+      " | Application : "  + row.Application +
+      " | Session : "  + row.Session +
+      " | ContextObject : "  + row.ContextObject +
+      " | Method : "  + row.Method +
+      " | Timestamp : "  + row.Timestamp +
+      " | ValueType : "  + row.ValueType +
+      " | ValueName : "  + row.ValueName +
+      " | Value : "  + row.Value;
+
+
+    result[result.length] = txtRow;      
+    
+  },function(){
+    success(result);
+    });
+
+}
+

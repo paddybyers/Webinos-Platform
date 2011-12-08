@@ -5,7 +5,9 @@ if (typeof webinos === 'undefined') {
   console.log("webinos not found");
 }
 if (typeof webinos.context === 'undefined')
+{
   webinos.context = {};
+}
 
 //This class represents the context objects that will be logged
 webinos.context.ContextData = function(method, params, results) {
@@ -35,7 +37,7 @@ require('./contextExtraction.js');
 
 
 //Open the database
-	
+
 webinos.context.database = new databasehelper.JSONDatabase({path : dbpath,transactional : false});
 console.log("Log DB Initialized");
 
@@ -47,6 +49,7 @@ webinos.context.logContext = function(myObj, res) {
   var myData = new webinos.context.ContextData(myObj['method'],myObj['params'], res['result']);
 
   var dataIn = {timestamp:myData.timestamp, api: myData.call.api, hash: myData.call.hash, method: myData.call.method, params:myData.params, result:myData.results};
+
 
   //Don't log Context API calls
   if (!(myData.call.api =='http://webinos.org/api/context'))
