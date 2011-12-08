@@ -30,6 +30,9 @@
 						});
 					}
 				});
+			},
+			onError: function (error) {
+				alert("Error finding service: " + error.message + " (#" + error.code + ")");
 			}
 		});
 	}
