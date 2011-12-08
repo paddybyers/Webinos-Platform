@@ -498,11 +498,12 @@
 //                   '../../../../../api/file/src/main/javascript/rpc_file.js',
                    webinosRoot + dependencies.api.file.location + 'lib/webinos.file.rpc.js',
                    webinosRoot + dependencies.api.geolocation.location + 'lib/rpc_geolocation.js',
-				   webinosRoot + dependencies.api.events.location + 'lib/events.js',
+                   webinosRoot + dependencies.api.events.location + 'lib/events.js',
                    webinosRoot + dependencies.api.sensors.location + 'lib/rpc_sensors.js',
                    webinosRoot + dependencies.api.tv.location + 'lib/webinos.rpc_tv.js',
                    webinosRoot + dependencies.api.vehicle.location + 'lib/webinos.vehicle.rpc.js',
-                   webinosRoot + dependencies.api.deviceorientation.location + 'lib/webinos.deviceorientation.rpc.js' //,
+                   webinosRoot + dependencies.api.deviceorientation.location + 'lib/webinos.deviceorientation.rpc.js',
+                   webinosRoot  + dependencies.api.context.location
                     // Disabled as these cause webinos from functioning
                    //oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
                    //oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
@@ -512,12 +513,7 @@
                    ];
 
     if (contextEnabled) {
-      //push the relative to the module folder that contains the context_manager
-    	//modules.push(module_root  + root.root.location + dependencies.manager.context_manager.location);    	
-    	//modules.push(module_root  + root.root.location + dependencies.api.context.location);
-      
       modules.push(webinosRoot + dependencies.manager.context_manager.location);
-      modules.push(webinosRoot  + dependencies.api.context.location);
     }
     
     for (var i = 0; i <modules.length; i++){
