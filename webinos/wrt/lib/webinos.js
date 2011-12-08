@@ -229,17 +229,12 @@
 	WebinosService.prototype.icon = "";
 
 	
-	
-	WebinosService.prototype.bindService = function(success) {
-		if (channel == null){ 
-			var x = success;
-			createCommChannel(function () {
-				x();
-			});
-			
-		}
-		else{
-			success();
+	// stub implementation in case a service module doesn't provide its own bindService
+	WebinosService.prototype.bindService = function(bindCB) {
+		if (typeof bindCB === 'undefined') return;
+		
+		if (typeof bindCB.onBind === 'function') {
+			bindCB.onBind(this);
 		}
 	};
 	
