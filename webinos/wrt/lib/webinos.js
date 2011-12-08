@@ -4,6 +4,11 @@
 	var sessionid = null;
 	var pzpId, pzhId, connectedPzp, connectdPzh;
 	
+	
+	webinos.message_send_messaging = function (msg, to){
+		channel.send(JSON.stringify(msg));
+	};
+	
 	webinos.message_send = function(to, rpc) {
 		var type, id = 0;	
 		if(rpc.type !== undefined && rpc.type === "prop") {
@@ -12,8 +17,6 @@
 		} else {
 			type = "JSONRPC";
 		}
-		if(rpc.fromObjectRef === undefined)
-			rpc.fromObjectRef = Math.floor(Math.random()*1001);
 		
 		if(typeof rpc.method !== undefined && rpc.method === 'ServiceDiscovery.findServices')
 			id = rpc.params[2];

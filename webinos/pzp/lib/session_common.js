@@ -266,6 +266,7 @@ exports.processedMsg = function(self, data, dataLen, callback) {
 * @param object: current pzp instance
 */
 var send = function (message, address, object) {
+	message.resp_to = object.sessionId;
 	object.sendMessage(message, address);
 };
 
