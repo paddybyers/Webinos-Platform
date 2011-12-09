@@ -3,6 +3,7 @@ package org.webinos.api.nfc;
 import org.meshpoint.anode.bridge.Env;
 import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
+import org.w3c.dom.ObjectArray;
 
 public abstract class NdefMessage extends Base {
 	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName(NdefMessage.class.getName());
@@ -15,7 +16,7 @@ public abstract class NdefMessage extends Base {
 	public static final int NDEFRECTYPE_RTD = 4;
 	public static final int NDEFRECTYPE_EXTERNALRTD = 5;
 
-	public NdefRecord[] ndefRecords;
+	public ObjectArray<NdefRecord> ndefRecords;
 
 	public abstract void addTextNdefRecord(int type, String payload) throws NfcError;
 	public abstract void addBinaryNdefRecord(int type, byte[] payload) throws NfcError;
