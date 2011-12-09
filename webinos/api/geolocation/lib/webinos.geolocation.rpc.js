@@ -149,13 +149,13 @@ var listeningToPosition = false;
 function vehicleBusHandler(data){
 	
 	var position = new Object();
-  	
+ 
     var d = new Date();
     var stamp = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
     var stamp = stamp + d.getUTCMilliseconds();
-  		
+    position.timestamp = stamp;
   	position.coords = new Object();
-  		
+            
   	position.coords.latitude = Math.floor((data.latitude / Math.pow(2,32) * 360) * 10000)/10000;
   	position.coords.longitude = Math.floor((data.longitude / Math.pow(2,32) * 360) * 10000)/10000;
 	position.coords.accuracy = 99;
