@@ -35,12 +35,11 @@ function getCurrentPosition (params, successCB, errorCB, objectRef){
 	var error = {};
 	
 	if(vehicleBusAvailable){
-		
   		var position = new Object();
-  		
-  		d = new Date();
-  		position.timestamp = d.toUTCString(); //NEEDS BE CONVERTED TO UTC
-  		
+  		var d = new Date();
+        var stamp = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
+        var stamp = stamp + d.getUTCMilliseconds();
+  		position.timestamp = stamp; //NEEDS BE CONVERTED TO UTC
   		position.coords = new Object();
   		position.coords.latitude = Math.floor((car.position.latitude.get() / Math.pow(2,32) * 360) * 10000)/10000; 
   		position.coords.longitude = Math.floor((car.position.longitude.get() / Math.pow(2,32) * 360) * 10000)/10000;
@@ -49,8 +48,6 @@ function getCurrentPosition (params, successCB, errorCB, objectRef){
 		position.coords.speed = Math.floor(((car.speed.get() / 10) / 3600) * 1000 *1000) / 1000 ; // meters per second 
  		returnPosition(position, successCB, errorCB, objectRef);
 		return;
-		
-		
 	}else{
 		var geoip = null;
 		var http = require('http');
@@ -82,7 +79,6 @@ function getCurrentPosition (params, successCB, errorCB, objectRef){
 			 coords.altitudeAccuracy = null;
 			 coords.heading = null;
 			 coords.speed = Math.floor(Math.random()*1000)/10;
-		 
 			 if (geoip) {
 				 if (geoip.latitude) coords.latitude = geoip.latitude; else coords.latitude = null; 
 				 if (geoip.longitude) coords.longitude = geoip.longitude; else coords.longitude = null; 
@@ -153,9 +149,10 @@ var listeningToPosition = false;
 function vehicleBusHandler(data){
 	
 	var position = new Object();
-  	console.log(data);
-  	d = new Date();
-  	position.timestamp = d.toUTCString(); //NEEDS BE CONVERTED TO UTC
+  	
+    var d = new Date();
+    var stamp = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
+    var stamp = stamp + d.getUTCMilliseconds();
   		
   	position.coords = new Object();
   		
