@@ -5,7 +5,7 @@ import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 
 public abstract class NFCTagTechnology extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName(NFCTagTechnology.class.getName());
+	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(NFCTagTechnology.class);
 	protected NFCTagTechnology() { super(iface); }
 
 	public static final int TECH_OTHERS = 0;

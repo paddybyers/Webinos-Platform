@@ -9,7 +9,7 @@ import org.webinos.api.ErrorCallback;
 import org.webinos.api.PendingOperation;
 
 public abstract class MessagingManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName(MessagingManager.class.getName());
+	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(MessagingManager.class);
 	protected MessagingManager() { super(iface); }
 
 	public static final int TYPE_SMS = 1;

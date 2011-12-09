@@ -6,7 +6,7 @@ import org.meshpoint.anode.java.Base;
 import org.webinos.api.PendingOperation;
 
 public abstract class GalleryManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName(GalleryManager.class.getName());
+	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(GalleryManager.class);
 	protected GalleryManager() { super(iface); }
 
 	public static final int AUDIO_TYPE = 0;

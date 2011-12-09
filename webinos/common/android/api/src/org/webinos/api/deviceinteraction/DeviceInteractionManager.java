@@ -9,7 +9,7 @@ import org.webinos.api.PendingOperation;
 import org.webinos.api.SuccessCallback;
 
 public abstract class DeviceInteractionManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName(DeviceInteractionManager.class.getName());
+	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(DeviceInteractionManager.class);
 	protected DeviceInteractionManager() { super(iface); }
 
 	public abstract PendingOperation startNotify(SuccessCallback successCallback, ErrorCallback errorCallback, int duration) throws DeviceAPIError;

@@ -5,7 +5,7 @@ import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 
 public abstract class GeolocationManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName(GeolocationManager.class.getName());
+	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(GeolocationManager.class);
 	protected GeolocationManager() { super(iface); }
 
 	public abstract void getCurrentPosition(PositionCallback successCallback, PositionErrorCallback errorCallback, PositionOptions options);

@@ -6,7 +6,7 @@ import org.meshpoint.anode.java.Base;
 import org.w3c.dom.ObjectArray;
 
 public abstract class NdefMessage extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName(NdefMessage.class.getName());
+	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(NdefMessage.class);
 	protected NdefMessage() { super(iface); }
 
 	public static final int NDEFRECTYPE_UNKNOWN = 0;

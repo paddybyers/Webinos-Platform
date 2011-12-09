@@ -7,7 +7,7 @@ import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 
 public class Contact extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName(Contact.class.getName());
+	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(Contact.class);
 	protected Contact() { super(iface); }
 
     public String id;

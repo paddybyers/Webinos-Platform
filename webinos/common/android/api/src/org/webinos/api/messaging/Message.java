@@ -12,7 +12,7 @@ import org.webinos.api.File;
 import org.webinos.api.PendingOperation;
 
 public abstract class Message extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName(Message.class.getName());
+	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(Message.class);
 	protected Message() { super(iface); }
 
 	public String id;

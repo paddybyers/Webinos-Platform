@@ -4,7 +4,7 @@ import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 
 public abstract class NfcManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName(NfcManager.class.getName());
+	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(NfcManager.class);
 	protected NfcManager() { super(iface); }
 
 	public abstract void addEventListener(String type, NfcEventListener listener, boolean useCapture);

@@ -7,7 +7,7 @@ import org.webinos.api.ErrorCallback;
 import org.webinos.api.SuccessCallback;
 
 public abstract class KeyStoreManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName(KeyStoreManager.class.getName());
+	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(KeyStoreManager.class);
 	protected KeyStoreManager() { super(iface); }
 
 	public abstract void get(KeyStoreSuccessCallback successCallback, ErrorCallback errorCallback, String key);

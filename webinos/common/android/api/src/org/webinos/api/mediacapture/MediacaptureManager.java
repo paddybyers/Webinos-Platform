@@ -7,7 +7,7 @@ import org.w3c.dom.ObjectArray;
 import org.webinos.api.PendingOperation;
 
 public abstract class MediacaptureManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName(MediacaptureManager.class.getName());
+	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(MediacaptureManager.class);
 	protected MediacaptureManager() { super(iface); }
 
 	public ObjectArray<MediaFileData> supportedImageFormats;

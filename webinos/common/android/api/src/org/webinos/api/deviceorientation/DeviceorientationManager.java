@@ -5,7 +5,7 @@ import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 
 public abstract class DeviceorientationManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByName(DeviceorientationManager.class.getName());
+	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(DeviceorientationManager.class);
 	protected DeviceorientationManager() { super(iface); }
 
 	public abstract void watchOrientation(OrientationCB orientationCb);
