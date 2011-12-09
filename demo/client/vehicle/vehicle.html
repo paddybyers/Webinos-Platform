@@ -126,16 +126,19 @@
 						$('#info').append("<p>Active: "+ data.active +"</p>");
 					}
 					
-					var handleDeviceOrientation = function(data){
-					
+					var handleDeviceOrientation = function(e){
+						$('#info').empty();
+						$('#info').append("<p>DeviceOrientation API Event: "+ 	e.type +"</p>");
 					}
 					
-					var handleCompassNeedsCalibration = function(data){
-					
+					var handleCompassNeedsCalibration = function(e){
+						$('#info').empty();
+						$('#info').append("<p>DeviceOrientation API Event: "+ e.type +"</p>");
 					}
 					
-					var handleDeviceMotion = function(data){
-						alert(data.hello);
+					var handleDeviceMotion = function(e){
+						$('#info').empty();
+						$('#info').append("<p>DeviceOrientation API Event: "+ e.type +"</p>");
 					}
 						
 					var errorCB = function(error){
@@ -357,8 +360,17 @@
 							vehicle.removeEventListener(listeners[i],getMessageHandler(listeners[i]), false);
 						}
 						
-						//UNREGISTER LISTENERS FOR DEVICEORIENTATAION
-                    });
+						
+						for(i= 0; i < listenersDeviceOrientation.length; i++){
+							console.log('Removing listener for ' + listenersDeviceOrientation[i]);
+							orientation.removeEventListener(listenersDeviceOrientation[i],getMessageHandler(listenersDeviceOrientation[i]), false);
+						}
+						
+						geolocation.clearWatch(ps);
+						
+						
+					
+					});
 						
 					function postMessage(type,message){
 						var time = new Date();

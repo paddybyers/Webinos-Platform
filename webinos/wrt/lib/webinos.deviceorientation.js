@@ -54,12 +54,13 @@ function addEventListener(type, listener, useCapture) {
 };
 
 //DEFINITION BASE EVENT
-
-var Event = function(type, target, currentTarget, eventPhase, bubbles, cancelable, timestamp){  
-    this.init(type, target, currentTarget, eventPhase, bubbles, cancelable, timestamp); 
+WDomEvent = function(type, target, currentTarget, eventPhase, bubbles, cancelable, timestamp){
+	this.initEvent(type, target, currentTarget, eventPhase, bubbles, cancelable, timestamp);
 }
 
-Event.prototype.init(type, target, currentTarget, eventPhase, bubbles, cancelable, timestamp){
+WDomEvent.prototype.speed = 0;
+
+WDomEvent.prototype.initEvent = function(type, target, currentTarget, eventPhase, bubbles, cancelable, timestamp){
     this.type = type;
     this.target = target;
     this.currentTarget = currentTarget;
@@ -67,54 +68,58 @@ Event.prototype.init(type, target, currentTarget, eventPhase, bubbles, cancelabl
     this.bubbles = bubbles;
     this.cancelable  = cancelable;
     this.timestamp = timestamp; 
-
-}
-
-var DeviceOrientationEvent = function(alpha, beta, gamma){
-    this.init(alpha, beta, gamma);
-    
-    
 }
 
 
-DeviceOrientationEvent.prototype = new Event();
+DeviceOrientationEvent = function(alpha, beta, gamma){
+	this.initDeviceOrientationEvent(alpha, beta, gamma);
+}
+
+DeviceOrientationEvent.prototype = new WDomEvent();
 DeviceOrientationEvent.prototype.constructor = DeviceOrientationEvent;
-DeviceOrientationEvent.parent = Event.prototype;
+DeviceOrientationEvent.parent = WDomEvent.prototype; // our "super" property
 
-
-DeviceOrientationEvent.init = function(alpha, beta, gamma){
-    this.alpha = alpha;
-    this.beta = beta;
-    this.gamma = gamma;
-    DeviceOrientationEvent.parent.init.call(this, type, target, currentTarget, eventPhase, bubbles, cancelable, timestamp);
+DeviceOrientationEvent.prototype.initDeviceOrientationEvent = function(alpha, beta, gamma){
+	this.alpha = alpha;
+	this.beta = beta;
+	this.gamma = gamma;
+    
+    var d = new Date();
+    var stamp = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
+    var stamp = stamp + d.getUTCMilliseconds();
+    
+	DeviceOrientationEvent.parent.initEvent.call(this,'deviceorientation', null, null, null, false, false, stamp);
 }
-
-function DeviceMotionEvent(){
-    this.acceleration = accesleration;
-    this.accelerationIncludingGravity = accelerationIncludingGravity;
-    this.rotationRate = rotationRate;
-    this.interval = interval;
+Acceleration = function(x,y,z){
+	this.x = x;
+	this.y = y;
+	this.z = z;
 }
-
-
-function Acceleration(x,y,z){
-    this.x = x;
-    this.y = y;
-    this.z = z;
+RotationRate = function(alpha, beta, gamma){
+	this.alpha = alpha;
+	this.beta = beta;
+	this.gamma = gamma;
 }
-
-function RotationRate(alpha, beta, gammay){
-    this.alpha = alpha;
-    this.beta = beta;
-    this.gama = gama;
+DeviceMotionEvent = function(acceleration, accelerationIncludingGravity, rotationRate, interval){
+	this.initDeviceMotionEvent(acceleration, accelerationIncludingGravity, rotationRate, interval);
 }
+DeviceMotionEvent.prototype = new WDomEvent();
+DeviceMotionEvent.prototype.constructor = DeviceOrientationEvent;
+DeviceMotionEvent.parent = WDomEvent.prototype; // our "super" property
 
-function 
+DeviceMotionEvent.prototype.initDeviceMotionEvent = function(acceleration, accelerationIncludingGravity, rotationRate, interval){
+	this.acceleration = acceleration;
+	this.accelerationIncludingGravity = accelerationIncludingGravity;
+	this.rotationRate = rotationRate;
+	this.interval = interval;
+    var d = new Date();
+    var stamp = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
+    var stamp = stamp + d.getUTCMilliseconds();
+	DeviceOrientationEvent.parent.initEvent.call(this,'devicemotion', null, null, null, false, false, stamp);
+}
 
 function removeEventListener(type, listener, useCapture) {
         console.log("LISTENER"+ listener);
-
-
         var refToBeDeleted = null;
 		for(var i = 0; i < _referenceMappingDo.length; i++){
 			console.log("Reference" + i + ": " + _referenceMappingDo[i][0]);
