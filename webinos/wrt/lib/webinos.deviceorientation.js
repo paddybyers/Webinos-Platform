@@ -16,6 +16,15 @@ WebinosDeviceOrientation.prototype.bindService = function (bindCB, serviceId) {
 	this.removeEventListener = removeEventListener;
 	this.dispatchEvent = dispatchEvent;
 	
+    //Objects
+    this.DeviceOrientationEvent = DeviceOrientationEvent;
+    this.DeviceMotionEvent = DeviceMotionEvent;
+    this.Acceleration = Acceleration;
+    this.RotationRate = RotationRate;
+    
+    
+    
+    
 	if (typeof bindCB.onBind === 'function') {
 		bindCB.onBind(this);
 	};
@@ -44,6 +53,63 @@ function addEventListener(type, listener, useCapture) {
 		}
 };
 
+//DEFINITION BASE EVENT
+
+var Event = function(type, target, currentTarget, eventPhase, bubbles, cancelable, timestamp){  
+    this.init(type, target, currentTarget, eventPhase, bubbles, cancelable, timestamp); 
+}
+
+Event.prototype.init(type, target, currentTarget, eventPhase, bubbles, cancelable, timestamp){
+    this.type = type;
+    this.target = target;
+    this.currentTarget = currentTarget;
+    this.eventPhase = eventPhase;
+    this.bubbles = bubbles;
+    this.cancelable  = cancelable;
+    this.timestamp = timestamp; 
+
+}
+
+var DeviceOrientationEvent = function(alpha, beta, gamma){
+    this.init(alpha, beta, gamma);
+    
+    
+}
+
+
+DeviceOrientationEvent.prototype = new Event();
+DeviceOrientationEvent.prototype.constructor = DeviceOrientationEvent;
+DeviceOrientationEvent.parent = Event.prototype;
+
+
+DeviceOrientationEvent.init = function(alpha, beta, gamma){
+    this.alpha = alpha;
+    this.beta = beta;
+    this.gamma = gamma;
+    DeviceOrientationEvent.parent.init.call(this, type, target, currentTarget, eventPhase, bubbles, cancelable, timestamp);
+}
+
+function DeviceMotionEvent(){
+    this.acceleration = accesleration;
+    this.accelerationIncludingGravity = accelerationIncludingGravity;
+    this.rotationRate = rotationRate;
+    this.interval = interval;
+}
+
+
+function Acceleration(x,y,z){
+    this.x = x;
+    this.y = y;
+    this.z = z;
+}
+
+function RotationRate(alpha, beta, gammay){
+    this.alpha = alpha;
+    this.beta = beta;
+    this.gama = gama;
+}
+
+function 
 
 function removeEventListener(type, listener, useCapture) {
         console.log("LISTENER"+ listener);
