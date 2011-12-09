@@ -166,6 +166,7 @@
 			if (typeof Contacts !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/contacts'] = Contacts;
 			if (typeof Context !== 'undefined') typeMap['http://webinos.org/api/context'] = Context;
 			if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
+			if (typeof AuthenticationModule !== 'undefined') typeMap['http://webinos.org/api/authentication'] = AuthenticationModule;
 			
 			var serviceConstructor = typeMap[baseServiceObj.api];
 			if (typeof serviceConstructor !== 'undefined') {

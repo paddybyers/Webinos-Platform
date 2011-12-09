@@ -15,9 +15,8 @@
   }
 , "directories": { "lib": "./lib"
                  , "node_modules": "./node_modules"
-                 , "src": "./src"
                  }
-, "main": "./lib/authentication.js"
+, "main": "./lib/webinos.authentication.rpc.js"
 , "dependencies":
   { "schema": "0.2.0"
   }

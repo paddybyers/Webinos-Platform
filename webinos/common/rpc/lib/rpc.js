@@ -526,7 +526,8 @@
                    webinosRoot + dependencies.api.tv.location + 'lib/webinos.rpc_tv.js',
                    webinosRoot + dependencies.api.deviceorientation.location + 'lib/webinos.deviceorientation.rpc.js',
                    webinosRoot + dependencies.api.vehicle.location + 'lib/webinos.vehicle.rpc.js',
-                   webinosRoot  + dependencies.api.context.location
+                   webinosRoot  + dependencies.api.context.location,
+                   webinosRoot + dependencies.api.authentication.location + 'lib/webinos.authentication.rpc.js'
                     // Disabled as these cause webinos from functioning
                    //oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
                    //oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
