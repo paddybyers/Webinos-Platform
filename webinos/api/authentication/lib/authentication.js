@@ -1,9 +1,22 @@
 var fs = require('fs');
-var util = require('util');
 var sc = require('schema')('authEnvironment', { fallbacks: 'STRICT_FALLBACKS' });
-var tty = require('tty'); // required starting from node.js 0.6.1
+var tty = require('tty'); // required starting from node.js 0.6
 
-// commented out due to lack of zipper module in node.js 0.6.1
+var localDependencies = require("../dependencies.json");
+var root = "../" + localDependencies.root.location;
+var dependencies = require(root + "/dependencies.json");
+
+
+if (typeof webinos === "undefined") {
+	var webinos = {};
+}
+if (!webinos.authentication) {
+	webinos.authentication = {};
+}
+webinos.rpc = require(root + "/" + dependencies.rpc.location + "lib/rpc.js");
+
+
+// commented out due to lack of zipper module in node.js 0.6
 // var secstore = require("../Manager/Storage/src/main/javascript/securestore.js");
 
 var passfile_validation = sc.f(
@@ -72,14 +85,6 @@ var authfile_validation = sc.f(
 	}
 );
 
-if (typeof webinos === "undefined") {
-	var webinos = {};
-}
-if (!webinos.authentication) {
-	webinos.authentication = {};
-}
-
-webinos.rpc = require('./rpc.js');
 
 
 var AuthStatus, AuthError, AuthSuccessCB, AuthErrorCB, WebinosAuthenticationInterface, WebinosAuthentication;
@@ -136,9 +141,10 @@ WebinosAuthenticationInterface = function () {
 webinos.authentication = new WebinosAuthenticationInterface();
 
 
-var password_filename = "./authentication/password.txt", authstatus_filename = "./authentication/authstatus.txt";
+var password_filename = "./client/authentication/password.txt", authstatus_filename = "./client/authentication/authstatus.txt";
 
-var storePass = "PZpassword", storeFile = "./auth.zip", storeDir  = "./authentication";
+// commented out due to lack of zipper module in node.js 0.6
+//var storePass = "PZpassword", storeFile = "./auth.zip", storeDir  = "./authentication";
 
 var ask, getAuthTime, username;
 
@@ -154,7 +160,7 @@ webinos.authentication.authenticate = function (params, successCB, errorCB, obje
 					if (err === null || err === undefined) {
 						newly_authenticated = false;
 					
-						// commented out due to lack of zipper module in node.js 0.6.1
+						// commented out due to lack of zipper module in node.js 0.6
 						//secstore.open(storePass, storeFile, storeDir, function (err) {	
 						//	if (err === undefined || err === null) {
 								try {
@@ -195,7 +201,7 @@ webinos.authentication.authenticate = function (params, successCB, errorCB, obje
 												authfile.push(buffer);
 												fs.writeFileSync(authstatus_filename, JSON.stringify(authfile), 'utf-8');
 
-												// commented out due to lack of zipper module in node.js 0.6.1
+												// commented out due to lack of zipper module in node.js 0.6
 												//secstore.close(storePass, storeFile, storeDir, function (err) {	
 												//	if (err !== undefined && err !== null) {
 												//		errorCB(err);
@@ -216,7 +222,7 @@ webinos.authentication.authenticate = function (params, successCB, errorCB, obje
 									else {
 										if (newly_authenticated === false) {
 
-											// commented out due to lack of zipper module in node.js 0.6.1
+											// commented out due to lack of zipper module in node.js 0.6
 											//secstore.close(storePass, storeFile, storeDir, function (err) {	
 											//	if (err !== undefined && err !== null) {
 											//		errorCB(err);
@@ -261,53 +267,65 @@ webinos.authentication.authenticate = function (params, successCB, errorCB, obje
 
 getAuthTime = function () {
 	"use strict";
-	var now = new Date(), month, date, hours, minutes, offset, h_offset, m_offset;
-	var month_s, date_s, hours_s, minutes_s, h_offset_s, m_offset_s;
+	var now = new Date(), tmp, h_tmp, m_tmp;
+	var month, date, hours, minutes, h_offset, m_offset;
 	
-	month = now.getMonth();
-	month = month + 1;
-	if (month < 10) {
-		month_s = "0" + month.toString();
-	}
-	
-	date = now.getDate();
-	if (date < 10) {
-		date_s = "0" + date.toString();
-	}
-	
-	hours = now.getHours();
-	if (hours < 10) {
-		hours_s = "0" + hours.toString();
-	}
-	
-	minutes = now.getMinutes();
-	if (minutes < 10) {
-		minutes_s = "0" + minutes.toString();
-	}
-	
-	offset = now.getTimezoneOffset();
-	h_offset = Math.floor(offset / 60);
-	m_offset = offset - h_offset * 60;
-	h_offset = h_offset * -1;
-	if (h_offset > -10 && h_offset < 0) {
-		h_offset_s = (h_offset.toString()).split('-')[1];
-		h_offset_s = "-0" + h_offset_s;
+	tmp = now.getMonth();
+	tmp = tmp + 1;
+	if (tmp < 10) {
+		month = "0" + tmp.toString();
 	}
 	else {
-		if (h_offset > -1 && h_offset < 10) {
-			h_offset_s = "+0" + h_offset.toString();
+		month = tmp.toString();
+	}
+	
+	tmp = now.getDate();
+	if (tmp < 10) {
+		date = "0" + tmp.toString();
+	}
+	else {
+		date = tmp.toString();
+	}
+	
+	tmp = now.getHours();
+	if (tmp < 10) {
+		hours = "0" + tmp.toString();
+	}
+	else {
+		hours = tmp.toString();
+	}
+	
+	tmp = now.getMinutes();
+	if (tmp < 10) {
+		minutes = "0" + tmp.toString();
+	}
+	else {
+		minutes = tmp.toString();
+	}
+	
+	tmp = now.getTimezoneOffset();
+	h_tmp = Math.floor(tmp / 60);
+	m_tmp = tmp - h_tmp * 60;
+	h_tmp = h_tmp * -1;
+	if (h_tmp > -10 && h_tmp < 0) {
+		h_offset = (h_tmp.toString()).split('-')[1];
+		h_offset = "-0" + h_offset;
+	}
+	else {
+		if (h_tmp > -1 && h_tmp < 10) {
+			h_offset = "+0" + h_tmp.toString();
 		}
 		else {
-			if (h_offset > 9) {
-				h_offset_s = "+" + h_offset.toString();
+			if (h_tmp > 9) {
+				h_offset = "+" + h_tmp.toString();
 			}
 		}
 	}
-	if (m_offset < 10) {
-		m_offset_s = "0" + m_offset.toString();
+	if (m_tmp < 10) {
+		m_offset = "0" + m_tmp.toString();
 	}
 
-	return now.getFullYear().toString() + "-" + month_s + "-" + date_s + "T" + hours_s + ":" + minutes_s + h_offset_s + ":" + m_offset_s;
+	return now.getFullYear().toString() + "-" + month + "-" + date + "T" + hours + ":" + minutes + h_offset + ":" + m_offset;
 };
 
 
@@ -317,7 +335,7 @@ ask = function (question, callback) {
 	stdin = process.stdin, stdout = process.stdout;
 
 	stdin.resume();
-	tty.setRawMode(true); // modified to comply with node.js 0.6.1
+	tty.setRawMode(true); // modified to comply with node.js 0.6
 	invalid_char = false;
 	stdout.write(question + ": ");
 
@@ -325,13 +343,13 @@ ask = function (question, callback) {
 
 		if (key !== undefined) { // key parameter is undefined when the acquired character is a number
 			if (key.ctrl && key.name === 'c') {
-				tty.setRawMode(false); // modified to comply with node.js 0.6.1
+				tty.setRawMode(false); // modified to comply with node.js 0.6
 				process.exit();
 			}
 			switch (key.name) {
 				case "enter":
 					stdout.write("\n");
-					tty.setRawMode(false); // modified to comply with node.js 0.6.1
+					tty.setRawMode(false); // modified to comply with node.js 0.6
 					stdin.pause();
 					if (invalid_char === true) {
 						error.code = AuthError.prototype.UNKNOWN_ERROR;
@@ -382,7 +400,7 @@ webinos.authentication.isAuthenticated = function (params, successCB, errorCB, o
 		username = params[0];
 		authenticated = false;
 		
-		// commented out due to lack of zipper module in node.js 0.6.1
+		// commented out due to lack of zipper module in node.js 0.6
 		//secstore.open(storePass, storeFile, storeDir, function (err) {	
 		//	if (err === undefined || err === null) {
 				try {
@@ -402,7 +420,7 @@ webinos.authentication.isAuthenticated = function (params, successCB, errorCB, o
 								}
 							}
 
-							// commented out due to lack of zipper module in node.js 0.6.1
+							// commented out due to lack of zipper module in node.js 0.6
 							//secstore.close(storePass, storeFile, storeDir, function (err) {	
 							//	if (err !== undefined && err !== null) {
 							//		errorCB(err);
@@ -439,7 +457,7 @@ webinos.authentication.getAuthenticationStatus = function (params, successCB, er
 			if (authenticated === true) {
 				resp = "";
 
-				// commented out due to lack of zipper module in node.js 0.6.1
+				// commented out due to lack of zipper module in node.js 0.6
 				//secstore.open(storePass, storeFile, storeDir, function (err) {	
 				//	if (err === undefined || err === null) {
 						try {
@@ -462,7 +480,7 @@ webinos.authentication.getAuthenticationStatus = function (params, successCB, er
 										}
 									}
 
-									// commented out due to lack of module file in node.js 0.6.1
+									// commented out due to lack of module file in node.js 0.6
 									//secstore.close(storePass, storeFile, storeDir, function (err) {	
 									//	if (err !== undefined && err !== null) {
 									//		errorCB(err);

@@ -24,6 +24,5 @@
 , "bundleDependencies":
   [ "fs"
   , "tty"
-  , "util"
   ]
 }
