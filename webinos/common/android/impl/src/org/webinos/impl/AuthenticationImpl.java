@@ -3,7 +3,6 @@ package org.webinos.impl;
 import org.meshpoint.anode.AndroidContext;
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
-import org.meshpoint.anode.type.IValue;
 import org.webinos.api.authentication.AuthError;
 import org.webinos.api.authentication.AuthErrorCB;
 import org.webinos.api.authentication.AuthStatus;
@@ -41,7 +40,7 @@ public class AuthenticationImpl extends AuthenticationManager implements IModule
 	 * IModule methods
 	 *****************************/
 	@Override
-	public IValue startModule(IModuleContext ctx) {
+	public Object startModule(IModuleContext ctx) {
 		androidContext = ((AndroidContext)ctx).getAndroidContext();
 		/*
 		 * perform any module initialisation here ...

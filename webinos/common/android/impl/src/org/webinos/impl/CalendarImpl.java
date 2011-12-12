@@ -3,7 +3,6 @@ package org.webinos.impl;
 import org.meshpoint.anode.AndroidContext;
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
-import org.meshpoint.anode.type.IValue;
 import org.webinos.api.calendar.CalendarErrorCB;
 import org.webinos.api.calendar.CalendarEventSuccessCB;
 import org.webinos.api.calendar.CalendarFindOptions;
@@ -29,7 +28,7 @@ public class CalendarImpl extends CalendarManager implements IModule {
 	 * IModule methods
 	 *****************************/
 	@Override
-	public IValue startModule(IModuleContext ctx) {
+	public Object startModule(IModuleContext ctx) {
 		androidContext = ((AndroidContext)ctx).getAndroidContext();
 		/*
 		 * perform any module initialisation here ...

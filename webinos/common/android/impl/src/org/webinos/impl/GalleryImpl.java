@@ -3,7 +3,6 @@ package org.webinos.impl;
 import org.meshpoint.anode.AndroidContext;
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
-import org.meshpoint.anode.type.IValue;
 import org.webinos.api.PendingOperation;
 import org.webinos.api.gallery.GalleryErrorCB;
 import org.webinos.api.gallery.GalleryFindCB;
@@ -38,7 +37,7 @@ public class GalleryImpl extends GalleryManager implements IModule {
 	 * IModule methods
 	 *****************************/
 	@Override
-	public IValue startModule(IModuleContext ctx) {
+	public Object startModule(IModuleContext ctx) {
 		androidContext = ((AndroidContext)ctx).getAndroidContext();
 		/*
 		 * perform any module initialisation here ...

@@ -9,7 +9,6 @@ import org.webinos.api.contact.ContactManager;
 import org.meshpoint.anode.AndroidContext;
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
-import org.meshpoint.anode.type.IValue;
 
 import android.content.Context;
 
@@ -31,7 +30,7 @@ public class ContactManagerImpl extends ContactManager implements IModule {
 	 * IModule methods
 	 *****************************/
 	@Override
-	public IValue startModule(IModuleContext ctx) {
+	public Object startModule(IModuleContext ctx) {
 		androidContext = ((AndroidContext)ctx).getAndroidContext();
 		/*
 		 * perform any module initialisation here ...

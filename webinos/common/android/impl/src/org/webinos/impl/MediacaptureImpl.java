@@ -3,7 +3,6 @@ package org.webinos.impl;
 import org.meshpoint.anode.AndroidContext;
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
-import org.meshpoint.anode.type.IValue;
 import org.webinos.api.PendingOperation;
 import org.webinos.api.mediacapture.CaptureCB;
 import org.webinos.api.mediacapture.CaptureErrorCB;
@@ -45,7 +44,7 @@ public class MediacaptureImpl extends MediacaptureManager implements IModule {
 	 * IModule methods
 	 *****************************/
 	@Override
-	public IValue startModule(IModuleContext ctx) {
+	public Object startModule(IModuleContext ctx) {
 		androidContext = ((AndroidContext)ctx).getAndroidContext();
 		/*
 		 * perform any module initialisation here ...

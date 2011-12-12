@@ -3,7 +3,6 @@ package org.webinos.impl;
 import org.meshpoint.anode.AndroidContext;
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
-import org.meshpoint.anode.type.IValue;
 import org.webinos.api.geolocation.GeolocationManager;
 import org.webinos.api.geolocation.PositionCallback;
 import org.webinos.api.geolocation.PositionErrorCallback;
@@ -42,7 +41,7 @@ public class GeolocationImpl extends GeolocationManager implements IModule {
 	 * IModule methods
 	 *****************************/
 	@Override
-	public IValue startModule(IModuleContext ctx) {
+	public Object startModule(IModuleContext ctx) {
 		androidContext = ((AndroidContext)ctx).getAndroidContext();
 		/*
 		 * perform any module initialisation here ...

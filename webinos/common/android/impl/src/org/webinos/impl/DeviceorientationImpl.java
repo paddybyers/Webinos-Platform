@@ -13,7 +13,6 @@ import org.meshpoint.anode.AndroidContext;
 import org.meshpoint.anode.bridge.Env;
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
-import org.meshpoint.anode.type.IValue;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -76,7 +75,7 @@ public class DeviceorientationImpl extends DeviceorientationManager implements
 	 * IModule methods
 	 *****************************/
 	@Override
-	public IValue startModule(IModuleContext ctx) {
+	public Object startModule(IModuleContext ctx) {
 		androidContext = ((AndroidContext)ctx).getAndroidContext();
 		sensorManager = (SensorManager)androidContext.getSystemService(Context.SENSOR_SERVICE);
 		List<Sensor> sensorList = sensorManager.getSensorList(Sensor.TYPE_ORIENTATION);
