@@ -1,8 +1,8 @@
 package org.webinos.api.contact;
 
-import org.meshpoint.anode.idl.ValueType;
+import org.meshpoint.anode.idl.Dictionary;
 
-public class ContactAddress implements ValueType {
+public class ContactAddress implements Dictionary {
 	public boolean pref;
 	public String type;
 	public String formatted;

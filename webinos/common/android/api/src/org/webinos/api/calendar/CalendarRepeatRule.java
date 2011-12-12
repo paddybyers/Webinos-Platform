@@ -1,8 +1,8 @@
 package org.webinos.api.calendar;
 
-import org.meshpoint.anode.idl.ValueType;
+import org.meshpoint.anode.idl.Dictionary;
 
-public class CalendarRepeatRule implements ValueType {
+public class CalendarRepeatRule implements Dictionary {
 	public String frequency;
 	public Integer interval;
 	public String expires;

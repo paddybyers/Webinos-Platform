@@ -1,8 +1,8 @@
 package org.webinos.api.contact;
 
-import org.meshpoint.anode.idl.ValueType;
+import org.meshpoint.anode.idl.Dictionary;
 
-public class ContactError implements ValueType {
+public class ContactError implements Dictionary {
 	public static final int UNKNOWN_ERROR = 0;
     public static final int INVALID_ARGUMENT_ERROR = 1;
     public static final int TIMEOUT_ERROR = 2;

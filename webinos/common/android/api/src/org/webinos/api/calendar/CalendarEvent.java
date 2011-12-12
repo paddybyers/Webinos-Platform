@@ -1,8 +1,8 @@
 package org.webinos.api.calendar;
 
-import org.meshpoint.anode.idl.ValueType;
+import org.meshpoint.anode.idl.Dictionary;
 
-public class CalendarEvent implements ValueType {
+public class CalendarEvent implements Dictionary {
 	public String id;
 	public String description;
 	public String location;

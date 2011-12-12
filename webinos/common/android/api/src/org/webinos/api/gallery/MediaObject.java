@@ -2,10 +2,10 @@ package org.webinos.api.gallery;
 
 import java.util.Date;
 
-import org.meshpoint.anode.idl.ValueType;
+import org.meshpoint.anode.idl.Dictionary;
 import org.webinos.api.File;
 
-public class MediaObject extends File implements ValueType {
+public class MediaObject extends File implements Dictionary {
 	public int id;
 	public GalleryInfo gallery;
 	public String title;

@@ -2,9 +2,9 @@ package org.webinos.api.messaging;
 
 import java.util.Date;
 
-import org.meshpoint.anode.idl.ValueType;
+import org.meshpoint.anode.idl.Dictionary;
 
-public class MessageFilter implements ValueType {
+public class MessageFilter implements Dictionary {
     public String id;
     public int[] type;
     public int[] folder;

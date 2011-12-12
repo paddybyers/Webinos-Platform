@@ -1,8 +1,8 @@
 package org.webinos.api.sensor;
 
-import org.meshpoint.anode.idl.ValueType;
+import org.meshpoint.anode.idl.Dictionary;
 
-public class SensorEvent implements ValueType {
+public class SensorEvent implements Dictionary {
 	public static final int SENSOR_STATUS_ACCURACY_HIGH = 4;
 	public static final int SENSOR_STATUS_ACCURACY_MEDIUM = 3;
 	public static final int SENSOR_STATUS_ACCURACY_LOW = 2;
