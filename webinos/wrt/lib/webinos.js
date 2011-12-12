@@ -91,7 +91,6 @@
 				for(i =0; i < connectedPzh.length; i++) {
 					$("<option value=" + connectedPzh[i] + " >" +connectedPzh[i] + "</option>").appendTo("#pzh_pzp_list");					
 				}
-				$("<option value="+pzhId+" >" + pzhId+ "</option>").appendTo("#pzh_pzp_list");						
 				$("</optgroup>").appendTo("#pzh_pzp_list");
 				webinos.message.setGetOwnId(sessionid);
 			

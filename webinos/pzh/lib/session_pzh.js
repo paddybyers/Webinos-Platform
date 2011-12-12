@@ -252,18 +252,18 @@
 			if(self.connectedPzp[parse.from]) {
 				self.connectedPzp[parse.from].port = parse.payload.message;
 				var otherPzp = [], newPzp = false;
-				for(mykey in self.connectedPzp) {
-					if(mykey === parse.from)
+				for(myKey in self.connectedPzp) {
+					if(myKey === parse.from)
 						newPzp = true;
-					otherPzp.push({'port': self.connectedPzp[mykey].port, 
-						'name':mykey,
-						'address':self.connectedPzp[mykey].address,
+					otherPzp.push({'port': self.connectedPzp[myKey].port, 
+						'name':myKey,
+						'address':self.connectedPzp[myKey].address,
 						'newPzp': newPzp});
 				} 
-				msg = self.prepMsg(self.sessionId, mykey, 'pzpUpdate', otherPzp);
+				var msg = self.prepMsg(self.sessionId, myKey, 'pzpUpdate', otherPzp);
 
-				for(mykey in self.connectedPzp) 
-					self.sendMessage(msg, mykey);
+				for(myKey in self.connectedPzp) 
+					self.sendMessage(msg, myKey);
 			
 			} else {
 				utils.debug(2, 'PZH ('+self.sessionId+') Received PZP details from entity' +
