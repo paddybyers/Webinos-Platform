@@ -13,12 +13,10 @@
   var webinosRoot = '../' + moduleRoot.root.location;
 
   if (typeof webinos.context === 'undefined'){
-    console.log("context was not found!!!");
     webinos.context = {};
   }
   debugger;
   if (typeof webinos.context.DB === 'undefined'){
-    console.log("context.DB was not found!!!");
     webinos.context.DB = {};
     webinos.context.DB = require(webinosRoot + dependencies.manager.context_manager.location + 'lib/contextDBpzhManager.js');
   }
