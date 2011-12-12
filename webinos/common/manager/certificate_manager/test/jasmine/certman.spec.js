@@ -41,7 +41,7 @@ describe("generate keys", function() {
 describe("generate certificate requests", function() {
     it("can create a certificate request", function() {       
         certReq = certman.createCertificateRequest(rsakey, 
-    "UK","OX","Oxford","Univ. Oxford","CA Key", "john.lyle@cs.ox.ac.uk");
+    "UK","OX","Oxford","Univ. Oxford","Computer Science","CA Key", "john.lyle@cs.ox.ac.uk");
         
         expect(certReq).not.toBeNull();
         expect(certReq).toContain(CERT_REQ_START);
@@ -62,7 +62,7 @@ describe("sign certificate requests", function() {
     it("can sign another certificate request", function() {
         childKey = certman.genRsaKey(1024);
         childReq = certReq = certman.createCertificateRequest(rsakey, 
-    "UK","OX","Oxford","Univ. Oxford","Client Key", "john.lyle@cs.ox.ac.uk");
+    "UK","OX","Oxford","Univ. Oxford","Computer Science", "Client Key", "john.lyle@cs.ox.ac.uk");
         childCert = certman.signRequest(childReq, 30, rsakey, ssCert);
         expect(childCert).not.toBeNull();
         expect(childCert).toContain(CERT_START);

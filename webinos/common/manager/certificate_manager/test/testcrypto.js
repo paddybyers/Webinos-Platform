@@ -7,7 +7,7 @@ var caKey = certman.genRsaKey(1024);
 console.log("CA Master Key \n" + caKey + "\n");
 
 var caCertReq = certman.createCertificateRequest(caKey, 
-    "UK","OX","Oxford","Univ. Oxford","Johns PZH CA", "john.lyle@cs.ox.ac.uk");
+    "UK","OX","Oxford","Univ. Oxford","Computer Science", "Johns PZH CA", "john.lyle@cs.ox.ac.uk");
 console.log("CA Certificate Request: \n" + caCertReq + "\n");
 
 var caCert = certman.selfSignRequest(caCertReq, 30, caKey);
@@ -25,7 +25,7 @@ var pzpKey = certman.genRsaKey(1024);
 console.log("Dummy PZP Master Key \n" + pzpKey + "\n");
 
 var pzpCertReq = certman.createCertificateRequest(pzpKey, 
-    "UK","OX","Oxford","Univ. Oxford","Johns PZP", "john.lyle@cs.ox.ac.uk");
+    "UK","OX","Oxford","Univ. Oxford","Computer Science", "Johns PZP", "john.lyle@cs.ox.ac.uk");
 console.log("PZP Certificate Request: \n" + pzpCertReq + "\n");
 
 var pzpCert = certman.signRequest(pzpCertReq, 30, caKey, caCert);
