@@ -11,6 +11,7 @@ using namespace v8;
 
 v8::Handle<Value> _genRsaKey(const Arguments& args)
 {
+
   try {
     HandleScope scope;
     if (args.Length() == 1 && args[0]->IsNumber()) {
@@ -53,9 +54,9 @@ v8::Handle<Value> _createCertificateRequest(const Arguments& args)
 {
   try {
     HandleScope scope;
-    if (args.Length() == 7 && args[0]->IsString() && args[1]->IsString() 
+    if (args.Length() == 8 && args[0]->IsString() && args[1]->IsString() 
         && args[2]->IsString() && args[3]->IsString() && args[4]->IsString() 
-        && args[5]->IsString() && args[6]->IsString() ) {
+        && args[5]->IsString() && args[6]->IsString() && args[7]->IsString()  ) {
       //extract the strings
       
       String::Utf8Value key(args[0]->ToString());
@@ -63,8 +64,9 @@ v8::Handle<Value> _createCertificateRequest(const Arguments& args)
       String::Utf8Value state(args[2]->ToString());
       String::Utf8Value loc(args[3]->ToString());
       String::Utf8Value organisation(args[4]->ToString());
-      String::Utf8Value cname(args[5]->ToString());
-      String::Utf8Value email(args[6]->ToString());
+      String::Utf8Value organisationUnit(args[5]->ToString());
+      String::Utf8Value cname(args[6]->ToString());
+      String::Utf8Value email(args[7]->ToString());
             
       //call the wrapper & check for errors
       
@@ -74,7 +76,7 @@ v8::Handle<Value> _createCertificateRequest(const Arguments& args)
       try {
           ::createCertificateRequest(req, key.operator*(), 
                 country.operator*(), state.operator*(), loc.operator*(), 
-                organisation.operator*(), cname.operator*(), email.operator*());
+                organisation.operator*(), organisationUnit.operator*(), cname.operator*(), email.operator*());
                 
       } catch (WebinosCryptoException &e) {
           delete req;
@@ -90,7 +92,7 @@ v8::Handle<Value> _createCertificateRequest(const Arguments& args)
       return scope.Close(result);
     }
     else {
-      return ThrowException(Exception::TypeError(String::New("7 arguments expected: all strings.")));
+      return ThrowException(Exception::TypeError(String::New("8 arguments expected: all strings.")));
     }
   }
   catch(::WebinosCryptoException& e) {
