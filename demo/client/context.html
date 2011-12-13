@@ -42,7 +42,7 @@
 			<td></td>
 		<tr>
 			<td>
-				<button id="bind" class="button">Bind</button>
+				<button id="bindContext" class="button">Bind</button>
 			</td>
 			<td>
 		</tr>
@@ -68,7 +68,7 @@
 </body>
 
 <script type="text/javascript">
-  var contextService =[];
+  var contextService = [];
   $('#findService').bind(
       'click',
       function() {
@@ -76,7 +76,7 @@
         if (address === "null" || address === "undefined") {
           alert("Select from list which you node you want to  connect");
         } else {
-          webinos.ServiceDiscovery.findServices(address, new ServiceType(
+          webinos.ServiceDiscovery.findServices(new ServiceType(
               'http://webinos.org/api/context'), {
             onFound : function(service) {
               contextService.push(service);
@@ -84,25 +84,28 @@
           });
         }
       });
-  $('#bind').bind(
-      'click',
-      function() {
- for (var i=0; i<contextService.length; i++) {
+              $('#bindContext').bind('click', function() {
+            for (var i=0; i<contextService.length; i++) {
                 contextService[i].bindService({onBind:function(service) {
-                    $('#messages').append('<li> TEST API' + service.api + ' bound.</li>');
+                    $('#message').append('<li> Context API' + service.api + ' bound.</li>');
                 }});
             }
-      });
+        });
+      
+      
+      
+      
   $('#getrawcontext').bind('click', function() {
     var query = {};
     query.type = "getrawview";
-    for (var i=0; i<contextService.length; i++) {
-    contextService[i].executeQuery(query, function(success) {
-      $("#rawcontexttext").val(success);
-    });
+    for ( var i = 0; i < contextService.length; i++) {
+      contextService[i].executeQuery(query, function(success) {
+        $("#rawcontexttext").val(success);
+      });
     }
 
   });
+  
 </script>
 
 <hr />
