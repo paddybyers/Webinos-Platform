@@ -18,8 +18,8 @@
 	}
 	
 	function find(params, successCB,errorCB) {
-		var rpc = webinos.rpc.createRPC(this, "find",  params);
-		webinos.rpc.executeRPC(rpc,
+		var rpc = webinos.rpcHandler.createRPC(this, "find",  params);
+		webinos.rpcHandler.executeRPC(rpc,
 				function (params){
 					successCB(params);
 				},
@@ -28,9 +28,10 @@
 				}
 		);
 	}
-	 function executeQuery(query, successCB,errorCB) {
-	    var rpc = webinos.rpc.createRPC(this, "executeQuery",  query);
-	    webinos.rpc.executeRPC(rpc,
+	
+	function executeQuery(query, successCB,errorCB) {
+	    var rpc = webinos.rpcHandler.createRPC(this, "executeQuery",  query);
+	    webinos.rpcHandler.executeRPC(rpc,
 	        function (params){
 	          successCB(params);
 	        },

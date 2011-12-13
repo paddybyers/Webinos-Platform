@@ -3,10 +3,10 @@
 * First Author: Simon Isenberg, Second Author: Krishna Bangalore
 */
 
-if (typeof webinos === 'undefined') var webinos = {};
-rpcfilePath = '../../../common/rpc/lib/';
-webinos.rpc = require(rpcfilePath +'rpc.js');
+(function() {
 
+if (typeof webinos === 'undefined') var webinos = {};
+webinos.rpc = null;
 
 function ShiftEvent(value){
 	this.gear = value;
@@ -66,7 +66,25 @@ function VehicleError(message){
 	this.message = message;
 }
 
-function get(vehicleDataId, vehicleDataHandler, errorCB){
+/**
+ * Webinos Service constructor.
+ * @param rpcHandler A handler for functions that use RPC to deliver their result.  
+ */
+var Module = function(rpcHandler) {
+	// inherit from RPCWebinosService
+	this.base = RPCWebinosService;
+	this.base({
+		api:'http://webinos.org/api/vehicle',
+		displayName:'Vehicle',
+		description:'Webinos simulated vehicle.'
+	});
+	
+	webinos.rpc = rpcHandler;
+};
+
+Module.prototype = new RPCWebinosService;
+
+Module.prototype.get = function (vehicleDataId, vehicleDataHandler, errorCB){
 	
 	switch(vehicleDataId[0])
 	{
@@ -193,7 +211,7 @@ var listeningToWiperFrontLevel2 = false;
 
 /*AddEventListener*/
 
-function addEventListener(vehicleDataId, successHandler, errorHandler, objectRef){
+Module.prototype.addEventListener = function (vehicleDataId, successHandler, errorHandler, objectRef){
 	
 	console.log("vehicleDataId " + vehicleDataId);	
 		switch(vehicleDataId){
@@ -395,7 +413,7 @@ function addEventListener(vehicleDataId, successHandler, errorHandler, objectRef
 
 /*RemoveEventListener*/
 
-function removeEventListener(arguments){
+Module.prototype.removeEventListener = function(arguments){
 	
 	// arguments[1] = objectReference, arguments[1] = vehicleDataId
 	
@@ -613,16 +631,6 @@ function generateTripComputerEvent(){
 	//avgCon1, avgCon2, avgSpeed1, avgSpeed2, tripdistance, mileage, range
 	return new TripComputerEvent(5.9, 5.6, 100.5, 122.2, 234.5, mileage, range);
 }
-
-var module = new RPCWebinosService({
-	api:'http://webinos.org/api/vehicle',
-	displayName:'Vehicle',
-	description:'Webinos simulated vehicle.'
-});
-module.get = get;
-module.addEventListener = addEventListener;
-module.removeEventListener = removeEventListener;
-webinos.rpc.registerObject(module);
 
 /*Navigation Events - Destination Reached, Changed and Cancelled*/
 function handleNavigationEvents(destinationId){
@@ -945,4 +953,9 @@ function generateControlEvent(controlId){
 							return new ControlEvent(controlId,active);	
                      }
 
-}        
+}
+
+//export our object
+exports.Service = Module;
+
+})();

@@ -20,7 +20,7 @@
 	
 	EventsModule.prototype.bind = function(success) {
 
-		var rpc = webinos.rpc.createRPC(this, "registerApplication", this.temporaryRandomAppID);
+		var rpc = webinos.rpcHandler.createRPC(this, "registerApplication", this.temporaryRandomAppID);
 		rpc.fromObjectRef =  Math.floor(Math.random()*1001);
 		
 		var callback = new RPCWebinosService({api:rpc.fromObjectRef});
@@ -38,9 +38,9 @@
 			}
 		};
 		
-		webinos.rpc.registerCallbackObject(callback);
+		webinos.rpcHandler.registerCallbackObject(callback);
 		
-		webinos.rpc.executeRPC(rpc, function () {
+		webinos.rpcHandler.executeRPC(rpc, function () {
 			success();
 		});
 	}
@@ -62,8 +62,8 @@
 		
 		return anEvent;
 		/*
-		var rpc = webinos.rpc.createRPC(this, "createWebinosEvent",  arguments);
-		webinos.rpc.executeRPC(rpc,
+		var rpc = webinos.rpcHandler.createRPC(this, "createWebinosEvent",  arguments);
+		webinos.rpcHandler.executeRPC(rpc,
 				function (params){
 					successCB(params);
 				},
@@ -91,8 +91,8 @@
 		req.destination = destination;
 		req.listenerID = listenerID;
 		
-		var rpc = webinos.rpc.createRPC(this, "addWebinosEventListener",  req);
-		webinos.rpc.executeRPC(rpc,
+		var rpc = webinos.rpcHandler.createRPC(this, "addWebinosEventListener",  req);
+		webinos.rpcHandler.executeRPC(rpc,
 				function (params){
 					console.log("New WebinosEvent listener registered");
 				},
@@ -110,8 +110,8 @@
      
 	EventsModule.prototype.removeWebinosEventListener = function(listenerId){
 	 
-		var rpc = webinos.rpc.createRPC(this, "removeWebinosEventListener",  arguments);
-		webinos.rpc.executeRPC(rpc,
+		var rpc = webinos.rpcHandler.createRPC(this, "removeWebinosEventListener",  arguments);
+		webinos.rpcHandler.executeRPC(rpc,
 				function (params){
 					successCB(params);
 				},
@@ -160,7 +160,7 @@
 		
 		registeredDispatchListeners[this.id] = callbacks;
 		
-		var rpc = webinos.rpc.createRPC(eventService, "WebinosEvent.dispatchWebinosEvent",  params);
+		var rpc = webinos.rpcHandler.createRPC(eventService, "WebinosEvent.dispatchWebinosEvent",  params);
 		
 		if (typeof callbacks !== "undefined"){	
 		
@@ -193,10 +193,10 @@
 			};
 	
 		
-			webinos.rpc.registerCallbackObject(callback);
+			webinos.rpcHandler.registerCallbackObject(callback);
 		}
 		
-		webinos.rpc.executeRPC(rpc);
+		webinos.rpcHandler.executeRPC(rpc);
 		
     	//returns void
     	//raises(WebinosEventException);

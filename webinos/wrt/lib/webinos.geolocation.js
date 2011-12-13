@@ -19,8 +19,8 @@ WebinosGeolocation.prototype.bindService = function (bindCB, serviceId) {
 }
 
 function getCurrentPosition(PositionCB, PositionErrorCB, PositionOptions) { 
-	var rpc = webinos.rpc.createRPC(this, "getCurrentPosition", PositionOptions); // RPC service name, function, position options
-	webinos.rpc.executeRPC(rpc, function (position) {
+	var rpc = webinos.rpcHandler.createRPC(this, "getCurrentPosition", PositionOptions); // RPC service name, function, position options
+	webinos.rpcHandler.executeRPC(rpc, function (position) {
 		PositionCB(position); 
 	},
 	function (error) {
@@ -31,23 +31,23 @@ function getCurrentPosition(PositionCB, PositionErrorCB, PositionOptions) {
 function watchPosition(PositionCB, PositionErrorCB, PositionOptions) {
 	var watchIdKey = Math.floor(Math.random()*101);
 
-	var rpc = webinos.rpc.createRPC(this, "watchPosition", [PositionOptions, watchIdKey]);
+	var rpc = webinos.rpcHandler.createRPC(this, "watchPosition", [PositionOptions, watchIdKey]);
 	rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
 
 	var callback = new RPCWebinosService({api:rpc.fromObjectRef});
 	callback.onEvent = function (position) {
 		PositionCB(position); 
 	};
-	webinos.rpc.registerCallbackObject(callback);
+	webinos.rpcHandler.registerCallbackObject(callback);
 
-	webinos.rpc.executeRPC(rpc);
+	webinos.rpcHandler.executeRPC(rpc);
 
 	return watchIdKey;
 };
 
 function clearWatch(watchId) {
-	var rpc = webinos.rpc.createRPC(this, "clearWatch", [watchId]); 
-	webinos.rpc.executeRPC(rpc, function() {}, function() {});
+	var rpc = webinos.rpcHandler.createRPC(this, "clearWatch", [watchId]); 
+	webinos.rpcHandler.executeRPC(rpc, function() {}, function() {});
 };
 
 })();

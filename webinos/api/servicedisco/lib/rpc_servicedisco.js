@@ -1,26 +1,37 @@
-if (typeof webinos === 'undefined') var webinos = {};
-webinos.rpc = require('../../../common/rpc/lib/rpc.js');
+(function() {
 
-function findServices (params, successCB, errorCB, objectRef){
-	var responseTo, msgid, serviceType = params[0];
-	if(params[1] !== null)
-		responseTo = params[1];
-	if(params[2] !== null)
-		msgid = params[2];
-		
-	var services = webinos.rpc.findServices(serviceType) || [];
+/**
+ * Webinos Service constructor.
+ * @param rpcHandler A handler for functions that use RPC to deliver their result.  
+ */
+function ServiceDiscoModule(rpcHandler) {
+	// inherit from RPCWebinosService
+	this.base = RPCWebinosService;
+	this.base({
+		api:'ServiceDiscovery',
+		displayName:'ServiceDiscovery',
+		description:'Webinos ServiceDiscovery'
+	});
 	
-	for (var i=0; i<services.length; i++) {
-		console.log('rpc.findService: calling found callback for ' + services[i].id);
-		var rpc = webinos.rpc.createRPC(objectRef, 'onservicefound', services[i]);
-		webinos.rpc.executeRPC(rpc, undefined, undefined, responseTo, msgid);
-	}
+	this.findServices = function(params, successCB, errorCB, objectRef){
+		var responseTo, msgid, serviceType = params[0];
+		if(params[1] !== null)
+			responseTo = params[1];
+		if(params[2] !== null)
+			msgid = params[2];
+			
+		var services = rpcHandler.findServices(serviceType) || [];
+		
+		for (var i=0; i<services.length; i++) {
+			console.log('rpc.findService: calling found callback for ' + services[i].id);
+			var rpc = rpcHandler.createRPC(objectRef, 'onservicefound', services[i]);
+			rpcHandler.executeRPC(rpc, undefined, undefined, responseTo, msgid);
+		}
+	};
 }
 
-var serviceDiscoModule = new RPCWebinosService({
-	api:'ServiceDiscovery',
-	displayName:'ServiceDiscovery',
-	description:'Webinos ServiceDiscovery'
-});
-serviceDiscoModule.findServices = findServices;
-webinos.rpc.registerObject(serviceDiscoModule);
+ServiceDiscoModule.prototype = new RPCWebinosService;
+
+exports.Service = ServiceDiscoModule;
+
+})();

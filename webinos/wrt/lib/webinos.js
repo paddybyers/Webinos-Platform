@@ -115,7 +115,11 @@
 	}
 	createCommChannel ();
 	
-	if (typeof webinos === 'undefined') webinos = {}; 
+	if (typeof webinos === 'undefined') webinos = {};
+	
+	webinos.rpcHandler = new RPCHandler();
+	webinos.message.setRPCHandler(webinos.rpcHandler);
+
 	
 	///////////////////// WEBINOS INTERNAL COMMUNICATION INTERFACE ///////////////////////////////
 
@@ -183,7 +187,7 @@
 		}
 		
 		var id = Math.floor(Math.random()*1001);
-		var rpc = webinos.rpc.createRPC("ServiceDiscovery", "findServices", [serviceType, sessionid, id]);
+		var rpc = webinos.rpcHandler.createRPC("ServiceDiscovery", "findServices", [serviceType, sessionid, id]);
 		rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID
 		
 		var callback2 = new RPCWebinosService({api:rpc.fromObjectRef});
@@ -191,10 +195,10 @@
 			// params
 			success(params);
 		};
-		webinos.rpc.registerCallbackObject(callback2);
+		webinos.rpcHandler.registerCallbackObject(callback2);
 		
 		rpc.serviceAddress = webinos.getPZPId();
-		webinos.rpc.executeRPC(rpc);
+		webinos.rpcHandler.executeRPC(rpc);
 
 		return;
 	};

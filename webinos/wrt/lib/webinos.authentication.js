@@ -1,4 +1,6 @@
-	var AuthenticationModule = function (obj) {
+(function() {
+	
+	AuthenticationModule = function (obj) {
 		"use strict";
 		this.base = WebinosService;
 		this.base(obj);
@@ -8,8 +10,8 @@
 
 	function authenticate(username, successCB, errorCB) {
 		"use strict";
-		var rpc = webinos.rpc.createRPC(this, "authenticate", [username]);
-		webinos.rpc.executeRPC(rpc,
+		var rpc = webinos.rpcHandler.createRPC(this, "authenticate", [username]);
+		webinos.rpcHandler.executeRPC(rpc,
 			function (params) {
 				console.log("authenticate successCB: ", params);
 				successCB(params);
@@ -23,8 +25,8 @@
 
 	function isAuthenticated(username, successCB, errorCB) {
 		"use strict";
-		var rpc = webinos.rpc.createRPC(this, "isAuthenticated", [username]);
-		webinos.rpc.executeRPC(rpc,
+		var rpc = webinos.rpcHandler.createRPC(this, "isAuthenticated", [username]);
+		webinos.rpcHandler.executeRPC(rpc,
 			function (params) {
 				console.log("isAuthenticated successCB: ", params);
 				successCB(params);
@@ -38,8 +40,8 @@
 	
 	function getAuthenticationStatus(username, successCB, errorCB) {
 		"use strict";
-		var rpc = webinos.rpc.createRPC(this, "getAuthenticationStatus", [username]);
-		webinos.rpc.executeRPC(rpc,
+		var rpc = webinos.rpcHandler.createRPC(this, "getAuthenticationStatus", [username]);
+		webinos.rpcHandler.executeRPC(rpc,
 			function (params) {
 				console.log("getAuthenticatationStatus successCB: ", params);
 				successCB(params);
@@ -62,3 +64,4 @@
 		}
 	};
 
+})();

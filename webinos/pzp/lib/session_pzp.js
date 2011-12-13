@@ -18,11 +18,17 @@
 		var exports = module.exports = webinos.session;
 
 	if (typeof exports !== "undefined") {
-		var sessionPzh = require('../../pzh/lib/session_pzh.js'),
-		messaging = require("../../common/manager/messaging/lib/messagehandler.js"),
-		utils = require('./session_common.js'),
+		var sessionPzh = require('../../pzh/lib/session_pzh.js');
+		
+		var rpc = require("../../common/rpc/lib/rpc.js");
+		var rpcHandler = new RPCHandler();
+		rpc.loadModules(rpcHandler);
+		
+		var messaging = require("../../common/manager/messaging/lib/messagehandler.js");
+		messaging.setRPCHandler(rpcHandler);
+		
+		var utils = require('./session_common.js'),
 		sessionPzp = {};
-
 	}
 	
 	var tls = require('tls'),
@@ -472,6 +478,7 @@
 			}
 			var messageWS = function(msg, address){
 				msg.resp_to = "virgin_pzp";
+				// TODO why is "msg" a whole service object? we should only send the service info fields.
 				if(connectedApp[address])
 				connectedApp[address].sendUTF(JSON.stringify(msg));
 			}

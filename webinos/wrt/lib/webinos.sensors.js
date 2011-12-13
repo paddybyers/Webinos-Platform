@@ -10,9 +10,9 @@
 		 	
 		var self = this;
 		
-		var rpc = webinos.rpc.createRPC(this, "getStaticData", []);
+		var rpc = webinos.rpcHandler.createRPC(this, "getStaticData", []);
 		
-		webinos.rpc.executeRPC(rpc,
+		webinos.rpcHandler.executeRPC(rpc,
 				function (result){
 			
 					var _referenceMapping = new Array();
@@ -26,8 +26,8 @@
 	        
 					self.configureSensor = function (options, successCB, errorCB){
 						//thows (SensorException);
-						var rpc = webinos.rpc.createRPC(this, "configureSensor", arguments[0]);
-						webinos.rpc.executeRPC(rpc,
+						var rpc = webinos.rpcHandler.createRPC(this, "configureSensor", arguments[0]);
+						webinos.rpcHandler.executeRPC(rpc,
 								function (){
 							successCB();
 	    					},
@@ -39,7 +39,7 @@
 	    	
 					self.addEventListener = function(eventType, eventHandler, capture) {
 	
-							var rpc = webinos.rpc.createRPC(this, "addEventListener", eventType);
+							var rpc = webinos.rpcHandler.createRPC(this, "addEventListener", eventType);
 							rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
 							
 							_referenceMapping.push([rpc.fromObjectRef, eventHandler]);
@@ -49,9 +49,9 @@
 							callback.onEvent = function (vehicleEvent) {
 								eventHandler(vehicleEvent);
 							};
-							webinos.rpc.registerCallbackObject(callback);
+							webinos.rpcHandler.registerCallbackObject(callback);
 							
-							webinos.rpc.executeRPC(rpc);
+							webinos.rpcHandler.executeRPC(rpc);
 	
 					};
 	    	

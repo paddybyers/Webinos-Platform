@@ -1,42 +1,45 @@
-  if (typeof webinos === 'undefined') var webinos = {};
-
-  webinos.rpc = require('../../../common/rpc/lib/rpc.js');
-
-  var RemoteContextManager = new RPCWebinosService({
-    api:'http://webinos.org/api/context',
-    displayName:'Context',
-    description:'The webinos context manager'
-  });
+(function() {
 
   var moduleRoot = require('../dependencies.json');
   var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
   var webinosRoot = '../' + moduleRoot.root.location;
-
-  if (typeof webinos.context === 'undefined'){
-    webinos.context = {};
-  }
-  debugger;
-  if (typeof webinos.context.DB === 'undefined'){
-    webinos.context.DB = {};
-    webinos.context.DB = require(webinosRoot + dependencies.manager.context_manager.location + 'lib/contextDBpzhManager.js');
-  }
   
-  RemoteContextManager.find = function ( params,  successCallback,  errorCallback) {
-    webinos.context.find(params[0],function(results){
+  var contextDB = require(webinosRoot + dependencies.manager.context_manager.location + 'lib/contextDBpzhManager.js');
+
+  /**
+   * Webinos Service constructor.
+   * @param rpcHandler A handler for functions that use RPC to deliver their result.  
+   */
+  var RemoteContextManager = function(rpcHandler) {
+    // inherit from RPCWebinosService
+    this.base = RPCWebinosService;
+    this.base({
+      api:'http://webinos.org/api/context',
+      displayName:'Context',
+      description:'The webinos context manager'
+    });
+  };
+  
+  RemoteContextManager.prototype = new RPCWebinosService;
+
+  RemoteContextManager.prototype.find = function ( params,  successCallback,  errorCallback) {
+	/* TODO where is "find" implemented?
+    context.find(params[0],function(results){
       successCallback(results);
     },function(){
 
     });
+    */
   };
 
-  RemoteContextManager.executeQuery = function(query, successCallback, errorCallback){
+  RemoteContextManager.prototype.executeQuery = function(query, successCallback, errorCallback){
     switch(query.type)
     {
       case "DB-insert":
-        webinos.context.DB.insert(query.data); //TODO: Add success callback
+        contextDB.insert(query.data); //TODO: Add success callback
         break;
       case "getrawview":
-        webinos.context.DB.getrawview(function(results){
+        contextDB.getrawview(function(results){
           successCallback(results);
         });
         break;
@@ -48,4 +51,7 @@
       this.message = message;
     }
   }
-  webinos.rpc.registerObject(RemoteContextManager);
+  
+  exports.Service = RemoteContextManager;
+
+})();
