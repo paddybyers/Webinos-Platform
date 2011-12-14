@@ -62,6 +62,10 @@
     }
   },
   "manager": {
+    "certificate_manager": {
+      "name": "Certificate manager",
+      "location": "common/manager/certificate_manager/"
+    },
     "context_manager": {
       "name": "Context manager",
       "location": "common/manager/context_manager/"
