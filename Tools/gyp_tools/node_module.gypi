@@ -3,7 +3,7 @@
 	#These are required variables to make a proper node module build
 	'library': 'shared_library', #This gypi file is about modules so everything is shared_library
 	'target_arch': 'ia32', #The architecture is hardcoded because of a i386 harcoded element in the gyp make.py file 
-	'output_directory': 'build',
+	'output_directory': 'build/Release',
   },
 		#Needed declarations for the target
 		'target_name': '<(module_name)',
