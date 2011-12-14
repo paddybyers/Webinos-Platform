@@ -493,6 +493,7 @@
 				var payload = {type:"prop", from:"virgin_pzp", to: "virgin_pzp"+'/'+id, payload:{status:"registeredBrowser"}};
 				connection.sendUTF(JSON.stringify(payload));
 			}			
+
 			connection.on('message', function(message) {
 				//schema validation
 				var msg;
