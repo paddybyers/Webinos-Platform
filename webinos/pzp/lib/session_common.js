@@ -86,7 +86,7 @@ exports.selfSigned = function(self, name, obj, callback) {
 	"use strict";
 	var certman;
 	try {
-		certman = require("../../common/manager/certificate_manager");		
+		certman = require("../../common/manager/certificate_manager/src/build/Release/certificate_manager");		
 	} catch (err) {
 		throw new Error("Error in require certificate manager");
 	}
@@ -133,7 +133,7 @@ exports.signRequest = function(self, csr, master, callback) {
 	var certman;
 	
 	try {
-		certman = require("../../common/manager/certificate_manager");		
+		certman = require("../../common/manager/certificate_manager/src/build/Release/certificate_manager");		
 	} catch (err) {
 		throw new Error('Error opening certificate manager obj file, please make sure you have compiled cert manager.')
 	}

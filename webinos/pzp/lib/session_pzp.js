@@ -321,7 +321,7 @@
 						}
 					});
 				} catch (err) {
-					return "failed";
+					return undefined; 
 				}
 			});		
 		});
