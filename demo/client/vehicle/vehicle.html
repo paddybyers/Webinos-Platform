@@ -234,7 +234,6 @@
 						
                         webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/deviceorientation'), {onFound: function (service) {
 								orientation = service;
-								
 								orientation.bindService({onBind: function (service) {}});
 								
 								postMessage("info","Deviceorientation available. Please select a listener");
@@ -243,7 +242,7 @@
 								disableInit();
 						}});
 						
-					
+		
 						webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
 								console.log("geolocation service found...");
 								geolocation = service;
@@ -256,8 +255,7 @@
 								disableInit();
 						}});
 						
-						
-				
+					
                     });
 					
 					var disableInit = function(){

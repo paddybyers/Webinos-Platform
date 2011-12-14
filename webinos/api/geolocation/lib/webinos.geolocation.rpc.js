@@ -11,8 +11,9 @@ function GeolocationModule(rpcHandler) {
 		var car = null;
 	}
 	
-	var implFile = vehicleBusAvailable ? 'car' : 'geoip';
+	var implFile = vehicleBusAvailable ? 'vehicle' : 'geoip';
 	var implModule = require('./webinos.geolocation.' + implFile + '.js');
+
 	implModule.setRPCHandler(rpcHandler);
 	implModule.setRequired(car);
 	
@@ -31,10 +32,9 @@ function GeolocationModule(rpcHandler) {
 	this.clearWatch = function(params, successCB, errorCB, objectRef) {
 		implModule.clearWatch(params, successCB, errorCB, objectRef);
 	};
-}
+    }
 
-GeolocationModule.prototype = new RPCWebinosService;
-
-exports.Service = GeolocationModule;
+    GeolocationModule.prototype = new RPCWebinosService;
+    exports.Service = GeolocationModule;
 
 })();

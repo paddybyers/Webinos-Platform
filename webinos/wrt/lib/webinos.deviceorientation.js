@@ -36,7 +36,7 @@ function addEventListener(type, listener, useCapture) {
     
             console.log("LISTENER"+ listener);
     
-			var rpc = webinos.rpc.createRPC(this, "addEventListener", [type, listener, useCapture]);
+			var rpc = webinos.rpcHandler.createRPC(this, "addEventListener", [type, listener, useCapture]);
             rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
 			_referenceMappingDo.push([rpc.fromObjectRef, listener]);
 
@@ -46,8 +46,8 @@ function addEventListener(type, listener, useCapture) {
 				listener(orientationEvent);
 			};
             
-			webinos.rpc.registerCallbackObject(callback);
-			webinos.rpc.executeRPC(rpc);
+			webinos.rpcHandler.registerCallbackObject(callback);
+			webinos.rpcHandler.executeRPC(rpc);
 		}else{
 			console.log(type + ' not found');	
 		}
@@ -129,8 +129,8 @@ function removeEventListener(type, listener, useCapture) {
 					arguments[0] = _referenceMappingDo[i][0];
 					arguments[1] = type;
 					console.log("ListenerObject to be removed ref#" + _referenceMappingDo[i][0]);                                             
-                    var rpc = webinos.rpc.createRPC(this, "removeEventListener", arguments);
-					webinos.rpc.executeRPC(rpc,
+                    var rpc = webinos.rpcHandler.createRPC(this, "removeEventListener", arguments);
+					webinos.rpcHandler.executeRPC(rpc,
 						function(result){
 							callOnSuccess(result);
 						},
