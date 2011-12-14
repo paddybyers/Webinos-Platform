@@ -529,7 +529,8 @@
 		               ];
 
 		if (contextEnabled) {
-			modules.push(webinosRoot + dependencies.manager.context_manager.location);
+		  require(webinosRoot + dependencies.manager.context_manager.location); 
+			//modules.push(webinosRoot + dependencies.manager.context_manager.location);
 		}
 
 		for (var i = 0; i <modules.length; i++){
