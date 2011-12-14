@@ -22,7 +22,7 @@
         }],
         [ 'OS!="win"', {
 		  'libraries': [ #this is a hack to specify this linker option in make              
-			'-libs libssl',
+			'-lssl',
 		  ],
         }],
       ],
