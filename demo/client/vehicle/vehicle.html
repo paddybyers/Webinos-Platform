@@ -212,7 +212,6 @@
 						
 						
 					$('#init').click(function(e) {
-					
                         webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
                 	    		vehicle = service;
                 	    		vehicle.bindService({onBind: function (service) {}});
@@ -231,7 +230,6 @@
 						
 								disableInit();
 						}});
-						
                         webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/deviceorientation'), {onFound: function (service) {
 								orientation = service;
 								orientation.bindService({onBind: function (service) {}});
@@ -242,7 +240,7 @@
 								disableInit();
 						}});
 						
-		
+
 						webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
 								console.log("geolocation service found...");
 								geolocation = service;
@@ -254,8 +252,6 @@
 								$('#findService').val('Geolocation found');
 								disableInit();
 						}});
-						
-					
                     });
 					
 					var disableInit = function(){
