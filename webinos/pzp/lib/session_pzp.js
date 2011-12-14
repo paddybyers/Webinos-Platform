@@ -1,21 +1,16 @@
-/* It is a client to PZH
- * It runs two servers:
- ** TLS server for allowing other PZP's to connect to it
- ** WebSocket Server to allow websocket connection with the browser
- * It is dependent on session common and messaging
- */
+/**
+* @author <a href="mailto:habib.virji@samsung.com">Habib Virji</a>
+* @description It starts Pzp and handle communication with web socket server. Websocket server allows starting Pzh and Pzp via a web browser
+*/
 (function () {
 	"use strict";
-	if (typeof webinos === 'undefined')
-		webinos = {};
+	if (typeof webinos === 'undefined') {
+		var webinos = {};
+	}
 
-	if(typeof webinos.session === 'undefined')
+	if(typeof webinos.session === 'undefined') {
 		webinos.session = {}; 
-	
-	if (typeof module === 'undefined')
-		var exports = webinos.session;
-	else
-		var exports = module.exports = webinos.session;
+	}
 
 	if (typeof exports !== "undefined") {
 		var sessionPzh = require('../../pzh/lib/session_pzh.js');
@@ -48,7 +43,7 @@
 		//Configuration details of Pzp (certificates, file names)
 		this.config = {};
 		// Default port to be used by PZP Server
-		this.pzpServerPort = 8000;
+		this.pzpServerPort = 8040;
 		// Used for session reuse
 		this.tlsId = '';
 	};
@@ -65,9 +60,10 @@
 	};
 	
 	Pzp.prototype.wsServerMsg = function(message) {
-		if(typeof this.sessionId !== "undefined" && typeof this.sessionWebAppId !== "undefined")
+		if(typeof this.sessionId !== "undefined" && typeof this.sessionWebAppId !== "undefined") {
 			this.prepMsg(this.sessionId, this.sessionWebAppId, 'info', message);
-	}
+		}
+	};
 	
 	/* It is responsible for sending message to correct entity. It checks if message is
 	 * for Apps connected via WebSocket server. It forwards message to the correct 
@@ -112,17 +108,15 @@
 
 	};	
 	
-	/* Similar to PZH with only difference that it generates self signed certificate, 
-	 * in case if certificates are found it updates the structure. Code to generate
-	 * certificate is in session_common.js	 
-	 * @param resume: if resume is true connect via old session id
-	 * @return options pzp certificate to use for connecting pzh. 
+	/** @decription Generates self signed certificate, crl, private key and certificate request. Certificate creation is done only first time Pzp starts
+	 * crypto sensitive function
+	 * @returns {function} callback pzp certificate to use for connecting pzh. 
 	 */
 	Pzp.prototype.checkFiles = function (callback) {
 		var self, options;
 		self = this;
 		fs.readFile(self.config.master.cert.name, function (err) {
-			if (err !== null && err.code === 'ENOENT') {
+			if (err !== null && err.code === 'ENOENT') {		
 				utils.selfSigned(self, 'Pzp', self.config.conn, function (status) {
 					if (status === 'certGenerated') {
 						fs.writeFileSync(self.config.conn.key.name, self.config.conn.key.value);
@@ -135,13 +129,9 @@
 				});
 			} else {
 				if(self.sessionId && tlsId[self.sessionId] !== '') {
-					try{
-						options = {session: tlsId[self.sessionId]};
-						callback.call(self, options);
-					} catch(err) {
-						utils.debug(1, 'PZP (' + self.sessionId + 
-						') sessionId  does not exist');
-					}
+					options = {session: tlsId[self.sessionId]};
+					callback.call(self, options);
+
 				} else {
 					self.config.conn.cert.value = fs.readFileSync(self.config.conn.cert.name).toString();
 					self.config.conn.key.value = fs.readFileSync(self.config.conn.key.name).toString();
@@ -171,7 +161,7 @@
 			self.prepMsg(self.sessionId, self.pzhId, 'pzpDetails', self.pzpServerPort);
 			callback.call(self, 'startedPZP');
 		});
-	}
+	};
 	
 	/* It is responsible for connecting with PZH and handling events.
 	 * It does JSON parsing of received message
@@ -179,16 +169,16 @@
 	 * @param callback is called after connection is useful or fails to inform startPzp
 	 */
 	Pzp.prototype.connect = function (config, callback) {
-		var self, client, msg = {};
+		var self, client;
 		self = this;
 		try {
 		client = tls.connect(self.pzhPort, 
 			self.pzhName, 
 			config, 
-			function(conn) {
+			function() {
 				utils.debug(2,'PZP Connection to PZH status: ' + client.authorized );
-				utils.debug(2,'PZP Reusing session : ' + 	client.isSessionReused());
-				
+				utils.debug(2,'PZP Reusing session : ' + client.isSessionReused());
+
 				if(client.authorized){
 					var cn = client.getPeerCertificate().subject.CN.split(':')[1];
 					self.authenticated(cn, client, callback);
@@ -202,8 +192,7 @@
 			});
 		} catch (err) {
 			utils.debug(1, 'PZP: Connection Exception' + err);
-			utils.debug(1, err.code);
-			utils.debug(1, err.stack);	
+			throw err;
 		}
 		
 		/* It fetches data and forward it to processMsg
@@ -240,9 +229,8 @@
 	
 	Pzp.prototype.processMsg = function(data, callback) {
 		var self = this;
-		var  data2 = {}, myKey, msg ;	
-  		
-		utils.processedMsg(self, data, 1, function(data2) { // 1 is for #
+		var  msg, i ;
+		utils.processedMsg(self, data, 1, function(data2) { // 1 is for #	
 			if(data2.type === 'prop' && data2.payload.status === 'signedCert') {
 				utils.debug(2, 'PZP Writing certificates data ');
 				self.config.conn.cert.value = data2.payload.message.clientCert;
@@ -261,16 +249,15 @@
 				data2.payload.status === 'pzpUpdate') {
 				utils.debug(2, 'PZP ('+self.sessionId+') Update PZPs details') ;
 				msg = data2.payload.message;
-				for (var i=0; i < msg.length; i++) {
+				for ( i = 0; i < msg.length; i += 1) {
 					if(self.sessionId !== msg[i].name) {
 						if(!self.connectedPzp[msg[i].name]) {
-						self.connectedPzp[msg[i].name] = {
-							'address': msg[i].address, 
-							'port': msg[i].port};
-						if(msg[i].newPzp)
-							self.connectOtherPZP(msg[i]);
-						self.wsServerMsg("Pzp Joined " + msg[i].name);
-						self.prepMsg(self.sessionId, self.sessionWebAppId, 'update', {pzp: msg[i].name });		
+							self.connectedPzp[msg[i].name] = {'address': msg[i].address, 'port': msg[i].port};
+							if(msg[i].newPzp) {
+								self.connectOtherPZP(msg[i]);
+							}
+							self.wsServerMsg("Pzp Joined " + msg[i].name);
+							self.prepMsg(self.sessionId, self.sessionWebAppId, 'update', {pzp: msg[i].name });		
 						}
 					}
 				}	
@@ -283,16 +270,23 @@
 	};	
 
 	Pzp.prototype.createWebAppSessionId = function(connection) {
-		var self = this, otherPzp = [], mykey, otherPzh = [];
+		var self = this, otherPzp = [], mykey1, mykey2, otherPzh = [], payload;
 		self.sessionWebAppId = self.sessionId+ '/'+self.sessionWebApp;
 		self.sessionWebApp += 1;
 		self.connectedWebApp[self.sessionWebAppId] = connection;
-		for(mykey in self.connectedPzp)
-			otherPzp.push(mykey);
-			
-		for(mykey in self.connectedPzh)
-			otherPzh.push(mykey);
-		var payload = {'pzhId':self.pzhId,'connectedPzp': otherPzp,'connectedPzh': otherPzh};
+		for(mykey1 in self.connectedPzp) {
+			if(self.connectedPzh.hasOwnProperty(mykey1)) {
+				otherPzp.push(mykey1);
+			}
+		}
+		
+		for(mykey2 in self.connectedPzh) { 
+			if(self.connectedPzh.hasOwnProperty(mykey2)) {
+				otherPzh.push(mykey2);
+			}
+		}
+		
+		payload = {'pzhId':self.pzhId,'connectedPzp': otherPzp,'connectedPzh': otherPzh};
 		self.prepMsg(self.sessionId, self.sessionWebAppId, 'registeredBrowser', payload);		
 	};
 	
@@ -309,22 +303,26 @@
 			utils.debug(2, 'PZP (Not Connected) '+result);
 			client.checkFiles(function(config) {
 				utils.debug(2, 'PZP (Not Connected) Client Connecting ');			
-				client.connect(config, function(result) {
-					if (result === 'connectPZHAgain') {
-						utils.debug(2, 'PZP ('+client.sessionId+') Client Connecting Again');
-						var config = {	key: client.config.conn.key.value,
-							cert: client.config.conn.cert.value,
-							ca: client.config.master.cert.value};
+				try {
+					client.connect(config, function(result) {
+						if (result === 'connectPZHAgain') {
+							utils.debug(2, 'PZP ('+client.sessionId+') Client Connecting Again');
+							var config = {	key: client.config.conn.key.value,
+								cert: client.config.conn.cert.value,
+								ca: client.config.master.cert.value};
 
-						client.connect(config, function(result) {
-							if(result === 'startedPZP') {
-								callback.call(client, 'startedPZP');
-							}
-						});
-					} else if(result === 'startedPZP') {
-						callback.call(client, 'startedPZP');
-					}
-				});			
+							client.connect(config, function(result) {
+								if(result === 'startedPZP' && typeof callback !== "undefined") {
+									callback.call(client, 'startedPZP');
+								}
+							});
+						} else if(result === 'startedPZP' && typeof callback !== "undefined") {
+							callback.call(client, 'startedPZP');
+						}
+					});
+				} catch (err) {
+					return undefined; 
+				}
 			});		
 		});
 		return client;
@@ -353,51 +351,61 @@
 	};
 
 	sessionPzp.getConnectedPzhId = function() {
+		var mykey, obj;
 		if (typeof sessionPzp.instance !== 'undefined') {
-			for(var mykey in sessionPzp.instance.connectedPzh)
-				obj.push(mykey);
+			for(mykey in sessionPzp.instance.connectedPzh) {
+				if(sessionPzp.instance.connectedPzh.hasOwnProperty(mykey)) {
+					obj.push(mykey);
+				}
+			}
 			return obj;
 		}
 		return undefined;
 	};
 	
 	sessionPzp.getConnectedPzpId = function() {
+		var mykey, obj;
 		if (typeof sessionPzp.instance !== 'undefined') {
-			for(var mykey in sessionPzp.instance.connectedPzp)
-				obj.push(mykey);
+			for(mykey in sessionPzp.instance.connectedPzp) {
+				if(sessionPzp.instance.connectedPzp.hasOwnProperty(mykey)) {
+					obj.push(mykey);
+				}
+			}
 			return obj;
 		}
 		return undefined;
 	};
 
 	sessionPzp.startWebSocketServer = function(hostname, serverPort, webServerPort) {
-		var self = this,
-		http = require('http'),
-		url = require('url'),
-		path = require('path'),
-		WebSocketServer = require('websocket').server;
-		var id = 0, connectedApp ={};		
+		var id = 0, 
+			connectedApp ={},
+			http = require('http'),
+			url = require('url'),
+			path = require('path'),
+			sessionPzh = require('../../pzh/lib/session_pzh.js'),
+			WebSocketServer = require('websocket').server;				
+		
 		function getContentType(uri) {
-		    var contentType = {"Content-Type": "text/plain"};
-		    switch (uri.substr(uri.lastIndexOf('.'))) {
-		    case '.js':
-		    	contentType = {"Content-Type": "application/x-javascript"};
-		    	break;
-		    case '.html':
-		    	contentType = {"Content-Type": "text/html"};
-		    	break;
-		    case '.css':
-		    	contentType = {"Content-Type": "text/css"};
-		    	break;
-		    case '.jpg':
-		    	contentType = {"Content-Type": "image/jpeg"};
-		    	break;
-		    case '.png':
-		    	contentType = {"Content-Type": "image/png"};
-		    	break;
-		    case '.gif':
-		    	contentType = {"Content-Type": "image/gif"};
-		    	break;
+			var contentType = {"Content-Type": "text/plain"};
+			switch (uri.substr(uri.lastIndexOf('.'))) {
+			case '.js':
+				contentType = {"Content-Type": "application/x-javascript"};
+				break;
+			case '.html':
+				contentType = {"Content-Type": "text/html"};
+				break;
+			case '.css':
+				contentType = {"Content-Type": "text/css"};
+				break;
+			case '.jpg':
+				contentType = {"Content-Type": "image/jpeg"};
+				break;
+			case '.png':
+				contentType = {"Content-Type": "image/png"};
+				break;
+			case '.gif':
+				contentType = {"Content-Type": "image/gif"};
+				break;
 		    }
 		    return contentType;
 		}
@@ -464,10 +472,19 @@
 			autoAcceptConnections: true
 		});		
 		
+		var messageWS = function (msg, address) {
+			msg.resp_to = "virgin_pzp";
+			// TODO why is "msg" a whole service object? we should only send the service info fields.
+			if(connectedApp[address]) {
+				connectedApp[address].sendUTF(JSON.stringify(msg));
+			}
+		};
+			
 		wsServer.on('connect', function(connection) {
 			var pzh;
-
 			utils.debug(2, "PZP WSServer: Connection accepted.");
+			
+			
 			if(typeof sessionPzp.instance !== "undefined") {
 				sessionPzp.instance.createWebAppSessionId(connection);
 			} else {
@@ -475,16 +492,16 @@
 				connectedApp["virgin_pzp"+'/'+id] = connection;
 				var payload = {type:"prop", from:"virgin_pzp", to: "virgin_pzp"+'/'+id, payload:{status:"registeredBrowser"}};
 				connection.sendUTF(JSON.stringify(payload));
-			}
-			var messageWS = function(msg, address){
-				msg.resp_to = "virgin_pzp";
-				// TODO why is "msg" a whole service object? we should only send the service info fields.
-				if(connectedApp[address])
-				connectedApp[address].sendUTF(JSON.stringify(msg));
-			}
+			}			
+
 			connection.on('message', function(message) {
-				var self = this;
-				var msg = JSON.parse(message.utf8Data);
+				//schema validation
+				var msg;
+				if(utils.checkSchema(message.utf8Data) === false)
+					msg = JSON.parse(message.utf8Data);
+				else {
+					throw new Error('Unrecognized packet');	
+				}
 				utils.debug(2, 'PZP WSServer: Received packet ' + JSON.stringify(msg));
 
 				// Each message is forwarded back to Message Handler to forward rpc message
@@ -506,7 +523,7 @@
 						sessionPzp.instance = sessionPzp.startPzp(msg.payload.value, 
 						msg.payload.servername, 
 						msg.payload.serverport,
-						function(result) {
+						function() {
 							sessionPzp.instance.createWebAppSessionId(connection);
 							sessionPzp.instance.wsServerMsg("Pzp " + sessionPzp.instance.sessionId+ " started");
 						});
@@ -524,10 +541,11 @@
 					}
 				}
 				 else if(msg.type === 'prop' && msg.payload.status === 'connectPzh') {
-	 				if( typeof pzh !== "undefined")
+					if( typeof pzh !== "undefined") {
 						pzh.connectOtherPZH(msg.payload.servername, msg.payload.serverport, function(result) {
 							sessionPzp.instance.wsServerMsg("Pzh " + result + "Connected");
 						});
+					}
 				} else {
 					if( typeof sessionPzp.instance !== "undefined" ) {
 						utils.sendMessageMessaging(sessionPzp.instance, msg);
@@ -555,7 +573,7 @@
 				ca: self.config.master.cert.value
 				};
 
-		client = tls.connect(msg.port, msg.address, options, function (conn) {
+		client = tls.connect(msg.port, msg.address, options, function () {
 			if (client.authorized) {
 				utils.debug(2, "PZP (" + self.sessionId + ") Client: "+
 				 " Authorized & Connected to PZP: " + msg.address );
@@ -571,12 +589,12 @@
 		client.on('data', function (data) {
 			try {
 				client.pause();
-				util.processedMsg(self, data, 1, function(data1) {
+				utils.processedMsg(self, data, 1, function(data1) {
 					utils.sendMessageMessaging(self, data1);
-				  	process.nextTick(function () {
+					process.nextTick(function () {
 						client.resume();
 					});
-				}); 			
+				});
 			} catch (err) {
 				utils.debug(1, 'PZP (' + self.sessionId + ') Client: Exception' + err);
 				utils.debug(1, err.code);
@@ -612,7 +630,7 @@
 				};
 
 		server = tls.createServer(config, function (conn) {
-			var cn, parse = null, sessionId;
+			var cn, sessionId;
 			/* If connection is authorized:
 			* SessionId is generated for PZP. Currently it is PZH's name and 
 			* PZP's CommonName and is stored in form of PZH::PZP.
@@ -625,11 +643,12 @@
 				sessionId = self.pzhId + '/' +cn.split(':')[1];
 				utils.debug(2, "PZP (" + self.sessionId +") Server: Client Authenticated " + sessionId) ;
 				
-				if(self.connectedPzp[sessionId])
-					self.connectedPzp[sessionId]= {socket: conn}; 
-				else
-					self.connectedPzp[sessionId]= {socket: conn, 
-					 	address: conn.socket.remoteAddress, port: ''};
+				if(self.connectedPzp[sessionId]) {
+					self.connectedPzp[sessionId]= {socket: conn};
+				} else {
+					self.connectedPzp[sessionId]= {socket: conn,
+					address: conn.socket.remoteAddress, port: ''};
+				}
 			} 
 				
 			conn.on('connection', function () {
@@ -691,7 +710,7 @@
 	};
 
 	if (typeof exports !== 'undefined') {
-		exports.startPZP = sessionPzp.startPZP;
+		exports.startPzp = sessionPzp.startPzp;
 		exports.startWebSocketServer = sessionPzp.startWebSocketServer;
 		exports.send = sessionPzp.send; 
 		exports.instance = sessionPzp.instance;
