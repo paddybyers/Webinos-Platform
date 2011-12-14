@@ -13,7 +13,7 @@ var Fs = require('fs');
 var vocdbpath = pathclass.resolve(__dirname + '/../' +'data/contextVocabulary.json');
 
 //Test the SQLite DB
-require('./contextDBpzhManager.js')
+webinos.context.DB = require('./contextDBpzhManager.js')
 //Test the SQLite DB
 
 webinos.context.saveContext = function(dataIn, success, fail) {
@@ -71,9 +71,14 @@ webinos.context.saveContext = function(dataIn, success, fail) {
               inputs = method.inputs;
               expectedInputsLength = inputs.length;
               inputsCount = 0;
+              for (inputIndex in inputs){
               for(paramName in dataIn.params){
-                for (inputIndex in inputs){
+                
                   if (inputs[inputIndex].objectName == paramName){
+                    inputsCount++;
+                    break;
+                  }
+                  else if(inputs[inputIndex].required === false ){
                     inputsCount++;
                     break;
                   }
@@ -105,7 +110,7 @@ webinos.context.saveContext = function(dataIn, success, fail) {
                 var contextData = [];
                 contextData[0] = contextItem;
                 webinos.context.DB.insert(contextData)
-                console.log("Context data saved to Context DB");
+                //console.log("Context data saved to Context DB");
                 break;
               }
 
@@ -132,6 +137,8 @@ webinos.context.saveContext = function(dataIn, success, fail) {
               console.log(contextItem.paramstolog);
               console.log("Outputs to store in Context DB:");
               console.log(contextItem.resultstolog);
+              contextData[0] = contextItem;
+              webinos.context.DB.insert(contextData)
               break;
             }
           }

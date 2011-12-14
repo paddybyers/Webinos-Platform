@@ -84,6 +84,7 @@
                      {
                         "logged" : false,
                         "objectName" : "enableHighAccuracy",
+                        "required" : false,
                         "type" : "boolean"
                      },
                      {
@@ -172,6 +173,7 @@
                      {
                         "logged" : false,
                         "objectName" : "enableHighAccuracy",
+                        "required" : false,
                         "type" : "boolean"
                      },
                      {
