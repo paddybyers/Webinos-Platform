@@ -36,8 +36,7 @@
                 });
 
                 $('#startPZP').bind('click', function() {
-			var config = 'pzh_name='+ document.getElementById('servername').value+ '\n' +
-				'country='+ document.getElementById('pzpcountry').value + '\n' +
+			var config ='country='+ document.getElementById('pzpcountry').value + '\n' +
 				'state='+ document.getElementById('pzpstate').value + '\n' +
 				'city='+ document.getElementById('pzpcity').value + '\n' +
 				'organization='+ document.getElementById('pzporg').value + '\n' +
@@ -152,7 +151,7 @@
 			<tr><td>Days</td><td> <input type="text" id="days" value="180"/></td>	</tr>
 			<tr><td>Server Name </td><td><input type="text" id="servername" value="localhost"/></td></tr>
 			<tr><td><i> (Info: This should be IP address on which PZH can be accessed via PZP) </i></td></tr>
-			<tr><td>Server Port </td><td><input type="text" id="serverport" value="443"/></td></tr>
+			<tr><td>Server Port </td><td><input type="text" id="serverport" value="8000"/></td></tr>
 			<tr><td><i> (Info: If already this port is in use, next available port will be used)</i></td></tr>			
 		</table>
 			<center> <button id="startPZH" class="button">Start PZH </button> </center>
@@ -175,7 +174,7 @@
 			<tr><td>Days</td><td> <input type="text" id="pzpdays" value="180"/></td>	</tr>		
 			<tr><td>PZH Address </td><td><input type="text" id="pzpservername" value="localhost"/></td></tr> <!--  -->
 			<tr><td><i> (Info: This should match with PZH address you want to connect)</i></td><td> </td></tr>
-			<tr><td>PZH Port </td><td><input type="text" id="pzpserverport" value="443"/></td></tr>
+			<tr><td>PZH Port </td><td><input type="text" id="pzpserverport" value="8000"/></td></tr>
 			<tr><td><i> (Info: This should match with PZH Port)</i></td><td> </td></tr>
 		</table>			
 			<center>
@@ -188,12 +187,12 @@
 		<center> <p style="color:white"></p> </center>
 		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
 			<tr> <td> PZH Address: </td> <td><input type="text" id="pzh_ip_addr" value="79.125.104.127"/></td></tr>
-			<tr> <td> PZH Port: </td> <td><input type="text" id="pzh_http_port" value="81"/></td></tr>
+			<tr> <td> PZH Port: </td> <td><input type="text" id="pzh_http_port" value="8000"/></td></tr>
 		</table>
 			<center> <button id="downloadCert" class="button"> Download Certificate </button> </center>
 		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
 			<tr> <td> PZH Address: </td> <td><input type="text" id="pzh_ip_addr" value="79.125.104.127"/></td></tr>
-			<tr> <td> PZH Port: </td> <td><input type="text" id="pzh_port" value="443"/></td></tr>
+			<tr> <td> PZH Port: </td> <td><input type="text" id="pzh_port" value="8000"/></td></tr>
 		</table>		
 			<center> <button id="connectPZH" class="button"> Connect PZH </button> </center>
 
