@@ -21,7 +21,7 @@ var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
 //console.log("DBG moduleRoot",moduleRoot)
 //console.log("DBG webinosRoot",webinosRoot)
-var rpc = require(path.join(webinosRoot, dependencies.rpc.location));
+//var rpc = require(path.join(webinosRoot, dependencies.rpc.location));
 
 //console.log("RPC",rpc);
 //In order to work also on anode, require paths should look like these:
@@ -41,8 +41,24 @@ if (typeof webinos === "undefined") {
 if (!webinos.contacts) {
 	webinos.contacts = {};
 }
-webinos.rpc = require(webinosRoot + '/' + dependencies.rpc.location + 'lib/rpc.js');
+//webinos.rpc = require(path.join(webinosRoot, dependencies.rpc.location) + 'lib/rpc.js');
 //console.log("DEBUG\n",webinos.rpc)
+
+/**
+ * Webinos Service constructor.
+ * @param rpcHandler A handler for functions that use RPC to deliver their result.  
+ */
+var Contacts = function(rpcHandler) {
+	// inherit from RPCWebinosService
+	this.base = RPCWebinosService;
+	this.base({
+		api: 'http://www.w3.org/ns/api-perms/contacts',
+		displayName: 'Contacts',
+		description: 'W3C Contacts Module'
+	});
+};
+
+Contacts.prototype = new RPCWebinosService;
 
 
 //if (typeof webinos === 'undefined')
@@ -96,19 +112,20 @@ var contacts_module = require(path.resolve(__dirname,'contacts_module.js')); //T
 //ContactError.prototype.code = Number;
 
 // Contacts Object Registration
-var Contacts = new RPCWebinosService({
-  api:'http://www.w3.org/ns/api-perms/contacts',
-  displayName:'Contacts',
-  description:'W3C Contacts Module'
-});
+//var Contacts = new RPCWebinosService({
+//  api:'http://www.w3.org/ns/api-perms/contacts',
+//  displayName:'Contacts',
+//  description:'W3C Contacts Module'
+//});
 
 /**
  * returns true if contacts service is already authenticated with GMail or a
  * valid address book file is aready open TODO this method has to be removed
  * when user profile will handle this
  */
-function authenticate(params, successCB, errorCB, objectRef)
+Contacts.prototype.authenticate = function (params, successCB, errorCB, objectRef)
 {
+  "use strict";
   contacts_module.authenticate(params,successCB);
 }
 
@@ -117,8 +134,9 @@ function authenticate(params, successCB, errorCB, objectRef)
  * valid address book file is aready open TODO this method has to be removed
  * when user profile will handle this
  */
-function isAlreadyAuthenticated(params, successCB, errorCB, objectRef)
+Contacts.prototype.isAlreadyAuthenticated = function (params, successCB, errorCB, objectRef)
 {
+  "use strict";
   contacts_module.isAlreadyAuthenticated(params,successCB);
 }
 
@@ -126,16 +144,18 @@ function isAlreadyAuthenticated(params, successCB, errorCB, objectRef)
  * returns a list of all contact TODO remove once debugging and testing are
  * successfull
  */
-function getAllContacts(params, successCB, errorCB, objectRef)
+Contacts.prototype.getAllContacts = function (params, successCB, errorCB, objectRef)
 {
+  "use strict";
   contacts_module.getAllContacts(params,successCB);
 }
 
 /**
  * TODO full W3C Spec
  */
-function find(params, successCB, errorCB, objectRef)
+Contacts.prototype.find = function (params, successCB, errorCB, objectRef)
 {
+  "use strict";
   //TODO should type be handled by this module?
   contacts_module.find(params[0]['type'],params[0]['fields'],successCB,errorCB,objectRef);
   //contacts_module.findContacts(params,successCB);
@@ -144,15 +164,15 @@ function find(params, successCB, errorCB, objectRef)
 
 //www.w3.org/ns/api-perms/
 
+exports.Service = Contacts;
 
-
-Contacts.authenticate = authenticate;
-Contacts.isAlreadyAuthenticated = isAlreadyAuthenticated;
-Contacts.getAllContacts = getAllContacts;
-Contacts.find = find;
+//Contacts.prototype.authenticate = authenticate;
+//Contacts.prototype.isAlreadyAuthenticated = isAlreadyAuthenticated;
+//Contacts.prototype.getAllContacts = getAllContacts;
+//Contacts.prototype.find = find;
 
 //console.log("Registering Contacts module")
 
-webinos.rpc.registerObject(Contacts); // RPC name for
+//webinos.rpc.registerObject(Contacts); // RPC name for
 // the service:
 // Contacts
