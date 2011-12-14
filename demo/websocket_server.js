@@ -3,6 +3,8 @@
  * apps and broadcasting to all clients. All other messages received are forwarded
  * to message handler.
  */
+console.log("DEBUG env", process.env.WEBINOS_PATH);
+ 
 if (typeof webinos === "undefined") {
 	webinos = {};
 	webinos.session = {};

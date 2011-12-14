@@ -527,7 +527,8 @@
                    webinosRoot + dependencies.api.deviceorientation.location + 'lib/webinos.deviceorientation.rpc.js',
                    webinosRoot + dependencies.api.vehicle.location + 'lib/webinos.vehicle.rpc.js',
                    webinosRoot  + dependencies.api.context.location,
-                   webinosRoot + dependencies.api.authentication.location + 'lib/webinos.authentication.rpc.js'
+                   webinosRoot + dependencies.api.authentication.location + 'lib/webinos.authentication.rpc.js',
+                   webinosRoot + dependencies.api.contacts.location + 'lib/webinos.contacts.rpc.js'
                     // Disabled as these cause webinos from functioning
                    //oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
                    //oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
@@ -535,6 +536,8 @@
                    //oldRpcLocation + 'rpc_contacts.js',
                    //oldRpcLocation + 'bluetooth_module/bluetooth.rpc.server.js'
                    ];
+                   
+                   console.log("DEBUG", webinosRoot + dependencies.api.contacts.location + 'lib/webinos.contacts.rpc.js');
 
     if (contextEnabled) {
       modules.push(webinosRoot + dependencies.manager.context_manager.location);

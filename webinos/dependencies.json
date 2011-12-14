@@ -20,6 +20,10 @@
       "name": "Authentication",
       "location": "api/authentication/"
      },
+     "contacts": {
+      "name": "contacts",
+      "location": "api/contacts/"
+    },
     "context": {
       "name": "Context",
       "location": "api/context/"

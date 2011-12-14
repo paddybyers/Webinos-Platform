@@ -62,7 +62,7 @@
 			var port = parseInt(location.port) + 1;
 			if (isNaN(port)) port = 81;
 			channel  = new WebSocket('ws://'+window.location.hostname+':'+port);
-		} catch(e) {
+			} catch(e) {
 			channel  = new MozWebSocket('ws://'+window.location.hostname+':'+port);
 		}
 				

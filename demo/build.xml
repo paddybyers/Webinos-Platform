@@ -25,6 +25,7 @@
                 <file name="wrt/lib/webinos.deviceorientation.js"/>
             	<file name="wrt/lib/webinos.context.js"/>
             	<file name="wrt/lib/webinos.authentication.js"/>
+            	<file name="wrt/lib/webinos.contacts.js"/>
             </sources>
         </jscompiler>
     </target>
