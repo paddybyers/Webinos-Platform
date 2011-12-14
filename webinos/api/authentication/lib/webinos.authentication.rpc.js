@@ -1,3 +1,5 @@
+(function() {
+
 var fs = require('fs');
 var sc = require('schema')('authEnvironment', { fallbacks: 'STRICT_FALLBACKS' });
 var tty = require('tty'); // required starting from node.js 0.6
@@ -6,15 +8,9 @@ var localDependencies = require("../dependencies.json");
 var root = "../" + localDependencies.root.location;
 var dependencies = require(root + "/dependencies.json");
 
-
 if (typeof webinos === "undefined") {
 	var webinos = {};
 }
-if (!webinos.authentication) {
-	webinos.authentication = {};
-}
-webinos.rpc = require(root + "/" + dependencies.rpc.location + "lib/rpc.js");
-
 
 // commented out due to lack of zipper module in node.js 0.6
 // var secstore = require("../Manager/Storage/src/main/javascript/securestore.js");
@@ -87,7 +83,7 @@ var authfile_validation = sc.f(
 
 
 
-var AuthStatus, AuthError, AuthSuccessCB, AuthErrorCB, WebinosAuthenticationInterface, WebinosAuthentication;
+var AuthStatus, AuthError, AuthSuccessCB, AuthErrorCB;
 
 AuthStatus = function () {
 	"use strict";
@@ -129,32 +125,37 @@ AuthErrorCB.prototype.onError = function (error) {
 };
 
 
-WebinosAuthentication = function () {
-	"use strict";
-	this.authentication = new WebinosAuthenticationInterface();
-};
-
-WebinosAuthenticationInterface = function () {
-	"use strict";
-};
-
-webinos.authentication = new WebinosAuthenticationInterface();
-
-
 var password_filename = "./client/authentication/password.txt", authstatus_filename = "./client/authentication/authstatus.txt";
 
 // commented out due to lack of zipper module in node.js 0.6
 //var storePass = "PZpassword", storeFile = "./auth.zip", storeDir  = "./authentication";
 
+/**
+ * Webinos Service constructor.
+ * @param rpcHandler A handler for functions that use RPC to deliver their result.  
+ */
+var AuthenticationModule = function(rpcHandler) {
+	// inherit from RPCWebinosService
+	this.base = RPCWebinosService;
+	this.base({
+		api: 'http://webinos.org/api/authentication',
+		displayName: 'Authentication',
+		description: 'webinos authentication API'
+	});
+};
+
+AuthenticationModule.prototype = new RPCWebinosService;
+
 var ask, getAuthTime, username;
 
-webinos.authentication.authenticate = function (params, successCB, errorCB, objectRef) {
+AuthenticationModule.prototype.authenticate = function (params, successCB, errorCB, objectRef) {
 	"use strict";
 	var newly_authenticated, passfile, p, authfile, buffer = {}, error = {};
+	var that = this;
 
 	if (params[0] !== '') {
 		username = params[0];
-		webinos.authentication.isAuthenticated(params, function (authenticated) {
+		this.isAuthenticated(params, function (authenticated) {
 			if (authenticated === false) {
 				ask("Password", function (err, password) {
 					if (err === null || err === undefined) {
@@ -207,7 +208,7 @@ webinos.authentication.authenticate = function (params, successCB, errorCB, obje
 												//		errorCB(err);
 												//	}
 												//	else {
-														webinos.authentication.getAuthenticationStatus([username], function (authStatus) {
+														that.getAuthenticationStatus([username], function (authStatus) {
 															successCB("User authenticated\n" + authStatus);
 														},
 														function (err) {
@@ -392,7 +393,7 @@ ask = function (question, callback) {
 };
 
 
-webinos.authentication.isAuthenticated = function (params, successCB, errorCB, objectRef) {
+AuthenticationModule.prototype.isAuthenticated = function (params, successCB, errorCB, objectRef) {
 	"use strict";
 	var authenticated, authfile, authrow, error = {};
 	
@@ -447,13 +448,13 @@ webinos.authentication.isAuthenticated = function (params, successCB, errorCB, o
 	}
 };
 
-webinos.authentication.getAuthenticationStatus = function (params, successCB, errorCB, objectRef) {
+AuthenticationModule.prototype.getAuthenticationStatus = function (params, successCB, errorCB, objectRef) {
 	"use strict";
 	var authenticated, resp, authfile, authrow, auth_s = new AuthStatus(), error = {};
 	
 	if (params[0] !== '') {
 		username = params[0];
-		webinos.authentication.isAuthenticated(params, function (authenticated) {
+		this.isAuthenticated(params, function (authenticated) {
 			if (authenticated === true) {
 				resp = "";
 
@@ -523,13 +524,6 @@ webinos.authentication.getAuthenticationStatus = function (params, successCB, er
 	}
 };
 
-var authenticationModule = new RPCWebinosService({
-	api: 'http://webinos.org/api/authentication',
-	displayName: 'Authentication',
-	description: 'webinos authentication API'
-});
+exports.Service = AuthenticationModule;
 
-authenticationModule.authenticate = webinos.authentication.authenticate;
-authenticationModule.isAuthenticated = webinos.authentication.isAuthenticated;
-authenticationModule.getAuthenticationStatus = webinos.authentication.getAuthenticationStatus;
-webinos.rpc.registerObject(authenticationModule);
+})();

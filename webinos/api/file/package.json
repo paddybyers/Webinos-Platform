@@ -8,7 +8,7 @@
     "name": "Felix-Johannes Jendrusch",
     "email": "felix-johannes.jendrusch@fokus.fraunhofer.de"
   } ],
-  description: "W3C File API (including Writer, and Directories and System) implementation.",
+  "description": "W3C File API (including Writer, and Directories and System) implementation.",
   "keywords": [ "blob", "file", "directory", "filereader", "filewriter", "directoryreader", "filesystem" ],
   "repositories": [ {
     "type": "git",

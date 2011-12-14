@@ -1,6 +1,6 @@
 import sys
 srcdir = '.'
-
+blddir = './build' 
 def set_options(opt):
   opt.tool_options("compiler_cxx")
 

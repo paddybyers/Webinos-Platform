@@ -19,7 +19,7 @@ int main()
   char* certreq = new char[2048];
 
   try {  
-  ::createCertificateRequest(certreq, privkey, "UK", "CA", "Oxford", "Oxford University", "Dept Comp Sci", "john.lyle@cs.ox.ac.uk");
+  ::createCertificateRequest(certreq, privkey, "UK", "CA", "Oxford", "Oxford University", "Dept Comp Sci", "Pzh", "john.lyle@cs.ox.ac.uk");
   } catch (WebinosCryptoException &e) {
     std::cout << e.what() << std::endl;
     delete certreq;

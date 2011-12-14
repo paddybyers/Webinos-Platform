@@ -3,11 +3,10 @@
 	if (typeof webinos === "undefined") {
 		webinos = {};
 	}
-	if (typeof module !== "undefined") {
-		rpc = require("../../../rpc/lib/rpc.js");
-	}
-	else {
-		rpc = webinos.rpc; 
+	
+	var rpc;
+	if (typeof module === "undefined") {
+		rpc = webinos.rpcHandler;
 	}
 	
 	function logObj(obj, name)	{
@@ -203,8 +202,6 @@
 	    }
 	}
 
-	rpc.setWriter(write);
-
 	webinos.message.onMessageReceived = function(message, sessionid){
  
 		if(typeof message === "string")
@@ -325,7 +322,12 @@
 			}
 			return;
 		}
-	};  
+	};
+	
+	webinos.message.setRPCHandler = function(rpcHandler) {
+		rpc = rpcHandler;
+		rpc.setWriter(write);
+	};
 
 //TODO add fucntion to release clients[] when session is closed -> this will also affect RPC callback funcs 
 
@@ -342,6 +344,7 @@ if (typeof exports !== 'undefined'){
 	exports.registerSender = webinos.message.registerSender;
 	exports.createMessageId = webinos.message.createMessageId;
 	exports.onMessageReceived = webinos.message.onMessageReceived;
+	exports.setRPCHandler = webinos.message.setRPCHandler;
 }
 
 }());

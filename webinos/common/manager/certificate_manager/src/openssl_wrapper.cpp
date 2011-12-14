@@ -9,7 +9,7 @@
 #include <iostream>
 
 void genRsaKey(const int bits, char * privkey) throw(::WebinosCryptoException)
-{
+{ 
     BIO * out = BIO_new(BIO_s_mem());
     RSA * rsa = 0;
     BIGNUM * bn = 0;
@@ -37,7 +37,7 @@ void genRsaKey(const int bits, char * privkey) throw(::WebinosCryptoException)
     RSA_free(rsa);
 }
 
-void createCertificateRequest(char* result, char* keyToCertify, char * country, char* state, char* loc, char* organisation, char* cname, char* email) throw(::WebinosCryptoException)
+void createCertificateRequest(char* result, char* keyToCertify, char * country, char* state, char* loc, char* organisation, char *organisationUnit, char* cname, char* email) throw(::WebinosCryptoException)
 {
     //create a new memory BIO.
     BIO *mem = BIO_new(BIO_s_mem());
@@ -49,7 +49,6 @@ void createCertificateRequest(char* result, char* keyToCertify, char * country, 
     // C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=baccala@freesoft.org
     X509_NAME *nm;
     nm = X509_NAME_new();
-    
     if(!X509_NAME_add_entry_by_txt(nm,"C",
 				MBSTRING_ASC, (unsigned char*)country, -1, -1, 0)) {
 	 std::string error = "Error setting C in cert request\n";
@@ -77,6 +76,13 @@ void createCertificateRequest(char* result, char* keyToCertify, char * country, 
 	 throw ::WebinosCryptoException(error.c_str());
 	}
     
+	if(!X509_NAME_add_entry_by_txt(nm,"OU",
+				MBSTRING_ASC, (unsigned char*)organisationUnit, -1, -1, 0)) {
+	 std::string error = "Error setting OU in cert request\n";
+	 error += std::string(::ERR_error_string(::ERR_get_error(),NULL));
+	 throw ::WebinosCryptoException(error.c_str());
+	}
+
 	if(!X509_NAME_add_entry_by_txt(nm,"CN",
 				MBSTRING_ASC, (unsigned char*)cname, -1, -1, 0)) {
 	 std::string error = "Error setting CN in cert request\n";

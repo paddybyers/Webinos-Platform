@@ -1,17 +1,62 @@
-if (typeof webinos === 'undefined') var webinos = {};
-webinos.rpc = require('../../../common/rpc/lib/rpc.js');
+(function() {
 
-var simTemp = false;
-var objectRefs = new Array();
+/**
+ * Webinos Service constructor.
+ * @param rpcHandler A handler for functions that use RPC to deliver their result.  
+ */
+var SensorModule = function(rpcHandler) {
+	// inherit from RPCWebinosService
+	this.base = RPCWebinosService;
+	this.base({
+		api:'http://webinos.org/api/sensors.temperature',
+		displayName:'Sensor',
+		description:'A Webinos temperature sensor.'
+	});
+	
+	var simTemp = false;
 
+	this.addEventListener = function (eventType, successHandler, errorHandler, objectRef){
+		console.log("eventType " + eventType);	
+		switch(eventType){
+		case "temperature":
+			if(!simTemp){ //Listener for gears not yet registered
+				simTemp = true;
+				debugger
+				simulatateTemp(objectRef);		
+			}			
+			break;
+		default:
+			console.log('Requested EventType is ' + eventType + " but i am temprature");
 
-function configureSensor (params, successCB, errorCB, objectRef){
+		}	
+	};
+
+	function simulatateTemp(objectRef){
+		var tempE = generateTempEvent();
+		var randomTime = Math.floor(Math.random()*1000*10);
+		var json = null;
+		debugger
+
+		json = rpcHandler.createRPC(objectRef, "onEvent", tempE);
+		rpcHandler.executeRPC(json);
+		
+		if(simTemp){
+			setTimeout(function(){
+				simulatateTemp(objectRef);
+			}, randomTime);        
+		}
+	}
+};
+
+SensorModule.prototype = new RPCWebinosService;
+
+SensorModule.prototype.configureSensor = function (params, successCB, errorCB, objectRef){
 	console.log("configuring temperature sensor");
 	
 	successCB();
 }
 
-function getStaticData(params, successCB, errorCB, objectRef){
+SensorModule.prototype.getStaticData = function (params, successCB, errorCB, objectRef){
 	var tmp = {};
 	tmp.maximumRange = 100;
 	tmp.minDelay = 10;
@@ -21,40 +66,6 @@ function getStaticData(params, successCB, errorCB, objectRef){
 	tmp.version = "0.1"; 
     successCB(tmp);
 };
-
-function addEventListener(eventType, successHandler, errorHandler, objectRef){
-	
-	console.log("eventType " + eventType);	
-		switch(eventType){
-			case "temperature":
-				objectRefs.push([objectRef, 'temperature']);
-				if(!simTemp){ //Listener for gears not yet registered
-					simTemp = true;
-					simulatateTemp();		
-				}			
-				break;
-			default:
-				console.log('Requested EventType is ' + eventType + " but i am temprature");
-			
-			}	
-}
-
-
-function simulatateTemp(){
-  		var tempE = generateTempEvent();
-        var randomTime = Math.floor(Math.random()*1000*10);
-        var json = null;
-        for(i = 0; i < objectRefs.length; i++){
-			
-				if(objectRefs[i][1] == "temperature"){
-                	json = webinos.rpc.createRPC(objectRefs[i][0], "onEvent", tempE);
-                 	webinos.rpc.executeRPC(json);
-				}
-        }
-        if(simTemp){
-                setTimeout(function(){ simulatateTemp(); }, randomTime);        
-        }
-}
 
 function generateTempEvent(){
     var temp = Math.floor(Math.random()*100);
@@ -80,12 +91,7 @@ function TempEvent(value){
 	
 }
 
-var module = new RPCWebinosService({
-	api:'http://webinos.org/api/sensors.temperature',
-	displayName:'Sensor',
-	description:'A Webinos temperature sensor.'
-});
-module.configureSensor = configureSensor;
-module.getStaticData = getStaticData; 
-module.addEventListener = addEventListener;
-webinos.rpc.registerObject(module);
+//export our object
+exports.Service = SensorModule;
+
+})();

@@ -35,9 +35,9 @@ var _vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passen
 	
 function get(vehicleDataId, callOnSuccess, callOnError) {	
 		arguments[0] = vehicleDataId;
-		var rpc = webinos.rpc.createRPC(this, "get", arguments);
+		var rpc = webinos.rpcHandler.createRPC(this, "get", arguments);
 		
-		webinos.rpc.executeRPC(rpc,
+		webinos.rpcHandler.executeRPC(rpc,
 			function(result){
 					callOnSuccess(result);
 			},
@@ -49,7 +49,7 @@ function get(vehicleDataId, callOnSuccess, callOnError) {
 	
 function addEventListener(vehicleDataId, eventHandler, capture) {
 		if(_vehicleDataIds.indexOf(vehicleDataId) != -1){	
-			var rpc = webinos.rpc.createRPC(this, "addEventListener", vehicleDataId);
+			var rpc = webinos.rpcHandler.createRPC(this, "addEventListener", vehicleDataId);
 			
             
             rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
@@ -61,9 +61,9 @@ function addEventListener(vehicleDataId, eventHandler, capture) {
 			callback.onEvent = function (vehicleEvent) {
 				eventHandler(vehicleEvent);
 			}
-			webinos.rpc.registerCallbackObject(callback);
+			webinos.rpcHandler.registerCallbackObject(callback);
 			
-			webinos.rpc.executeRPC(rpc);
+			webinos.rpcHandler.executeRPC(rpc);
 		}else{
 			console.log(vehicleDataId + ' not found');	
 		}
@@ -80,8 +80,8 @@ function removeEventListener(vehicleDataId, eventHandler, capture){
 				arguments[0] = _referenceMapping[i][0];
 				arguments[1] = vehicleDataId;
 				console.log("ListenerObject to be removed ref#" + refToBeDeleted);					
-				var rpc = webinos.rpc.createRPC(this, "removeEventListener", arguments);
-				webinos.rpc.executeRPC(rpc,
+				var rpc = webinos.rpcHandler.createRPC(this, "removeEventListener", arguments);
+				webinos.rpcHandler.executeRPC(rpc,
 					function(result){
 						callOnSuccess(result);
 					},
@@ -120,8 +120,8 @@ function requestGuidance(callOnSuccess, callOnError, destinations){
 	arguments = destinations;
 	var successCb = callOnSuccess;
     var errorCb = callOnError;
-	var rpc = webinos.rpc.createRPC(this, "requestGuidance", arguments);
-	webinos.rpc.executeRPC(rpc,
+	var rpc = webinos.rpcHandler.createRPC(this, "requestGuidance", arguments);
+	webinos.rpcHandler.executeRPC(rpc,
 		function(){
 			callOnSuccess();
 		},
@@ -133,8 +133,8 @@ function requestGuidance(callOnSuccess, callOnError, destinations){
 	
 function findDestination(callOnSuccess, callOnError, search){
 	arguments = search;
-	var rpc = webinos.rpc.createRPC(this, "findDestination", arguments);
-    webinos.rpc.executeRPC(rpc,
+	var rpc = webinos.rpcHandler.createRPC(this, "findDestination", arguments);
+    webinos.rpcHandler.executeRPC(rpc,
 		function(results){
 				callOnSuccess(results);
 			},
