@@ -27,6 +27,15 @@ reports
 webinos/api/vehicle/contrib/vb-con/
 webinos/api/vehicle/contrib/vb-con/vc.js
 webinos/api/vehicle/contrib/vb-con/jsonrpc.js 
-webinos/api/vehicle/lib/webinos.vehicle.rpc.js
+webinos/api/vehicle/lib/webinos.vehicle.most.js
+node_modules/dojo-node/
+node_modules/.bin/
+node_modules/prototype/
+node_modules/xmlhttprequest/
+RPC/node_modules/dojo-node/
+RPC/node_modules/prototype/
+RPC/node_modules/xmlhttprequest/
+
+
 #node_modules
 /.metadata/
