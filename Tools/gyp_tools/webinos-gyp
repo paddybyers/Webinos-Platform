@@ -1,4 +1,5 @@
 #!/bin/bash 
+NODE_ROOT=$HOME/node/
 if [ -z "$NODE_ROOT" ] 
 then 
   echo "NODE_ROOT variable is not set! It must point to the root of the node's git directory and contain folders src, deps/v8/include and deps/uv/include"

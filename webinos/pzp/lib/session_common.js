@@ -1,22 +1,29 @@
+/**
+* @description Session common has functions that are used by both Pzh and Pzp
+* @author <a href="mailto:habib.virji@samsung.com">Habib Virji</a>
+*/
+ 
 var  fs = require('fs'),
 	crypto = require('crypto'),
 	child_process = require('child_process'),
 	messaging = require("../../common/manager/messaging/lib/messagehandler.js");
 
 var debug = function(num, msg) {
+	"use strict";
 	var info = true; // Change this if you want no prints from session manager
 	var debug = true; 
-	if(num === 1)
+	if(num === 1) {
 		console.log('ERROR:' + msg);
-	else if(num === 2 && info)
+	} else if(num === 2 && info) {
 		console.log('INFO:' + msg);
-	else if(num === 3 && debug)
+	} else if(num === 3 && debug) {
 		console.log('DEBUG:' + msg);
-}
+	}
+};
 
 // This is a device id through which we recognize device
-// TODO: For any device, currently only ethernet mac address is being used
 var getId = function (self, callback) {
+	"use strict";
 	console.log('PZ Common: Selected Platform - ' + process.platform);
 	// Unique id per platform work underway by ISMB. Below code is obsolute and will be removed shortly
 	callback.call(self, process.platform);
@@ -67,40 +74,31 @@ var getId = function (self, callback) {
 			}				
 		});
 	}*/
-	
-}
+};
 
-exports.getId = getId;
-exports.debug = debug;
-/* generate self signed certificates if certificates are not present. 
- * This results in native code call.Create self signed certificate for PZH. 
- * It performs following functionality
- * 1. openssl genrsa -out server-key.pem
- * 2. openssl req -new -key server-key.pem -out server-csr.pem
- * 3. openssl x509 -req -days 30 -in server-csr.pem -signkey server-key.pem -out server-cert.pem
- * 
+/* @description Create private key, certificate request, self signed certificate and empty crl. This is crypto sensitive function
+ * @param {Object} self is currect object of Pzh/Pzp
+ * @param {String} name used in common field to differentiate Pzh and Pzp 
+ * @param {Object} obj holds key, certificate and crl certificate values and names
+ * @returns {Function} callback returns failed or certGenerated. Added to get synchronous behaviour
  */
 exports.selfSigned = function(self, name, obj, callback) {
+	"use strict";
 	var certman;
 	try {
-		certman = require("../../common/manager/certificate_manager");		
+		certman = require("../../common/manager/certificate_manager/src/build/Release/certificate_manager");		
 	} catch (err) {
-		debug(1, "Error opening certificate manager obj file, please make sure you have compiled cert manager");
-		debug(1, err);
-		callback.call(self, "failed");
-		return;
+		throw new Error("Error in require certificate manager");
 	}
 
 	try {
 		obj.key.value = certman.genRsaKey(1024);
-	} catch(err) {
-		debug(1, 'Error generating key');
-		debug(1, err);
-		callback.call(self, "failed");
-		return;
+	} catch(err1) {
+		throw new Error("Error generating private key");
 	}
 
-	var common = name+':'+self.config.common
+	var common = name+':'+self.config.common;
+	
 	try {
 		obj.csr.value = certman.createCertificateRequest(obj.key.value, 
 			self.config.country,
@@ -110,134 +108,203 @@ exports.selfSigned = function(self, name, obj, callback) {
 			self.config.orgunit,
 			common, 
 			self.config.email);
-	} catch (err) {
-		debug(1, "Error in certificate request");
-		debug(1, err);
-		callback.call(self, "failed");
-		return;
+	} catch (e) {
+		throw new Error("Error generating certificate request");
 	}
 
 	try {
 		obj.cert.value = certman.selfSignRequest(obj.csr.value, 30, obj.key.value);
-	} catch (err) {
-		debug(1, "Error generating self signed certificate");
-		debug(1, err);
-		callback.call(self, "failed");
-		return;
+	} catch (e) {
+		throw new Error("Error generating self signed certificate");
 	}
 
 	try {
 		obj.crl.value = certman.createEmptyCRL(obj.key.value,  obj.cert.value, 30, 0);
-	} catch (err) {
-		debug(1, "Error generating empty crl");
-		debug(1, err);
-		callback.call(self, "failed");
-		return;
+	} catch (e) {
+		throw new Error('Error generating CRL.')
 	}
 	callback.call(self, "certGenerated");
 };
 
+/* @description Crypto sensitive 
+*/
 exports.signRequest = function(self, csr, master, callback) {
+	"use strict";
 	var certman;
+	
 	try {
-		certman = require("../../common/manager/certificate_manager");		
+		certman = require("../../common/manager/certificate_manager/src/build/Release/certificate_manager");		
 	} catch (err) {
-		debug(1, "Error opening certificate manager obj file, please make sure you have compiled cert manager");
-		debug(1, err);
-		callback.call(self, "failed");
-		return;
+		throw new Error('Error opening certificate manager obj file, please make sure you have compiled cert manager.')
 	}
 	try {
 		var clientCert = certman.signRequest(csr, 30, master.key.value, master.cert.value);
 		callback.call(self, "certSigned", clientCert);
-	} catch(err) {
-		debug(1, "Error generating signed request");
-		debug(1, err);
-		return;
+	} catch(err1) {
+		throw new Error('Error generating signed request.')
 	}	
 };
 
-/* Before adding client it checks if client is already present or not.
- * Not used currently
- */
-exports.checkClient = function (self, cn){
-	if(self.connectedPzp[cn]) {
-		return true;
-	} else 	if(self.connectedPzh[cn]) {
-		return true;
-	}
-	return false;
-};
-
-/*  It removes the connected PZP details.
+/** @desription It removes the connected PZP/Pzh details.
  */
 exports.removeClient = function(self, conn) {
+	"use strict";
 	var i;
-	for (i in self.connected_pzp) {
-		if(conn.socket.remoteAddress === self.connectedPzp[i].address) {
-			delete self.connectedPzp[i];
+	for (i in self.connectedPzp) {
+		if(self.connectedPzp.hasOwnProperty(i)) {
+			if(conn.socket.remoteAddress === self.connectedPzp[i].address) {
+				delete self.connectedPzp[i];
+			}
 		}
 	}
 	
-	for (i in self.connected_pzh) {
-		if(conn.socket.remoteAddress === self.connectedPzh[i].address) {
-			delete self.connectedPzh[i];
+	for (i in self.connectedPzh) {
+		if(self.connectedPzj.hasOwnProperty(i)) {
+			if(conn.socket.remoteAddress === self.connectedPzh[i].address) {
+				delete self.connectedPzh[i];
+			}
 		}
 	}
 };
 
+var checkSchema = function(message) {
+	var myEnv, assert, schema, validation;
+	try {
+		myEnv = require('schema')('myEnvironment', {locale: 'en'});
+	} catch (err) {
+		throw err;
+	}
+	try {
+		assert = require('assert');
+	} catch (err) {
+		throw err;
+	}
+	try {
+		message = JSON.parse(message);
+	} catch(err) {
+		throw err;
+	}	
+	
+	schema = myEnv.Schema.create({
+		type: 'object',
+		properties:{
+			register: {
+				type:'boolean',
+				default: false
+			},
+			
+			type: {
+				type: 'string',
+				enum: ['JSONRPC', 'prop'],
+				minLength: 0,
+				maxLength: 7,
+				default: 'JSONRPC'
+			},
+			from: {
+				type: 'string',
+				minLength: 0,
+				maxLength: 99,
+				default: '',
+			},
+			to: {
+				type: 'string',
+				minLength: 0,
+				maxLength: 99,
+				default: '',
+			},
+			resp_to: {
+				type: 'string',
+				minLength: 0,
+				maxLength: 99,
+				default: '',
+			},
+			timestamp: {
+				type: 'string',
+				minLength: 0,
+				maxLength: 200,
+				default: '',
+			},
+			timeout: {
+				type: 'string',
+				minLength: 0,
+				maxLength: 200,
+				default: '',
+			},
+			payload: {
+				type: 'object',
+				default:[]
+			}			
+		},
+		additionalProperties: false
+	});
+	try {
+		validation = schema.validate(message);
+		assert.strictEqual(validation.isError(), false);
+		return validation.isError();
+	} catch (err2) {
+		console.log(validation.getError());
+		return true;
+	}
+};
+
+
 exports.processedMsg = function(self, data, dataLen, callback) {
-	var msg = data.toString('utf8');//.split('#')
+	"use strict";
+	var msg = data.toString('utf8');
 	if(msg[0] ==='#' && msg[msg.length-dataLen] === '#') {
 		msg = msg.split('#');
-		var parse = JSON.parse(msg[1]);
-		callback.call(self, parse);
+		/*if(checkSchema(msg[1]) === false) */{
+			var parse = JSON.parse(msg[1]);
+			callback.call(self, parse);
+		}
 	}	
 };
-/* Helper function used by messaging and rpc.
-* Object differentiates between different instance of Pzp.
-* @param message: rpc request or response message
-* @param address: address to forward message 
-* @param object: current pzp instance
+
+/**
+* @description Helper function used by messaging and rpc. Object differentiates between different instance of Pzp. This function is called via mesaging.
+* @param {Object} message rpc request or response message
+* @param {String} address address to forward message 
+* @param {Object} object current pzh or pzp instance
 */
 var send = function (message, address, object) {
+	"use strict";
 	message.resp_to = object.sessionId;
 	object.sendMessage(message, address);
 };
 
 var setMessagingParam = function(self){
+	"use strict";
 	messaging.setGetOwnId(self.sessionId);
 	messaging.setObjectRef(self);
 	messaging.setSendMessage(send);
 	messaging.setSeparator("/");
 };
-exports.setMessagingParam = setMessagingParam;
 
-
-/* Calls messaging function, to adapt to correct object and process received message
-* @param data, message forwarded to messaging  
+/** Calls messaging function, to adapt to correct object and process received message
+* @param data message forwarded to messaging  
 */
 exports.sendMessageMessaging = function(self, data) {
+	"use strict";
 	setMessagingParam(self);
-	if(typeof data.to !== 'undefined')
+	if(typeof data.to !== 'undefined') {
 		messaging.onMessageReceived(data, data.to);
-	else
+	} else {
 		messaging.onMessageReceived(data);
+	}
 };
 
-/* This functions configure pzp. It first check in current directory matching with common
+/** This functions configure pzp. It first check in current directory matching with common
 * name. It it finds then it does not set certificate vale in config structure. Else it just
 * sets certificate name to expect in directory
 * @param contents of certificate 
 * @param callback to be called after executing 
 */
 exports.configure = function(self, id, contents, callback) {
-	var id;
-	var name, i =0, j;
-	var flag = true, common = '', data1;
+	"use strict";
+	var name, i =0, j, flag = true, common = '', data1;
 
 	fs.readdir(__dirname, function(err, files) {
-		for(var i=0; i<files.length; i++) {
+		for(i = 0; i < files.length; i += 1) {
 			if( (files[i].indexOf(id,0) === 0) &&  
 			files[i].indexOf('master_cert.pem', 0) !== -1) {
 				id = files[i].split('_');
@@ -339,3 +406,7 @@ exports.configure = function(self, id, contents, callback) {
 	});	
 };
 
+exports.getId = getId;
+exports.debug = debug;
+exports.setMessagingParam = setMessagingParam;
+exports.checkSchema = checkSchema;

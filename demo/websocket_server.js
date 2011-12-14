@@ -9,7 +9,7 @@ if (typeof webinos === "undefined") {
 }
 webinos.session.pzp = require('../webinos/pzp/lib/session_pzp.js');
 
-var hostname = '' , serverPort = 0, webServerPort = 0;
+var hostname = 'localhost' , serverPort = 8081, webServerPort = 8080;
 process.argv.forEach(function(val, index, array) {
 	if(index === 2) 
 		hostname = val;
