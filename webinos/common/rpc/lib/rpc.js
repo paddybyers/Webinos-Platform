@@ -516,7 +516,7 @@
 		               webinosRoot + dependencies.api.events.location + 'lib/events.js',
 		               webinosRoot + dependencies.api.sensors.location + 'lib/rpc_sensors.js',
 		               webinosRoot + dependencies.api.tv.location + 'lib/webinos.rpc_tv.js',
-//		               webinosRoot + dependencies.api.deviceorientation.location + 'lib/webinos.deviceorientation.rpc.js',
+		               webinosRoot + dependencies.api.deviceorientation.location + 'lib/webinos.deviceorientation.rpc.js',
 		               webinosRoot + dependencies.api.vehicle.location + 'lib/webinos.vehicle.rpc.js',
 		               webinosRoot + dependencies.api.context.location,
 		               webinosRoot + dependencies.api.authentication.location + 'lib/webinos.authentication.rpc.js'

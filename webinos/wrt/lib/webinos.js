@@ -157,13 +157,16 @@
 			if (typeof TestModule !== 'undefined') typeMap['http://webinos.org/api/test'] = TestModule;
 			if (typeof WebinosGeolocation !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/geolocation'] = WebinosGeolocation;
             if (typeof WebinosDeviceOrientation !== 'undefined') typeMap['http://webinos.org/api/deviceorientation'] = WebinosDeviceOrientation;
-			if (typeof Vehicle !== 'undefined') typeMap['http://webinos.org/api/vehicle'] = Vehicle;
+
+            if (typeof Vehicle !== 'undefined') typeMap['http://webinos.org/api/vehicle'] = Vehicle;
 			if (typeof EventsModule !== 'undefined') typeMap['http://webinos.org/api/events'] = EventsModule;
-			if (typeof Sensor !== 'undefined') {
+			
+            if (typeof Sensor !== 'undefined') {
 				typeMap['http://webinos.org/api/sensors'] = Sensor;
 				typeMap['http://webinos.org/api/sensors.temperature'] = Sensor;
 			}
-			if (typeof UserProfileIntModule !== 'undefined') typeMap['UserProfileInt'] = UserProfileIntModule;
+			
+            if (typeof UserProfileIntModule !== 'undefined') typeMap['UserProfileInt'] = UserProfileIntModule;
 			if (typeof TVManager !== 'undefined') typeMap['http://webinos.org/api/tv'] = TVManager;
 			if (typeof DeviceStatusManager !== 'undefined') typeMap['http://wacapps.net/api/devicestatus'] = DeviceStatusManager;
 			if (typeof Contacts !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/contacts'] = Contacts;
@@ -171,8 +174,14 @@
 			if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
 			if (typeof AuthenticationModule !== 'undefined') typeMap['http://webinos.org/api/authentication'] = AuthenticationModule;
 			
+            
+            console.log(typeMap);
+            
+            console.log(baseServiceObj);
+            
+            
 			var serviceConstructor = typeMap[baseServiceObj.api];
-			if (typeof serviceConstructor !== 'undefined') {
+            if (typeof serviceConstructor !== 'undefined') {
 				// elevate baseServiceObj to usable local WebinosService object
 				var service = new serviceConstructor(baseServiceObj);
 				webinos.ServiceDiscovery.registeredServices++;

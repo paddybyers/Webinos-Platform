@@ -12,7 +12,7 @@ function getCurrentPosition (params, successCB, errorCB, objectRef){
 	var d = new Date();
 	var stamp = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
 	var stamp = stamp + d.getUTCMilliseconds();
-	position.timestamp = stamp; //NEEDS BE CONVERTED TO UTC
+	position.timestamp = stamp;
 	position.coords = new Object();
 	position.coords.latitude = Math.floor((car.position.latitude.get() / Math.pow(2,32) * 360) * 10000)/10000; 
 	position.coords.longitude = Math.floor((car.position.longitude.get() / Math.pow(2,32) * 360) * 10000)/10000;
@@ -64,7 +64,7 @@ function vehicleBusHandler(data){
 	}
 }
 
-function clearWatch = function(params, successCB, errorCB, objectRef) {
+function clearWatch(params, successCB, errorCB, objectRef) {
 	var watchIdKey = params[0];
 
 	for(var i = 0; i < listeners.length; i++){
