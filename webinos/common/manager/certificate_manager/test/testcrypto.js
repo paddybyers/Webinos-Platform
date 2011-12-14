@@ -1,6 +1,6 @@
 
 
-var certman = require("../src/build/Release/certificate_manager");
+var certman = require("../src/build/certificate_manager.node");
 
 
 var caKey = certman.genRsaKey(1024);
