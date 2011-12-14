@@ -12,7 +12,7 @@ def configure(conf):
 
 def build(bld):
   obj = bld.new_task_gen("cxx","shlib","node_addon")
-  obj.cxxflags = ["-g", "-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE", "-Wall", "-o build/certificate_manager.node]
+  obj.cxxflags = ["-g", "-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE", "-Wall"]
   obj.target = "certificate_manager"
   obj.source = ["certificate_manager.cpp","openssl_wrapper.cpp"]
   obj.uselib = ['LDFLAGS']
