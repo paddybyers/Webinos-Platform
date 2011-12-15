@@ -18,23 +18,23 @@
 	var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
 	if (typeof exports !== "undefined") {
-		var sessionPzh = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/session_pzh.js')),
-		var rpc = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js')),
+		var sessionPzh = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/session_pzh.js'));
+		var rpc = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js'));
 		
 		var rpcHandler = new RPCHandler();
 		rpc.loadModules(rpcHandler);
 
-		var sessionPzh = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js')),
+		var sessionPzh = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
 		
 		messaging.setRPCHandler(rpcHandler);
 		
-		var utils = require('./session_common.js'),
+		var utils = require('./session_common.js');
 		sessionPzp = {};
 	}
 	
-	var tls = require('tls'),
-	fs = require('fs'),
-	Pzp = null, 
+	var tls = require('tls');
+	fs = require('fs');
+	Pzp = null; 
 	tlsId = '';
 
 	Pzp = function () {
