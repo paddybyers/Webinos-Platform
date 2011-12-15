@@ -1,7 +1,9 @@
 #!/bin/bash 
 if [ -z "$NODE_ROOT" ] 
 then 
-  echo "NODE_ROOT variable is not set! It must point to the root of the node's git directory and contain folders src, deps/v8/include and deps/uv/include"
+  echo "NODE_ROOT enviromnet variable is not set! It must point to the root of the node's git directory and contain folders src, deps/v8/include and deps/uv/include"
+  echo "Check https://help.ubuntu.com/community/EnvironmentVariables on how to setup persistent environment variables"
+  echo "Probably the easiest way is to add an 'export NODE_ROOT=$HOME/node' in your ~/.bashrc file"
   exit 1 
 else
 	Proper_Node_Dir=1
