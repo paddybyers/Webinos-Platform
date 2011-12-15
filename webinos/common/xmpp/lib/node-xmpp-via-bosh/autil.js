@@ -76,7 +76,7 @@ exports.xmlHttpRequest = function(options, cb, body)
 	hr.end();
 }
 
-var logLevel = "FATAL";
+var logLevel = "";
 
 exports.setLogLevel = function(ss)
 {

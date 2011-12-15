@@ -16,10 +16,10 @@ var connection;
 var client;
 
 
-function initialize(pzhConnection, jid) {
+function initialize(pzhConnection, jid, rpcHandler) {
 	connection = pzhConnection;
 	
-	var geoLocationFeature = webinosFeatures.factory[webinosFeatures.NS.GEOLOCATION]();
+	var geoLocationFeature = webinosFeatures.factory[webinosFeatures.NS.GEOLOCATION](rpcHandler);
 	geoLocationFeature.local = true;
 	geoLocationFeature.shared = false;
 	geoLocationFeature.device = jid;
@@ -29,7 +29,7 @@ function initialize(pzhConnection, jid) {
 	//TODO here goes the RPC stuff
 	// should result in a call to geoLocationFeature.invoke(payload);
 
-	var get42Feature = webinosFeatures.factory[webinosFeatures.NS.GET42]();
+	var get42Feature = webinosFeatures.factory[webinosFeatures.NS.GET42](rpcHandler);
 	get42Feature.local = true;
 	get42Feature.shared = false;
 	get42Feature.device = jid;

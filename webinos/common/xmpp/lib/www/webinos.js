@@ -32,6 +32,7 @@ function write(text, responseto, msgid) {
 
 if (typeof webinos === 'undefined') webinos = {};
 
+webinos.rpc = new RPCHandler;
 webinos.rpc.setWriter(write);
 
 channel.on('message', function (message) {

@@ -3,6 +3,6 @@
     "level": {
         "*": "trace",
         "webserver.js": "warn",
-		"xmpp.js": "debug"
+		"xmpp.js": "trace"
     }
 }
