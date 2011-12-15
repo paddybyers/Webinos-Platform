@@ -16,44 +16,69 @@
 
 (function()
 {
-
   Contacts = function(obj) {
-    this.base = WebinosService;
-    this.base(obj);
-    
+		this.base = WebinosService;
+		this.base(obj);
+		
+		this.authenticate = authenticate;
+		this.isAlreadyAuthenticated = isAlreadyAuthenticated;
+		this.getAllContacts = getAllContacts;
+		this.find = find;
+		
+		
+//		this._testAttr = "f@@##!!!!";
+//		this.__defineGetter__("testAttr", function (){
+//			return this._testAttr + " Success";
   };
+  
+  Contacts.prototype = new WebinosService;
 
-//  /**
-//   * returns true if contacts service is authenticated with GMail using username and password
-//   * or a valid address book file could be open
-//   * TODO this method has to be removed when user profile will handle this
-//   * */
-  Contacts.prototype.authenticate = function(attr, successCB)
+
+	//THIS IS NOT working for some reason
+	Contacts.prototype.bindService = function (bindCB, serviceId) {
+	
+		// actually there should be an auth check here or whatever, but we just always bind
+		if (typeof bindCB.onBind === 'function') {
+			bindCB.onBind(this);
+		};
+	}
+
+
+  /**
+   * returns true if contacts service is authenticated with GMail using username and password
+   * or a valid address book file could be open
+   * TODO this method has to be removed when user profile will handle this
+   * */
+  function authenticate(attr, successCB,errorCB)
   {
-    var rpc = webinos.rpc.createRPC(this, "authenticate", [ attr ]); // RPCservicename,
+  	console.log("++++++++++++++++++++++++ "+ this.id);
+    var rpc = webinos.rpcHandler.createRPC(this, "authenticate", [ attr ]); // RPCservicename,
     // function
-    webinos.rpc.executeRPC(rpc, function(params)
+    webinos.rpcHandler.executeRPC(rpc, function(params)
     {
       successCB(params);
     }, function(error)
     {
+      errorCB(error);
     });
   };
-
+  
+  
   /**
    * returns true if contacts service is already authenticated with GMail
    * or a valid address book file is aready open
    * TODO this method has to be removed when user profile will handle this
    * */
-  Contacts.prototype.isAlreadyAuthenticated = function(attr,successCB)
+  function isAlreadyAuthenticated(attr,successCB,errorCB)
   {
-    var rpc = webinos.rpc.createRPC(this, "isAlreadyAuthenticated", [ attr ]); // RPCservicename,
+    var rpc = webinos.rpcHandler.createRPC(this, "isAlreadyAuthenticated", [ attr ]); // RPCservicename,
     // function
-    webinos.rpc.executeRPC(rpc, function(params)
+    webinos.rpcHandler.executeRPC(rpc, function(params)
     {
       successCB(params);
     }, function(error)
     {
+      errorCB(error);
     });
   };
 
@@ -61,19 +86,20 @@
    * returns a list of all contact
    * TODO remove once debugging and testing are successfull
    * */
-   Contacts.prototype.getAllContacts = function(attr,successCB)
+   function getAllContacts(attr,successCB, errorCB)
    {
-   var rpc = webinos.rpc.createRPC(this, "getAllContacts", [ attr ]); 
+     var rpc = webinos.rpcHandler.createRPC(this, "getAllContacts", [ attr ]); 
    //RPCservicename,
    // function
-   webinos.rpc.executeRPC(rpc, function(params)
-   {
-   successCB(params);
-   }, function(error)
-   {
-   });
+     webinos.rpc.executeRPC(rpc, function(params)
+     {
+     successCB(params);
+     }, function(error)
+     {
+       errorCB(error);
+     });
    };
-  
+
   
 
 
@@ -82,9 +108,9 @@
    * 
    * TODO full W3C specs
    */
-  Contacts.prototype.find = function(attr,successCB)
+  function find(attr,successCB,errorCB)
   {
-    var rpc = webinos.rpc.createRPC(this, "find", [ attr ]); // RPCservicename,
+    var rpc =webinos.rpcHandler.createRPC(this, "find", [ attr ]); // RPCservicename,
     //RPCservicename,
     // function
     webinos.rpc.executeRPC(rpc, function(params)
@@ -92,6 +118,7 @@
     successCB(params);
     }, function(error)
     {
+      errorCB(error);
     });
   };
 
