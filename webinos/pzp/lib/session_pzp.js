@@ -24,18 +24,18 @@
 		var rpcHandler = new RPCHandler();
 		rpc.loadModules(rpcHandler);
 
-		var sessionPzh = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
+		var messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
 		
 		messaging.setRPCHandler(rpcHandler);
 		
 		var utils = require('./session_common.js');
-		sessionPzp = {};
+		var sessionPzp = {};
 	}
 	
 	var tls = require('tls');
-	fs = require('fs');
-	Pzp = null; 
-	tlsId = '';
+	var fs = require('fs');
+	var Pzp = null; 
+	var tlsId = '';
 
 	Pzp = function () {
 		// Stores PZH server details

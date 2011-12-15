@@ -499,7 +499,8 @@
 		var path = require('path');
 		var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
 		var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
-		var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
+		//We need to add the trailing / or add it later on
+		var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location)+'/';
 
 		var Pzp = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_pzp.js'));
 		
