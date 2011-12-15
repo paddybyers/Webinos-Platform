@@ -12,14 +12,20 @@
 		webinos.session = {}; 
 	}
 
+	var path = require('path');
+	var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
+	var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+	var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
+
 	if (typeof exports !== "undefined") {
-		var sessionPzh = require('../../pzh/lib/session_pzh.js');
+		var sessionPzh = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/session_pzh.js')),
+		var rpc = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js')),
 		
-		var rpc = require("../../common/rpc/lib/rpc.js");
 		var rpcHandler = new RPCHandler();
 		rpc.loadModules(rpcHandler);
+
+		var sessionPzh = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js')),
 		
-		var messaging = require("../../common/manager/messaging/lib/messagehandler.js");
 		messaging.setRPCHandler(rpcHandler);
 		
 		var utils = require('./session_common.js'),
@@ -381,8 +387,8 @@
 			connectedApp ={},
 			http = require('http'),
 			url = require('url'),
-			path = require('path'),
-			sessionPzh = require('../../pzh/lib/session_pzh.js'),
+			sessionPzh = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/session_pzh.js')),
+			
 			WebSocketServer = require('websocket').server;				
 		
 		function getContentType(uri) {
