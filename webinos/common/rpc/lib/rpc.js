@@ -496,12 +496,13 @@
 	function loadModules(rpcHdlr) {
 		if (typeof module === 'undefined') return;
 		
-		var moduleRoot = require('../dependencies.json');
-		var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
-		var webinosRoot = '../' + moduleRoot.root.location;
+		var path = require('path');
+		var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
+		var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+		var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
-		// webinos related modules
-		var Pzp = require(webinosRoot + dependencies.pzp.location + 'lib/session_pzp.js');
+		var Pzp = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_pzp.js'));
+		
 		rpcHdlr.setPzp(Pzp);
 		
 		//Fix for modules located in old rpc folder
