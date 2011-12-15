@@ -3,12 +3,14 @@
 
 	var EventEmitter = require("events").EventEmitter;
 
-	var localDependencies = require("../dependencies.json");
+	var __path = require("path");
 
-	var root = "../" + localDependencies.root.location;
-	var dependencies = require(root + "/dependencies.json");
+	var localDependencies = require(__path.resolve(__dirname, __path.join("..", "dependencies.json")));
 
-	var utils = require(root + dependencies.rpc.location + "lib/webinos.utils.js");
+	var root = __path.resolve(__dirname, __path.join("..", localDependencies.root.location));
+	var dependencies = require(__path.join(root, "dependencies.json"));
+
+	var utils = require(__path.join(root, dependencies.rpc.location, "lib", "webinos.utils.js"));
 
 	exports.DOMException = function (type, message) {
 		if (typeof type !== "string")
