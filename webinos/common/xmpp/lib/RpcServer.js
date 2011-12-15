@@ -11,13 +11,6 @@ var fs = require("fs");
 var logger = require('nlogger').logger('RpcServer.js');
 var io;
 
-// var path = require('path');
-// var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
-// var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
-// var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
-// 
-// var rpc = require(path.join(webinosRoot, dependencies.rpc.location, "lib/rpc.js"));
-
 //RPC server initialization
 function configure(server, rpcHandler) {
 	io = server;
