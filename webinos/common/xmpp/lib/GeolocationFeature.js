@@ -9,13 +9,14 @@ var GenericFeature = require('./GenericFeature.js');
 var sys = require('util');
 var logger = require('nlogger').logger('GeolocationFeature.js');
 
-var moduleRoot = require('../dependencies.json');
-var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
-var webinosRoot = '../' + moduleRoot.root.location;
+var path = require('path');
+var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
+var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
-var rpc = require(webinosRoot + dependencies.rpc.location + "lib/rpc.js");
+//var rpc = require(path.join(webinosRoot, dependencies.rpc.location, "lib/rpc.js"));
 
-var geolocation = require(webinosRoot + dependencies.api.geolocation.location + "lib/rpc_geolocation.js");
+var geolocation = require(path.join(webinosRoot, dependencies.api.geolocation.location, "lib/webinos.geolocation.rpc.js"));
 
 /*
  * Geolocation feature, defined as subclass of GenericFeature
@@ -28,9 +29,10 @@ var geolocation = require(webinosRoot + dependencies.api.geolocation.location + 
 
 var NS = "urn:services-webinos-org:geolocation";
 
-function GeolocationFeature() {
-	GenericFeature.GenericFeature.call(this);
+function GeolocationFeature(rpcHandler) {
+	GenericFeature.GenericFeature.call(this, rpcHandler);
 
+	this.geo = new geolocation.Service(rpcHandler)
 	this.api = NS;
 	this.displayName = "GeolocationFeature" + this.id;
 	this.description = 'Geolocation Feature.';
@@ -53,7 +55,7 @@ function GeolocationFeature() {
 		var payload = JSON.parse(params);
 		var conn = this.uplink;
 
-		geolocation.GeolocationModule.getCurrentPosition(payload, function(result) {
+		this.geo.getCurrentPosition(payload, function(result) {
 			logger.debug("The answer is: " + JSON.stringify(result));
 			logger.debug("Sending it back via XMPP...");
 			conn.answer(stanza, JSON.stringify(result));
@@ -64,7 +66,7 @@ function GeolocationFeature() {
 
 	this.on('invoked-from-local', function(featureInvoked, params, successCB, errorCB, objectRef) {
 		logger.trace('on(invoked-from-local)');
-		geolocation.GeolocationModule.getCurrentPosition(params, successCB, errorCB, objectRef);
+		this.geo.getCurrentPosition(params, successCB, errorCB, objectRef);
 		logger.trace('ending on(invoked-from-local)');
 	});
 		
@@ -73,7 +75,7 @@ function GeolocationFeature() {
 	//     at this time invoke is handled by the GenericFeature to dispatch the call locally or remotely.
 	
 	// We add the 'id' to the name of the feature to make this feature unique to the client.
-	webinos.rpc.registerObject(this);  // RPC name
+	rpcHandler.registerObject(this);  // RPC name
 }
 
 sys.inherits(GeolocationFeature, GenericFeature.GenericFeature);

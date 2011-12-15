@@ -14,10 +14,10 @@ var fm = require('./LocalFeatureManager.js');
 var connection;
 var io;
 
-function start(socketIO, pzhConnection, jid) {
+function start(socketIO, pzhConnection, jid, rpcHandler) {
 	logger.trace("Entering start()");
 
-	fm.initialize(pzhConnection, jid);
+	fm.initialize(pzhConnection, jid, rpcHandler);
 
 	connection = pzhConnection;
 	io = socketIO;

@@ -42,25 +42,29 @@ On Ubuntu / Debian: apt-get install libexpat1
 
 npm install node-xmpp
 
-4. node-stringprep (optional): https://github.com/astro/node-stringprep#readme
+4. node-stringprep (optional)
+
+npm install node-stringprep
 
 5. ltx: npm install ltx
 
 6. socket.io: npm install socket.io
 
+7. nlogger: npm install nlogger
+
 Instructions:
 
 1. Start the client.
 
-node pzp.js <index> <jid> <password>
+node pzp.js <index> <jid> <password> [bosh]
 
 For example:
 
 "node pzp.js 0 w021@servicelab.org/mobile webinos" starts the PZP on port 8000.
 "node pzp.js 1 w021@servicelab.org/tv webinos" starts the PZP on port 8010.
+"node pzp.js 2 w021@servicelab.org/viabosh webinos http://xmpp.servicelab.org/jabber/" starts the PZP on port 8020 and connects via http.
 
-2. To see if things are working. Start a second client for the same jid (other resource). You can now see the client discovering
-the features of the other instance and vice versa.
+2. To see if things are working. Start a second client for the same jid (other resource). You can now see the client discovering the features of the other instance and vice versa.
 
 If you share, unshare or invoke a feature using the browser you can see the corresponding RPC and XMPP calls in the logging of the PZP.
 
@@ -68,6 +72,5 @@ TODOs:
 
 1. Correctly implement private methods as private.
 2. Think through how to pass queries and results back and forth between the xmpp connection and the webinos code.
-
-
-
+3. Make it a proper node module.
+4. Split the code into a XMPP piece and a services piece.

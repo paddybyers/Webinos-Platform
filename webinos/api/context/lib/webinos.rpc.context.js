@@ -47,7 +47,7 @@
         errorCallback(new ContextError("Context Query Type '" + query.type + "' not found"))
     }
 
-    function VehicleError(message){
+    function ContextError(message){
       this.message = message;
     }
   }

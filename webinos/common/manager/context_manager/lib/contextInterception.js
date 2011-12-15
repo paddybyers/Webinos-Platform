@@ -33,7 +33,7 @@ var dependencies = require('../' + moduleRoot.root.location + '/dependencies.jso
 var webinosRoot = '../' + moduleRoot.root.location;
 var dbpath = pathclass.resolve(__dirname + '/../' + webinosRoot + '/storage/context/pzp/log.json');
 require('./contextExtraction.js');
-
+var registeredListeners = [];
 
 
 //Open the database
@@ -44,7 +44,6 @@ console.log("Log DB Initialized");
 webinos.context.logContext = function(myObj, res) {
   if (!res['result']) res['result']={};
 
-  //console.log(myObj);
   // Create the data object to log
   var myData = new webinos.context.ContextData(myObj['method'],myObj['params'], res['result']);
 
@@ -60,6 +59,31 @@ webinos.context.logContext = function(myObj, res) {
   }
 };
 
+webinos.context.logListener = function(myObj){
+  // Create the data object to log
+  var myData = new webinos.context.ContextData(myObj['method'],myObj['params'], '');
+
+  var dataIn = {timestamp:myData.timestamp, api: myData.call.api, hash: myData.call.hash, method: myData.call.method, params:myData.params, result:myData.results};
+
+
+  if (myData.call.api && !(myData.call.api =='http://webinos.org/api/context'))
+  {
+    regListener = {};
+    regListener.dataIn = dataIn;
+    regListener.ObjectRef = myObj.fromObjectRef;
+
+    registeredListeners[registeredListeners.length] = regListener;
+
+    //Don't log Context API calls
+
+    webinos.context.database.insert([dataIn]);
+    console.log(" Context Data Saved");
+    webinos.context.saveContext(dataIn);
+  }
+}
+
+
+/*
 webinos.context.find = function(findwhat, success,fail){
   var where = {field: "method", compare: "equals", value: "onchannelchangeeventhandler"};
   var fields = {params: true};
@@ -75,4 +99,4 @@ webinos.context.find = function(findwhat, success,fail){
   console.log("closing up");
 
 };
-
+ */
