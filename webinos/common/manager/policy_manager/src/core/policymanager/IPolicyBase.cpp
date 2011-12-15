@@ -39,10 +39,15 @@ IPolicyBase::~IPolicyBase()
 	// TODO Auto-generated destructor stub
 	}
 
-bool IPolicyBase::matchSubject(Request*){}
+bool IPolicyBase::matchSubject(Request*){
+	return false;
+}
 
-Effect IPolicyBase::evaluate(Request *){}
+Effect IPolicyBase::evaluate(Request *){
+	return DENY;
+}
 
 PolicyType IPolicyBase::get_iType(){
 	return POLICY_SET;
 }
+
