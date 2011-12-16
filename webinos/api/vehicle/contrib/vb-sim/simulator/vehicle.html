@@ -1,0 +1,137 @@
+<html>
+<head>
+	<title>vehicle simulator - earlyp rototype</title>
+	<link rel="icon" href="webinos.ico" type="image/x-icon">
+	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
+	<script type="text/javascript" src="jquery-1.6.4.min.js"></script>
+	<script type="text/javascript" src="http://localhost:9898/nowjs/now.js"></script>
+	<script type="text/javascript">
+		now.ready(function(){ 
+			$('#inputGear').removeAttr('disabled');
+		});
+	
+		$(document).ready(function() {
+		
+			$('#inputGear').change(function(){
+				now.setGear($('#inputGear').val());	
+			});
+			
+			$('#setTripComputer').click(function(){
+				var tcData = new Object();
+				tcData.c1 = $('#tc-c1').val();
+				tcData.c2 = $('#tc-c2').val();
+				tcData.s1 = $('#tc-s1').val();
+				tcData.s2 = $('#tc-s2').val();
+				tcData.d = $('#tc-d').val();
+				tcData.m = $('#tc-m').val();
+				tcData.r = $('#tc-r').val();
+				now.setTripComputer(tcData);	
+			});
+
+			$('#setPsFront').click(function(){
+				var psData = new Object();
+				psData.l = $('#pf-l').val();
+				psData.ml = $('#pf-ml').val();
+				psData.mr = $('#pf-mr').val();
+				psData.r = $('#pf-r').val();
+				now.setPsFront(psData);	
+			});
+
+			$('#setPsRear').click(function(){
+				var psData = new Object();
+				psData.l = $('#pr-l').val();
+				psData.ml = $('#pr-ml').val();
+				psData.mr = $('#pr-mr').val();
+				psData.r = $('#pr-r').val();
+				now.setPsRear(psData);	
+			});
+		
+		
+		});
+	
+	</script>
+</head>
+	
+<body>
+<div id="content">
+	<div id="header">
+		<h1><img src="testbed_logo.png"></h1>
+     </div>
+     <div id="functions">
+
+
+	<h3>Gear</h3>
+	<p><label class='select'>Gear: </label>
+	<select id="inputGear" disabled>
+				<option value=''></option>
+				<option value='R'>R</option>
+				<option value='P'>P</option>
+				<option value='N'>N</option>
+				<option value='1'>1</option>
+				<option value='2'>2</option>
+				<option value='3'>3</option>
+				<option value='4'>4</option>
+				<option value='5'>5</option>
+				<option value='6'>6</option>
+			</select>
+			
+	</p>
+	<h3>Tripcomputer</h3>
+	<p><label>Avg. Speed 1:</label><input type='text' value='48.5' id='tc-s1'></p>
+	<p><label>Avg. Speed 2:</label><input type='text' value='46.5' id='tc-s2'></p>
+	<p><label>Avg. Consumption 1:</label><input type='text' value='5.7' id='tc-c1'></p>
+	<p><label>Avg. Consumption 2:</label><input type='text' value='6.1' id='tc-c2'></p>
+	<p><label>Mileage:</label><input type='text' value='11298' id='tc-m'></p>
+	<p><label>Range:</label><input type='text' value='1230.2' id='tc-r'></p>
+	<p><label>Distance:</label><input class='input' type='text' value='33.3' id='tc-d'></p>
+	<input type='button' id='setTripComputer' value="Set Tripcomputer"/>
+	
+	<h3>Parksensors Front</h3>
+	<p><label>Left:</label><input type='text' value='255' id='pf-l'></p>
+	<p><label>MidLeft:</label><input type='text' value='255' id='pf-ml'></p>
+	<p><label>MidRight:</label><input type='text' value='255' id='pf-mr'></p>
+	<p><label>Right:</label><input type='text' value='255' id='pf-r'></p>
+	<input type='button' id='setPsFront' value="Set Parksensors Front"/>
+
+	<h3>Parksensors Rear</h3>
+	<p><label>Left:</label><input type='text' value='255' id='pr-l'></p>
+	<p><label>MidLeft:</label><input type='text' value='255' id='pr-ml'></p>
+	<p><label>MidRight:</label><input type='text' value='255' id='pr-mr'></p>
+	<p><label>Right:</label><input type='text' value='255' id='pr-r'></p>
+	<input type='button' id='setPsRear' value="Set Parksensors Rear"/>
+	
+	
+	<h3>Lights</h3>
+	<p></p>
+	<p></p>
+
+	<h3>Wipers</h3>
+	
+	<h3>Climate Control</h3>
+	
+	<h3>Destination Events </h3>
+			<p><label class='select'>Type: </label>
+	<select id="dType" >
+				<option value=''></option>
+				<option value='destination-changed'>changed</option>
+				<option value='destination-reached'>reached</option>
+				<option value='destination-cancelled'>cancelled</option>
+			</select>
+			</p>
+	<p><label>Country:</label><input type='text' value='Germany' id='d-c1'></p>
+	<p><label>Region:</label><input type='text' value='Bavaria' id='d-r'></p>
+	<p><label>County:</label><input type='text' value='' id='d-c2'></p>
+	<p><label>City:</label><input type='text' value='Munich' id='d-c3'></p>
+	<p><label>Street:</label><input type='text' value='Hanauer Str. ' id='d-s1'></p>
+	<p><label>Streetnumber:</label><input type='text' value='46' id='d-s2'></p>
+	<p><label>Premises:</label><input class='input' type='text' value='' id='d-p'></p>
+	<p><label>add. Info:</label><input class='input' type='text' value='' id='d-i'></p>
+	<p><label>add. postalCode:</label><input class='input' type='text' value='80992' id='d-c4'></p>
+  	 <input type='button' id='setDestinationEvent' value="Set Destination Event"/>
+
+	</div>
+	</div>
+</body>
+
+
+</html>
