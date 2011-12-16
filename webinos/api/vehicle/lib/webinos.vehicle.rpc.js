@@ -12,20 +12,22 @@ function VehicleModule(rpcHandler) {
 		var vehicleBusAvailable = vehicleSystem.available;
 		var car = vehicleSystem.most;
 	}catch(e){
-        try{
+        console.log(e);
+    }
+    
+    try{
         //try to getSimulator
         var car = require('../../vehicle/contrib/vb-sim/vs.js');
 		var vehicleSimulatorAvailable = true;
         
-        }catch(e){
+    }catch(e){
             console.log(e);
-        }
     }
 	
 	var implFile;
     
     if(vehicleBusAvailable){
-        implFile = 'vehicle';
+        implFile = 'most';
         console.log('connecting to vehicle');
     }else if(vehicleSimulatorAvailable){
         implFile = 'sim';
