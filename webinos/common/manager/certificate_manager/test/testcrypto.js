@@ -1,40 +1,48 @@
 
 
-var certman = require("../src/build/certificate_manager.node");
+var certman = require("../src/build/Release/certificate_manager");
 
+var debug = true;
+var caKey = null;
+caKey = certman.genRsaKey(1024);
+if (debug) console.log("CA Master Key \n[" + caKey + "]\n");
 
-var caKey = certman.genRsaKey(1024);
-console.log("CA Master Key \n" + caKey + "\n");
-
-var caCertReq = certman.createCertificateRequest(caKey, 
+var caCertReq = null;
+caCertReq = certman.createCertificateRequest(caKey, 
     "UK","OX","Oxford","Univ. Oxford","Computer Science", "Johns PZH CA", "john.lyle@cs.ox.ac.uk");
-console.log("CA Certificate Request: \n" + caCertReq + "\n");
+if (debug) console.log("CA Certificate Request: \n[" + caCertReq + "]\n");
 
-var caCert = certman.selfSignRequest(caCertReq, 30, caKey);
-console.log("CA Certificate: \n" + caCert + "\n");
-
-
-var crl = certman.createEmptyCRL(caKey, caCert, 30, 0);
-console.log("Empty PZH CRL: \n" + crl + "\n");
+var caCert = null;
+caCert = certman.selfSignRequest(caCertReq, 30, caKey);
+if (debug) console.log("CA Certificate: \n[" + caCert + "]\n");
 
 
+var crl = null;
+crl = certman.createEmptyCRL(caKey, caCert, 30, 0);
+if (debug) console.log("Empty PZH CRL: \n[" + crl + "]\n");
 
 
 
-var pzpKey = certman.genRsaKey(1024);
-console.log("Dummy PZP Master Key \n" + pzpKey + "\n");
 
-var pzpCertReq = certman.createCertificateRequest(pzpKey, 
+
+var pzpKey = null; 
+pzpKey = certman.genRsaKey(1024);
+if (debug) console.log("Dummy PZP Master Key \n[" + pzpKey + "]\n");
+
+var pzpCertReq = null;
+pzpCertReq = certman.createCertificateRequest(pzpKey, 
     "UK","OX","Oxford","Univ. Oxford","Computer Science", "Johns PZP", "john.lyle@cs.ox.ac.uk");
-console.log("PZP Certificate Request: \n" + pzpCertReq + "\n");
+if (debug) console.log("PZP Certificate Request: \n[" + pzpCertReq + "]\n");
 
-var pzpCert = certman.signRequest(pzpCertReq, 30, caKey, caCert);
-console.log("PZP Certificate, signed by PZH CA: \n" + pzpCert + "\n");
+var pzpCert = null;
+pzpCert = certman.signRequest(pzpCertReq, 30, caKey, caCert);
+if (debug) console.log("PZP Certificate, signed by PZH CA: \n[" + pzpCert + "]\n");
 
 
 
 
-var crlWithKey = certman.addToCRL(caKey, crl, pzpCert);
-console.log("PZP Certificate revoked, new CRL: \n" + crlWithKey + "\n");
+var crlWithKey = null;
+crlWithKey = certman.addToCRL(caKey, crl, pzpCert);
+if (debug) console.log("PZP Certificate revoked, new CRL: \n[" + crlWithKey + "]\n");
 
  
