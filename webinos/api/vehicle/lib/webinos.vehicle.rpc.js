@@ -9,16 +9,15 @@ function VehicleModule(rpcHandler) {
     // figure out which impl to use
 	try{
 		var vehicleSystem = require('../../vehicle/contrib/vb-con/vc.js');
-		var vehicleBusAvailable = vehicleSystem.available;
-		var car = vehicleSystem.most;
+		vehicleBusAvailable = vehicleSystem.available;
+		car = vehicleSystem.most;
 	}catch(e){
         console.log(e);
     }
         try{
         //try to getSimulator
-        var car = require('../../vehicle/contrib/vb-sim/vs.js');
-		var vehicleSimulatorAvailable = true;
-        }catch(e){
+        	car = require('../../vehicle/contrib/vb-sim/vs.js');
+		vehicleSimulatorAvailable = true;
             console.log(e);
         }
 	
