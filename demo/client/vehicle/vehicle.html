@@ -59,6 +59,7 @@
 					var handleTripData = function(data){
 						postMessage("info","new TripComputer-Event received.");
 						$('#info').empty();
+						console.log(data);
 						$('#info').append("<p>Average Consumption1: "+ data.averageConsumption1 +"</p>");
 						$('#info').append("<p>Average Consumption2: "+ data.averageConsumption2 +"</p>");
 						$('#info').append("<p>Average Speed1: "+ data.averageSpeed1 +"</p>");
@@ -230,6 +231,7 @@
 						
 								disableInit();
 						}});
+						
                         webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/deviceorientation'), {onFound: function (service) {
 								orientation = service;
 								orientation.bindService({onBind: function (service) {}});
