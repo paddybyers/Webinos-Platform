@@ -31,7 +31,7 @@
 			console.log(rpc);
 			channel.send(JSON.stringify(rpc));
 		} else {
-            console.log('creating callback');
+            		console.log('creating callback');
 			console.log('WebSocket Client: Message Sent');
 			console.log(message)
 			channel.send(JSON.stringify(message));
