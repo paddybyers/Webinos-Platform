@@ -15,32 +15,8 @@
 	else
 		var utils = webinos.utils || (webinos.utils = {});
 
-	exports.utils = {};
 	var sessionId;
-	exports.utils.request = function (service, method, objectRef, successCallback, errorCallback, responseto, msgid) {
-		return function () {
-			var params = Array.prototype.slice.call(arguments);
-			var message = exports.createRPC(service, method, params);
-
-			if (objectRef)
-				message.fromObjectRef = objectRef;
-
-			exports.executeRPC(message, utils.callback(successCallback, this), utils.callback(errorCallback, this));
-		};
-	}
-
-	exports.utils.notify = function (service, method, objectRef, responseto, msgid) {
-		return function () {
-			var params = Array.prototype.slice.call(arguments);
-			var message = exports.createRPC(service, method, params);
-
-			if (objectRef)
-				message.fromObjectRef = objectRef;
-
-			exports.executeRPC(message);
-		};
-	}
-
+	
 	var contextEnabled = false;
 
 	function logObj(obj, name){
@@ -321,6 +297,34 @@
 
 		return rpc;
 	};
+	
+	RPCHandler.prototype.request = function (service, method, objectRef, successCallback, errorCallback) {
+		var self = this; // TODO Bind returned function to "this", i.e., an instance of RPCHandler?
+		
+		return function () {
+			var params = Array.prototype.slice.call(arguments);
+			var message = self.createRPC(service, method, params);
+
+			if (objectRef)
+				message.fromObjectRef = objectRef;
+
+			self.executeRPC(message, utils.callback(successCallback, this), utils.callback(errorCallback, this));
+		};
+	};
+
+	RPCHandler.prototype.notify = function (service, method, objectRef) {
+		var self = this; // TODO Bind returned function to "this", i.e., an instance of RPCHandler?
+		
+		return function () {
+			var params = Array.prototype.slice.call(arguments);
+			var message = self.createRPC(service, method, params);
+
+			if (objectRef)
+				message.fromObjectRef = objectRef;
+
+			self.executeRPC(message);
+		};
+	};
 
 	/**
 	 * Registers a Webinos service object as RPC request receiver.
@@ -475,6 +479,16 @@
 			this.serviceAddress = obj.serviceAddress || '';
 		}
 	};
+	
+	this.RPCWebinosService.prototype.getInformation = function () {
+		return {
+			id: this.id,
+			api: this.api,
+			displayName: this.displayName,
+			description: this.description,
+			serviceAddress: this.serviceAddress
+		};
+	};
 
 	/**
 	 * Webinos ServiceType from ServiceDiscovery
@@ -504,7 +518,7 @@
 		               webinosRoot + dependencies.api.service_discovery.location + 'lib/rpc_servicedisco.js',
 		               webinosRoot + dependencies.api.get42.location + 'lib/rpc_test2.js',
 		               webinosRoot + dependencies.api.get42.location + 'lib/rpc_test.js',
-//		               webinosRoot + dependencies.api.file.location + 'lib/webinos.file.rpc.js',
+		               webinosRoot + dependencies.api.file.location + 'lib/webinos.file.rpc.js',
 		               webinosRoot + dependencies.api.geolocation.location + 'lib/webinos.geolocation.rpc.js',
 		               webinosRoot + dependencies.api.events.location + 'lib/events.js',
 		               webinosRoot + dependencies.api.sensors.location + 'lib/rpc_sensors.js',

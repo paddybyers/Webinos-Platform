@@ -1,4 +1,12 @@
-var sqlite3 = module.exports = exports = require('./node_sqlite3.node');
+try {
+  var sqlite3 = module.exports = exports = require('./node_sqlite3.node');
+}
+catch(err){
+  var sqlite3 = module.exports = exports = require('./sqlite3_bindings.node');
+}
+
+
+
 var path = require('path');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
