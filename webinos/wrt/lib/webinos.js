@@ -3,7 +3,7 @@
 	var channel = null;
 	var sessionid = null;
 	var pzpId, pzhId, connectedPzp={}, connectedPzh={};
-	
+	var serviceLocation;
 	webinos.message_send_messaging = function(msg, to) {
 		msg.resp_to = sessionid;
 		channel.send(JSON.stringify(msg));
@@ -51,6 +51,16 @@
 		return otherpzp;
 	}
 	
+	webinos.setServiceLocation = function (loc) {
+		serviceLocation = loc;
+	}
+	// If service location is not set, sets pzpId
+	webinos.getServiceLocation = function() {
+		if ( typeof serviceLocation !== "undefined" )
+			return serviceLocation;
+		else 
+			return pzpId;
+	}
 	/**
 	 * Creates the socket communication channel
 	 * for a locally hosted websocket server at port 8080
@@ -60,25 +70,26 @@
 	 function createCommChannel(successCB) {
 		try{
 			var port = parseInt(location.port) + 1;
-			if (isNaN(port)) port = 81;
+			if (isNaN(port)) port = 8081;
 			channel  = new WebSocket('ws://'+window.location.hostname+':'+port);
 			} catch(e) {
 			channel  = new MozWebSocket('ws://'+window.location.hostname+':'+port);
 		}
 				
 		channel.onmessage = function(ev) {
-			console.log('WebSocket Client: Message Received');
-			console.log(ev.data);
+			console.log('WebSocket Client: Message Received : ' + JSON.stringify(ev.data));
 			var data = JSON.parse(ev.data);
 			if(data.type === "prop" && data.payload.status === 'registeredBrowser') {
 				sessionid = data.to;
 				pzpId = data.from;
+
 				if(typeof data.payload.message !== "undefined") {
 					pzhId = data.payload.message.pzhId;
 					connectedPzp = data.payload.message.connectedPzp;
 					connectedPzh = data.payload.message.connectedPzh;
 				}
-				document.getElementById('pzh_pzp_list').innerHTML="";
+				if(document.getElementById('pzh_pzp_list'))
+					document.getElementById('pzh_pzp_list').innerHTML="";
 				
 				$("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
 				var i;
@@ -156,17 +167,14 @@
 				typeMap['http://webinos.org/api/file'] = webinos.file.LocalFileSystem;
 			if (typeof TestModule !== 'undefined') typeMap['http://webinos.org/api/test'] = TestModule;
 			if (typeof WebinosGeolocation !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/geolocation'] = WebinosGeolocation;
-            if (typeof WebinosDeviceOrientation !== 'undefined') typeMap['http://webinos.org/api/deviceorientation'] = WebinosDeviceOrientation;
-
-            if (typeof Vehicle !== 'undefined') typeMap['http://webinos.org/api/vehicle'] = Vehicle;
+			if (typeof WebinosDeviceOrientation !== 'undefined') typeMap['http://webinos.org/api/deviceorientation'] = WebinosDeviceOrientation;
+			if (typeof Vehicle !== 'undefined') typeMap['http://webinos.org/api/vehicle'] = Vehicle;
 			if (typeof EventsModule !== 'undefined') typeMap['http://webinos.org/api/events'] = EventsModule;
-			
-            if (typeof Sensor !== 'undefined') {
+			if (typeof Sensor !== 'undefined') {
 				typeMap['http://webinos.org/api/sensors'] = Sensor;
 				typeMap['http://webinos.org/api/sensors.temperature'] = Sensor;
-			}
-			
-            if (typeof UserProfileIntModule !== 'undefined') typeMap['UserProfileInt'] = UserProfileIntModule;
+			}			
+			if (typeof UserProfileIntModule !== 'undefined') typeMap['UserProfileInt'] = UserProfileIntModule;
 			if (typeof TVManager !== 'undefined') typeMap['http://webinos.org/api/tv'] = TVManager;
 			if (typeof DeviceStatusManager !== 'undefined') typeMap['http://wacapps.net/api/devicestatus'] = DeviceStatusManager;
 			if (typeof Contacts !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/contacts'] = Contacts;
@@ -174,14 +182,12 @@
 			if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
 			if (typeof AuthenticationModule !== 'undefined') typeMap['http://webinos.org/api/authentication'] = AuthenticationModule;
 			
-            
-            console.log(typeMap);
-            
-            console.log(baseServiceObj);
+            		console.log(typeMap);
+			console.log(baseServiceObj);
             
             
 			var serviceConstructor = typeMap[baseServiceObj.api];
-            if (typeof serviceConstructor !== 'undefined') {
+			if (typeof serviceConstructor !== 'undefined') {
 				// elevate baseServiceObj to usable local WebinosService object
 				var service = new serviceConstructor(baseServiceObj);
 				webinos.ServiceDiscovery.registeredServices++;
@@ -206,7 +212,7 @@
 		};
 		webinos.rpcHandler.registerCallbackObject(callback2);
 		
-		rpc.serviceAddress = webinos.getPZPId();
+		rpc.serviceAddress = webinos.getServiceLocation();		
 		webinos.rpcHandler.executeRPC(rpc);
 
 		return;

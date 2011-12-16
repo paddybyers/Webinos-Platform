@@ -4,15 +4,27 @@
 */
 (function() {
 	"use strict";
+	if(typeof webinos === "undefined") {
+		var webinos = {};
+	}
 
 	// Global variables and node modules that are required
 	var tls = require('tls'),
 		fs = require('fs'),
-		sessionPzh = {}, 
-		messaging = require("../../common/manager/messaging/lib/messagehandler.js"),
-		utils = require('../../pzp/lib/session_common.js'), 
-		Pzh = null;
-	 
+		Pzh = null,
+		sessionPzh = [],
+		instance;
+		
+	if (typeof exports !== "undefined") {
+		var rpc = require("../../common/rpc/lib/rpc.js");
+		var rpcHandler = new RPCHandler();
+		rpc.loadModules(rpcHandler);
+		var messaging = require("../../common/manager/messaging/lib/messagehandler.js");
+		messaging.setRPCHandler(rpcHandler);
+		var utils = require('../../pzp/lib/session_common.js');
+		var path = require('path');
+	}
+	
 	/**
 	 * @description Creates a new Pzh object
 	 * @constructor
@@ -22,6 +34,8 @@
 		this.config = {};
 		this.connectedPzh = [];
 		this.connectedPzp = [];
+		this.connectedPzhIds = [];
+		this.connectedPzpIds = [];
 		this.lastMsg = '';
 	};
 	/**
@@ -40,16 +54,6 @@
 	};
 
 	/**
-	 * @description Get the session id for currect PZP if it already has an instance.
-	 * @returns {String} It returns current Pzh session id or else undefined
-	 */
-	sessionPzh.getSessionId = function() {
-		if (typeof sessionPzh.instance !== 'undefined') {
-			return sessionPzh.instance.sessionId;
-		}
-		return undefined;
-	};
-	/**
 	 * @description It searches for correct PZP by looking in connectedPzp and connectedPzh. As we are using objects, they need to be stringify to be processed at other end of the socket
 	 * @param {Object} message Message to be send forward
 	 * @param {String} address Destination session id
@@ -59,14 +63,14 @@
 		var buf, self = this;
 		try{
 			buf = new Buffer('#'+JSON.stringify(message)+'#');
-			if (self.connectedPzh[address]) {
+			if (self.connectedPzh.hasOwnProperty(address)) {
 				utils.debug(2, 'PZH ('+self.sessionId+') Msg fwd to connected PZH ' + address);
 				self.connectedPzh[address].socket.pause();
 				self.connectedPzh[address].socket.write(buf);
 				process.nextTick(function () {
 					self.connectedPzh[address].socket.resume();
 				});
-			} else if (self.connectedPzp[address]) {
+			} else if (self.connectedPzp.hasOwnProperty(address)) {
 				self.connectedPzp[address].socket.pause();
 				utils.debug(2, 'PZH ('+self.sessionId+') Msg fwd to connected PZP ' + address);
 				self.connectedPzp[address].socket.write(buf);
@@ -146,17 +150,16 @@
 				rejectUnauthorized:false
 				};
 
-		/** PZH session id is the common name from the certificate. */
-		self.sessionId = self.config.common.split(':')[0];	
 		/** Sets messaging parameter */
 		utils.setMessagingParam(self);
 		/** @param {Object} connectedPzh holds connected Pzh information
 		* @param connectedPzh.address stores information about IP address
 		* @param connectedPzh.port stores port on which external Pzh is running
 		*/
+		/*if(!self.connectedPzh.hasOwnProperty(self.sessionId)) {
+			self.connectedPzh[self.sessionId] = {'address': self.server, 'port': self.port};
+		}*/
 		
-		self.connectedPzh[self.sessionId] = {'address': self.server, 'port': self.port};
-
 		server = tls.createServer (options, function (conn) {
 			var data = {}, cn, msg = {}, sessionId;
 			self.conn = conn;
@@ -171,18 +174,14 @@
 					var pzhId = data[1].split(':')[0];
 					var otherPzh = [], myKey;
 					utils.debug(2, 'PZH ('+self.sessionId+') PZH '+pzhId+' Connected');
-					if(!self.connectedPzh[pzhId]){
+					if(!self.connectedPzh.hasOwnProperty(pzhId)){
 						self.connectedPzh[pzhId] = {'socket': conn, 
 						'address': conn.socket.remoteAddress, 
 						'port': conn.socket.remotePort};
 					
-						for (myKey in self.connectedPzh) {
-							if(self.connectedPzh.hasOwnProperty(myKey)) {
-								otherPzh.push(myKey);
-							}
-						}
+						self.connectedPzhIds.push(pzhId);
 				
-						msg = self.prepMsg(self.sessionId, pzhId, 'pzhUpdate', otherPzh);
+						msg = self.prepMsg(self.sessionId, pzhId, 'pzhUpdate', self.connectedPzhIds);
 						self.sendMessage(msg, pzhId);
 					
 						msg = messaging.registerSender(self.sessionId, pzhId);
@@ -192,7 +191,8 @@
 					sessionId = self.sessionId+'/'+data[1].split(':')[0];
 					utils.debug(2, 'PZH ('+self.sessionId+') PZP '+sessionId+' Connected');
 
-					if(!self.connectedPzp[sessionId]){
+					if(!self.connectedPzp.hasOwnProperty(sessionId)){
+						self.connectedPzpIds.push(sessionId);
 						self.connectedPzp[sessionId] = {'socket': conn, 
 						'address': conn.socket.remoteAddress, 
 						'port': ''};					
@@ -224,7 +224,7 @@
 			// It calls removeClient to remove PZP from connected_client and connectedPzp.
 			conn.on('close', function() {
 				utils.debug(2, 'PZH ('+self.sessionId+') Remote Socket  closed');
-				utils.removeClient(self.connectedPzp, conn);
+				utils.removeClient(self, conn);
 			});
 
 			conn.on('error', function(err) {
@@ -251,32 +251,35 @@
 					}
 				});
 			} else if (parse.type === 'prop' && parse.payload.status === 'pzpDetails') {
-				if(self.connectedPzp[parse.from]) {
+				if(self.connectedPzp.hasOwnProperty(parse.from)) {
 					self.connectedPzp[parse.from].port = parse.payload.message;
 					var otherPzp = [], newPzp = false, myKey1, myKey2, msg;
-					for( myKey1 in self.connectedPzp ) {
+					for( myKey1 in self.connectedPzp) {
 						if(self.connectedPzp.hasOwnProperty(myKey1)) {
-							if( myKey1 === parse.from)  {
-								newPzp = true;
-								otherPzp.push({'port': self.connectedPzp[myKey1].port,
-									'name': myKey1,
-									'address': self.connectedPzp[myKey1].address,
-									'newPzp': newPzp});
-							}
+						if(myKey1 === parse.from) {
+							newPzp = true;
+						}
+						
+						otherPzp.push({'port': self.connectedPzp[myKey1].port,
+							'name': myKey1,
+							'address': self.connectedPzp[myKey1].address,
+							'newPzp': true});
 						}
 					}
-					msg = self.prepMsg(self.sessionId, myKey1, 'pzpUpdate', otherPzp);
 
 					for( myKey2 in self.connectedPzp) {
 						if(self.connectedPzp.hasOwnProperty(myKey2)) {
+							msg = self.prepMsg(self.sessionId, myKey2, 'pzpUpdate', otherPzp);
 							self.sendMessage(msg, myKey2);
-						}
-					}			
+						}					
+					}
+
 				} else {
 					utils.debug(2, 'PZH ('+self.sessionId+') Received PZP details from entity' +
 					' which is not registered : ' + parse.from);
 				}
 			} else { // Message is forwarded to Message handler function, onMessageReceived
+				rpc.SetSessionId(self.sessionId);
 				utils.sendMessageMessaging(self, parse);
 			}
 		});	
@@ -287,10 +290,13 @@
 	 */
 	sessionPzh.startPzh = function(contents, server, port, callback) {
 		var pzh = new Pzh();
+		instance = pzh;
 		pzh.port = port;
 		pzh.server = server;
 		utils.configure(pzh, 'pzh', contents, function() {
 			pzh.sessionId = pzh.config.common.split(':')[0];
+			sessionPzh.push({ 'id': pzh.sessionId, 'connectedPzh': pzh.connectedPzhIds, 
+			'connectedPzp': pzh.connectedPzpIds });
 			pzh.checkFiles(function(result) {
 				utils.debug(2, 'PZH ('+pzh.sessionId+') Starting PZH: ' + result);
 				pzh.sock = pzh.connect();
@@ -313,12 +319,11 @@
 		return pzh;
 	};
 
-	sessionPzh.startWebSocketServer = function(hostname, serverPort, webServerPort) {
-		var pzh;
+	sessionPzh.startPzhWebSocketServer = function(hostname, serverPort, webServerPort) {
 		var http = require('http'),
 		url = require('url'),
-		path = require('path'),
 		WebSocketServer = require('websocket').server;
+		
 		var cs = http.createServer(function(request, response) { 
 			var uri = url.parse(request.url).pathname;  
 			var filename = path.join(process.cwd(), uri);  
@@ -351,20 +356,17 @@
 		});
 
 		cs.listen(webServerPort, hostname, function(){
-			utils.debug(2, 'PZH ('+pzh.config.sessionId+') WebServer: Listening on port '
-				+webServerPort);
+			utils.debug(2, 'PZH WebServer: Listening on port ' +webServerPort);
 		});
 
 		var httpserver = http.createServer(function(request, response) {
 			request.on('data', function(chunk) {
 				utils.processedMessage(chunk, function(parse){
-					fs.writeFile('pzh_cert.pem', parse.payload.message, function() {
+					fs.writeFile(pzh.config.otherPzh, parse.payload.message, function() {
 						//pzh.conn.pair.credentials.context.addCACert(pzh.config.mastercertname);
 						pzh.conn.pair.credentials.context.addCACert(parse.payload.message);
-						var payload = pzh.prepMsg(null, null, 'receiveMasterCert',
-							fs.readFileSync(pzh.config.mastercertname).toString());
-						utils.debug(2, 'PZH ('+pzh.config.sessionId+') WSServer:'+ 
-							'Server sending certificate '+ JSON.stringify(payload).length);
+						var payload = pzh.prepMsg(null, null, 'receiveMasterCert', pzh.config.master.cert.value);
+						utils.debug(2, 'PZH  WSServer: Server sending certificate '+ JSON.stringify(payload).length);
 						response.writeHead(200);		
 						response.write('#'+JSON.stringify(payload)+'#\n');
 						response.end();
@@ -373,7 +375,7 @@
 
 			});
 			request.on('end', function() {
-				utils.debug(2, 'PZH ('+pzh.config.sessionId+') WSServer: Message End');
+				utils.debug(2, 'PZH WSServer: Message End');
 
 			});
 		});
@@ -386,37 +388,36 @@
 		});
 
 		httpserver.listen(serverPort, hostname, function() {
-			utils.debug(2, 'PZH ('+pzh.sessionId+' WSServer: Listening on port '+serverPort + 
-				' and hostname '+hostname);
+			utils.debug(2, 'PZH WSServer: Listening on port '+serverPort + ' and hostname '+hostname);
 
 		});
 
-		sessionPzh.wsServer = new WebSocketServer({
+		var wsServer = new WebSocketServer({
 			httpServer: httpserver,
 			autoAcceptConnections: true
 		});
 	
-		sessionPzh.wsServer.on('connect', function(connection) {
-			utils.debug(2, 'PZH ('+pzh.config.sessionId+' WSServer: Connection accepted.');
+		wsServer.on('connect', function(connection) {
+			utils.debug(2, 'PZH WSServer: Connection accepted.');
 			connection.on('message', function(message) {
 				// schema validation
-				var msg = utils.checkSchema(message.utf8Data);
-				utils.debug(2, 'PZH ('+pzh.config.sessionId+' WSServer: Received packet' + 
-					JSON.stringify(msg));
-				if(msg.type === 'prop' && msg.payload.status === 'startPZH') {
-					pzh = sessionPzh.startPZH(msg.payload.value, 
+				//var msg = utils.checkSchema(message.utf8Data);
+				var msg = JSON.parse(message.utf8Data);
+				utils.debug(2, 'PZH WSServer: Received packet' + JSON.stringify(msg));
+				if(msg.type === 'prop' && msg.payload.status === 'startPzh') {
+					instance = sessionPzh.startPzh(msg.payload.value, 
 						msg.payload.servername, 
 						msg.payload.serverport, 
 						function(result) {
 							if(result === 'startedPzh') {
 								var info = {"type":"prop", 
 								"payload":{"status": "info", 
-								"message":"PZH started"}}; 
+								"message":"PZH "+pzh.sessionId+" started"}}; 
 								connection.sendUTF(JSON.stringify(info));
-							}							
+							}				
 						});
 				} else if(msg.type === "prop" && msg.payload.status === 'downloadCert') {
-					pzh.downloadCertificate(msg.payload.servername,	msg.payload.serverport);				
+					instance.downloadCertificate(msg.payload.servername, msg.payload.serverport);				
 				}
 			});
 		});
@@ -467,16 +468,19 @@
 			if(connPzh.authorized) {
 				utils.debug(2, 'PZH ('+self.sessionId+') Connected ');
 				var connPzhId = connPzh.getPeerCertificate().subject.CN.split(':')[1];
-				self.connectedPzh[connPzhId] = {socket : connPzh};
-				var msg = messaging.registerSender(self.sessionId, connPzhId);			
-				self.sendMessage(msg, connPzhId);
+				if(self.connectedPzh.hasOwnProperty(connPzhId)) {
+					self.connectedPzh[connPzhId] = {socket : connPzh};
+					var msg = messaging.registerSender(self.sessionId, connPzhId);			
+					self.sendMessage(msg, connPzhId);
+				}
 
 			} else {
 				utils.debug(2, 'PZH ('+self.sessionId+') Not connected');
 			}
 		
 			connPzh.on('data', function(data) {
-				utils.processedMsg(data, 1, function(parse){			
+				utils.processedMsg(data, 1, function(parse){
+					rpc.SetSessionId(self.sessionId);
 					utils.sendMessageMessaging(parse);				
 				});				
 			});
@@ -498,6 +502,8 @@
 	
 	if (typeof exports !== 'undefined') {
 		exports.startPzh = sessionPzh.startPzh;
-		exports.startWebSocketServer = sessionPzh.startWebSocketServer;
+		exports.startPzhWebSocketServer = sessionPzh.startPzhWebSocketServer;
+		exports.getId = sessionPzh.getId;
+		
 	}
 }());

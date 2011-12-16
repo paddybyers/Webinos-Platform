@@ -1,14 +1,8 @@
 (function (exports) {
 	"use strict";
 
-	var localDependencies = require("../dependencies.json");
-
-	var root = "../" + localDependencies.root.location;
-	var dependencies = require(root + "/dependencies.json");
-
 	var dom = require("./webinos.dom.rpc.js");
 	var file = require("./webinos.file.js");
-	var rpc = require(root + dependencies.rpc.location + "/lib/rpc.js");
 
 	exports.Blob = {
 		serialize: function (blob) {
@@ -54,9 +48,10 @@
 		readAsText: function (params, successCallback, errorCallback, objectRef) {
 			var __object = new file.FileReader();
 
+			var self = this;
 			var eventCallback = function (attribute) {
 				return function (event) {
-					rpc.utils.notify(objectRef, attribute)(exports.FileReader.serialize(__object),
+					self.rpc.notify(objectRef, attribute)(exports.FileReader.serialize(__object),
 							dom.ProgressEvent.serialize(event));
 				}
 			}
@@ -98,9 +93,10 @@
 		write: function (params, successCallback, errorCallback, objectRef) {
 			var __object = exports.FileWriter.deserialize(params[0]);
 
+			var self = this;
 			var eventCallback = function (attribute) {
 				return function (event) {
-					rpc.utils.notify(objectRef, attribute)(exports.FileWriter.serialize(__object),
+					self.rpc.notify(objectRef, attribute)(exports.FileWriter.serialize(__object),
 							dom.ProgressEvent.serialize(event));
 				}
 			}
@@ -119,9 +115,10 @@
 		truncate: function (params, successCallback, errorCallback, objectRef) {
 			var __object = exports.FileWriter.deserialize(params[0]);
 
+			var self = this;
 			var eventCallback = function (attribute) {
 				return function (event) {
-					rpc.utils.notify(objectRef, attribute)(exports.FileWriter.serialize(__object),
+					self.rpc.notify(objectRef, attribute)(exports.FileWriter.serialize(__object),
 							dom.ProgressEvent.serialize(event));
 				}
 			}
@@ -322,8 +319,14 @@
 		}
 	}
 
-	exports.Service = function (object) {
-		RPCWebinosService.call(this, object);
+	exports.Service = function (rpc) {
+		RPCWebinosService.call(this, {
+			api: "http://webinos.org/api/file",
+			displayName: "File API",
+			description: "W3C File API (including Writer, and Directories and System) implementation."
+		});
+
+		this.rpc = rpc;
 	}
 
 	exports.Service.prototype = new RPCWebinosService();
@@ -352,10 +355,4 @@
 
 	exports.Service.prototype.createWriter = exports.FileEntry.createWriter;
 	exports.Service.prototype.file = exports.FileEntry.file;
-
-	rpc.registerObject(new exports.Service({
-		api: "http://webinos.org/api/file",
-		displayName: "File API",
-		description: "W3C File API (including Writer, and Directories and System) implementation."
-	}));
 })(module.exports);

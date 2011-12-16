@@ -24,41 +24,38 @@
 
 <script type="text/javascript" src="/client/webinos.js"></script>
 <link rel="stylesheet" type="text/css" href="/client/style.css" media="screen"/>
-<script type="text/javascript" src="/client/contacts/contacts.js"></script>
 <script type="text/javascript"
   src="http://ajax.googleapis.com/ajax/libs/dojo/1.6.1/dojo/dojo.xd.js"></script>
-<!-- Following script contains all the client interface machinery in JS -->
-<!-- <script src="./contactsClientScript.js"></script> -->
 <script type="text/javascript">
-  jQuery(window).ready(function()
-  {
-    jQuery("#btnAuthenticate").click(authenticate_cb);
-    jQuery("#btnContacts").click(get_contact_list_cb);
-    jQuery("#btnFindContacts").click(find_contacts_cb);
-    jQuery("#btnFind").click(bindservice);
+
+$(document).ready(function() {
+
+  var contactsService = [];
+  
+  $('#btnFind').bind('click', function() {
+    webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/contacts'), 
+      {
+        onFound: function (service) {
+        contactsService.push(service);
+        document.getElementById('html_contacts').innerHTML = "<i><b>Contacts</b></i> webinos rpc service found!<br>Please select contacts type, fill the text areas then press <i>Authenticate</i> button above.";
+        
+        
+/*      //DOES NOT WORK!!! - says no bindService method found
+bindService({onBind:function(service) {
+          console.log("Contact API " + service.api + ' bound');
+        }});*/
+        }
+      });
+/*contactsService[0].bindService({onBind:function(service) {
+                    $('#message').append('<li> TEST API' + service.api + ' bound.</li>');
+                }});*/
   });
 
-  var contactsService = null;
 
-  // Same as "FindService" button,but automatic
-  function bindservice()
+//  function authenticate_cb()
+$('#btnAuthenticate').bind('click', function()
   {
-    webinos.ServiceDiscovery
-      .findServices(
-        new ServiceType('http://www.w3.org/ns/api-perms/contacts'),
-        {
-          onFound : function(service)
-          {
-            contactsService = service;
-            document.getElementById('html_contacts').innerHTML = "<i><b>Contacts</b></i> webinos rpc service found!<br>Please select contacts type, fill the text areas then press <i>Authenticate</i> button above.";
-          }
-        });
-
-  }
-
-  function authenticate_cb()
-  {
-    if (contactsService)
+    if (contactsService[0])
     {
       parameters = {};
       if ($("input[@name='contactType']:checked").val() == 'remote')
@@ -76,45 +73,48 @@
         parameters.addressBookName = addressBookName;
         parameters.type = "local";
       }
-      contactsService.authenticate(parameters, handle_authentication_query)
+     
+      contactsService[0].authenticate(parameters, handle_authentication_query)
 
     }
     else
     {
       document.getElementById('html_contacts').innerHTML = "PROBLEM: Service unreachable";
     }
-  }
+  });
 
-  function get_contact_list_cb()
+  //function get_contact_list_cb()
+  $('#btnContacts').bind('click', function()
   {
     parameters = {};
     var result = false;
-    if (contactsService)
+    if (contactsService[0])
     {
       if ($("input[@name='contactType']:checked").val() == 'remote')
       {
         parameters.type = "remote";
-        contactsService.isAlreadyAuthenticated(parameters, function(result)
+        contactsService[0].isAlreadyAuthenticated(parameters, function(result)
         {
-          contactsService.getAllContacts(parameters, print_contact_list);
+          contactsService[0].getAllContacts(parameters, print_contact_list);
         });
       }
       else if ($("input[@name='contactType']:checked").val() == 'local')
       {
         parameters.type = "local";
-        contactsService.isAlreadyAuthenticated(parameters, function(result)
+        contactsService[0].isAlreadyAuthenticated(parameters, function(result)
         {
-          contactsService.getAllContacts(parameters, print_contact_list);
+          contactsService[0].getAllContacts(parameters, print_contact_list);
         });
       }
     }
-  }
+  });
 
-  function find_contacts_cb()
+  //function find_contacts_cb()
+  $('#btnFindContacts').bind('click', function()
   {
     parameters = {};
     var result = false;
-    if (contactsService)
+    if (contactsService[0])
     {
         parameters.fields = {};
         if ($('#findContactName').val() != "")
@@ -131,26 +131,26 @@
         parameters.type = "remote";
         //TODO set parameters.fields!!!!
 
-        contactsService.isAlreadyAuthenticated(parameters, function(result)
+        contactsService[0].isAlreadyAuthenticated(parameters, function(result)
         {
-          contactsService.find(parameters, print_contact_list);
+          contactsService[0].find(parameters, print_contact_list);
         });
       }
       else if ($("input[@name='contactType']:checked").val() == 'local')
       {
         parameters.type = "local";
         
-        contactsService.isAlreadyAuthenticated(parameters, function(result)
+        contactsService[0].isAlreadyAuthenticated(parameters, function(result)
         {
-          contactsService.find(parameters, print_contact_list);
+          contactsService[0].find(parameters, print_contact_list);
         });
       }
     }
-  }
+  });
 
   function handle_authentication_query(status) // see function
   {
-	console.log('handle_auth : '+status);
+//	console.log('handle_auth : '+status);
     if (status)
     {
       if ($("input[@name='contactType']:checked").val() == 'remote')
@@ -246,6 +246,7 @@
     else
       $('#contactList').append("<font color='#FF0000'><b>NO CONTACTS!</b></font>");
   }
+  });
 </script>
 
 
