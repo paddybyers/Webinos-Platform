@@ -5,7 +5,7 @@
 	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
 	<script type="text/javascript" src="jquery-1.6.4.min.js"></script>
 	<script type="text/javascript" src="http://localhost:9898/nowjs/now.js"></script>
-	<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?sensor=false"></script>
+	<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
 	<script type="text/javascript">
 		now.ready(function(){ 
 			$('#inputGear').removeAttr('disabled');
@@ -46,7 +46,6 @@
 				psData.r = $('#pr-r').val();
 				now.setPsRear(psData);	
 			});
-			
 			$('#locateOnMap').click(function(){
 				var address = $('#d-street').val() + " " + $('d-streetnumber').val() + ", " + $('#d-city').val() + ", " + $('#d-country').val();
 				geocoder.geocode( { 'address': address}, handleGeocoder);
@@ -180,13 +179,7 @@
    	 
    	 }
    	 
-   	 
-   	 
-   	 
-
-   	 
-    
-	
+  	
 	</script>
 </head>
 	
@@ -282,7 +275,6 @@
 	SPACER
 	</div>
 	<div id='footer'>VEHICLE SIMULATOR</div>
-
 </body>
 
 

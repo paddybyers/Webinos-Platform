@@ -115,7 +115,6 @@ NavigationEvent.prototype.initNavigationEvent = function(type, data){
 }
 
 
-
 var fs = require('fs'), url = require('url'), path = require('path');
 
 		function getContentType(uri) {
@@ -222,8 +221,6 @@ var psfData = new Object();
             _listeners.destinationReached(new NavigationEvent('destination-reached',dData));
         }
     } 
-    
-    
     function get(type){
         switch(type){
             case 'gear': 

@@ -35,8 +35,7 @@
 				width: 250px;
 				padding: 1px 0 0 0;
 				float:left;
-				
-			}
+            }
 			
 			#status{
 				background-color: #fff;
@@ -324,7 +323,6 @@
                 text-shadow: #ccc 1px 1px 1px;
 				
             }
-            
             div#info label{
             	clear: none;
             	float: left;
@@ -338,8 +336,6 @@
             	text-align: left;
             	padding-left: 5px;
             }
-            
-
             label.select{
                 background: none;
                 border-radius: 0px
