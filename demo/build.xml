@@ -7,7 +7,8 @@
 	
     <!-- Use closure compiler to minify all JavaScript files -->
     <target name="gen-webinos-js">
-        <jscompiler compilationlevel="whitespace" output="${basedir}/client/webinos.js">
+    	<!-- Available compilation levels: advanced, simple, whitespace -->
+        <jscompiler compilationlevel="whitespace" prettyPrint="true" output="${basedir}/client/webinos.js">
             <sources dir="${basedir}/../webinos/">
                 <file name="common/rpc/lib/rpc.js"/>
             	<file name="common/manager/messaging/lib/messagehandler.js"/>
