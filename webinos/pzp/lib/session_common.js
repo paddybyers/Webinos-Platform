@@ -3,10 +3,16 @@
 * @author <a href="mailto:habib.virji@samsung.com">Habib Virji</a>
 */
  
-var  fs = require('fs'),
-	crypto = require('crypto'),
-	child_process = require('child_process'),
-	messaging = require("../../common/manager/messaging/lib/messagehandler.js");
+
+if (typeof exports !== "undefined") {
+var path = require('path');
+	var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
+	var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+	var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
+
+	var messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
+	var rpc = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js'));
+}
 
 var debug = function(num, msg) {
 	"use strict";
@@ -149,22 +155,41 @@ exports.signRequest = function(self, csr, master, callback) {
  */
 exports.removeClient = function(self, conn) {
 	"use strict";
-	var i;
+	var i, delId, delPzhId;
+	
 	for (i in self.connectedPzp) {
 		if(self.connectedPzp.hasOwnProperty(i)) {
-			if(conn.socket.remoteAddress === self.connectedPzp[i].address) {
+			if(conn.socket._peername.address === self.connectedPzp[i].address) {
+				delId = i;
 				delete self.connectedPzp[i];
 			}
 		}
 	}
 	
-	for (i in self.connectedPzh) {
-		if(self.connectedPzj.hasOwnProperty(i)) {
-			if(conn.socket.remoteAddress === self.connectedPzh[i].address) {
-				delete self.connectedPzh[i];
+	if (typeof delId !== "undefined") {
+		for ( i = 0 ; i < self.connectedPzpIds.length; i += 1) {
+			if ( delId === self.connectedPzpIds[i]) {
+				delete self.connectedPzpIds[i];
 			}
 		}
 	}
+	
+	for (i in self.connectedPzh) {
+		if(self.connectedPzh.hasOwnProperty(i)) {
+			if(conn.socket._peername.address === self.connectedPzh[i].address) {
+				delPzhId = i;
+				delete self.connectedPzp[i];
+			}
+		}
+	}
+	if (typeof delIPzhd !== "undefined") {
+		for ( i = 0 ; i < self.connectedPzhIds.length; i += 1) {
+			if ( delPzhId === self.connectedPzhIds[i]) {
+				delete self.connectedPzhIds[i];
+			}
+		}
+	}
+	
 };
 
 var checkSchema = function(message) {
@@ -268,7 +293,7 @@ exports.processedMsg = function(self, data, dataLen, callback) {
 */
 var send = function (message, address, object) {
 	"use strict";
-	message.resp_to = object.sessionId;
+	//message.resp_to = address;
 	object.sendMessage(message, address);
 };
 
@@ -302,7 +327,7 @@ exports.sendMessageMessaging = function(self, data) {
 exports.configure = function(self, id, contents, callback) {
 	"use strict";
 	var name, i =0, j, flag = true, common = '', data1;
-
+	var fs = require('fs');
 	fs.readdir(__dirname, function(err, files) {
 		for(i = 0; i < files.length; i += 1) {
 			if( (files[i].indexOf(id,0) === 0) &&  
