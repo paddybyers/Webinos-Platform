@@ -10,14 +10,17 @@
 			
 			}
 			html{
-				background:-moz-linear-gradient(top, #055084, #0071BC); /* Firefox */
-				background:-webkit-gradient(linear, left top, left bottom, from(#055084), to(#0071BC)); /* Safari, Chrome */
-				background:-webkit-linear-gradient(top, #055084, #0071BC); /* Safari, Chrome - neue Syntax! */
-				background:-o-linear-gradient(top, #055084, #0071BC); /* Opera */
-				background:-ms-linear-gradient(top, #055084, #0071BC); /* IE */
-				background:linear-gradient(top, #055084, #0071BC); /* W3C Standard */
-				background-color:#0879a9;
-				background-image: url(rauschen.png) ;
+                
+                background-color:  #0879a9;
+                background: url(rauschen.png), -moz-linear-gradient(top, #055084, #0071BC) ; 
+                background:  url(rauschen.png), -webkit-gradient(linear, left top, left bottom, from(#055084), to(#0071BC)), url(rauschen.png); 
+                background: url(rauschen.png), -webkit-linear-gradient(top, #055084, #0071BC); 
+                background:  url(rauschen.png), -o-linear-gradient(top, #055084, #0071BC); 
+                background:  url(rauschen.png), -ms-linear-gradient(top, #055084, #0071BC); 
+                background:  url(rauschen.png), linear-gradient(top, #055084, #0071BC); 
+
+                
+                
 				margin: 0 0 0 0;
 				padding: 0 0 0 0;
 			}
