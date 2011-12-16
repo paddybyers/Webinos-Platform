@@ -6,12 +6,12 @@
 <script type="text/javascript" src="/client/jsrender.js"></script>
 <link rel="stylesheet" type="text/css" href="/client/jquery-ui-1.8.16.custom.css" />
 <link rel="stylesheet" type="text/css" href="contextTable.css" />
-<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
 <script type="text/javascript" src="/client/jquery.js"></script>
 <script type="text/javascript" src="/client/jquery-ui.js"></script>
 <script type="text/javascript" src="/client/dojo.js"></script>
 
-<script type="text/javascript" src="./webinos.js"></script>
+<script type="text/javascript" src="../webinos.js"></script>
 
 </head>
 
@@ -93,15 +93,17 @@
       
       
 	$('#getrawcontext').bind('click', function() {
-		$("#contextDataTblContainer").html('<img src="vehicle/ajaxloader.gif" alt=""/>');
+		$("#contextDataTblContainer").html('<img src="./ajaxloader.gif" alt=""/>');
 		var query = {};
 		query.type = "getrawview";
 		var headerGenerated = false;
 		for ( var i = 0; i < contextService.length; i++) {
 			contextService[i].executeQuery(query, function(result) {
-				console.log(result.msg);
-				if (result.msg != null) 
-					alert("An error occurred retriving data from the database. \n\nPlease check your console for debug info.");
+				if (result.msg != null){
+					$("#contextDataTblContainer").html('<b>An error occurred retriving data from the database.</b><br/><br/>Please check your console for debug info.');
+					console.error(result);
+					return;
+				}
 
 				if (!result.data.length){
 					$("#contextDataTblContainer").html('No Data found on your database.');
