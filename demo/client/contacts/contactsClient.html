@@ -24,39 +24,10 @@
 
 <script type="text/javascript" src="/client/webinos.js"></script>
 <link rel="stylesheet" type="text/css" href="/client/style.css" media="screen"/>
-<!--<script type="text/javascript" src="/client/contacts/contacts.js"></script>-->
 <script type="text/javascript"
   src="http://ajax.googleapis.com/ajax/libs/dojo/1.6.1/dojo/dojo.xd.js"></script>
-<!-- Following script contains all the client interface machinery in JS -->
-<!-- <script src="./contactsClientScript.js"></script> -->
 <script type="text/javascript">
- /* jQuery(window).ready(function()
-  {
-    jQuery("#btnAuthenticate").click(authenticate_cb);
-    jQuery("#btnContacts").click(get_contact_list_cb);
-    jQuery("#btnFindContacts").click(find_contacts_cb);
-    jQuery("#btnFind").click(bindservice);
-  });
 
-  var contactsService = null;
-
-  // Same as "FindService" button,but automatic
-  function bindservice()
-  {
-    webinos.ServiceDiscovery
-      .findServices(
-        new ServiceType('http://www.w3.org/ns/api-perms/contacts'),
-        {
-          onFound : function(service)
-          {
-            contactsService = service;
-            console.log("DEBUG: in bindService()");
-            console.log(contactsService);
-            document.getElementById('html_contacts').innerHTML = "<i><b>Contacts</b></i> webinos rpc service found!<br>Please select contacts type, fill the text areas then press <i>Authenticate</i> button above.";
-          }
-        });
-
-  }*/
 $(document).ready(function() {
 
   var contactsService = [];
@@ -65,7 +36,6 @@ $(document).ready(function() {
     webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/contacts'), 
       {
         onFound: function (service) {
-        console.log("DEBUG: btnFind --> onFound!");
         contactsService.push(service);
         document.getElementById('html_contacts').innerHTML = "<i><b>Contacts</b></i> webinos rpc service found!<br>Please select contacts type, fill the text areas then press <i>Authenticate</i> button above.";
         
@@ -103,9 +73,7 @@ $('#btnAuthenticate').bind('click', function()
         parameters.addressBookName = addressBookName;
         parameters.type = "local";
       }
-      
-                  console.log("DEBUG: in authenticate_cb()");
-            console.log(contactsService[0]);
+     
       contactsService[0].authenticate(parameters, handle_authentication_query)
 
     }
@@ -182,7 +150,7 @@ $('#btnAuthenticate').bind('click', function()
 
   function handle_authentication_query(status) // see function
   {
-	console.log('handle_auth : '+status);
+//	console.log('handle_auth : '+status);
     if (status)
     {
       if ($("input[@name='contactType']:checked").val() == 'remote')

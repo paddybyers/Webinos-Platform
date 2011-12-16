@@ -51,7 +51,6 @@
    * */
   function authenticate(attr, successCB,errorCB)
   {
-  	console.log("++++++++++++++++++++++++ "+ this.id);
     var rpc = webinos.rpcHandler.createRPC(this, "authenticate", [ attr ]); // RPCservicename,
     // function
     webinos.rpcHandler.executeRPC(rpc, function(params)
@@ -91,7 +90,7 @@
      var rpc = webinos.rpcHandler.createRPC(this, "getAllContacts", [ attr ]); 
    //RPCservicename,
    // function
-     webinos.rpc.executeRPC(rpc, function(params)
+     webinos.rpcHandler.executeRPC(rpc, function(params)
      {
      successCB(params);
      }, function(error)
@@ -113,7 +112,7 @@
     var rpc =webinos.rpcHandler.createRPC(this, "find", [ attr ]); // RPCservicename,
     //RPCservicename,
     // function
-    webinos.rpc.executeRPC(rpc, function(params)
+    webinos.rpcHandler.executeRPC(rpc, function(params)
     {
     successCB(params);
     }, function(error)
