@@ -19,7 +19,6 @@ function VehicleModule(rpcHandler) {
         //try to getSimulator
         var car = require('../../vehicle/contrib/vb-sim/vs.js');
 		var vehicleSimulatorAvailable = true;
-        
     }catch(e){
             console.log(e);
     }
