@@ -76,31 +76,35 @@ saveToDB = function(contextData, success, fail) {
 }
 
 exports.getrawview = function(success,fail){
-  var result = [];
+  var result = {msg:null,data:[]};
   db.each("SELECT fldcontextrawID AS ContextRawID,  " +
       "fldcontextrawvalueID AS ContextRawValueID,  fldAPI AS API, fldDevice AS Device, fldApplication AS Application, " +
       "fldSession AS Session, fldContextObject AS ContextObject, fldMethod AS Method, fldTimestamp AS Timestamp, " +
-      "fldDescription AS ValueType, fldValueName AS ValueName, fldValue AS Value FROM vwcontextraw", function (err,row){
-    var txtRow = "";
-    txtRow = txtRow + "ContextRawID : " + row.ContextRawID + 
-    " | ContextRawValueID : "  + row.ContextRawValueID +
-    " | API : "  + row.API +
-    " | Device : "  + row.Device +
-    " | Application : "  + row.Application +
-    " | Session : "  + row.Session +
-    " | ContextObject : "  + row.ContextObject +
-    " | Method : "  + row.Method +
-    " | Timestamp : "  + row.Timestamp +
-    " | ValueType : "  + row.ValueType +
-    " | ValueName : "  + row.ValueName +
-    " | Value : "  + row.Value;
-
-
-    result[result.length] = txtRow;      
-
-  },function(){
-    success(result);
-  });
+      "fldDescription AS ValueType, fldValueName AS ValueName, fldValue AS Value FROM vwcontextraw", 
+      function (err,row){
+	//    var txtRow = "";
+	//    txtRow = txtRow + "ContextRawID : " + row.ContextRawID + 
+	//    " | ContextRawValueID : "  + row.ContextRawValueID +
+	//    " | API : "  + row.API +
+	//    " | Device : "  + row.Device +
+	//    " | Application : "  + row.Application +
+	//    " | Session : "  + row.Session +
+	//    " | ContextObject : "  + row.ContextObject +
+	//    " | Method : "  + row.Method +
+	//    " | Timestamp : "  + row.Timestamp +
+	//    " | ValueType : "  + row.ValueType +
+	//    " | ValueName : "  + row.ValueName +
+	//    " | Value : "  + row.Value;
+		
+		result.data[result.data.length] = row;
+	  },
+	  function(err){
+		  if (err !== null) {
+				result.msg = {code:err.code,msg:err.message};
+		  }
+		  success(result);
+	  }
+  );
 
 }
 
