@@ -14,15 +14,13 @@ function VehicleModule(rpcHandler) {
 	}catch(e){
         console.log(e);
     }
-    
-    try{
+        try{
         //try to getSimulator
         var car = require('../../vehicle/contrib/vb-sim/vs.js');
 		var vehicleSimulatorAvailable = true;
-        
-    }catch(e){
+        }catch(e){
             console.log(e);
-    }
+        }
 	
 	var implFile;
     
