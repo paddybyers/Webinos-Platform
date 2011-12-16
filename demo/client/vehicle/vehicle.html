@@ -231,6 +231,7 @@
 						
 								disableInit();
 						}});
+						
                         webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/deviceorientation'), {onFound: function (service) {
 								orientation = service;
 								orientation.bindService({onBind: function (service) {}});
