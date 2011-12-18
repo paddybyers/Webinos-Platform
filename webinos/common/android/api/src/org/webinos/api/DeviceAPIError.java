@@ -3,7 +3,7 @@ package org.webinos.api;
 import java.util.HashMap;
 
 @SuppressWarnings("serial")
-public class DeviceAPIError extends Exception {
+public class DeviceAPIError extends RuntimeException {
 	public static final int UNKNOWN_ERR                 = 0;
 	public static final int INDEX_SIZE_ERR              = 1;
 	public static final int DOMSTRING_SIZE_ERR          = 2;

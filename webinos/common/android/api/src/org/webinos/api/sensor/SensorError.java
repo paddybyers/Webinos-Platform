@@ -3,7 +3,7 @@ package org.webinos.api.sensor;
 import org.meshpoint.anode.idl.Dictionary;
 
 @SuppressWarnings("serial")
-public class SensorError extends Exception implements Dictionary {
+public class SensorError extends RuntimeException implements Dictionary {
 	public static final int INVALID_INPUT_ARGUMENT = 0;
 	public static final int UNKNOWN_ERROR = 0;
     public static final int TIMEOUT_ERROR = 1;
