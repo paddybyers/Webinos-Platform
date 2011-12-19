@@ -820,7 +820,6 @@ function setRequired(obj) {
     vs.addListener('parksensors-rear', handleParkSensorsEvents);
     vs.addListener('parksensors-front', handleParkSensorsEvents);
     vs.addListener('destination-reached', handleDestinationReached);
-
 }
 
 
