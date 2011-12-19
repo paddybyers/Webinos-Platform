@@ -5,6 +5,7 @@
 	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
 	<script type="text/javascript" src="jquery-1.6.4.min.js"></script>
 	<script type="text/javascript" src="http://localhost:9898/nowjs/now.js"></script>
+	<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?sensor=false"></script>
 	<script type="text/javascript">
 		now.ready(function(){ 
 			$('#inputGear').removeAttr('disabled');
@@ -45,21 +46,156 @@
 				psData.r = $('#pr-r').val();
 				now.setPsRear(psData);	
 			});
+			
+			$('#locateOnMap').click(function(){
+				var address = $('#d-street').val() + " " + $('d-streetnumber').val() + ", " + $('#d-city').val() + ", " + $('#d-country').val();
+				geocoder.geocode( { 'address': address}, handleGeocoder);
+			});
+			
+			$('#setDestinationReached').click(function(){
+				var data = new Object();
+				data.street = $('#d-street').val();
+				data.streetnumber = $('#d-streetnumber').val();
+				data.country = $('#d-country').val();
+				data.city = $('#d-city').val();
+				data.postalcode = $('#d-postalcode').val();
+				data.premises = $('#d-premises').val();
+				data.region = $('#d-region').val();
+				data.county = $('#d-county').val();
+				data.additionals = '';
+				now.setDestinationReached(data);
+			});
+			
+			initializeMap();
 		
 		
 		});
+		
+  var centerPoint = new google.maps.LatLng(48.1794411, 11.529219399999988);
+  var markerPoint = new google.maps.LatLng(48.1794411, 11.529219399999988);
+  var marker;
+  var position;
+  var map;
+  var geocoder;
+  function initializeMap() {
+    var mapOptions = {
+      zoom: 13,
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      center: centerPoint
+    };
+
+    map = new google.maps.Map(document.getElementById("map_canvas"),
+            mapOptions);
+    geocoder = new google.maps.Geocoder();
+    marker = new google.maps.Marker({
+      map:map,
+      draggable:true,
+      animation: google.maps.Animation.DROP,
+      position: markerPoint
+    });
+    google.maps.event.addListener(marker, 'dragend', handleNewPosition);
+  }
+
+	function handleNewPosition(){
+    	position = marker.getPosition();
+    	$('#c-lat').val(position.lat());
+    	$('#c-lng').val(position.lng());
+    	geocoder.geocode({'latLng': position}, handleReversedGeocoder);
+    }	
+   	 
+   	function updateAddress(address){
+   	 		for(var i = 0; i < address.address_components.length; i++){
+				var component = address.address_components[i];
+				switch(component.types[0]){
+					case 'street_number':
+						$('#d-streetnumber').val(component.long_name);
+						break;
+					case 'route':
+						$('#d-street').val(component.long_name);
+						break;
+					case 'country':
+						$('#d-country').val(component.long_name);
+						break;
+					case 'postal_code':
+						$('#d-postalcode').val(component.long_name);
+						break;
+					case 'postal_code':
+						$('#d-postalcode').val(component.long_name);
+						break;
+						
+					case 'administrative_area_level_1': //STATES
+						$('#d-region').val(component.long_name);
+						break;
+
+			
+					case 'administrative_area_level_3': //COUNTIES				
+						$('#d-county').val(component.long_name);
+						break;
+					
+							
+					case 'administrative_area_level_2': //COUNTIES				
+						$('#d-county').val(component.long_name);
+						break;
+
+
+						
+					case 'locality': //CITY				
+						$('#d-city').val(component.long_name);
+						break;
+					
+					case 'premise': //COUNTIES				
+						$('#d-premises').val(component.long_name);
+						break;
+					
+					}
+         	}
+   	 
+   	 }
+
+   	 function handleReversedGeocoder(results, status){
+   	 	if (status == google.maps.GeocoderStatus.OK) {
+          if (results[0]) {
+         	updateAddress(results[0]);
+          }
+        } else {
+          alert("Geocoder failed due to: " + status);
+        }
+   	 }
+   	 
+   	 function handleGeocoder(results, status){
+		if (status == google.maps.GeocoderStatus.OK) {
+          if (results[0]) {
+         	
+         	updateAddress(results[0]);
+         	centerPoint = new google.maps.LatLng(results[0].geometry.location.lat(), results[0].geometry.location.lng());
+         	map.setCenter(centerPoint);
+         	marker.setPosition(centerPoint);
+         	$('#c-lat').val(centerPoint.lat());
+         	$('#c-lng').val(centerPoint.lng());
+         	//updateMarker();
+          }
+        } else {
+          alert("Geocoder failed due to: " + status);
+        }
+   	 
+   	 }
+   	 
+   	 
+   	 
+   	 
+
+   	 
+    
 	
 	</script>
 </head>
 	
 <body>
-<div id="content">
+<div id="content" class='content cf'>
 	<div id="header">
 		<h1><img src="testbed_logo.png"></h1>
      </div>
      <div id="functions">
-
-
 	<h3>Gear</h3>
 	<p><label class='select'>Gear: </label>
 	<select id="inputGear" disabled>
@@ -108,29 +244,46 @@
 	<h3>Wipers</h3>
 	
 	<h3>Climate Control</h3>
-	
-	<h3>Destination Events </h3>
-			<p><label class='select'>Type: </label>
-	<select id="dType" >
-				<option value=''></option>
-				<option value='destination-changed'>changed</option>
-				<option value='destination-reached'>reached</option>
-				<option value='destination-cancelled'>cancelled</option>
-			</select>
-			</p>
-	<p><label>Country:</label><input type='text' value='Germany' id='d-c1'></p>
-	<p><label>Region:</label><input type='text' value='Bavaria' id='d-r'></p>
-	<p><label>County:</label><input type='text' value='' id='d-c2'></p>
-	<p><label>City:</label><input type='text' value='Munich' id='d-c3'></p>
-	<p><label>Street:</label><input type='text' value='Hanauer Str. ' id='d-s1'></p>
-	<p><label>Streetnumber:</label><input type='text' value='46' id='d-s2'></p>
-	<p><label>Premises:</label><input class='input' type='text' value='' id='d-p'></p>
-	<p><label>add. Info:</label><input class='input' type='text' value='' id='d-i'></p>
-	<p><label>add. postalCode:</label><input class='input' type='text' value='80992' id='d-c4'></p>
-  	 <input type='button' id='setDestinationEvent' value="Set Destination Event"/>
+	</div>
+	<div id="info">
+		<h3>Mapsfeatures</h3>
+		<div id="map_canvas" style="width: 640px; height: 400px;">
+		</div>
+			<h4>Coordinates</h4>
+			<p><label >Latitude:</label><input type='text' value='' id='c-lat'></p>
+			<p><label >Longitude:</label><input type='text' value='' id='c-lng'></p>
+			<p><label >Altitude:</label><input type='text' value='0' id='c-alt'></p>
+			<p><label >Speed:</label><input type='text' value='0' id='c-speed'></p>
+			<p><label >Heading:</label><input type='text' value='0' id='c-heading'></p>
+			
+			<h4>Address</h4>
+			<p><label >Country:</label><input type='text' value='' id='d-country'></p>
+			<p><label >Region:</label><input type='text' value='' id='d-region'></p>
+			<p><label >County:</label><input type='text' value='' id='d-county'></p>
+			<p><label >City:</label><input type='text' value='' id='d-city'></p>
+			<p><label >Street:</label><input type='text' value='' id='d-street'></p>
+			<p><label >Streetnumber:</label><input type='text' value='' id='d-streetnumber'></p>
+			<p><label >Premises:</label><input class='input' type='text' value='' id='d-premises'></p>
+			<p><label >add. Info:</label><input class='input' type='text' value='' id='d-info'></p>
+			<p><label >add. postalCode:</label><input class='input' type='text' value='' id='d-postalcode'></p>
 
+		
+		<p>
+		<input type='button' id='locateOnMap' value="Locate on Map"/>
+		<input type='button' id='setGeolocation' value="Set as Geolocation"/>
+		<input type='button' id='setDestinationCancelled' value="Set Destination as cancelled"/>
+		<input type='button' id='setDestinationReached' value="Set Destination as reached"/>
+		<input type='button' id='setDestinationChanged' value="Set Destination as changed"/>
+		<input type='button' id='setDestination' value="Request guidance to destination"/>
+		</p>
+	</div>	
 	</div>
+	<div id='spacer'>
+			
+	
+	
 	</div>
+
 </body>
 
 

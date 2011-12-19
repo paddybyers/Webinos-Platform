@@ -84,10 +84,9 @@
 					//name, street, streetNumber, postalCode, city, country
 					
 					var handleNavigation = function(data){
-						postMessage("info","new Navigation Event Destination-data received.");
+						postMessage("info",".");
 						$('#info').empty();
-						$('#info').append("<p>Navigation Data: "+ data.type +"</p>");
-						$('#info').append("<p>name: "+ data.address.name +"</p>");
+						$('#info').append("<p>Type: "+ data.type +"</p>");
 						$('#info').append("<p>county: "+ data.address.country +"</p>");
 						$('#info').append("<p>region: "+ data.address.region +"</p>");
 						$('#info').append("<p>county: "+ data.address.county +"</p>");

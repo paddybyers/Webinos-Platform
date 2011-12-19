@@ -32,9 +32,10 @@
 			p{margin: 0; padding:0; line-height: 140%} 
 			
 			#functions{
-				width: 310px;
-				padding: 0 0 5px 0;
+				width: 250px;
+				padding: 1px 0 0 0;
 				float:left;
+				
 			}
 			
 			#status{
@@ -58,15 +59,12 @@
 			}
 			
 			#info{
-				margin: 0;
-				padding: 20px 0;
-				text-align: center;
 				font-size: 24px;
-				margin-left: 320px;
-				width: 330px;
+				margin-left: 280px;
+				width: 600px;
 				color: #fff;
-				opacity: 0.9;
 				font-size: 50px;
+				padding: 1px 0 0 0;
 			
 			}
 
@@ -83,8 +81,8 @@
 				margin-left: auto;
 				margin-right: auto;
 				padding-top: 20px;
-				width: 650px;
-				
+				padding-bottom: 100px;
+				width: 880px;
 				}
 			
 			select,.button{
@@ -262,12 +260,11 @@
 			}
 			h3{
 				text-transform:uppercase;
-				font-weight: normal;
+				font-weight: bold;
 				color: #ffff00;
 				font-size: 11px;
 				border-bottom: 1px #fff dotted;
 				text-shadow: #000000 1px 1px 2px;
-				width: 250px;
 				
 				}
 				#info p{font-size: 14px; margin: 0; padding 0;}
@@ -322,11 +319,27 @@
                 float: left;
                 clear: left;
                 text-align: left;
-                width: 99px;
+                width: 97px;
                 border-right:1px #ccc solid;
                 text-shadow: #ccc 1px 1px 1px;
 				
             }
+            
+            div#info label{
+            	clear: none;
+            	float: left;
+            	display: block;
+            	padding: 1px 0px 2px 2px;
+            
+            }
+            
+            div#info input[type=text]{
+            	width: 500px;
+            	text-align: left;
+            	padding-left: 5px;
+            }
+            
+
             label.select{
                 background: none;
                 border-radius: 0px
@@ -339,11 +352,62 @@
 				font-size:10px;
                 display: block;
                 float: left;
-                clear: left;
                 text-align: left;
-                width: 96px;
+                width: 92px;
                 border-right: 0px;
                 text-shadow: none;
 				
             }
+            
+            #functions p, #info p{
+            	margin-bottom: 1px;
+            	margin-top: 2px;
+            }
 
+			 #functions p.input{
+            	margin-bottom: 5px;
+            }
+            
+            #footer{
+            	position: fixed;
+            	bottom: 0px;
+            	width: 100%;
+            	height: 40px;
+            background-color:  #585E59;
+	background: url(rauschen.png), -moz-linear-gradient(top, #585E59, #363D38) ; 
+	background:  url(rauschen.png), -webkit-gradient(linear, left top, left bottom, from(#585E59), to(#363D38)), url(rauschen.png); 
+	background: url(rauschen.png), -webkit-linear-gradient(top, #585E59, #363D38); 
+	background:  url(rauschen.png), -o-linear-gradient(top, #585E59, #363D38); 
+	background:  url(rauschen.png), -ms-linear-gradient(top, #585E59, #363D38); 
+	background:  url(rauschen.png), linear-gradient(top, #585E59, #363D38); 
+	box-shadow: #000000 0px 0px 10px;
+	
+            }
+            
+    		h4{
+    			margin: 10px 0 5px 0;
+    			padding: 0;
+    			font-size: 11px;
+    			text-transform: uppercase;
+    			font-weight: normal;
+
+    			border-bottom: 1px #fff dotted;
+				text-shadow: #000000 1px 1px 2px;
+    		}        
+            
+            #spacer{
+            	clear: both;
+            	float: none;
+            	width: 880px;
+            	height: 100px;
+            	margin-left: auto;
+            	margin-right: auto;
+            }
+            
+    .cf {
+	  display: inline-block;
+	}
+	.cf[id] {
+	  display: block;
+	  overflow: hidden;
+	}
