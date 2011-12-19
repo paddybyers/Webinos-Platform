@@ -229,7 +229,6 @@ addEventListener = function (vehicleDataId, successHandler, errorHandler, object
 				objectRefs.push([objectRef, 'destination-reached']);
 				if(!listeningToDestinationReached){
 					listeningToDestinationReached = true;
-					handleNavigationEvents(vehicleDataId);	
 				}
 				break;
 			case "destination-changed":
@@ -547,96 +546,20 @@ function handleParkSensorsEvents(psEvent){
 	}
 }
 
-/*Navigation Events - Destination Reached, Changed and Cancelled*/
-function handleNavigationEvents(destinationId){
-	    var randomTime = Math.floor(Math.random()*1000*10);
-	//	console.log("random drData1:" + drEvent);
-        console.log("random Time:" + randomTime);
-     //   var json = null;
+
+/*handleParkSensorsEvent*/
+function handleDestinationReached(psEvent){
+	if(listeningToDestinationReached){
         for(i = 0; i < objectRefs.length; i++){
-				if(objectRefs[i][1] == "destination-reached"){
-					var drEvent = generateNavigationReachedEvent(destinationId);          	
-					if(drEvent != null){
-						json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", drEvent);
-						console.log("random drData:" + drEvent.name);
-						rpcHandler.executeRPC(json);	
-					}
-				}
-				if(objectRefs[i][1] == "destination-changed"){
-				var drEvent = generateNavigationChangedEvent(destinationId);
-                	json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", drEvent);
-					console.log("random drData:" + drEvent.name);
-                 	rpcHandler.executeRPC(json);
-				}
-				if(objectRefs[i][1] == "destination-cancelled"){	
-				destinationid = "destination-cancelled";
-				var drEvent = generateNavigationCancelledEvent(destinationId);
-                	json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", drEvent);
-					console.log("random drData:" + drEvent);		
-                 	rpcHandler.executeRPC(json);
-				}
+			if(objectRefs[i][1] == "destination-reached"){
+   				json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", psEvent);
+                rpcHandler.executeRPC(json);
+			}
+
         }
-        if(listeningToDestinationReached || listeningToDestinationChanged || listeningToDestinationCancelled){
-                setTimeout(function(){ handleNavigationEvents(destinationId); }, randomTime);        
-        } 
+	}
 }
 
-//setting the target destination
-var destinations =new Array();
-destinations.push({name:"BMW AG", address : {country: "DE", region: "Bayern", county: "Bayern", city: "Munich", street: "Petuelring", streetNumber: "130", premises: "Carparking", additionalInformation: "near to OEZ", postalCode: "80788"}});
-destinations.push({name:"BMW Forschung und Technik", address : {country: "DE", region: "Bayern", county: "Bayern", city: "Munich", street: "Hanauer Strasse", streetNumber: "46", premises: "Carparking", additionalInformation: "near to OEZ", postalCode: "80992"}});
-destinations.push({name:"BMW", address : {country: "DE", region: "Bayern", county: "Bayern", city: "Munich", street: "Petuelring", streetNumber: "130", premises: "Carparking", additionalInformation: "near to OEZ", postalCode: "80788"}});
-destinations.push({name:"BMW AG", address : {country: "DE", region: "Bayern", county: "Bayern", city: "Munich", street: "Petuelring", streetNumber: "130", premises: "Carparking", additionalInformation: "near to OEZ", postalCode: "80788"}});
-
-//list of destinations assigned - for the moment 2 destinations listed
-var destination =new Array();
-destination.push({name:"BMW AG", address : {country: "DE", region: "Bayern", county: "Bayern", city: "Munich", street: "Petuelring", streetNumber: "130", premises: "Carparking", additionalInformation: "near to OEZ", postalCode: "80788"}});
-destination.push({name:"BMW Forschung und Technik", address : {country: "DE", region: "Bayern", county: "Bayern", city: "Munich", street: "Hanauer Strasse", streetNumber: "46", premises: "Carparking", additionalInformation: "near to OEZ", postalCode: "80992"}});
-	
-function generateNavigationReachedEvent(destinationId){
-		
-		random1 = Math.floor(Math.random()*destinations.length);
-		random2 = Math.floor(Math.random()*destination.length);
-		
-		if (destinations[random1].name == destination[random2].name) {
-              console.log("Reached the Desired Destination");
-			  return new NavigationEvent(destinationId, destinations[random1].address);
-		}else{
-		//	return null;
-		    var destinationId_NotReached = "Desired Destination Not Reached";
-			console.log("Desired Destination Not Reached");
-			return new NavigationEvent(destinationId_NotReached);
-		}
-}
-
-function generateNavigationChangedEvent(destinationId){
-
-        random1 = Math.floor(Math.random()*destinations.length);
-		random2 = Math.floor(Math.random()*destinations.length);
-		
-		if (destinations[random1].name == destinations[random2].name) {
-              console.log("Destination Changed");
-			  return new NavigationEvent(destinationId, destinations[random2].address);
-		}else{
-		//	return null;
-		    var destinationId_NotReached = "Desired Destination Not Reached";
-			console.log("Desired Destination Not Reached");
-			return new NavigationEvent(destinationId_NotReached);
-		}
-}		
-	
-function generateNavigationCancelledEvent(destinationId){
-		var j=0;
-        var i=1;		 
-		 if (destinations[j].name == destination[i].name) {
-              console.log("Destination Cancelled");
-			  return new NavigationEvent(destinationId,destination[i].name,destination[i].address.country,destination[i].address.region,destination[i].address.county,destination[i].address.city,destination[i].address.street,destination[i].address.streetNumber,destination[i].address.premises,destination[i].address.additionalInformation,destination[i].address.postalCode);
-        }	  
-		else {
-                console.log("Destination is Cancelled or Not Found");
-				return new NavigationEvent(destinationId);
-        }
-}
 
 // Climate All, Climate Driver, Climate Passenger Front, Climate Passenger Rear Left, Climate Passenger Rear Right
 
@@ -896,6 +819,7 @@ function setRequired(obj) {
     vs.addListener('tripcomputer', handleTripComputerEvents);
     vs.addListener('parksensors-rear', handleParkSensorsEvents);
     vs.addListener('parksensors-front', handleParkSensorsEvents);
+    vs.addListener('destination-reached', handleDestinationReached);
 
 }
 

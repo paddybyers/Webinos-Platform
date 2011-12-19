@@ -58,6 +58,19 @@ TripComputerEvent.prototype.initTripComputerEvent = function(tcData){
 }
 
 
+function Address(country, region, county, city, street, streetNumber, premises, additionalInformation, postalCode){
+	this.country = country;
+	this.region = region;
+	this.county = county;
+	this.city = city;
+	this.street = street;
+	this.streetNumber = streetNumber;
+	this.premises = premises;
+	this.additionalInformation = additionalInformation;
+	this.postalCode = postalCode;
+}
+
+
 ParkSensorEvent = function(position, psData){
 	this.initParkSensorEvent(position, psData);
 }
@@ -78,6 +91,27 @@ ParkSensorEvent.prototype.initParkSensorEvent = function(position, psData){
     var stamp = stamp + d.getUTCMilliseconds();
 
 	ParkSensorEvent.parent.initEvent.call(this, 'parksensor', null, null, null, false, false, stamp);
+}
+
+
+NavigationEvent = function(type, data){
+	this.initNavigationEvent(type, data);
+}
+
+NavigationEvent.prototype = new WDomEvent();
+NavigationEvent.prototype.constructor = NavigationEvent;
+NavigationEvent.parent = WDomEvent.prototype; // our "super" property
+
+NavigationEvent.prototype.initNavigationEvent = function(type, data){
+    this.type = type;
+    this.address = new Address(data.country, data.region, data.county, data.city, data.street, data.streetnumber, data.premises, data.additionals, data.postalcode);
+    
+      
+    var d = new Date();
+    var stamp = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
+    var stamp = stamp + d.getUTCMilliseconds();
+
+	ParkSensorEvent.parent.initEvent.call(this, 'destination-reached', null, null, null, false, false, stamp);
 }
 
 
@@ -181,6 +215,15 @@ var psfData = new Object();
         }
     }    
     
+    everyone.now.setDestinationReached = function(data){
+        dData = data;
+        console.log(data);
+        if(typeof _listeners.destinationReached != 'undefined'){
+            _listeners.destinationReached(new NavigationEvent('destination-reached',dData));
+        }
+    } 
+    
+    
     function get(type){
         switch(type){
             case 'gear': 
@@ -214,7 +257,10 @@ var psfData = new Object();
                 break;
             case 'parksensors-rear':
                 _listeners.parksensorsRear = listener;
-                break;    
+                break;
+             case 'destination-reached':
+                _listeners.destinationReached = listener;
+                break;
             default:
                 console.log('type ' + type + ' undefined.');
         }
