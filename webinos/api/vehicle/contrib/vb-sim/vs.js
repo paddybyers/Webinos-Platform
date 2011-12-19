@@ -221,6 +221,7 @@ var psfData = new Object();
             _listeners.destinationReached(new NavigationEvent('destination-reached',dData));
         }
     } 
+
     function get(type){
         switch(type){
             case 'gear': 
