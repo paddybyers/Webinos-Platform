@@ -546,7 +546,6 @@ function handleParkSensorsEvents(psEvent){
 	}
 }
 
-
 /*handleParkSensorsEvent*/
 function handleDestinationReached(psEvent){
 	if(listeningToDestinationReached){
@@ -559,7 +558,6 @@ function handleDestinationReached(psEvent){
         }
 	}
 }
-
 
 // Climate All, Climate Driver, Climate Passenger Front, Climate Passenger Rear Left, Climate Passenger Rear Right
 

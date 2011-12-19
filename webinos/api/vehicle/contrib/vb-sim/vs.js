@@ -70,7 +70,6 @@ function Address(country, region, county, city, street, streetNumber, premises, 
 	this.postalCode = postalCode;
 }
 
-
 ParkSensorEvent = function(position, psData){
 	this.initParkSensorEvent(position, psData);
 }
@@ -113,8 +112,6 @@ NavigationEvent.prototype.initNavigationEvent = function(type, data){
 
 	ParkSensorEvent.parent.initEvent.call(this, 'destination-reached', null, null, null, false, false, stamp);
 }
-
-
 
 var fs = require('fs'), url = require('url'), path = require('path');
 
@@ -222,8 +219,6 @@ var psfData = new Object();
             _listeners.destinationReached(new NavigationEvent('destination-reached',dData));
         }
     } 
-    
-    
     function get(type){
         switch(type){
             case 'gear': 

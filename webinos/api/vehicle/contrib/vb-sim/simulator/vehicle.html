@@ -46,7 +46,6 @@
 				psData.r = $('#pr-r').val();
 				now.setPsRear(psData);	
 			});
-			
 			$('#locateOnMap').click(function(){
 				var address = $('#d-street').val() + " " + $('d-streetnumber').val() + ", " + $('#d-city').val() + ", " + $('#d-country').val();
 				geocoder.geocode( { 'address': address}, handleGeocoder);
