@@ -56,7 +56,7 @@ Connection.prototype.connect = function(params, onOnline) {
 		xmpp = require('node-xmpp');
 		this.client = new xmpp.Client(params);
 	} else {
-		xmpp = require('./node-xmpp-via-bosh/boshclient.js');
+		xmpp = require('node-bosh-xmpp');
 		this.client = new xmpp.Client(params['jid'], params['password'], params['bosh']);
 	}
 
