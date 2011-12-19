@@ -257,6 +257,7 @@
 		client.on('end', function () {
 			var webApp;
 			utils.debug(2, 'PZP ('+self.sessionId+') Connection teminated');
+			messaging.removeRoute(self.pzhId, self.sessionId);
 			delete self.connectedPzh[self.pzhId];
 			delete self.connectedPzp[self.sessionId];
 			self.pzhId = '';

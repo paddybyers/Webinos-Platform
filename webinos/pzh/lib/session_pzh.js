@@ -224,7 +224,8 @@
 			// It calls removeClient to remove PZP from connected_client and connectedPzp.
 			conn.on('close', function() {
 				utils.debug(2, 'PZH ('+self.sessionId+') Remote Socket  closed');
-				utils.removeClient(self, conn);
+				var removed = utils.removeClient(self, conn);
+				messaging.removeRoute(removed, self.sessionId);
 			});
 
 			conn.on('error', function(err) {
