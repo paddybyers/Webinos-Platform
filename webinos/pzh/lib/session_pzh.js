@@ -284,6 +284,8 @@
 			}
 		});	
 	};
+	
+	
 	/* starts pzh, creates servers and event listeners for listening data from clients.
 	 * @param server name
 	 * @param port: port on which server is running
@@ -300,6 +302,7 @@
 			pzh.checkFiles(function(result) {
 				utils.debug(2, 'PZH ('+pzh.sessionId+') Starting PZH: ' + result);
 				pzh.sock = pzh.connect();
+				
 				pzh.sock.on('error', function (err) {
 					if (err !==  null && err.code === 'EADDRINUSE') {
 						utils.debug(2, 'PZH ('+pzh.sessionId+') Address in use');
@@ -313,7 +316,11 @@
 					if(typeof callback !== 'undefined')
 						callback.call(pzh, 'startedPzh');
 				});
-				pzh.sock.listen(pzh.port, server);
+				utils.resolveIP(server, function(name) {
+					server = name;
+					pzh.sock.listen(pzh.port, server);
+				});
+				
 			});
 		});
 		return pzh;
@@ -412,7 +419,7 @@
 							if(result === 'startedPzh') {
 								var info = {"type":"prop", 
 								"payload":{"status": "info", 
-								"message":"PZH "+pzh.sessionId+" started"}}; 
+								"message":"PZH "+instance.sessionId+" started"}}; 
 								connection.sendUTF(JSON.stringify(info));
 							}				
 						});
