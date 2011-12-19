@@ -101,7 +101,8 @@ exports.selfSigned = function(self, name, obj, callback) {
 	try {
 		obj.key.value = certman.genRsaKey(1024);
 	} catch(err1) {
-		throw new Error("Error generating private key");
+		callback.call(self, "failed");
+		return;
 	}
 
 	var common = name+':'+self.config.common;
@@ -116,19 +117,22 @@ exports.selfSigned = function(self, name, obj, callback) {
 			common, 
 			self.config.email);
 	} catch (e) {
-		throw new Error("Error generating certificate request");
+		callback.call(self, "failed");
+		return;
 	}
 
 	try {
 		obj.cert.value = certman.selfSignRequest(obj.csr.value, 30, obj.key.value);
 	} catch (e) {
-		throw new Error("Error generating self signed certificate");
+		callback.call(self, "failed");
+		return;
 	}
 
 	try {
 		obj.crl.value = certman.createEmptyCRL(obj.key.value,  obj.cert.value, 30, 0);
 	} catch (e) {
-		throw new Error('Error generating CRL.')
+		callback.call(self, "failed");
+		return;
 	}
 	callback.call(self, "certGenerated");
 };
@@ -149,7 +153,8 @@ exports.signRequest = function(self, csr, master, callback) {
 		var clientCert = certman.signRequest(csr, 30, master.key.value, master.cert.value);
 		callback.call(self, "certSigned", clientCert);
 	} catch(err1) {
-		throw new Error('Error generating signed request.')
+		callback.call(self, "failed");
+		return;
 	}	
 };
 
@@ -431,6 +436,22 @@ exports.configure = function(self, id, contents, callback) {
 			callback.call(self,'Certificate Present');	
 		}		
 	});	
+};
+//TODO: IP first address fails, use second address support
+exports.resolveIP = function(serverName, callback) {
+	var dns = require('dns');
+	var net = require('net');
+	if(net.isIP(serverName) !== 0) {
+		callback(serverName);
+	} else {
+		dns.resolve(serverName, function(err, address) {
+			if(err) {
+				return "undefined";
+			} else {
+				callback(address[0]);
+			}
+		});
+	}
 };
 
 exports.getId = getId;
