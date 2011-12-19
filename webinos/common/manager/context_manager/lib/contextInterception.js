@@ -33,6 +33,7 @@ var dependencies = require('../' + moduleRoot.root.location + '/dependencies.jso
 var webinosRoot = '../' + moduleRoot.root.location;
 var dbpath = pathclass.resolve(__dirname + '/../' + webinosRoot + '/storage/context/pzp/log.json');
 require('./contextExtraction.js');
+
 var registeredListeners = [];
 
 
@@ -48,7 +49,7 @@ webinos.context.logContext = function(myObj, res) {
   var myData = new webinos.context.ContextData(myObj['method'],myObj['params'], res['result']);
 
   var dataIn = {timestamp:myData.timestamp, api: myData.call.api, hash: myData.call.hash, method: myData.call.method, params:myData.params, result:myData.results};
-
+//console.log(webinos.session.pzp.getConnectedPzhId())
 
   //Don't log Context API calls
   if (!(myData.call.api =='http://webinos.org/api/context'))
