@@ -19,19 +19,15 @@ sessionPzp = require( pathclass.resolve(__dirname + '/../' + webinosRoot + '/web
 exports.handleContextData = function(contextData)
 {
 
+  
   var connectedPzh = sessionPzp.getPzhId();
-
-
-
-
-  //connectedPzh="WebinosLocalPZH";
   if (connectedPzh == "null" || connectedPzh == "undefined"){
     bufferDB.insert(contextData)
     console.log("Successfully commited Context Object to the context buffer");
   }
   else{
     var contextService = [];
-    //webinos.ServiceDiscovery.setServiceLocation(connectedPzh);
+    myRpc.SetSessionId(connectedPzh);
     var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'));
 
     //contextService.push(service);
