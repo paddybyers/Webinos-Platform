@@ -1,6 +1,6 @@
 { "name": "file",
   "version": "0.0.1",
-  "main": "./lib/webinos.file.js",
+  "main": "./lib/webinos.file.rpc.js",
   "directories": {
     "lib": "./lib"
   },
