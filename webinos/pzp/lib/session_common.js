@@ -186,6 +186,7 @@ exports.removeClient = function(self, conn) {
 		for ( i = 0 ; i < self.connectedPzpIds.length; i += 1) {
 			if ( delId === self.connectedPzpIds[i]) {
 				delete self.connectedPzpIds[i];
+				return delId;
 			}
 		}
 	}
@@ -194,17 +195,19 @@ exports.removeClient = function(self, conn) {
 		if(self.connectedPzh.hasOwnProperty(i)) {
 			if(conn.socket._peername.address === self.connectedPzh[i].address) {
 				delPzhId = i;
-				delete self.connectedPzp[i];
+				delete self.connectedPzh[i];
 			}
 		}
 	}
-	if (typeof delIPzhd !== "undefined") {
+	if (typeof delIPzhId !== "undefined") {
 		for ( i = 0 ; i < self.connectedPzhIds.length; i += 1) {
 			if ( delPzhId === self.connectedPzhIds[i]) {
 				delete self.connectedPzhIds[i];
+				return delPzhId;
 			}
 		}
 	}
+	
 	
 };
 

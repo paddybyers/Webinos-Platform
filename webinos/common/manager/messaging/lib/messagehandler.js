@@ -141,6 +141,15 @@
 		return message;
 	};
 
+	webinos.message.removeRoute = function(sender, receiver)
+	{
+		var session = [sender, receiver];		
+		session.join("->");
+		if(clients[session])
+			clients[session] = null;
+	};
+	
+
 	/**
 	 * RPC writer
 	 */
@@ -342,6 +351,7 @@ if (typeof exports !== 'undefined'){
 	exports.sendMessage = webinos.message.sendMessage;
 	exports.createMessage = webinos.message.createMessage;
 	exports.registerSender = webinos.message.registerSender;
+	exports.removeRoute = webinos.message.removeRoute;
 	exports.createMessageId = webinos.message.createMessageId;
 	exports.onMessageReceived = webinos.message.onMessageReceived;
 	exports.setRPCHandler = webinos.message.setRPCHandler;
