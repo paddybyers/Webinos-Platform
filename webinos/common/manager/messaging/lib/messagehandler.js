@@ -57,7 +57,7 @@
 	 
 	/** 
 	 * To store the session id after registration. e.g. PZP registers with
-	 *  PZH, PZH creates a session id X for PZP. client[PZP->PZH] = X
+	 * PZH, PZH creates a session id X for PZP. client[PZP->PZH] = X
 	 *  
 	 *  TODO need to adjust clients[] to accommodate PZH farm, PZP farm scenarios
 	 */  	
@@ -84,7 +84,7 @@
 	};
 	
 	/**
-	 * To set the reference to differtnet objects. e.g. in a PZH farm, objectRef  
+	 * To set the reference to different objects. e.g. in a PZH farm, objectRef  
 	 * is used to refer to different PZH.
 	 */
 	webinos.message.setObjectRef = function (objref)	{
@@ -141,6 +141,14 @@
 		return message;
 	};
 
+	webinos.message.removeRoute = function(sender, receiver)
+	{
+		var session = [sender, receiver];		
+		session.join("->");
+		if(clients[session])
+			clients[session] = null;
+	};
+	
 	/**
 	 * RPC writer
 	 */
@@ -163,69 +171,69 @@
 		options.payload = rpc;
 		message = webinos.message.createMessage(options);
 		
-		var to = message.to;
-		var session1 = [to, self];
-		session1.join("->");
-		var session2 = [self, to];
-		session2.join("->");
-		
-	    if((!clients[session1]) && (!clients[session2]))  // not registered either way
-	    {
-			console.log("MSGHANDLER:  session not set up");
-			var occurences = (message.to.split(separator).length - 1);
+		if(message.to !== undefined)
+		{
+			var to = message.to;
+			var session1 = [to, self];
+			session1.join("->");
+			var session2 = [self, to];
+			session2.join("->");
 			
-			var data = message.to.split(separator);
-			var id = data[0];
-			var forwardto = data[0]; 
+			if((!clients[session1]) && (!clients[session2]))  // not registered either way
+			{
+				console.log("MSGHANDLER:  session not set up");
+				var occurences = (message.to.split(separator).length - 1);
+			
+				var data = message.to.split(separator);
+				var id = data[0];
+				var forwardto = data[0]; 
 
-			for(var i = 1; i < occurences; i++)	{
-				id = id + separator + data[i];
-				var new_session1 = [id, self];
-				new_session1.join("->");
-				var new_session2 = [self, id];
-				new_session2.join("->");
+				for(var i = 1; i < occurences; i++)	{
+					id = id + separator + data[i];
+					var new_session1 = [id, self];
+					new_session1.join("->");
+					var new_session2 = [self, id];
+					new_session2.join("->");
 	
-				if(clients[new_session1] || clients[new_session2]) {
-					forwardto = id;
-					console.log("MSGHANDLER:  forwardto", forwardto);
+					if(clients[new_session1] || clients[new_session2]) {
+						forwardto = id;
+						console.log("MSGHANDLER:  forwardto", forwardto);
+					}
 				}
+				webinos.message.sendMessage(message, forwardto, objectRef);
 			}
-			webinos.message.sendMessage(message, forwardto, objectRef);
+		    else if(clients[session2]){
+		    	console.log("MSGHANDLER:  clients[session2]:" + clients[session2]);
+		    	webinos.message.sendMessage(message, clients[session2], objectRef);
+		    }
+		    else if(clients[session1]){
+		    	console.log("MSGHANDLER:  clients[session1]:" + clients[session1]);
+		    	webinos.message.sendMessage(message, clients[session1], objectRef);
+		    }
 		}
-	    else if(clients[session2]){
-	    	console.log("MSGHANDLER:  clients[session2]:" + clients[session2]);
-	    	webinos.message.sendMessage(message, clients[session2], objectRef);
-	    }
-	    else if(clients[session1]){
-	    	console.log("MSGHANDLER:  clients[session1]:" + clients[session1]);
-	    	webinos.message.sendMessage(message, clients[session1], objectRef);
-	    }
 	}
 
 	webinos.message.onMessageReceived = function(message, sessionid){
- 
+		
 		if(typeof message === "string")
 			message = JSON.parse(message);
- 
-		if(message.hasOwnProperty("register") && message.register)
+ 		if(message.hasOwnProperty("register") && message.register)
 		{ 
 			var from = message.from;
 			var to = message.to;
+			if(to !== undefined)
+			{	
+				var regid = [from, to];
+				regid.join("->");  
 
-			var regid = [from, to];
-			regid.join("->");  
-
-			//Register message to associate the address with session id
-    		if(message.from)
-			{
-				clients[regid] = message.from;
-			}
-    		else if(sessionid)
-    		{
-    			clients[regid] = sessionid;
-    		}
+				//Register message to associate the address with session id
+				if(message.from)
+					clients[regid] = message.from;
+				else if(sessionid)
+					clients[regid] = sessionid;
    
-    		logObj(message, "register Message");
+				logObj(message, "register Message");
+			}
     		return; 
 		}
 		// check message destination 
@@ -342,6 +350,7 @@ if (typeof exports !== 'undefined'){
 	exports.sendMessage = webinos.message.sendMessage;
 	exports.createMessage = webinos.message.createMessage;
 	exports.registerSender = webinos.message.registerSender;
+	exports.removeRoute = webinos.message.removeRoute;
 	exports.createMessageId = webinos.message.createMessageId;
 	exports.onMessageReceived = webinos.message.onMessageReceived;
 	exports.setRPCHandler = webinos.message.setRPCHandler;

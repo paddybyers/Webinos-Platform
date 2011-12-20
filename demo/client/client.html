@@ -36,11 +36,15 @@
 			webinos.message_send(options);
                 
 		});		
-                    
+                $('#registerBrowser').bind('click', function() {
+                	var options = {type: 'prop', payload: {status:'registerBrowser'}};
+			webinos.message_send(options);
+                
+		});		 
 		var test = [];
 		         
 		$('#findService').bind('click', function() {
-		    webinos.setServiceLocation($('#pzh_pzp_list').val());
+		    webinos.session.setServiceLocation($('#pzh_pzp_list').val());
 		    webinos.ServiceDiscovery.findServices( 
 		        new ServiceType('http://webinos.org/api/test'), 			
 		        {onFound: function (service) {
@@ -98,8 +102,7 @@
 	
 	<div id = "pzp" style="background-color:#0879a9">	
 		<p style="color:white" align="right"> Help Available on Redmine to start PZP <a href="http://dev.webinos.org/redmine/projects/wp4/wiki/Running_PZP"> Running PZP </a>
-		<center> <p style="color:white"> Start Multiple PZP's, Just change common name field</p> </center>
-
+		<center> <p style="color:white"> Ideally you should start one Pzp per instance, if you wish to start another Pzp, create another instance </p> </center>
 		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">			
 			<tr><th>Config </th> <th> Value </th> </tr>
 			<tr><td>Country </td><td><input type="text" id="pzpcountry" value="UK"/></td> </tr>
@@ -126,8 +129,10 @@
 	<div id = "get42_example" style="background-color:#0879a9"> 
 		<table style="background-color:lightgray; border:3px solid #0879a9">
 				<tr> <td>
-					Select from the list Available PZP & PZH to find Service
-					<select id="pzh_pzp_list"> <option> </option> </select> </td>
+					<tr> <td> Use registerBrowser if you do not see anything in drop down </td>
+					<td> <button id="registerBrowser" class="button"> Register Browser </button> </td> </tr>
+					<tr> <td> Select from the list Available PZP & PZH to find Service </td>
+					<td> <select id="pzh_pzp_list"> <option> </option> </select> </td> 
 					<td> <button id="findService" class="button"> Find Service </button> </td></tr>
 					<tr> <td><p><i> Find Service will determine where your code will be executed</i></p> 
 				</td> <td> </td> </tr>

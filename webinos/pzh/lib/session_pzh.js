@@ -13,7 +13,7 @@
 		fs = require('fs'),
 		Pzh = null,
 		sessionPzh = [],
-		instance;
+		instance = [];
 		
 	if (typeof exports !== "undefined") {
 		var rpc = require("../../common/rpc/lib/rpc.js");
@@ -87,7 +87,7 @@
 				utils.debug(2, "PZH: Client " + address + " is not connected");
 			} 
 		} catch(err) {
-			utils.debug(1,'PZH ('+self.sessionId+') Exception' + err);
+			utils.debug(1,'PZH ('+self.sessionId+') Exception in sending packet');
 			utils.debug(1, err.code);
 			utils.debug(1, err.stack);
 		}
@@ -99,56 +99,66 @@
 	*/
 	Pzh.prototype.checkFiles = function (callback) {
 		var self = this;
-		fs.readFile(self.config.master.cert.name, function(err) {
-		if(err !== null && err.code === 'ENOENT') {			
-			utils.selfSigned(self, 'Pzh', self.config.conn, function(status) {
-				if(status === 'certGenerated') {
-					utils.debug(2, 'PZH Generating Certificates');
-					fs.writeFileSync(self.config.conn.key.name, self.config.conn.key.value);
-					utils.selfSigned(self, 'Pzh:Master', self.config.master, function(result) {
-						if(result === 'certGenerated') {
-							fs.writeFileSync(self.config.master.key.name, self.config.master.key.value);
-							fs.writeFileSync(self.config.master.cert.name, self.config.master.cert.value);
-							utils.signRequest(self, self.config.conn.csr.value, self.config.master,
-							function(result, cert) {
-								if(result === 'certSigned'){ 
-									self.config.conn.cert.value = cert;
-									fs.writeFileSync(self.config.conn.cert.name, cert);
-									callback.call(self, 'Certificates Created');
+		try {
+			fs.readFile(self.config.master.cert.name, function(err) {
+				if(err !== null && err.code === 'ENOENT') {	
+					utils.selfSigned(self, 'Pzh', self.config.conn, function(status) {
+						if(status === 'certGenerated') {
+							utils.debug(2, 'PZH Generating Certificates');
+							fs.writeFileSync(self.config.conn.key.name, self.config.conn.key.value);
+							utils.selfSigned(self, 'Pzh:Master', self.config.master, function(result) {
+								if(result === 'certGenerated') {
+									fs.writeFileSync(self.config.master.key.name, self.config.master.key.value);
+									fs.writeFileSync(self.config.master.cert.name, self.config.master.cert.value);
+									utils.signRequest(self, self.config.conn.csr.value, self.config.master,
+									function(result, cert) {
+										if(result === 'certSigned'){ 
+											self.config.conn.cert.value = cert;
+											fs.writeFileSync(self.config.conn.cert.name, cert);
+											callback.call(self, 'Certificates Created');
+										}
+									});
 								}
 							});
-						}
+						}				
 					});
-				}				
+				} else {
+					self.config.master.cert.value = fs.readFileSync(self.config.master.cert.name).toString(); 
+					self.config.master.key.value = fs.readFileSync(self.config.master.key.name).toString();
+					self.config.conn.cert.value = fs.readFileSync(self.config.conn.cert.name).toString(); 
+					self.config.conn.key.value = fs.readFileSync(self.config.conn.key.name).toString();
+					callback.call(self, 'Certificates Present');
+				}		
 			});
-		} else {
-			self.config.master.cert.value = fs.readFileSync(self.config.master.cert.name).toString(); 
-			self.config.master.key.value = fs.readFileSync(self.config.master.key.name).toString();
-			self.config.conn.cert.value = fs.readFileSync(self.config.conn.cert.name).toString(); 
-			self.config.conn.key.value = fs.readFileSync(self.config.conn.key.name).toString();
-			callback.call(self, 'Certificates Present');
-		}		
-		});	
+		} catch(err) {
+			utils.debug(1,'PZH ('+self.sessionId+') Exception in reading/creating certificates');
+			utils.debug(1, err.code);
+			utils.debug(1, err.stack);
+		}
 	};
 	
 	/**
 	* @description Starts Pzh server. It creates server configuration and then createsServer 
 	*/
 	Pzh.prototype.connect = function () {
-		var self = this, server;
-		
-		var ca =  [self.config.master.cert.value];	
-		if(typeof self.config.otherPZHMasterCert !== 'undefined') {
-		           ca = [self.config.master.cert.value, fs.readFileSync(self.config.otherPZHMasterCert)];
-		}
-	
+		var self = this, server, ca;
+		try {
+			ca =  [self.config.master.cert.value];	
+			if(typeof self.config.otherPZHMasterCert !== 'undefined') {
+				   ca = [self.config.master.cert.value, fs.readFileSync(self.config.otherPZHMasterCert)];
+			}
+		} catch (err) {
+			utils.debug(1,'PZH ('+self.sessionId+') Exception in reading other Pzh certificates');
+			utils.debug(1, err.code);
+			utils.debug(1, err.stack);
+		} 
 		/** @param {Object} options Creates options parameter, key, cert and ca are set */
 		var options = {key: self.config.conn.key.value,
-				cert: self.config.conn.cert.value,
-				ca: self.config.master.cert.value,
-				requestCert:true, 
-				rejectUnauthorized:false
-				};
+			cert: self.config.conn.cert.value,
+			ca: self.config.master.cert.value,
+			requestCert:true, 
+			rejectUnauthorized:false
+			};
 
 		/** Sets messaging parameter */
 		utils.setMessagingParam(self);
@@ -166,8 +176,12 @@
 
 
 			if(conn.authorized) {
-				cn = conn.getPeerCertificate().subject.CN;
-				data = cn.split(':');
+				try {
+					cn = conn.getPeerCertificate().subject.CN;
+					data = cn.split(':');
+				} catch(err) {
+					
+				}
 				// Assumption: PZH is of form ipaddr or web url
 				// Assumption: PZP is of form url@mobile:Deviceid@mac
 				if(data[0] === 'Pzh' ) {
@@ -210,7 +224,7 @@
 						conn.resume();
 					});
 				} catch (err) {
-					utils.debug(1, 'PZH ('+self.sessionId+') Exception' + err);
+					utils.debug(1, 'PZH ('+self.sessionId+') Exception in processing message');
 					utils.debug(1, err.code);
 					utils.debug(1, err.stack);
 				
@@ -223,12 +237,13 @@
 
 			// It calls removeClient to remove PZP from connected_client and connectedPzp.
 			conn.on('close', function() {
-				utils.debug(2, 'PZH ('+self.sessionId+') Remote Socket  closed');
-				utils.removeClient(self, conn);
+				utils.debug(2, 'PZH ('+self.sessionId+') Pzh/Pzp  closed');
+				var removed = utils.removeClient(self, conn);
+				messaging.removeRoute(removed, self.sessionId);
 			});
 
 			conn.on('error', function(err) {
-				utils.debug(1, 'PZH ('+self.sessionId+')' + err.code );
+				utils.debug(1, 'PZH ('+self.sessionId+') Error in Pzh' + err.code );
 				utils.debug(1, err.stack);
 			});
 		});
@@ -292,7 +307,7 @@
 	 */
 	sessionPzh.startPzh = function(contents, server, port, callback) {
 		var pzh = new Pzh();
-		instance = pzh;
+		instance.push(pzh);
 		pzh.port = port;
 		pzh.server = server;
 		utils.configure(pzh, 'pzh', contents, function() {
@@ -325,6 +340,26 @@
 		});
 		return pzh;
 	};
+	
+	function connectedPzhPzp(connection) {
+		var i;
+		for( i = 0; i < instance.length; i += 1) {
+			var message = {name: instance[i].sessionId, pzpId: instance[i].connectedPzpIds, pzhId: instance[i].connectedPzhIds};
+			var payload = { status: 'listPzh', message: message};
+			var msg = {type: 'prop', payload: payload};
+			connection.sendUTF(JSON.stringify(msg));
+		}
+	}
+	
+	function crashLog(connection) {
+		var i;
+		for( i = 0; i < instance.length; i += 1) {
+			var message = {name: instance[i].sessionId, log: fs.readFileSync('crash.txt').toString()};
+			var payload = {status : 'crashLog', message : message};
+			var msg = {type: 'prop', payload: payload};
+			connection.sendUTF(JSON.stringify(msg));
+		}
+	}
 
 	sessionPzh.startPzhWebSocketServer = function(hostname, serverPort, webServerPort) {
 		var http = require('http'),
@@ -412,19 +447,31 @@
 				var msg = JSON.parse(message.utf8Data);
 				utils.debug(2, 'PZH WSServer: Received packet' + JSON.stringify(msg));
 				if(msg.type === 'prop' && msg.payload.status === 'startPzh') {
-					instance = sessionPzh.startPzh(msg.payload.value, 
+					var pzh= sessionPzh.startPzh(msg.payload.value, 
 						msg.payload.servername, 
 						msg.payload.serverport, 
 						function(result) {
 							if(result === 'startedPzh') {
 								var info = {"type":"prop", 
 								"payload":{"status": "info", 
-								"message":"PZH "+instance.sessionId+" started"}}; 
+								"message":"PZH "+ pzh.sessionId+" started on port " + pzh.port}}; 
 								connection.sendUTF(JSON.stringify(info));
+								instance.push(pzh);
 							}				
 						});
-				} else if(msg.type === "prop" && msg.payload.status === 'downloadCert') {
-					instance.downloadCertificate(msg.payload.servername, msg.payload.serverport);				
+				} else if(instance.length > 0) {
+					if(msg.type === "prop" && msg.payload.status === 'downloadCert') {
+						for( i = 0 ; i < instance.length; i++) {
+							if(instance[i].sessionId === msg.payload.name) {
+								downloadCertificate(instance[i], msg.payload.servername, msg.payload.serverport);
+								return;	
+							}							
+						}
+					} else if(msg.type === "prop" && msg.payload.status === 'listPzh') {
+						connectedPzhPzp(connection);
+					} else if(msg.type === "prop" && msg.payload.status === 'crashLog') {
+						crashLog(connection);
+					}
 				}
 			});
 		});

@@ -72,8 +72,8 @@ webinos.context.saveContext = function(dataIn, success, fail) {
               expectedInputsLength = inputs.length;
               inputsCount = 0;
               for (inputIndex in inputs){
-              for(paramName in dataIn.params){
-                
+                for(paramName in dataIn.params){
+
                   if (inputs[inputIndex].objectName == paramName){
                     inputsCount++;
                     break;
@@ -109,7 +109,7 @@ webinos.context.saveContext = function(dataIn, success, fail) {
                 console.log(contextItem.resultstolog);
                 var contextData = [];
                 contextData[0] = contextItem;
-                webinos.context.DB.insert(contextData)
+                webinos.context.DB.handleContextData(contextData)
                 //console.log("Context data saved to Context DB");
                 break;
               }
@@ -138,7 +138,7 @@ webinos.context.saveContext = function(dataIn, success, fail) {
               console.log("Outputs to store in Context DB:");
               console.log(contextItem.resultstolog);
               contextData[0] = contextItem;
-              webinos.context.DB.insert(contextData)
+              webinos.context.DB.handleContextData(contextData)
               break;
             }
           }
@@ -146,28 +146,4 @@ webinos.context.saveContext = function(dataIn, success, fail) {
       }
     }
   }
-
-  var sendtoPZH = function(contextData)
-  {
-
-    var connectedPzh = {};
-    var contextPzh = [];
-
-    if (connectedPzh == "null" || connectedPzh == "undefined"){
-      // Generate contectDB insert cache
-    }
-    else{
-      webinos.ServiceDiscovery.findServices(connectedPzh, new ServiceType('http://webinos.org/api/context'),
-          {onFound: function (service){
-            contextPzh.push(service);
-            var query = {};
-            query.type = "DB-insert";
-            query.data = contextData;
-            contextPzh.DB.insert(query);
-          }});
-    }
-  }
-  //success(true);
 }
-
-

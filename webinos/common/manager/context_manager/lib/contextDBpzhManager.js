@@ -10,29 +10,59 @@ var db =  new sqlite3.Database(dbpath);
 var databasehelper = require('../contrib/JSORMDB/src/main/javascript/persist');
 bufferDB = new databasehelper.JSONDatabase({path : bufferpath,transactional : false});
 
+var myRpc = require( pathclass.resolve(__dirname + '/../' + webinosRoot + '/webinos/common/rpc/lib/rpc.js'));
+webinos.ServiceDiscovery = new RPCHandler;
+myRpc.loadModules(webinos.ServiceDiscovery);
+
+sessionPzp = require( pathclass.resolve(__dirname + '/../' + webinosRoot + '/webinos/pzp/lib/session_pzp.js'));
+//webinos = require( pathclass.resolve(__dirname + '/../' + webinosRoot + '/webinos/wrt/lib/webinos.js'));
+exports.handleContextData = function(contextData)
+{
+
+  var connectedPzh = sessionPzp.getPzhId();
+
+
+
+
+  //connectedPzh="WebinosLocalPZH";
+  if (connectedPzh == "null" || connectedPzh == "undefined"){
+    bufferDB.insert(contextData)
+    console.log("Successfully commited Context Object to the context buffer");
+  }
+  else{
+    var contextService = [];
+    //webinos.ServiceDiscovery.setServiceLocation(connectedPzh);
+    var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'));
+
+    //contextService.push(service);
+
+    var query = {};
+    query.type = "DB-insert";
+    query.data = contextData;
+    if (service.length == 1){
+          service[0].executeQuery(query);
+    }
+  }
+  //success(true);
+}
+
+
+
 
 
 exports.insert = function(contextData, success, fail) {
-  var PZHonline = true;
-  if(PZHonline){
-    bufferDB.db.load();
-    bufferDB.insert(contextData);
-    var data = bufferDB.query();
-    saveToDB(data, function(){
-      console.log("Successfully commited " + data.length + " Context Objects to the PZH");
-      bufferDB.db.clear();
-      bufferDB.commit();
-      //success();
-    },function(){
-      console.log("Error commiting Context Objects to the PZH");
-      //fail();
-    });
-
-  }
-  else{
-    bufferDB.insert(contextData);//TODO: Add Success and fail callbacks
+  bufferDB.db.load();
+  bufferDB.insert(contextData);
+  var data = bufferDB.query();
+  saveToDB(data, function(){
+    console.log("Successfully commited " + data.length + " Context Objects to the context DB");
+    bufferDB.db.clear();
+    bufferDB.commit();
     //success();
-  }
+  },function(){
+    console.log("Error commiting Context Objects to the PZH");
+    //fail();
+  });
 }
 
 
@@ -82,28 +112,28 @@ exports.getrawview = function(success,fail){
       "fldSession AS Session, fldContextObject AS ContextObject, fldMethod AS Method, fldTimestamp AS Timestamp, " +
       "fldDescription AS ValueType, fldValueName AS ValueName, fldValue AS Value FROM vwcontextraw", 
       function (err,row){
-	//    var txtRow = "";
-	//    txtRow = txtRow + "ContextRawID : " + row.ContextRawID + 
-	//    " | ContextRawValueID : "  + row.ContextRawValueID +
-	//    " | API : "  + row.API +
-	//    " | Device : "  + row.Device +
-	//    " | Application : "  + row.Application +
-	//    " | Session : "  + row.Session +
-	//    " | ContextObject : "  + row.ContextObject +
-	//    " | Method : "  + row.Method +
-	//    " | Timestamp : "  + row.Timestamp +
-	//    " | ValueType : "  + row.ValueType +
-	//    " | ValueName : "  + row.ValueName +
-	//    " | Value : "  + row.Value;
-		
-		result.data[result.data.length] = row;
-	  },
-	  function(err){
-		  if (err !== null) {
-				result.msg = {code:err.code,msg:err.message};
-		  }
-		  success(result);
-	  }
+    //    var txtRow = "";
+    //    txtRow = txtRow + "ContextRawID : " + row.ContextRawID + 
+    //    " | ContextRawValueID : "  + row.ContextRawValueID +
+    //    " | API : "  + row.API +
+    //    " | Device : "  + row.Device +
+    //    " | Application : "  + row.Application +
+    //    " | Session : "  + row.Session +
+    //    " | ContextObject : "  + row.ContextObject +
+    //    " | Method : "  + row.Method +
+    //    " | Timestamp : "  + row.Timestamp +
+    //    " | ValueType : "  + row.ValueType +
+    //    " | ValueName : "  + row.ValueName +
+    //    " | Value : "  + row.Value;
+
+    result.data[result.data.length] = row;
+  },
+  function(err){
+    if (err !== null) {
+      result.msg = {code:err.code,msg:err.message};
+    }
+    success(result);
+  }
   );
 
 }
