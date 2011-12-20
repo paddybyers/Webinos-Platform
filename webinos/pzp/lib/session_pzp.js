@@ -382,28 +382,28 @@
 			WebSocketServer = require('websocket').server;
 		
 		function getContentType(uri) {
-			var contentType = {"Content-Type": "text/plain"};
-			switch (uri.substr(uri.lastIndexOf('.'))) {
-			case '.js':
-				contentType = {"Content-Type": "application/x-javascript"};
-				break;
-			case '.html':
-				contentType = {"Content-Type": "text/html"};
-				break;
-			case '.css':
-				contentType = {"Content-Type": "text/css"};
-				break;
-			case '.jpg':
-				contentType = {"Content-Type": "image/jpeg"};
-				break;
-			case '.png':
-				contentType = {"Content-Type": "image/png"};
-				break;
-			case '.gif':
-				contentType = {"Content-Type": "image/gif"};
-				break;
+			var contentType = 'text/plain';
+		    switch (uri.substr(uri.lastIndexOf('.'))) {
+		    case '.js':
+		    	contentType = 'application/x-javascript';
+		    	break;
+		    case '.html':
+		    	contentType = 'text/html';
+		    	break;
+		    case '.css':
+		    	contentType = 'text/css';
+		    	break;
+		    case '.jpg':
+		    	contentType = 'image/jpeg';
+		    	break;
+		    case '.png':
+		    	contentType = 'image/png';
+		    	break;
+		    case '.gif':
+		    	contentType = 'image/gif';
+		    	break;
 		    }
-		    return contentType;
+		    return {'Content-Type': contentType};
 		}
 
 		var cs = http.createServer(function(request, response) {  
