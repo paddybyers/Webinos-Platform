@@ -29,16 +29,16 @@
 				value: config}; 
 			
 			var options = {type: 'prop', payload: payload};
-			webinos.message_send(options);
+			webinos.session.message_send(options);
 		});
                 $('#disconnectPZP').bind('click', function() {
                 	var options = {type: 'prop', payload: {status:'disconnectPzp'}};
-			webinos.message_send(options);
+			webinos.session.message_send(options);
                 
 		});		
                 $('#registerBrowser').bind('click', function() {
                 	var options = {type: 'prop', payload: {status:'registerBrowser'}};
-			webinos.message_send(options);
+			webinos.session.message_send(options);
                 
 		});		 
 		var test = [];

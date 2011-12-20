@@ -11,7 +11,6 @@
 	var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
 	if (typeof exports !== "undefined") {
-		var sessionPzh = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/session_pzh.js'));
 		var rpc = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js'));
 		var rpcHandler = new RPCHandler();
 		rpc.loadModules(rpcHandler);
@@ -26,6 +25,7 @@
 	var tlsId = '', instance;
 	var sessionPzp = [];	
 	var connectedApp ={};
+	var webId = 0;
 	
 	Pzp = function () {
 		// Stores PZH server details
@@ -105,7 +105,7 @@
 				});
 			} 
 		} catch (err) {
-			utils.debug(1, 'PZP (' + self.sessionId + ': Exception' + err);
+			utils.debug(1, 'PZP (' + self.sessionId + 'Error in sending send message');
 			utils.debug(1, err.code);
 			utils.debug(1, err.stack);
 		}
@@ -256,17 +256,20 @@
 		
 		client.on('end', function () {
 			var webApp;
-			utils.debug(2, 'PZP ('+self.sessionId+') Connection teminated');
+			utils.debug(2, 'PZP ('+self.sessionId+') Connection terminated');
 			messaging.removeRoute(self.pzhId, self.sessionId);
 			delete self.connectedPzh[self.pzhId];
 			delete self.connectedPzp[self.sessionId];
 			self.pzhId = '';
 			self.sessionId = 'virgin_pzp';
 			instance = '';
-			for ( webApp in connectedApp ) {
-				if (connectedApp.hasOwnProperty(webApp)) {
-					var payload = {type:"prop", from:"virgin_pzp", to: webApp, payload:{status:"registeredBrowser"}};
-					connectedApp[webApp].sendUTF(JSON.stringify(payload));		
+			for ( webApp in self.connectedWebApp ) {
+				if (self.connectedWebApp.hasOwnProperty(webApp)) {
+					var addr = 'virgin_pzp' + '/' + webId;
+					webId += 1;
+					connectedApp[addr] = self.connectedWebApp[webApp];
+					var payload = {type:"prop", from:"virgin_pzp", to: addr, payload:{status:"registeredBrowser"}};
+					connectedApp[addr].sendUTF(JSON.stringify(payload));		
 				}
 			}
 		});
@@ -277,7 +280,7 @@
 		});
 
 		client.on('close', function () {
-			utils.debug(2, 'PZP ('+self.sessionId+') Connection closed by PZH');
+			utils.debug(2, 'PZP ('+self.sessionId+') Connection closed');
 		});
 		
 	};
@@ -466,14 +469,13 @@
 		});
 		
 		function messageWS (msg, address) {
-			//msg.resp_to = "virgin_pzp";
 			// TODO why is "msg" a whole service object? we should only send the service info fields.
 			if(connectedApp[address]) {
 				connectedApp[address].sendUTF(JSON.stringify(msg));
 			}
-		};
-		function connectedApp (connection) {
-			var id = 0;
+		}
+		
+		function connectedApp (connection) {			
 			if(typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
 				instance.sessionWebAppId  = instance.sessionId+ '/'+ instance.sessionWebApp;
 				instance.sessionWebApp  += 1;
@@ -481,10 +483,11 @@
 				payload = {'pzhId':instance.pzhId,'connectedPzp': instance.connectedPzpIds,'connectedPzh': instance.connectedPzhIds};
 		                instance.prepMsg(instance.sessionId, instance.sessionWebAppId, 'registeredBrowser', payload);  
 			} else {
-				id += 1;
-				connectedApp["virgin_pzp"+'/'+id] = connection;
-				var payload = {type:"prop", from:"virgin_pzp", to: "virgin_pzp"+'/'+id, payload:{status:"registeredBrowser"}};
-				connection.sendUTF(JSON.stringify(payload));
+				webId += 1;
+				var addr = "virgin_pzp"+'/'+webId;
+				connectedApp[addr] = connection;
+				var payload = {type:"prop", from:"virgin_pzp", to: addr , payload:{status:"registeredBrowser"}};
+				messageWS(payload, addr);
 			}		
 		}
 		
@@ -584,7 +587,7 @@
 		});
 
 		client.on('end', function () {
-			utils.debug(2, "PZP (" + self.sessionId +") Client: Connection teminated");
+			utils.debug(2, "PZP (" + self.sessionId +") Client: Connection terminated");
 		});
 	
 		client.on('error', function (err) {

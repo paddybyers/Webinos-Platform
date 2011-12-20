@@ -202,7 +202,8 @@ exports.removeClient = function(self, conn) {
 	if (typeof delIPzhId !== "undefined") {
 		for ( i = 0 ; i < self.connectedPzhIds.length; i += 1) {
 			if ( delPzhId === self.connectedPzhIds[i]) {
-				delete self.connectedPzhIds[i];
+				//delete self.connectedPzhIds[i];
+				self.connectedPzhIds.splice(i, 1);
 				return delPzhId;
 			}
 		}
