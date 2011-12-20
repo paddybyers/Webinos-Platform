@@ -469,6 +469,7 @@
 		});
 		
 		function messageWS (msg, address) {
+			msg.from = "virgin_pzp";
 			// TODO why is "msg" a whole service object? we should only send the service info fields.
 			if(connectedApp[address]) {
 				connectedApp[address].sendUTF(JSON.stringify(msg));

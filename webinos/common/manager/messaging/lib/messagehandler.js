@@ -296,9 +296,9 @@
 			       if(message.to != message.resp_to)
 			       {   
 						console.log(message.payload);
-						var resp = message.resp_to;
+						var from = message.from;
 						var msgid = message.id;
-						rpc.handleMessage(message.payload, resp, msgid);
+						rpc.handleMessage(message.payload, from, msgid);
 			        } 
 			        else
 			        {
@@ -306,9 +306,9 @@
 			        	{
 			        		// FIXME: can we call rpc.handleMessage here without checking messageCallbacks[] for message.id? 
 			        		logObj(message, "Message forwarded to RPC to handle callback");
-			        		var resp = message.resp_to;
+							var from = message.from;
 			        		var msgid = message.id;	       
-			        		rpc.handleMessage(message.payload, resp, msgid);
+			        		rpc.handleMessage(message.payload, from, msgid);
 			        	}
 			        	else{
 			        		if(typeof message.payload.result !== "undefined" || typeof message.payload.error !== "undefined"){

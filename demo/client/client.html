@@ -44,8 +44,8 @@
 		var test = [];
 		         
 		$('#findService').bind('click', function() {
-		    webinos.session.setServiceLocation($('#pzh_pzp_list').val());
-		    webinos.ServiceDiscovery.findServices( 
+			webinos.session.setServiceLocation($('#pzh_pzp_list').val());
+			webinos.ServiceDiscovery.findServices( 
 		        new ServiceType('http://webinos.org/api/test'), 			
 		        {onFound: function (service) {
 		            test.push(service);		
@@ -128,14 +128,13 @@
 	
 	<div id = "get42_example" style="background-color:#0879a9"> 
 		<table style="background-color:lightgray; border:3px solid #0879a9">
-				<tr> <td>
 					<tr> <td> Use registerBrowser if you do not see anything in drop down </td>
 					<td> <button id="registerBrowser" class="button"> Register Browser </button> </td> </tr>
 					<tr> <td> Select from the list Available PZP & PZH to find Service </td>
 					<td> <select id="pzh_pzp_list"> <option> </option> </select> </td> 
 					<td> <button id="findService" class="button"> Find Service </button> </td></tr>
 					<tr> <td><p><i> Find Service will determine where your code will be executed</i></p> 
-				</td> <td> </td> </tr>
+				</td>  </tr>
 				<tr> <td>
                     <button id="bind" class="button">Bind</button>
 				</td> <td> 

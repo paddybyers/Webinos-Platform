@@ -38,7 +38,7 @@
 
 		this.awaitingResponse = {};
 		this.objects = {};
-		this.responseToMapping = [];
+		this.requesterMapping = [];
 		
 		this.write = null;
 	}
@@ -53,9 +53,9 @@
 	/**
 	 * Handles a new JSON RPC message (as string)
 	 */
-	RPCHandler.prototype.handleMessage = function (message, responseto, msgid){
+	RPCHandler.prototype.handleMessage = function (message, from, msgid){
 		console.log("New packet from messaging");
-		console.log("Response to " + responseto);
+		console.log("Response to " + from);
 		var myObject = message;
 		logObj(myObject, "rpc");
 
@@ -112,9 +112,9 @@
 					if (typeof myObject.fromObjectRef !== 'undefined' && myObject.fromObjectRef != null) {
 						// callback registration case (one request to many responses)
 
-						this.responseToMapping[myObject.fromObjectRef] = responseto;
+						this.requesterMapping[myObject.fromObjectRef] = from;
 
-						this.objRefCachTable[myObject.fromObjectRef] = {responseTo:responseto, msgId: msgid};
+						this.objRefCachTable[myObject.fromObjectRef] = {'from':from, msgId: msgid};
 
 						var that = this;
 						includingObject[method](
@@ -126,7 +126,7 @@
 									if (typeof result !== 'undefined') res.result = result;
 									else res.result = {};
 									res.id = id;						
-									that.executeRPC(res, undefined, undefined, responseto, msgid);
+									that.executeRPC(res, undefined, undefined, from, msgid);
 									// CONTEXT LOGGING HOOK
 									if (contextEnabled){
 										webinos.context.logContext(myObject,res);
@@ -141,7 +141,7 @@
 									res.error.code = 32000;  //webinos specific error code representing that an API specific error occured
 									res.error.message = "Method Invocation returned with error";
 									res.id = id;
-									that.executeRPC(res, undefined, undefined, responseto, msgid);
+									that.executeRPC(res, undefined, undefined, from, msgid);
 								}, 
 								myObject.fromObjectRef
 						);
@@ -158,7 +158,7 @@
 									if (typeof result !== 'undefined') res.result = result;
 									else res.result = {};
 									res.id = id;
-									that.executeRPC(res, undefined, undefined, responseto, msgid);
+									that.executeRPC(res, undefined, undefined, from, msgid);
 
 									// CONTEXT LOGGING HOOK
 									if (contextEnabled)
@@ -173,7 +173,7 @@
 									res.error.code = 32000;
 									res.error.message = "Method Invocation returned with error";
 									res.id = id;
-									that.executeRPC(res, undefined, undefined, responseto, msgid);
+									that.executeRPC(res, undefined, undefined, from, msgid);
 								}
 						);
 					}
@@ -217,7 +217,7 @@
 	 * Executes the given RPC Request and registers an optional callback that
 	 * is invoked if an RPC response with same id was received
 	 */
-	RPCHandler.prototype.executeRPC = function (rpc, callback, errorCB, responseto, msgid) {
+	RPCHandler.prototype.executeRPC = function (rpc, callback, errorCB, from, msgid) {
 		//service invocation case
 		if (typeof rpc.serviceAddress !== 'undefined') {
 			// this only happens in the web browser
@@ -243,25 +243,25 @@
 			if (rpc.method && rpc.method.indexOf('@') === -1) {
 				var objectRef = rpc.method.split('.')[0];
 				if (typeof this.objRefCachTable[objectRef] !== 'undefined') {
-					responseto = this.objRefCachTable[objectRef].responseTo;
+					from = this.objRefCachTable[objectRef].from;
 
 				}
-				console.log('RPC MESSAGE' + " to " + responseto + " for callback " + objectRef);
+				console.log('RPC MESSAGE' + " to " + from + " for callback " + objectRef);
 			}
 
 		}
 		else if (rpc.method && rpc.method.indexOf('@') === -1) {
 			var objectRef = rpc.method.split('.')[0];
 			if (typeof this.objRefCachTable[objectRef] !== 'undefined') {
-				responseto = this.objRefCachTable[objectRef].responseTo;
+				from = this.objRefCachTable[objectRef].from;
 
 			}
-			console.log('RPC MESSAGE' + " to " + responseto + " for callback " + objectRef);
+			console.log('RPC MESSAGE' + " to " + from + " for callback " + objectRef);
 		}
 
-		//TODO check if rpc is request on a specific object (objectref) and get mapped responseto / destination session
+		//TODO check if rpc is request on a specific object (objectref) and get mapped from / destination session
 
-		this.write(rpc, responseto, msgid);
+		this.write(rpc, from, msgid);
 	};
 
 	/**
