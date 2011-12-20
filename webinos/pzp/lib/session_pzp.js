@@ -13,9 +13,10 @@
 	if (typeof exports !== "undefined") {
 		var rpc = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js'));
 		var rpcHandler = new RPCHandler();
-		rpc.loadModules(rpcHandler);
+		
 		var messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
 		messaging.setRPCHandler(rpcHandler);
+		
 		var utils = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 	}
 	
@@ -374,12 +375,15 @@
 			});
 		});				
 	};
-		
-	sessionPzp.startPzpWebSocketServer = function(hostname, serverPort, webServerPort) {
+
+	sessionPzp.startPzpWebSocketServer = function(hostname, serverPort, webServerPort, modules) {
 		var http = require('http'),
 			url = require('url'),
 			path = require('path'),
 			WebSocketServer = require('websocket').server;
+		
+		// load specified modules
+		rpcHandler.loadModules(modules);
 		
 		function getContentType(uri) {
 			var contentType = 'text/plain';

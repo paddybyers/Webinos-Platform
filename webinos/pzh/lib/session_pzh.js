@@ -18,7 +18,6 @@
 	if (typeof exports !== "undefined") {
 		var rpc = require("../../common/rpc/lib/rpc.js");
 		var rpcHandler = new RPCHandler();
-		rpc.loadModules(rpcHandler);
 		var messaging = require("../../common/manager/messaging/lib/messagehandler.js");
 		messaging.setRPCHandler(rpcHandler);
 		var utils = require('../../pzp/lib/session_common.js');
@@ -446,7 +445,7 @@
 		}
 	}
 
-	sessionPzh.startPzhWebSocketServer = function(hostname, serverPort, webServerPort) {
+	sessionPzh.startPzhWebSocketServer = function(hostname, serverPort, webServerPort, modules) {
 		try {
 			var http = require('http'),			
 			WebSocketServer = require('websocket').server;
@@ -456,6 +455,9 @@
 			utils.debug(1, err.stack);
 			return;
 		}
+		
+		// load specified modules
+		rpcHandler.loadModules(modules);
 		
 		var cs = http.createServer(function(request, response) { 
 			var url, uri, filename;

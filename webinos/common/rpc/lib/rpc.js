@@ -500,8 +500,8 @@
 
 		this.api = api; 
 	};
-	
-	function loadModules(rpcHdlr) {
+
+	RPCHandler.prototype.loadModules = function(modules) {
 		if (typeof module === 'undefined') return;
 		
 		var path = require('path');
@@ -511,47 +511,24 @@
 		var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location)+'/';
 		//sessionPzp = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_pzp.js'));
 
-		//Fix for modules located in old rpc folder
-		var oldRpcLocation = webinosRoot + '../RPC/';
-		//add your RPC Implementations here!
-		var modules = [
-		               webinosRoot + dependencies.api.service_discovery.location + 'lib/rpc_servicedisco.js',
-		               webinosRoot + dependencies.api.get42.location + 'lib/rpc_test2.js',
-		               webinosRoot + dependencies.api.get42.location + 'lib/rpc_test.js',
-		               webinosRoot + dependencies.api.file.location + 'lib/webinos.file.rpc.js',
-		               webinosRoot + dependencies.api.geolocation.location + 'lib/webinos.geolocation.rpc.js',
-		               webinosRoot + dependencies.api.events.location + 'lib/events.js',
-		               webinosRoot + dependencies.api.sensors.location + 'lib/rpc_sensors.js',
-		               webinosRoot + dependencies.api.tv.location + 'lib/webinos.rpc_tv.js',
-		               webinosRoot + dependencies.api.deviceorientation.location + 'lib/webinos.deviceorientation.rpc.js',
-		               webinosRoot + dependencies.api.vehicle.location + 'lib/webinos.vehicle.rpc.js',
-		               webinosRoot + dependencies.api.context.location,
-		               webinosRoot + dependencies.api.authentication.location + 'lib/webinos.authentication.rpc.js',
-		               webinosRoot + dependencies.api.contacts.location + 'lib/webinos.contacts.rpc.js'
-//		               // Disabled as these cause webinos from functioning
-		               //oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
-		               //oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
-		               //oldRpcLocation + 'tv/provider/webinos.rpc.tv.js',
-		               //oldRpcLocation + 'rpc_contacts.js',
-		               //oldRpcLocation + 'bluetooth_module/bluetooth.rpc.server.js'
-		               ];
-
 		if (contextEnabled) {
 		  require(webinosRoot + dependencies.manager.context_manager.location); 
 			//modules.push(webinosRoot + dependencies.manager.context_manager.location);
 		}
 
-		for (var i = 0; i <modules.length; i++){
+		var mods = modules.list;
+		
+		for (var i = 0; i < mods.length; i++){
 			try{
-				var Service = require(modules[i]).Service;
-				rpcHdlr.registerObject(new Service(rpcHdlr));
+				var Service = require(webinosRoot + dependencies.api[mods[i]].location).Service;
+				this.registerObject(new Service(this));
 			}
 			catch (error){
 				console.log(error);
-				console.log("Could not load module " + modules[i] + " with message: " + error );
+				console.log("Could not load module " + mods[i] + " with message: " + error );
 			}
 		}
-	}
+	};
 	
 	function SetSessionId (id) {
 		sessionId = id;
@@ -561,7 +538,6 @@
 	 */
 	if (typeof module !== 'undefined'){
 		exports.RPCHandler = RPCHandler;
-		exports.loadModules = loadModules;
 		exports.RPCWebinosService = RPCWebinosService;
 		exports.ServiceType = ServiceType;
 		exports.SetSessionId = SetSessionId;
