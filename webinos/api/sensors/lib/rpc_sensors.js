@@ -13,17 +13,11 @@ var SensorModule = function(rpcHandler) {
 		description:'A Webinos temperature sensor.'
 	});
 	
-	var simTemp = false;
-
 	this.addEventListener = function (eventType, successHandler, errorHandler, objectRef){
 		console.log("eventType " + eventType);	
 		switch(eventType){
 		case "temperature":
-			if(!simTemp){ //Listener for gears not yet registered
-				simTemp = true;
-				debugger
-				simulatateTemp(objectRef);		
-			}			
+			simulatateTemp(objectRef);		
 			break;
 		default:
 			console.log('Requested EventType is ' + eventType + " but i am temprature");
@@ -31,20 +25,19 @@ var SensorModule = function(rpcHandler) {
 		}	
 	};
 
-	function simulatateTemp(objectRef){
+	function simulatateTemp(objectRef) {
+		var tint = 2000;
 		var tempE = generateTempEvent();
-		var randomTime = Math.floor(Math.random()*1000*10);
-		var json = null;
-		debugger
-
-		json = rpcHandler.createRPC(objectRef, "onEvent", tempE);
-		rpcHandler.executeRPC(json);
 		
-		if(simTemp){
-			setTimeout(function(){
-				simulatateTemp(objectRef);
-			}, randomTime);        
-		}
+		// first event
+		var rpc = rpcHandler.createRPC(objectRef, "onEvent", tempE);
+		rpcHandler.executeRPC(rpc);
+		
+		setInterval(function(){
+			tempE = generateTempEvent();
+			rpc = rpcHandler.createRPC(objectRef, "onEvent", tempE);
+			rpcHandler.executeRPC(rpc);
+		}, tint);        
 	}
 };
 
