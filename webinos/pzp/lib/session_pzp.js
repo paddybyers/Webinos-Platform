@@ -373,8 +373,7 @@
 	};
 		
 	sessionPzp.startPzpWebSocketServer = function(hostname, serverPort, webServerPort) {
-		var id = 0, 
-			http = require('http'),
+		var http = require('http'),
 			url = require('url'),
 			path = require('path'),
 			WebSocketServer = require('websocket').server;
@@ -466,17 +465,15 @@
 			autoAcceptConnections: true
 		});
 		
-		var messageWS = function (msg, address) {
+		function messageWS (msg, address) {
 			//msg.resp_to = "virgin_pzp";
 			// TODO why is "msg" a whole service object? we should only send the service info fields.
 			if(connectedApp[address]) {
 				connectedApp[address].sendUTF(JSON.stringify(msg));
 			}
 		};
-			
-		wsServer.on('connect', function(connection) {
-			utils.debug(2, "PZP WSServer: Connection accepted.");
-			
+		function connectedApp (connection) {
+			var id = 0;
 			if(typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
 				instance.sessionWebAppId  = instance.sessionId+ '/'+ instance.sessionWebApp;
 				instance.sessionWebApp  += 1;
@@ -488,8 +485,13 @@
 				connectedApp["virgin_pzp"+'/'+id] = connection;
 				var payload = {type:"prop", from:"virgin_pzp", to: "virgin_pzp"+'/'+id, payload:{status:"registeredBrowser"}};
 				connection.sendUTF(JSON.stringify(payload));
-			}			
-
+			}		
+		}
+		
+		wsServer.on('connect', function(connection) {
+			utils.debug(2, "PZP WSServer: Connection accepted.");
+			connectedApp(connection);
+			
 			connection.on('message', function(message) {
 				//schema validation
 				var msg;
@@ -501,26 +503,27 @@
 				utils.debug(2, 'PZP WSServer: Received packet ' + JSON.stringify(msg));
 
 				// Each message is forwarded back to Message Handler to forward rpc message
-				if(msg.type === 'prop' && msg.payload.status === 'startPzp') {
-					instance = sessionPzp.startPzp(msg.payload.value, 
-					msg.payload.servername, 
-					msg.payload.serverport,
-					function(status) {
-						if(typeof status !== "undefined") {
-							instance.sessionWebAppId  = instance.sessionId+ '/'+ instance.sessionWebApp;
-							instance.sessionWebApp  += 1;
-							instance.connectedWebApp[instance.sessionWebAppId] = connection;
-							payload = {'pzhId':instance.pzhId, 'connectedPzp': instance.connectedPzpIds,'connectedPzh': instance.connectedPzhIds};
-							instance.prepMsg(instance.sessionId, instance.sessionWebAppId, 'registeredBrowser', payload);  
-							instance.wsServerMsg("Pzp " + instance.sessionId+ " started");
+					if(msg.type === 'prop' ){
+						if( msg.payload.status === 'startPzp' ) {
+						instance = sessionPzp.startPzp(msg.payload.value, 
+						msg.payload.servername, 
+						msg.payload.serverport,
+						function(status) {
+							if(typeof status !== "undefined") {
+								connectedApp(connection);
+								instance.wsServerMsg("Pzp " + instance.sessionId+ " started");
+							}
+						});
+					} else if(msg.payload.status === 'disconnectPzp') {
+						if( typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
+							if(instance.connectedPzp.hasOwnProperty(instance.sessionId)) {
+								instance.connectedPzp[instance.sessionId].socket.end();
+								instance.wsServerMsg("Pzp "+instance.sessionId+" closed");
+							}
 						}
-					});
-				} else if(msg.type === 'prop' && msg.payload.status === 'disconnectPzp') {
-					if( typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
-						if(instance.connectedPzp.hasOwnProperty(instance.sessionId)) {
-							instance.connectedPzp[instance.sessionId].socket.end();
-							instance.wsServerMsg("Pzp "+instance.sessionId+" closed");
-						}
+					}
+					else if(msg.payload.status === 'registerBrowser') {
+						connectedApp(connection);
 					}
 				} else {
 					if( typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {

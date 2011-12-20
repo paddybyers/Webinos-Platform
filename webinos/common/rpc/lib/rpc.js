@@ -221,7 +221,7 @@
 		//service invocation case
 		if (typeof rpc.serviceAddress !== 'undefined') {
 			// this only happens in the web browser
-			webinos.message_send(rpc, rpc.serviceAddress);// TODO move the whole mmessage_send function here?
+			webinos.session.message_send(rpc, rpc.serviceAddress);// TODO move the whole mmessage_send function here?
 			
 			if (typeof callback === 'function'){
 				var cb = {};

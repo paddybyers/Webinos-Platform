@@ -1,66 +1,7 @@
 (function() {
 	if (typeof webinos === "undefined") webinos = {};
 	var channel = null;
-	var sessionid = null;
-	var pzpId, pzhId, connectedPzp={}, connectedPzh={};
-	var serviceLocation;
-	webinos.message_send_messaging = function(msg, to) {
-		msg.resp_to = sessionid;
-		channel.send(JSON.stringify(msg));
-	}	
-	webinos.message_send = function(rpc, to) {
-		var type, id = 0;	
-		if(rpc.type !== undefined && rpc.type === "prop") {
-			type = "prop";
-			rpc = rpc.payload;	
-		} else {
-			type = "JSONRPC";
-		}
-		
-		if(typeof rpc.method !== undefined && rpc.method === 'ServiceDiscovery.findServices')
-			id = rpc.params[2];
-			
-		var message = {"type": type, 
-			"id": id, 
-			"from": sessionid, 
-			"to": to, 
-			"resp_to": sessionid, 
-			"payload": rpc
-			};
-		if(rpc.register !== "undefined" && rpc.register === true) {
-			console.log(rpc);
-			channel.send(JSON.stringify(rpc));
-		} else {
-            		console.log('creating callback');
-			console.log('WebSocket Client: Message Sent');
-			console.log(message)
-			channel.send(JSON.stringify(message));
-		}
-	}
 	
-	webinos.getSessionId = function() {
-		return sessionid;
-	}
-	webinos.getPZPId = function() {
-		return pzpId;
-	}
-	webinos.getPZHId = function() {
-		return pzhId;
-	}
-	webinos.getOtherPZP = function() {
-		return otherpzp;
-	}
-	
-	webinos.setServiceLocation = function (loc) {
-		serviceLocation = loc;
-	}
-	// If service location is not set, sets pzpId
-	webinos.getServiceLocation = function() {
-		if ( typeof serviceLocation !== "undefined" )
-			return serviceLocation;
-		else 
-			return pzpId;
-	}
 	/**
 	 * Creates the socket communication channel
 	 * for a locally hosted websocket server at port 8080
@@ -73,10 +14,11 @@
 			if (isNaN(port)) {
 				port = 8081;
 			}
-			channel  = new WebSocket('ws://'+window.location.hostname+':'+port);
+			channel  = new WebSocket('ws://'+window.location.hostname+':'+port);			
 		} catch(e) {
-			channel  = new MozWebSocket('ws://'+window.location.hostname+':'+port);
+			channel  = new MozWebSocket('ws://'+window.location.hostname+':'+port);				
 		}
+		webinos.session.setChannel(channel);
 				
 		channel.onmessage = function(ev) {
 			console.log('WebSocket Client: Message Received : ' + JSON.stringify(ev.data));
@@ -84,9 +26,9 @@
 			if(data.type === "prop") {
 				webinos.session.handleMsg(data);
 			} else {
-				webinos.message.setGetOwnId(sessionid);
+				webinos.message.setGetOwnId(webinos.session.getSessionId());
 				webinos.message.setObjectRef(this);
-				webinos.message.setSendMessage(webinos.message_send_messaging);
+				webinos.message.setSendMessage(webinos.session.message_send_messaging);
 				webinos.message.onMessageReceived(data, data.to);
 			}
 		};
@@ -169,7 +111,7 @@
 		}
 		
 		var id = Math.floor(Math.random()*1001);
-		var rpc = webinos.rpcHandler.createRPC("ServiceDiscovery", "findServices", [serviceType, sessionid, id]);
+		var rpc = webinos.rpcHandler.createRPC("ServiceDiscovery", "findServices", [serviceType, webinos.session.getSessionId(), id]);
 		rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID
 		
 		var callback2 = new RPCWebinosService({api:rpc.fromObjectRef});
@@ -179,7 +121,7 @@
 		};
 		webinos.rpcHandler.registerCallbackObject(callback2);
 		
-		rpc.serviceAddress = webinos.getServiceLocation();		
+		rpc.serviceAddress = webinos.session.getServiceLocation();		
 		webinos.rpcHandler.executeRPC(rpc);
 
 		return;

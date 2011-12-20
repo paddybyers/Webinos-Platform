@@ -12,8 +12,8 @@
             <sources dir="${basedir}/../webinos/">
                 <file name="common/rpc/lib/rpc.js"/>
             	<file name="common/manager/messaging/lib/messagehandler.js"/>
+   		<file name="wrt/lib/webinos.session.js"/>
     		<file name="wrt/lib/webinos.js"/>
-    		<file name="wrt/lib/webinos.session.js"/>
             	<file name="common/rpc/lib/webinos.utils.js"/>
 		<file name="common/rpc/contrib/md5.js"/>
 		<file name="api/file/lib/webinos.path.js"/>
