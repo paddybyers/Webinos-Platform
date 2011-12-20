@@ -42,50 +42,86 @@
 		var options = {type: 'prop', payload: payload};
 		webinos.message_send(options);
          });
+         
+         $('#listPzhPzp').bind('click', function() {
+         	webinos.message_send({type: 'prop', payload: {status: 'listPzh'}});
+         });
+         
+	$('#crashLogPzh').bind('click', function() {
+         	webinos.message_send({type: 'prop', payload: {status: 'crashLog'}});
+	});
 
   });
 </script>
 </head>
 <body>
 <center><div id="header"> <h1><img src="testbed_logo.png"></h1> </div></center>
-<div class="pzp">
+<div id = "tabs">
+	<ul>
+		<li> <a href="#configuration"> Configure Pzh </a> </li>
+		<li> <a href="#pzh"> Start Pzh </a> </li>
+		<li> <a href="#connectPzh"> Connect Other Pzh </a> </li>
+		<li> <a href="#listPzh"> List Pzh </a> </li>
+		<li> <a href="#crashLog"> Crash Details log </a> </li>
+	</ul>	
+	<div id = "pzh" style="background-color:#0879a9">
+		<p style="color:white" align="right"> Help Available on Redmine to start PZH <a href="http://dev.webinos.org/redmine/projects/wp4/wiki/Running_PZH"> Running PZH </a>
+		<center> <p style="color:white"> Multiple PZH can be initiated, used this tab for starting local PZH	</p> </center>
 
-<div id = "pzh" style="background-color:#0879a9">
-	<p style="color:white" align="right"> Help Available on Redmine to start PZH <a href="http://dev.webinos.org/redmine/projects/wp4/wiki/Running_PZH"> Running PZH </a>
-	<center> <p style="color:white"> Multiple PZH can be initiated, used this tab for starting local PZH	</p> </center>
-
-	<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
-		<tr><th>Config </th> <th> Value </th> </tr>
-		<tr><td>Country </td><td><input type="text" id="country" value="UK"/></td></tr>
-		<tr><td>State</td><td> <input type="text" id="state" value="MX"/></td></tr>
-		<tr><td>City </td><td><input type="text" id="city" value="ST"/></td></tr>
-		<tr><td>Org </td><td><input type="text" id="org" value="Webinos"/></td></tr>
-		<tr><td>OrgUnit </td><td><input type="text" id="orgunit" value="WP4"/></td> </tr>
-		<tr><td>Common</td><td> <input type="text" id="common" value="WebinosLocalPZH" /> </td> </tr>
-		<tr><td><i> (Info: This name should be different for each PZH)</i></td><td> </td></tr>
-		<tr><td>Email </td><td><input type="text" id="email" value="internal@webinos.org"/></td></tr>
-		<tr><td>Days</td><td> <input type="text" id="days" value="180"/></td>	</tr>
-		<tr><td>Server Name </td><td><input type="text" id="servername" value="localhost"/></td></tr>
-		<tr><td><i> (Info: This should be IP address on which PZH can be accessed via PZP) </i></td></tr>
-		<tr><td>Server Port </td><td><input type="text" id="serverport" value="8000"/></td></tr>
-		<tr><td><i> (Info: If already this port is in use, next available port will be used)</i></td></tr>			
-	</table>
-		<center> <button id="startPZH" class="button">Start PZH </button> </center>
-</div>
-<div id = "connect_pzh" style="background-color:#0879a9">
-	<center> <p style="color:white"></p> </center>
-	<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
-		<tr> <td> PZH Address: </td> <td><input type="text" id="pzh_ip_addr" value="79.125.104.127"/></td></tr>
-		<tr> <td> PZH Port: </td> <td><input type="text" id="pzh_http_port" value="8000"/></td></tr>
-	</table>
+		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
+			<tr><th>Config </th> <th> Value </th> </tr>
+			<tr><td>Country </td><td><input type="text" id="country" value="UK"/></td></tr>
+			<tr><td>State</td><td> <input type="text" id="state" value="MX"/></td></tr>
+			<tr><td>City </td><td><input type="text" id="city" value="ST"/></td></tr>
+			<tr><td>Org </td><td><input type="text" id="org" value="Webinos"/></td></tr>
+			<tr><td>OrgUnit </td><td><input type="text" id="orgunit" value="WP4"/></td> </tr>
+			<tr><td>Common</td><td> <input type="text" id="common" value="WebinosLocalPZH" /> </td> </tr>
+			<tr><td><i> (Info: This name should be different for each PZH)</i></td><td> </td></tr>
+			<tr><td>Email </td><td><input type="text" id="email" value="internal@webinos.org"/></td></tr>
+			<tr><td>Days</td><td> <input type="text" id="days" value="180"/></td>	</tr>
+			<tr><td>Server Name </td><td><input type="text" id="servername" value="localhost"/></td></tr>
+			<tr><td><i> (Info: This should be IP address on which PZH can be accessed via PZP) </i></td></tr>
+			<tr><td>Server Port </td><td><input type="text" id="serverport" value="8000"/></td></tr>
+			<tr><td><i> (Info: If already this port is in use, next available port will be used)</i></td></tr>			
+		</table>
+			<center> <button id="startPZH" class="button">Start PZH </button> </center>
+	</div>
+	<div id = "connectPzh" style="background-color:#0879a9">
+		<center> <p style="color:white"></p> </center>
+		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
+			<tr> <td> PZH Address: </td> <td><input type="text" id="pzh_ip_addr" value="pzh.webinos.org"/></td></tr>
+			<tr> <td> PZH Port: </td> <td><input type="text" id="pzh_http_port" value="8000"/></td></tr>
+		</table>
 		<center> <button id="downloadCert" class="button"> Download Certificate </button> </center>
-	<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
-		<tr> <td> PZH Address: </td> <td><input type="text" id="pzh_ip_addr" value="79.125.104.127"/></td></tr>
-		<tr> <td> PZH Port: </td> <td><input type="text" id="pzh_port" value="8000"/></td></tr>
-	</table>		
+		
+		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">
+			<tr> <td> PZH Address: </td> <td><input type="text" id="pzh_ip_addr" value="pzh.webinos.org"/></td></tr>
+			<tr> <td> PZH Port: </td> <td><input type="text" id="pzh_port" value="8000"/></td></tr>
+		</table>		
 		<center> <button id="connectPZH" class="button"> Connect PZH </button> </center>
 
+	</div>
+	<div id = "listPzh" style="background-color:#0879a9">
+		<center> <p style="color:white"> List running Pzh instances and connected Pzp Lists for each each Pzh </p> </center>
+		<center> 
+			<table id="connectedList" style="background-color:lightgray; border:7px solid #0879a9" align="center"> 			
+			</table> 
+		</center>
+		<center> <button id="listPzhPzp" class="button"> List Connected Pzh and Pzp </button> </center>
+		
+	</div>
+	<div id = "crashLog" style="background-color:#0879a9">
+		<center> <p style="color:white"> List crash log for each Pzh </p> </center>
+		<center>
+			<table id="crashLogs" style="background-color:lightgray; border:7px solid #0879a9" align="center"> 			
+			</table> 
+		</center>
+		<center> <button id="crashLogPzh" class="button"> Get Crash Log for Pzh </button> </center>	
+	</div>
+	
+	
 </div>
 <div id="status">STATUS: <span id="message"></span></div>
+
 </body>
 </html>

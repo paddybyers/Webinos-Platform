@@ -5,23 +5,32 @@
  
 
 if (typeof exports !== "undefined") {
-var path = require('path');
+	var path = require('path');
 	var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
 	var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 	var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
 	var messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
 	var rpc = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js'));
+	var fs = require('fs');
+	var crashMsg = fs.createWriteStream('crash.txt', {'flags': 'a'});
+	var infoMsg = fs.createWriteStream('info.txt', {'flags': 'a'});
 }
 
 var debug = function(num, msg) {
 	"use strict";
 	var info = true; // Change this if you want no prints from session manager
-	var debug = true; 
+	var debug = true;
+	var fs = require('fs');
+	
 	if(num === 1) {
 		console.log('ERROR:' + msg);
+		crashMsg.write(msg);
+		crashMsg.write('\n');
 	} else if(num === 2 && info) {
 		console.log('INFO:' + msg);
+		infoMsg.write(msg);
+		infoMsg.write('\n');
 	} else if(num === 3 && debug) {
 		console.log('DEBUG:' + msg);
 	}
