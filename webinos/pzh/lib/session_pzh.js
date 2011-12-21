@@ -387,6 +387,9 @@
 					utils.debug(1, err.stack);
 					return;
 				}				
+			} else if(parse.type === "prop" && parse.payload.status === 'findServices') {
+		        utils.debug(2, 'Trying to send Webinos Services from this RPC handler...');
+			    findServices(conn, self);				
 			} else { // Message is forwarded to Message handler function, onMessageReceived
 				try {			
 					rpc.SetSessionId(self.sessionId);
@@ -400,6 +403,16 @@
 			}
 		});	
 	};	
+	
+	function findServices(connection, pzh) {
+		var services = rpcHandler.getRegisteredServices();
+		debugger;
+		var msg = pzh.prepMsg(pzh.sessionId, null, 'foundServices', services);
+		
+		pzh.sendMessage(msg, null, connection);
+		
+        utils.debug(2, 'Sent Webinos Services from this RPC handler.');
+	}
 	
 	/** starts pzh, creates TLS server, resolve DNS and listens.
 	 * @param contents contains certificate details
@@ -472,9 +485,6 @@
 		});
 		return pzh;
 	};
-	/**
-	* @param connection 
-	*/
 	
 	function getPZPCertificate(pzpid, callback) {
 	    "use strict";
@@ -542,6 +552,9 @@
 	
 	}
 	
+	/**
+	* @param connection 
+	*/
 	function listAllPzps(connection) {
 	    "use strict";
 	    getAllPZPIds( function(pzps, error) {
