@@ -1,12 +1,11 @@
 package org.webinos.api.deviceorientation;
 
 import org.meshpoint.anode.bridge.Env;
-import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 
 public abstract class DeviceorientationManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(DeviceorientationManager.class);
-	protected DeviceorientationManager() { super(iface); }
+	private static short classId = Env.getInterfaceId(DeviceorientationManager.class);
+	protected DeviceorientationManager() { super(classId); }
 
 	public abstract void watchOrientation(OrientationCB orientationCb);
 	public abstract void watchMotion(MotionCB motionCb);

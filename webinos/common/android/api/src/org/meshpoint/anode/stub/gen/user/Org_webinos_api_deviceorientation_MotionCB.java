@@ -4,7 +4,7 @@ package org.meshpoint.anode.stub.gen.user;
 
 public final class Org_webinos_api_deviceorientation_MotionCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.deviceorientation.MotionCB {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getCurrent().getInterfaceManager().getByClass(org.webinos.api.deviceorientation.MotionCB.class).getId();
+	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.deviceorientation.MotionCB.class);
 
 	Org_webinos_api_deviceorientation_MotionCB(long instHandle) { super(instHandle); }
 

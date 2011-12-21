@@ -4,7 +4,7 @@ package org.meshpoint.anode.stub.gen.user;
 
 public final class Org_webinos_api_authentication_AuthSuccessCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.authentication.AuthSuccessCB {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getCurrent().getInterfaceManager().getByClass(org.webinos.api.authentication.AuthSuccessCB.class).getId();
+	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.authentication.AuthSuccessCB.class);
 
 	Org_webinos_api_authentication_AuthSuccessCB(long instHandle) { super(instHandle); }
 

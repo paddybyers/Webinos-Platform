@@ -1,7 +1,6 @@
 package org.webinos.api.deviceinteraction;
 
 import org.meshpoint.anode.bridge.Env;
-import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 import org.webinos.api.DeviceAPIError;
 import org.webinos.api.ErrorCallback;
@@ -9,8 +8,8 @@ import org.webinos.api.PendingOperation;
 import org.webinos.api.SuccessCallback;
 
 public abstract class DeviceInteractionManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(DeviceInteractionManager.class);
-	protected DeviceInteractionManager() { super(iface); }
+	private static short classId = Env.getInterfaceId(DeviceInteractionManager.class);
+	protected DeviceInteractionManager() { super(classId); }
 
 	public abstract PendingOperation startNotify(SuccessCallback successCallback, ErrorCallback errorCallback, int duration) throws DeviceAPIError;
 	public abstract void stopNotify();

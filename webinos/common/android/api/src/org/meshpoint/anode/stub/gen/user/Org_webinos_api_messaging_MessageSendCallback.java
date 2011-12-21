@@ -4,7 +4,7 @@ package org.meshpoint.anode.stub.gen.user;
 
 public final class Org_webinos_api_messaging_MessageSendCallback extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.messaging.MessageSendCallback {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getCurrent().getInterfaceManager().getByClass(org.webinos.api.messaging.MessageSendCallback.class).getId();
+	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.messaging.MessageSendCallback.class);
 
 	Org_webinos_api_messaging_MessageSendCallback(long instHandle) { super(instHandle); }
 

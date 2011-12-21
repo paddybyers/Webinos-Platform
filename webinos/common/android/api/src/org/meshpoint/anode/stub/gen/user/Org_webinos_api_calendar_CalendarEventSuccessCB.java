@@ -4,7 +4,7 @@ package org.meshpoint.anode.stub.gen.user;
 
 public final class Org_webinos_api_calendar_CalendarEventSuccessCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.calendar.CalendarEventSuccessCB {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getCurrent().getInterfaceManager().getByClass(org.webinos.api.calendar.CalendarEventSuccessCB.class).getId();
+	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.calendar.CalendarEventSuccessCB.class);
 
 	Org_webinos_api_calendar_CalendarEventSuccessCB(long instHandle) { super(instHandle); }
 

@@ -4,7 +4,7 @@ package org.meshpoint.anode.stub.gen.user;
 
 public final class Org_webinos_api_contact_ContactErrorCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.contact.ContactErrorCB {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getCurrent().getInterfaceManager().getByClass(org.webinos.api.contact.ContactErrorCB.class).getId();
+	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.contact.ContactErrorCB.class);
 
 	Org_webinos_api_contact_ContactErrorCB(long instHandle) { super(instHandle); }
 

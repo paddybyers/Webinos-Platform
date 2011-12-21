@@ -4,7 +4,7 @@ package org.meshpoint.anode.stub.gen.user;
 
 public final class Org_webinos_api_geolocation_PositionCallback extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.geolocation.PositionCallback {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getCurrent().getInterfaceManager().getByClass(org.webinos.api.geolocation.PositionCallback.class).getId();
+	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.geolocation.PositionCallback.class);
 
 	Org_webinos_api_geolocation_PositionCallback(long instHandle) { super(instHandle); }
 

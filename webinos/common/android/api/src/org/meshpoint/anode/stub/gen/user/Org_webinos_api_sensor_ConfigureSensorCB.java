@@ -4,7 +4,7 @@ package org.meshpoint.anode.stub.gen.user;
 
 public final class Org_webinos_api_sensor_ConfigureSensorCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.sensor.ConfigureSensorCB {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getCurrent().getInterfaceManager().getByClass(org.webinos.api.sensor.ConfigureSensorCB.class).getId();
+	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.sensor.ConfigureSensorCB.class);
 
 	Org_webinos_api_sensor_ConfigureSensorCB(long instHandle) { super(instHandle); }
 

@@ -4,7 +4,7 @@ package org.meshpoint.anode.stub.gen.user;
 
 public final class Org_webinos_api_nfc_NfcEventListener extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.nfc.NfcEventListener {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getCurrent().getInterfaceManager().getByClass(org.webinos.api.nfc.NfcEventListener.class).getId();
+	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.nfc.NfcEventListener.class);
 
 	Org_webinos_api_nfc_NfcEventListener(long instHandle) { super(instHandle); }
 
