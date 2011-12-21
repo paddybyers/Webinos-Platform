@@ -3,7 +3,7 @@
     'module_name': 'certificate_manager',#Specify the module name here
 	#you may override the variables found in node_module.gypi here or through command line
 	#TODO: Fix this to include your own openssl lib
-	'openssl_Root': '../../../../../../openssl-1.0.0e',
+	'openssl_Root': 'C:/OpenSSL-Win32',
   },
   'targets': [
     {
@@ -15,7 +15,7 @@
 		'conditions': [
         [ 'OS=="win"', {
 		  #we need to link to the libeay32.lib
-          'libraries': [ '-l<(NODE_ROOT)/<(node_lib_folder)/node.lib','-l<(openssl_Root)/out32dll/libeay32.lib' ],
+          'libraries': [ '-l<(NODE_ROOT)/<(node_lib_folder)/node.lib','-l<(openssl_Root)/lib/libeay32.lib' ],
 		  'include_dirs': [
 		   '<(openssl_Root)/include',
 		  ],
