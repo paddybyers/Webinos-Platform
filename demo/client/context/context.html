@@ -73,6 +73,7 @@
         if (address === "null" || address === "undefined") {
           alert("Select from list which you node you want to  connect");
         } else {
+          webinos.setServiceLocation($('#pzh_pzp_list').val());
           webinos.ServiceDiscovery.findServices(new ServiceType(
               'http://webinos.org/api/context'), {
             onFound : function(service) {
