@@ -50,8 +50,27 @@
 	$('#crashLogPzh').bind('click', function() {
          	webinos.session.message_send({type: 'prop', payload: {status: 'crashLog'}});
 	});
+	
+    $('#listAllPzpsButton').bind('click', function() {
+     	webinos.session.message_send({type: 'prop', payload: {status: 'listAllPzps'}});
+    });
+	
 
   });
+  
+ 
+    function revoke(pzpid) {        	
+     	webinos.session.message_send({
+     	    type: 'prop', 
+     	    payload: {
+     	        status: 'revokePzp',
+     	        pzpid: pzpid
+ 	        }
+        });
+    
+    }
+  
+  
 </script>
 </head>
 <body>
@@ -63,8 +82,8 @@
 		<li> <a href="#connectPzh"> Connect Other Pzh </a> </li>
 		<li> <a href="#listPzh"> List Pzh </a> </li>
 		<li> <a href="#crashLog"> Crash Details log </a> </li>
-	</ul>
-	
+		<li> <a href="#listAllPzps"> List All Zone PZPs </a> </li>		
+	</ul>	
 	<div id = "pzh" style="background-color:#0879a9">
 		<p style="color:white" align="right"> Help Available on Redmine to start PZH <a href="http://dev.webinos.org/redmine/projects/wp4/wiki/Running_PZH"> Running PZH </a>
 		<center> <p style="color:white"> Multiple PZH can be initiated, used this tab for starting local PZH	</p> </center>
@@ -119,7 +138,14 @@
 		</center>
 		<center> <button id="crashLogPzh" class="button"> Get Crash Log for Pzh </button> </center>	
 	</div>
-	
+	<div id = "listAllPzps" style="background-color:#0879a9">
+		<center> <p style="color:white"> List all of the PZPs in this zone </p> </center>
+		<center>
+			<table id="pzpList" style="background-color:lightgray; border:7px solid #0879a9" align="center"> 			
+			</table> 
+		</center>
+		<center> <button id="listAllPzpsButton" class="button"> List my PZPs  </button> </center>	
+	</div>	
 	
 </div>
 <div id="status">STATUS: <span id="message"></span></div>

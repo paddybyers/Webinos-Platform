@@ -123,6 +123,20 @@
 				list += pzp+ '</tr>';
 			}
 			$('#connectedList').append(list);
+            
+        } else if(data.payload.status === "listAllPzps") {
+			 document.getElementById("pzpList").innerHTML = "";
+                var list = "";
+                var pzps = data.payload.message;
+                if (pzps !== null) {
+                    var i=0;
+                    for (i=0;i<pzps.length;i++) {
+                        list += "<tr><td><strong>" + pzps[i] + "</strong></td><td><a href=\"\" onclick=\"revoke('" + pzps[i] + "')\" >revoke</a></td></tr>";
+                    }                
+                }
+                $("#pzpList").append(list);
+
+
 
 		} else if(data.payload.status === "crashLog") {
 			var log  = ' <tr> <td> '+ data.payload.message.name + '</td>  <td>'+ data.payload.message.log + '</td> </tr>';

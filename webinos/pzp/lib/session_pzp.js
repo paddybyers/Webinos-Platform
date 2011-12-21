@@ -144,10 +144,14 @@
 					self.config.conn.cert.value = fs.readFileSync(self.config.conn.cert.name).toString();
 					self.config.conn.key.value = fs.readFileSync(self.config.conn.key.name).toString();
 					self.config.master.cert.value = fs.readFileSync(self.config.master.cert.name).toString();
+					if (path.existsSync(self.config.master.crl.name)) {					
+    					self.config.master.crl.value = fs.readFileSync(self.config.master.crl.name).toString();
+					}
 					options = {
 						key: self.config.conn.key.value,
 						cert: self.config.conn.cert.value,
-						ca: self.config.master.cert.value
+						ca: self.config.master.cert.value,
+						crl: self.config.master.crl.value
 					};
 					callback.call(self, options);
 				} 
@@ -230,7 +234,7 @@
 					self.pzhId = client.getPeerCertificate().subject.CN.split(':')[1];//data2.from;
 					self.connectedPzh[self.pzhId] = {socket: client};
 					self.prepMsg(self.sessionId, self.pzhId, 'clientCert',
-						self.config.conn.csr.value); 
+						{ csr: self.config.conn.csr.value, name: self.config.cn } ); 
 				}
 			});
 		} catch (err) {
@@ -350,6 +354,7 @@
 									utils.debug(2, 'PZP ('+client.sessionId+') Client Connecting Again');
 									var config = {	key: client.config.conn.key.value,
 										cert: client.config.conn.cert.value,
+										crl: client.config.master.crl.value,
 										ca: client.config.master.cert.value};
 
 									client.connect(config, function(result) {
@@ -558,6 +563,7 @@
 		self = this;
 		var options = {	key: self.config.conn.key.value,
 				cert: self.config.conn.cert.value,
+				crl: self.config.master.crl.value,
 				ca: self.config.master.cert.value
 				};
 
@@ -612,6 +618,7 @@
 		var config = {	key: self.config.conn.key.value,
 				cert: self.config.conn.cert.value,
 				ca: self.config.master.cert.value,
+				crl: self.config.master.crl.value,
 				requestCert: true, 
 				rejectUnauthorized: true
 				};

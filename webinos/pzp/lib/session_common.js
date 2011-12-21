@@ -115,7 +115,9 @@ exports.selfSigned = function(self, name, obj, callback) {
 	}
 
 	var common = name+':'+self.config.common;
+	self.config.cn = common; 
 	
+
 	try {
 		obj.csr.value = certman.createCertificateRequest(obj.key.value, 
 			self.config.country,
@@ -166,6 +168,31 @@ exports.signRequest = function(self, csr, master, callback) {
 		return;
 	}	
 };
+
+exports.revokeClientCert = function(self, master, pzpCert, callback) {
+    "use strict";
+    var certman;
+	
+	try {
+		certman = require("../../common/manager/certificate_manager/src/build/Release/certificate_manager");		
+	} catch (err) {
+	    debug(1, "Failed to require the certificate manager");
+		callback.call(self, "failed");
+		return;
+	}
+	try {
+	    debug(2, "Calling certman.addToCRL\n");    
+		var crl = certman.addToCRL("" + master.key.value, "" + master.crl.value, "" + pzpCert); 
+		// master.key.value, master.cert.value
+		callback.call(self, "certRevoked", crl);
+	} catch(err1) {
+	    debug(1, "Error: " + err1);
+		callback.call(self, "failed");
+		return;
+	}
+}
+
+
 
 /** @desription It removes the connected PZP/Pzh details.
  */

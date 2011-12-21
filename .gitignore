@@ -10,7 +10,7 @@ demo/client/webinos.js
 # ignore generated certificates
 *.pem
 *.csr
-*.srl
+*.crl
 # ignore backup files
 *~
 # ignore waf lock files
@@ -39,3 +39,7 @@ RPC/node_modules/xmlhttprequest/
 
 #node_modules
 /.metadata/
+
+#pzh logs
+demo/crash.txt
+demo/info.txt
