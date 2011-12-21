@@ -514,7 +514,7 @@
             success: true,
             message: "Successfully revoked"
         };
-        var msgSuccess = { type : 'prop', payload : payloadErr };
+        var msgSuccess = { type : 'prop', payload : payloadSuccess };
                 
         getPZPCertificate(pzpid, function(status, cert) {
             if (!status) {
