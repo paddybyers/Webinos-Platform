@@ -5,23 +5,26 @@ if (typeof webinos === 'undefined') {
 if (typeof webinos.context === 'undefined')
   webinos.context = {};
 
-var moduleRoot = require('../dependencies.json');
-var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
-var webinosRoot = '../' + moduleRoot.root.location;
+//var moduleRoot = require('../dependencies.json');
+//var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
+//var webinosRoot = '../' + moduleRoot.root.location;
+var path = require('path');
+var moduleRoot = path.resolve(__dirname, '../') + '/';
+var moduleDependencies = require(moduleRoot + '/dependencies.json');
+var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
+var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
 
 
-
-var databasehelper = require('../contrib/JSORMDB/src/main/javascript/persist');
+var databasehelper = require(moduleRoot + '/contrib/JSORMDB');
 
 //Initialize helper classes
-var pathclass = require('path');
-var Fs = require('fs');
-var vocdbpath = pathclass.resolve(__dirname + '/../' +'data/contextVocabulary.json');
 
-//Test the SQLite DB
-webinos.context.DB = require('./contextDBpzhManager.js')
-//Test the SQLite DB
-sessionPzp = require( pathclass.resolve(__dirname + '/../' + webinosRoot + '/webinos/pzp/lib/session_pzp.js'));
+var Fs = require('fs');
+var vocdbpath = path.resolve(moduleRoot +'/data/contextVocabulary.json');
+
+webinos.context.DB = require(moduleRoot +'/lib/contextDBpzhManager.js')
+
+sessionPzp = require( webinosRoot + '/pzp/lib/session_pzp.js');
 
 webinos.context.saveContext = function(dataIn, success, fail) {
 
