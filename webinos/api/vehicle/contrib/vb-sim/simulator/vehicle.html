@@ -13,6 +13,10 @@
 	
 		$(document).ready(function() {
 		
+			if(navigator.geolocation){
+				$('#myLocation').removeAttr('disabled');
+			}
+		
 			$('#inputGear').change(function(){
 				now.setGear($('#inputGear').val());	
 			});
@@ -65,6 +69,30 @@
 				data.additionals = '';
 				now.setDestinationReached(data);
 			});
+			
+			$('#myLocation').click(function(){
+				navigator.geolocation.getCurrentPosition(successFunction, errorFunction);
+				
+				function successFunction(pos) {
+ 					console.log(pos);
+ 					
+    				position = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+    				marker.setPosition(position);
+    				
+    				$('#c-lat').val(position.lat());
+    				$('#c-lng').val(position.lng());
+    				geocoder.geocode({'latLng': position}, handleReversedGeocoder);
+ 				}
+ 				
+ 				function errorFunction(position) {
+    alert('Error!');
+}
+
+
+			});
+			
+			
+
 			
 			initializeMap();
 		
@@ -183,6 +211,8 @@
    	 
    	 
    	 
+   	 
+   	 
 
    	 
     
@@ -200,9 +230,9 @@
 	<p><label class='select'>Gear: </label>
 	<select id="inputGear" disabled>
 				<option value=''></option>
-				<option value='R'>R</option>
-				<option value='P'>P</option>
-				<option value='N'>N</option>
+				<option value='0'>R</option>
+				<option value='10'>P</option>
+				<option value='11'>N</option>
 				<option value='1'>1</option>
 				<option value='2'>2</option>
 				<option value='3'>3</option>
@@ -257,24 +287,26 @@
 			<p><label >Heading:</label><input type='text' value='0' id='c-heading'></p>
 			
 			<h4>Address</h4>
-			<p><label >Country:</label><input type='text' value='' id='d-country'></p>
-			<p><label >Region:</label><input type='text' value='' id='d-region'></p>
+			<p><label >Country:</label><input type='text' value='Deutschland' id='d-country'></p>
+			<p><label >Region:</label><input type='text' value='Bayern' id='d-region'></p>
 			<p><label >County:</label><input type='text' value='' id='d-county'></p>
-			<p><label >City:</label><input type='text' value='' id='d-city'></p>
-			<p><label >Street:</label><input type='text' value='' id='d-street'></p>
-			<p><label >Streetnumber:</label><input type='text' value='' id='d-streetnumber'></p>
+			<p><label >City:</label><input type='text' value='München' id='d-city'></p>
+			<p><label >Street:</label><input type='text' value='Hanauer Str.' id='d-street'></p>
+			<p><label >Streetnumber:</label><input type='text' value='46' id='d-streetnumber'></p>
 			<p><label >Premises:</label><input class='input' type='text' value='' id='d-premises'></p>
 			<p><label >add. Info:</label><input class='input' type='text' value='' id='d-info'></p>
-			<p><label >add. postalCode:</label><input class='input' type='text' value='' id='d-postalcode'></p>
+			<p><label >add. postalCode:</label><input class='input' type='text' value='80992' id='d-postalcode'></p>
 
 		
 		<p>
-		<input type='button' id='locateOnMap' value="Locate on Map"/>
-		<input type='button' id='setGeolocation' value="Set as Geolocation"/>
-		<input type='button' id='setDestinationCancelled' value="Set Destination as cancelled"/>
-		<input type='button' id='setDestinationReached' value="Set Destination as reached"/>
-		<input type='button' id='setDestinationChanged' value="Set Destination as changed"/>
-		<input type='button' id='setDestination' value="Request guidance to destination"/>
+		<input type='button' id='myLocation' value="Locate me" disabled/>
+		<input type='button' id='locateOnMap' value="Resolve address"/>
+		<input type='button' id='setGeolocation' value="Set current values as geolocation"/>
+		<input type='button' id='setDestinationCancelled' value="Set current destination as cancelled"/>
+		<input type='button' id='setDestinationReached' value="Set current destination as reached"/>
+		<input type='button' id='setDestinationChanged' value="Set current destination as changed"/>
+		<input type='button' id='setDestination' value="Request guidance to curent address"/>
+		
 		</p>
 	</div>	
 	</div>
