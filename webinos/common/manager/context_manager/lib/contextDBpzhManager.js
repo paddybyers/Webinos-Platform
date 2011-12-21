@@ -1,23 +1,23 @@
-//var sqlite3 = require('sqlite3').verbose
-var sqlite3 = require('../contrib/node-sqlite3/').verbose();
-var pathclass = require('path');
-var moduleRoot = require('../dependencies.json');
-var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
-var webinosRoot = '../' + moduleRoot.root.location;
-var dbpath = pathclass.resolve(__dirname + '/../' + webinosRoot + '/storage/context/pzh/contextDB.db');
-var bufferpath = pathclass.resolve(__dirname + '/../' + webinosRoot + '/storage/context/pzp/contextDBbuffer.json');
+var path = require('path');
+var moduleRoot = path.resolve(__dirname, '../') + '/';
+var moduleDependencies = require(moduleRoot + '/dependencies.json');
+var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
+var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
+
+var sqlite3 = require(moduleRoot+'/contrib/node-sqlite3/').verbose();
+
+var dbpath = path.resolve(webinosRoot + '/../storage/context/pzh/contextDB.db');
+var bufferpath = path.resolve(webinosRoot + '/../storage/context/pzp/contextDBbuffer.json');
 var db =  new sqlite3.Database(dbpath);
-var databasehelper = require('../contrib/JSORMDB/src/main/javascript/persist');
+var databasehelper = require(moduleRoot + '/contrib/JSORMDB');
 bufferDB = new databasehelper.JSONDatabase({path : bufferpath,transactional : false});
 
-//var myRpc = require( pathclass.resolve(__dirname + '/../' + webinosRoot + '/webinos/common/rpc/lib/rpc.js'));
 webinos.ServiceDiscovery = new RPCHandler;
 var pzpModules = {};
 pzpModules.list = ["context"];
 webinos.ServiceDiscovery.loadModules(pzpModules);
-//myRpc.loadModules(webinos.ServiceDiscovery);
 
-sessionPzp = require( pathclass.resolve(__dirname + '/../' + webinosRoot + '/webinos/pzp/lib/session_pzp.js'));
+sessionPzp = require(webinosRoot + '/pzp/lib/session_pzp.js');
 
 exports.handleContextData = function(contextData)
 {
@@ -30,11 +30,9 @@ console.log("DEBUG!");
   }
   else{
     var contextService = [];
-    //myRpc.SetSessionId(connectedPzh);
     var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'));
     service[0].serviceAddress = connectedPzh
 
-    //contextService.push(service);
 
     var query = {};
     query.type = "DB-insert";
@@ -112,19 +110,6 @@ exports.getrawview = function(success,fail){
       "fldSession AS Session, fldContextObject AS ContextObject, fldMethod AS Method, fldTimestamp AS Timestamp, " +
       "fldDescription AS ValueType, fldValueName AS ValueName, fldValue AS Value FROM vwcontextraw", 
       function (err,row){
-    //    var txtRow = "";
-    //    txtRow = txtRow + "ContextRawID : " + row.ContextRawID + 
-    //    " | ContextRawValueID : "  + row.ContextRawValueID +
-    //    " | API : "  + row.API +
-    //    " | Device : "  + row.Device +
-    //    " | Application : "  + row.Application +
-    //    " | Session : "  + row.Session +
-    //    " | ContextObject : "  + row.ContextObject +
-    //    " | Method : "  + row.Method +
-    //    " | Timestamp : "  + row.Timestamp +
-    //    " | ValueType : "  + row.ValueType +
-    //    " | ValueName : "  + row.ValueName +
-    //    " | Value : "  + row.Value;
 
     result.data[result.data.length] = row;
   },
