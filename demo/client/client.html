@@ -98,23 +98,17 @@
 		<li><a href="#context"> Context </a></li>
 		<li> <a href="#authentication"> Authentication </a> </li>
 		<li> <a href="#pzp"> PZP </a> </li>
+		<li> <a href="#pzpConfig"> PZP Config </a> </li>
 	</ul>
 	
 	<div id = "pzp" style="background-color:#0879a9">	
 		<p style="color:white" align="right"> Help Available on Redmine to start PZP <a href="http://dev.webinos.org/redmine/projects/wp4/wiki/Running_PZP"> Running PZP </a>
 		<center> <p style="color:white"> Ideally you should start one Pzp per instance, if you wish to start another Pzp, create another instance </p> </center>
 		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">			
-			<tr><th>Config </th> <th> Value </th> </tr>
-			<tr><td>Country </td><td><input type="text" id="pzpcountry" value="UK"/></td> </tr>
-			<tr><td>State</td><td> <input type="text" id="pzpstate" value="MX"/></td></tr>
-			<tr><td>City </td><td><input type="text" id="pzpcity" value="ST"/></td></tr>
-			<tr><td>Org </td><td><input type="text" id="pzporg" value="Webinos"/></td></tr>
-			<tr><td>OrgUnit </td><td><input type="text" id="pzporgunit" value="WP4"/></td></tr>
+			<tr><th>Config </th> <th> Value </th> </tr>			
 			<tr><td>Common</td><td> <input type="text" id="pzpcommon" value="Desktop"/></td></tr>
-			<tr><td><i> (Info: This name should be different for each PZP)</i></td><td> </td></tr>
-			<tr><td>Email </td><td><input type="text" id="pzpemail" value="internal@webinos.org"/></td></tr>
-			<tr><td>Days</td><td> <input type="text" id="pzpdays" value="180"/></td>	</tr>		
-			<tr><td>PZH Address </td><td><input type="text" id="pzpservername" value="localhost"/></td></tr> <!--  -->
+			<tr><td><i> (Info: This name should be different for each PZP)</i></td><td> </td></tr>			
+			<tr><td>PZH Address </td><td><input type="text" id="pzpservername" value="localhost"/></td></tr>
 			<tr><td><i> (Info: This should match with PZH address you want to connect)</i></td><td> </td></tr>
 			<tr><td>PZH Port </td><td><input type="text" id="pzpserverport" value="8000"/></td></tr>
 			<tr><td><i> (Info: This should match with PZH Port)</i></td><td> </td></tr>
@@ -125,7 +119,18 @@
 			</center>
 			
 	</div>
-	
+	<div id = "pzpConfig" style="background-color:#0879a9">	
+		<center> <p style="color:white"> This are standard values and might change less freq.  </p> </center>
+		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">	
+			<tr><td>Country </td><td><input type="text" id="pzpcountry" value="UK"/></td> </tr>
+			<tr><td>State</td><td> <input type="text" id="pzpstate" value="MX"/></td></tr>
+			<tr><td>City </td><td><input type="text" id="pzpcity" value="ST"/></td></tr>
+			<tr><td>Org </td><td><input type="text" id="pzporg" value="Webinos"/></td></tr>
+			<tr><td>OrgUnit </td><td><input type="text" id="pzporgunit" value="WP4"/></td></tr>
+			<tr><td>Email </td><td><input type="text" id="pzpemail" value="internal@webinos.org"/></td></tr>
+			<tr><td>Days</td><td> <input type="text" id="pzpdays" value="180"/></td> </tr>	
+		</table>	
+	</div>
 	<div id = "get42_example" style="background-color:#0879a9"> 
 		<table style="background-color:lightgray; border:3px solid #0879a9">
 					<tr> <td> Use registerBrowser if you do not see anything in drop down </td>
