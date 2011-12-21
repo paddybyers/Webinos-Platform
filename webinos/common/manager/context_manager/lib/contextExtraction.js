@@ -43,7 +43,7 @@ webinos.context.saveContext = function(dataIn, success, fail) {
       objRef = "0";
     }
     //Case if results is an unnamed array
-    if(callList.length && vocList.length == 1 && vocList[0].type == "array" && vocList[0].objectName == ""){ //Is Array
+    if(callList.length  && vocList.length == 1 && vocList[0].type == "array" && vocList[0].objectName == ""){ //Is Array
       var data = {};
       data.objectName = "array";
       data.ObjectRef = objRef;
