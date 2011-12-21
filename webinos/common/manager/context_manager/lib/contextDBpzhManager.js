@@ -15,7 +15,7 @@ webinos.ServiceDiscovery = new RPCHandler;
 myRpc.loadModules(webinos.ServiceDiscovery);
 
 sessionPzp = require( pathclass.resolve(__dirname + '/../' + webinosRoot + '/webinos/pzp/lib/session_pzp.js'));
-//webinos = require( pathclass.resolve(__dirname + '/../' + webinosRoot + '/webinos/wrt/lib/webinos.js'));
+
 exports.handleContextData = function(contextData)
 {
 
@@ -76,11 +76,11 @@ saveToDB = function(contextData, success, fail) {
       }
 
       var fldcontextrawID = this.lastID;
-      var incontextrawvalues = db.prepare("INSERT INTO tblcontextrawvalues (fldContextRAWID, fldValueTypeID, fldValueName, fldValue) VALUES (?,?,?,?)");
+      var incontextrawvalues = db.prepare("INSERT INTO tblcontextrawvalues (fldContextRAWID,fldObjectRef,fldIsObject,fldValueTypeID, fldValueName, fldValue) VALUES (?,?,?,?,?,?)");
 
       for (inputID=0; inputID < contextItem.paramstolog.length; inputID++) {
         var input = contextItem.paramstolog[inputID];
-        incontextrawvalues.run(fldcontextrawID, 1, input.objectName, input.value, function(err) {
+        incontextrawvalues.run(fldcontextrawID,input.ObjectRef, input.IsObject, 1, input.objectName, input.value, function(err) {
           if (err) {
             throw err;
             fail(); 
@@ -89,7 +89,7 @@ saveToDB = function(contextData, success, fail) {
       }
       for (outputID=0; outputID < contextItem.resultstolog.length; outputID++) {
         var output = contextItem.resultstolog[outputID];
-        incontextrawvalues.run(fldcontextrawID, 2, output.objectName, output.value, function(err) {
+        incontextrawvalues.run(fldcontextrawID,output.ObjectRef, output.IsObject, 2, output.objectName, output.value, function(err) {
           if (err) {
             throw err;
             fail(); 
