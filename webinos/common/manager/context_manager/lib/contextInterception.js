@@ -21,18 +21,23 @@ webinos.context.ContextData = function(method, params, results) {
   this.params = params;
   this.results = results;
 };
+
+var path = require('path');
+var moduleRoot = path.resolve(__dirname, '../') + '/';
+var moduleDependencies = require(moduleRoot + '/dependencies.json');
+var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
+var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
+
+//console.log("moduleRoot: "+moduleRoot);
+//console.log("webinosRoot: "+webinosRoot);
+//console.log("context_managerRoot: "+webinosRoot+dependencies.manager.context_manager.location);
+
 //Require the database class
-var databasehelper = require('../contrib/JSORMDB/src/main/javascript/persist');
+var databasehelper = require(moduleRoot + '/contrib/JSORMDB');
 
 //Initialize helper classes
-var pathclass = require('path');
-var Fs = require('fs');
-
-var moduleRoot = require('../dependencies.json');
-var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
-var webinosRoot = '../' + moduleRoot.root.location;
-var dbpath = pathclass.resolve(__dirname + '/../' + webinosRoot + '/storage/context/pzp/log.json');
-require('./contextExtraction.js');
+var dbpath = path.resolve(webinosRoot + '/../storage/context/pzp/log.json');
+require(moduleRoot + '/lib/contextExtraction.js');
 
 var registeredListeners = [];
 
