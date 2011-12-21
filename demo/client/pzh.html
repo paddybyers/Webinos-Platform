@@ -25,14 +25,14 @@
 			serverport: document.getElementById('serverport').value, 
 			value: config}; 
 		var options = {type: 'prop', payload: payload};
-		webinos.message_send(options);                	   
+		webinos.session.message_send(options);                	   
         });
         $('#connectPZH').bind('click', function() {
 		var payload = {status: 'connectPzh', 
 			servername: document.getElementById('pzh_ip_addr').value,
 			serverport: document.getElementById('pzh_port').value}; 
 		var options = {type: 'prop', payload: payload};
-		webinos.message_send(options);
+		webinos.session.message_send(options);
         });
          
 	$('#downloadCert').bind('click', function() {
@@ -40,15 +40,15 @@
 			servername: document.getElementById('pzh_ip_addr').value,
 			serverport: document.getElementById('pzh_http_port').value}; 
 		var options = {type: 'prop', payload: payload};
-		webinos.message_send(options);
+		webinos.session.message_send(options);
          });
          
          $('#listPzhPzp').bind('click', function() {
-         	webinos.message_send({type: 'prop', payload: {status: 'listPzh'}});
+         	webinos.session.message_send({type: 'prop', payload: {status: 'listPzh'}});
          });
          
 	$('#crashLogPzh').bind('click', function() {
-         	webinos.message_send({type: 'prop', payload: {status: 'crashLog'}});
+         	webinos.session.message_send({type: 'prop', payload: {status: 'crashLog'}});
 	});
 
   });

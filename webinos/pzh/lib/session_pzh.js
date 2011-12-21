@@ -11,17 +11,18 @@
 	// Global variables and node modules that are required
 	var tls = require('tls'),
 		fs = require('fs'),
+		path = require('path'),
 		Pzh = null,
 		sessionPzh = [],
 		instance = [];
 		
-	if (typeof exports !== "undefined") {
-		var rpc = require("../../common/rpc/lib/rpc.js");
+    	var webinosDemo = path.resolve(__dirname, '../../../demo');		
+	if (typeof exports !== 'undefined') {
+		var rpc = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));
 		var rpcHandler = new RPCHandler();
-		var messaging = require("../../common/manager/messaging/lib/messagehandler.js");
+		var messaging = require(path.resolve(__dirname, '../../common/manager/messaging/lib/messagehandler.js'));
 		messaging.setRPCHandler(rpcHandler);
-		var utils = require('../../pzp/lib/session_common.js');
-		var path = require('path');
+		var utils = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
 	}
 	
 	/**
@@ -99,21 +100,21 @@
 	Pzh.prototype.checkFiles = function (callback) {
 		var self = this;
 		try {
-			fs.readFile(self.config.master.cert.name, function(err) {
+			fs.readFile(webinosDemo+'/'+self.config.master.cert.name, function(err) {
 				if(err !== null && err.code === 'ENOENT') {	
 					utils.selfSigned(self, 'Pzh', self.config.conn, function(status) {
 						if(status === 'certGenerated') {
 							utils.debug(2, 'PZH Generating Certificates');
-							fs.writeFileSync(self.config.conn.key.name, self.config.conn.key.value);
+							fs.writeFileSync(webinosDemo+'/'+self.config.conn.key.name, self.config.conn.key.value);
 							utils.selfSigned(self, 'Pzh:Master', self.config.master, function(result) {
 								if(result === 'certGenerated') {
-									fs.writeFileSync(self.config.master.key.name, self.config.master.key.value);
-									fs.writeFileSync(self.config.master.cert.name, self.config.master.cert.value);
+									fs.writeFileSync(webinosDemo+'/'+self.config.master.key.name, self.config.master.key.value);
+									fs.writeFileSync(webinosDemo+'/'+self.config.master.cert.name, self.config.master.cert.value);
 									utils.signRequest(self, self.config.conn.csr.value, self.config.master,
 									function(result, cert) {
 										if(result === 'certSigned'){ 
 											self.config.conn.cert.value = cert;
-											fs.writeFileSync(self.config.conn.cert.name, cert);
+											fs.writeFileSync(webinosDemo+'/'+self.config.conn.cert.name, cert);
 											callback.call(self, 'Certificates Created');
 										}
 									});
@@ -122,10 +123,10 @@
 						}				
 					});
 				} else {
-					self.config.master.cert.value = fs.readFileSync(self.config.master.cert.name).toString(); 
-					self.config.master.key.value = fs.readFileSync(self.config.master.key.name).toString();
-					self.config.conn.cert.value = fs.readFileSync(self.config.conn.cert.name).toString(); 
-					self.config.conn.key.value = fs.readFileSync(self.config.conn.key.name).toString();
+					self.config.master.cert.value = fs.readFileSync(webinosDemo+'/'+self.config.master.cert.name).toString(); 
+					self.config.master.key.value = fs.readFileSync(webinosDemo+'/'+self.config.master.key.name).toString();
+					self.config.conn.cert.value = fs.readFileSync(webinosDemo+'/'+self.config.conn.cert.name).toString(); 
+					self.config.conn.key.value = fs.readFileSync(webinosDemo+'/'+self.config.conn.key.name).toString();
 					callback.call(self, 'Certificates Present');
 				}		
 			});
@@ -144,7 +145,7 @@
 		try {
 			ca =  [self.config.master.cert.value];	
 			if(typeof self.config.otherPZHMasterCert !== 'undefined') {
-				   ca = [self.config.master.cert.value, fs.readFileSync(self.config.otherPZHMasterCert)];
+				   ca = [self.config.master.cert.value, fs.readFileSync(webinosDemo+'/'+self.config.otherPZHMasterCert)];
 			}
 		} catch (err) {
 			utils.debug(1,'PZH ('+self.sessionId+') Exception in reading other Pzh certificates');
@@ -520,7 +521,7 @@
 			request.on('data', function(chunk) {
 				utils.processedMessage(chunk, function(parse){
 					try {
-						fs.writeFile(pzh.config.otherPzh, parse.payload.message, function() {
+						fs.writeFile(webinosDemo+'/'+pzh.config.otherPzh, parse.payload.message, function() {
 							//pzh.conn.pair.credentials.context.addCACert(pzh.config.mastercertname);
 							pzh.conn.pair.credentials.context.addCACert(parse.payload.message);
 							var payload = pzh.prepMsg(null, null, 'receiveMasterCert', pzh.config.master.cert.value);
@@ -629,7 +630,7 @@
 			res.on('data', function(data) {
 				utils.processedMsg(data, 2, function(parse) {	
 					try {
-						fs.writeFile('pzh_cert.pem', parse.payload.message, function() {
+						fs.writeFile(webinosDemo+'/'+'pzh_cert.pem', parse.payload.message, function() {
 							self.connectOtherPZH(servername, '443');
 						});
 					} catch (err) {
