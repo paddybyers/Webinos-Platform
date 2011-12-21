@@ -10,15 +10,18 @@ var db =  new sqlite3.Database(dbpath);
 var databasehelper = require('../contrib/JSORMDB/src/main/javascript/persist');
 bufferDB = new databasehelper.JSONDatabase({path : bufferpath,transactional : false});
 
-var myRpc = require( pathclass.resolve(__dirname + '/../' + webinosRoot + '/webinos/common/rpc/lib/rpc.js'));
+//var myRpc = require( pathclass.resolve(__dirname + '/../' + webinosRoot + '/webinos/common/rpc/lib/rpc.js'));
 webinos.ServiceDiscovery = new RPCHandler;
-myRpc.loadModules(webinos.ServiceDiscovery);
+var pzpModules = {};
+pzpModules.list = ["context"];
+webinos.ServiceDiscovery.loadModules(pzpModules);
+//myRpc.loadModules(webinos.ServiceDiscovery);
 
 sessionPzp = require( pathclass.resolve(__dirname + '/../' + webinosRoot + '/webinos/pzp/lib/session_pzp.js'));
 
 exports.handleContextData = function(contextData)
 {
-
+console.log("DEBUG!");
   
   var connectedPzh = sessionPzp.getPzhId();
   if (connectedPzh == "null" || connectedPzh == "undefined"){
@@ -27,8 +30,9 @@ exports.handleContextData = function(contextData)
   }
   else{
     var contextService = [];
-    myRpc.SetSessionId(connectedPzh);
+    //myRpc.SetSessionId(connectedPzh);
     var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'));
+    service[0].serviceAddress = connectedPzh
 
     //contextService.push(service);
 
