@@ -49,6 +49,9 @@ public final class Org_webinos_api_nfc_NdefMessage {
 		case 5: /* NDEFRECTYPE_URI */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)org.webinos.api.nfc.NdefMessage.NDEFRECTYPE_URI);
 			break;
+		case 6: /* ndefRecords */
+			result = inst.ndefRecords;
+			break;
 		default:
 		}
 		return result;
@@ -56,6 +59,9 @@ public final class Org_webinos_api_nfc_NdefMessage {
 
 	static void __set(org.webinos.api.nfc.NdefMessage inst, int attrIdx, Object val) {
 		switch(attrIdx) {
+		case 6: /* ndefRecords */
+			inst.ndefRecords = (org.w3c.dom.ObjectArray<org.webinos.api.nfc.NdefRecord>)val;
+			break;
 		default:
 			throw new UnsupportedOperationException();
 		}

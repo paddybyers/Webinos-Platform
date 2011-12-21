@@ -37,4 +37,37 @@ public final class Org_webinos_api_mediacapture_MediacaptureManager {
 		return result;
 	}
 
+	static Object __get(org.webinos.api.mediacapture.MediacaptureManager inst, int attrIdx) {
+		Object result = null;
+		switch(attrIdx) {
+		case 0: /* supportedAudioFormats */
+			result = inst.supportedAudioFormats;
+			break;
+		case 1: /* supportedImageFormats */
+			result = inst.supportedImageFormats;
+			break;
+		case 2: /* supportedVideoFormats */
+			result = inst.supportedVideoFormats;
+			break;
+		default:
+		}
+		return result;
+	}
+
+	static void __set(org.webinos.api.mediacapture.MediacaptureManager inst, int attrIdx, Object val) {
+		switch(attrIdx) {
+		case 0: /* supportedAudioFormats */
+			inst.supportedAudioFormats = (org.w3c.dom.ObjectArray<org.webinos.api.mediacapture.MediaFileData>)val;
+			break;
+		case 1: /* supportedImageFormats */
+			inst.supportedImageFormats = (org.w3c.dom.ObjectArray<org.webinos.api.mediacapture.MediaFileData>)val;
+			break;
+		case 2: /* supportedVideoFormats */
+			inst.supportedVideoFormats = (org.w3c.dom.ObjectArray<org.webinos.api.mediacapture.MediaFileData>)val;
+			break;
+		default:
+			throw new UnsupportedOperationException();
+		}
+	}
+
 }

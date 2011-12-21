@@ -25,16 +25,10 @@ public final class Org_webinos_api_sensor_SensorManager {
 		case 1: /* minDelay */
 			result = inst.minDelay;
 			break;
-		case 2: /* power */
-			result = inst.power;
-			break;
-		case 3: /* resolution */
-			result = inst.resolution;
-			break;
-		case 4: /* vendor */
+		case 2: /* vendor */
 			result = inst.vendor;
 			break;
-		case 5: /* version */
+		case 3: /* version */
 			result = inst.version;
 			break;
 		default:
@@ -50,16 +44,10 @@ public final class Org_webinos_api_sensor_SensorManager {
 		case 1: /* minDelay */
 			inst.minDelay = (Integer)val;
 			break;
-		case 2: /* power */
-			inst.power = (java.lang.Float)val;
-			break;
-		case 3: /* resolution */
-			inst.resolution = (java.lang.Float)val;
-			break;
-		case 4: /* vendor */
+		case 2: /* vendor */
 			inst.vendor = (String)val;
 			break;
-		case 5: /* version */
+		case 3: /* version */
 			inst.version = (Integer)val;
 			break;
 		default:
