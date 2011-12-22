@@ -295,8 +295,138 @@
       "URI" : "http://webinos.org/api/"
    },
    {
-      "APIname" : "TVandSTBcontrolAPI",
-      "URI" : "http://webinos.org/api/"
+      "APIname" : "TVAPI",
+      "ContextObjects" : [
+         {
+            "methods" : [
+               {
+                  "Errors" : [],
+                  "inputs" : [],
+                  "objectName" : "getTVSources",
+                  "outputs" : [
+                     {
+                        "logged" : true,
+                        "objectName" : "",
+                        "type" : "array",
+                        "values" : [
+                           {
+                              "logged" : true,
+                              "objectName" : "channelList",
+                              "type" : "array",
+                              "values" : [
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "channelType",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "longName",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "name",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "stream",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : false,
+                                    "objectName" : "tvsource",
+                                    "type" : "object"
+                                 }
+                              ]
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "name",
+                              "type" : "DOMString"
+                           }
+                        ]
+                     }
+                  ]
+               }
+            ],
+            "objectName" : "MyTVChannels"
+         },
+         {
+            "methods" : [
+               {
+                  "Errors" : [],
+                  "inputs" : [
+                     {
+                        "logged" : true,
+                        "objectName" : "0",
+                        "required" : false,
+                        "type" : "object",
+                        "values" : [
+                           {
+                              "logged" : true,
+                              "objectName" : "channelType",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "longName",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "name",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "stream",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : false,
+                              "objectName" : "tvsource",
+                              "type" : "object"
+                           }
+                        ]
+                     }
+                  ],
+                  "objectName" : "setChannel",
+                  "outputs" : [
+                     {
+                        "logged" : true,
+                        "objectName" : "channelType",
+                        "type" : "DOMString"
+                     },
+                     {
+                        "logged" : true,
+                        "objectName" : "longName",
+                        "type" : "DOMString"
+                     },
+                     {
+                        "logged" : true,
+                        "objectName" : "name",
+                        "type" : "DOMString"
+                     },
+                     {
+                        "logged" : true,
+                        "objectName" : "stream",
+                        "type" : "DOMString"
+                     },
+                     {
+                        "logged" : false,
+                        "objectName" : "tvsource",
+                        "type" : "object"
+                     }
+                  ]
+               }
+            ],
+            "objectName" : "MyChannelChanged"
+         }
+      ],
+      "URI" : "http://webinos.org/api/tv",
+      "otherMethods" : []
    },
    {
       "APIname" : "UserAuthenticationAPI",

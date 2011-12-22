@@ -17,7 +17,16 @@
 
 	var sessionId;
 	
+	//Code to enable Context from settings file
 	var contextEnabled = false;
+	if (typeof module !== 'undefined'){
+    var path = require('path');
+    var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
+    var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+    var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location)+'/';
+    contextEnabled = require(webinosRoot + dependencies.manager.context_manager.location + 'data/contextSettings.json').contextEnabled;
+  }   
+
 
 	function logObj(obj, name){
 		for (var myKey in obj){
@@ -38,7 +47,7 @@
 
 		this.awaitingResponse = {};
 		this.objects = {};
-		this.responseToMapping = [];
+		this.requesterMapping = [];
 		
 		this.write = null;
 	}
@@ -53,9 +62,9 @@
 	/**
 	 * Handles a new JSON RPC message (as string)
 	 */
-	RPCHandler.prototype.handleMessage = function (message, responseto, msgid){
+	RPCHandler.prototype.handleMessage = function (message, from, msgid){
 		console.log("New packet from messaging");
-		console.log("Response to " + responseto);
+		console.log("Response to " + from);
 		var myObject = message;
 		logObj(myObject, "rpc");
 
@@ -112,9 +121,9 @@
 					if (typeof myObject.fromObjectRef !== 'undefined' && myObject.fromObjectRef != null) {
 						// callback registration case (one request to many responses)
 
-						this.responseToMapping[myObject.fromObjectRef] = responseto;
+						this.requesterMapping[myObject.fromObjectRef] = from;
 
-						this.objRefCachTable[myObject.fromObjectRef] = {responseTo:responseto, msgId: msgid};
+						this.objRefCachTable[myObject.fromObjectRef] = {'from':from, msgId: msgid};
 
 						var that = this;
 						includingObject[method](
@@ -126,7 +135,7 @@
 									if (typeof result !== 'undefined') res.result = result;
 									else res.result = {};
 									res.id = id;						
-									that.executeRPC(res, undefined, undefined, responseto, msgid);
+									that.executeRPC(res, undefined, undefined, from, msgid);
 									// CONTEXT LOGGING HOOK
 									if (contextEnabled){
 										webinos.context.logContext(myObject,res);
@@ -141,7 +150,7 @@
 									res.error.code = 32000;  //webinos specific error code representing that an API specific error occured
 									res.error.message = "Method Invocation returned with error";
 									res.id = id;
-									that.executeRPC(res, undefined, undefined, responseto, msgid);
+									that.executeRPC(res, undefined, undefined, from, msgid);
 								}, 
 								myObject.fromObjectRef
 						);
@@ -158,7 +167,7 @@
 									if (typeof result !== 'undefined') res.result = result;
 									else res.result = {};
 									res.id = id;
-									that.executeRPC(res, undefined, undefined, responseto, msgid);
+									that.executeRPC(res, undefined, undefined, from, msgid);
 
 									// CONTEXT LOGGING HOOK
 									if (contextEnabled)
@@ -173,7 +182,7 @@
 									res.error.code = 32000;
 									res.error.message = "Method Invocation returned with error";
 									res.id = id;
-									that.executeRPC(res, undefined, undefined, responseto, msgid);
+									that.executeRPC(res, undefined, undefined, from, msgid);
 								}
 						);
 					}
@@ -217,11 +226,11 @@
 	 * Executes the given RPC Request and registers an optional callback that
 	 * is invoked if an RPC response with same id was received
 	 */
-	RPCHandler.prototype.executeRPC = function (rpc, callback, errorCB, responseto, msgid) {
+	RPCHandler.prototype.executeRPC = function (rpc, callback, errorCB, from, msgid) {
 		//service invocation case
 		if (typeof rpc.serviceAddress !== 'undefined') {
 			// this only happens in the web browser
-			webinos.message_send(rpc, rpc.serviceAddress);// TODO move the whole mmessage_send function here?
+			webinos.session.message_send(rpc, rpc.serviceAddress);// TODO move the whole mmessage_send function here?
 			
 			if (typeof callback === 'function'){
 				var cb = {};
@@ -243,25 +252,25 @@
 			if (rpc.method && rpc.method.indexOf('@') === -1) {
 				var objectRef = rpc.method.split('.')[0];
 				if (typeof this.objRefCachTable[objectRef] !== 'undefined') {
-					responseto = this.objRefCachTable[objectRef].responseTo;
+					from = this.objRefCachTable[objectRef].from;
 
 				}
-				console.log('RPC MESSAGE' + " to " + responseto + " for callback " + objectRef);
+				console.log('RPC MESSAGE' + " to " + from + " for callback " + objectRef);
 			}
 
 		}
 		else if (rpc.method && rpc.method.indexOf('@') === -1) {
 			var objectRef = rpc.method.split('.')[0];
 			if (typeof this.objRefCachTable[objectRef] !== 'undefined') {
-				responseto = this.objRefCachTable[objectRef].responseTo;
+				from = this.objRefCachTable[objectRef].from;
 
 			}
-			console.log('RPC MESSAGE' + " to " + responseto + " for callback " + objectRef);
+			console.log('RPC MESSAGE' + " to " + from + " for callback " + objectRef);
 		}
 
-		//TODO check if rpc is request on a specific object (objectref) and get mapped responseto / destination session
+		//TODO check if rpc is request on a specific object (objectref) and get mapped from / destination session
 
-		this.write(rpc, responseto, msgid);
+		this.write(rpc, from, msgid);
 	};
 
 	/**
@@ -500,8 +509,8 @@
 
 		this.api = api; 
 	};
-	
-	function loadModules(rpcHdlr) {
+
+	RPCHandler.prototype.loadModules = function(modules) {
 		if (typeof module === 'undefined') return;
 		
 		var path = require('path');
@@ -510,48 +519,24 @@
 		//We need to add the trailing / or add it later on
 		var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location)+'/';
 		//sessionPzp = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_pzp.js'));
-
-		//Fix for modules located in old rpc folder
-		var oldRpcLocation = webinosRoot + '../RPC/';
-		//add your RPC Implementations here!
-		var modules = [
-		               webinosRoot + dependencies.api.service_discovery.location + 'lib/rpc_servicedisco.js',
-		               webinosRoot + dependencies.api.get42.location + 'lib/rpc_test2.js',
-		               webinosRoot + dependencies.api.get42.location + 'lib/rpc_test.js',
-		               webinosRoot + dependencies.api.file.location + 'lib/webinos.file.rpc.js',
-		               webinosRoot + dependencies.api.geolocation.location + 'lib/webinos.geolocation.rpc.js',
-		               webinosRoot + dependencies.api.events.location + 'lib/events.js',
-		               webinosRoot + dependencies.api.sensors.location + 'lib/rpc_sensors.js',
-		               webinosRoot + dependencies.api.tv.location + 'lib/webinos.rpc_tv.js',
-		               webinosRoot + dependencies.api.deviceorientation.location + 'lib/webinos.deviceorientation.rpc.js',
-		               webinosRoot + dependencies.api.vehicle.location + 'lib/webinos.vehicle.rpc.js',
-		               webinosRoot + dependencies.api.context.location,
-		               webinosRoot + dependencies.api.authentication.location + 'lib/webinos.authentication.rpc.js',
-		               webinosRoot + dependencies.api.contacts.location + 'lib/webinos.contacts.rpc.js'
-//		               // Disabled as these cause webinos from functioning
-		               //oldRpcLocation + '../API/DeviceStatus/src/main/javascript/webinos.rpc.devicestatus.js',
-		               //oldRpcLocation + 'UserProfile/Server/UserProfileServer.js',
-		               //oldRpcLocation + 'tv/provider/webinos.rpc.tv.js',
-		               //oldRpcLocation + 'rpc_contacts.js',
-		               //oldRpcLocation + 'bluetooth_module/bluetooth.rpc.server.js'
-		               ];
-
 		if (contextEnabled) {
 		  require(webinosRoot + dependencies.manager.context_manager.location); 
 			//modules.push(webinosRoot + dependencies.manager.context_manager.location);
 		}
 
-		for (var i = 0; i <modules.length; i++){
+		var mods = modules.list;
+		
+		for (var i = 0; i < mods.length; i++){
 			try{
-				var Service = require(modules[i]).Service;
-				rpcHdlr.registerObject(new Service(rpcHdlr));
+				var Service = require(webinosRoot + dependencies.api[mods[i]].location).Service;
+				this.registerObject(new Service(this));
 			}
 			catch (error){
 				console.log(error);
-				console.log("Could not load module " + modules[i] + " with message: " + error );
+				console.log("Could not load module " + mods[i] + " with message: " + error );
 			}
 		}
-	}
+	};
 	
 	function SetSessionId (id) {
 		sessionId = id;
@@ -561,7 +546,6 @@
 	 */
 	if (typeof module !== 'undefined'){
 		exports.RPCHandler = RPCHandler;
-		exports.loadModules = loadModules;
 		exports.RPCWebinosService = RPCWebinosService;
 		exports.ServiceType = ServiceType;
 		exports.SetSessionId = SetSessionId;

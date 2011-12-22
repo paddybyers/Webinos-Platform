@@ -1,13 +1,14 @@
 #include <v8.h>
 #include <node.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "openssl_wrapper.h"
 #include <string.h>
 
 using namespace node;
 using namespace v8;
 
-static int BUFFER_SIZE = 4096;
+const static int BUFFER_SIZE = 4096;
 
 void prettyPrintArray(char* pem, int len) {
 	printf("\n%s",pem);
@@ -40,26 +41,17 @@ v8::Handle<Value> _genRsaKey(const Arguments& args)
         return ThrowException(Exception::TypeError(String::New("Key length must be between 128 and 4096")));
       }
       //call the wrapper & check for errors
-      
-      char* pem = new char[BUFFER_SIZE];
-      ::memset(pem, 0, BUFFER_SIZE);
+      char *pem=(char *)calloc(keyLen+1, sizeof(char)); /* Null-terminate */
       int res = 0;
       res = ::genRsaKey(keyLen, pem);
 	  if (res != 0) {
-    	  delete pem;
+
           return ThrowException(Exception::TypeError(String::New("**Error creating private key**")));
       }
-
-      int len = strlen(pem);
-      //prettyPrintArray(pem,len);
-	  char* pem2 = new char[len+1];
-	  ::memset(pem2, 0, len+1);
-	  ::strncpy(pem2, pem, len);
-	  delete pem;
-
+			
       //create composite remote object 
-      Local<String> result = String::New(pem2);
-      
+      Local<String> result = String::New(pem);
+      free(pem);
       return scope.Close(result);
     }
     else {
@@ -85,26 +77,19 @@ v8::Handle<Value> _createCertificateRequest(const Arguments& args)
       String::Utf8Value email(args[7]->ToString());
             
       //call the wrapper & check for errors
-      
-      char* pem = new char[BUFFER_SIZE];
-      ::memset(pem, 0, BUFFER_SIZE);
-      int res = ::createCertificateRequest(pem, key.operator*(),
+      char *pem=(char *)calloc(BUFFER_SIZE+1, sizeof(char)); /* Null-terminate */
+      int res = 0;
+      res = ::createCertificateRequest(pem, key.operator*(),
                 country.operator*(), state.operator*(), loc.operator*(), 
                 organisation.operator*(), organisationUnit.operator*(), cname.operator*(), email.operator*());
-
 	  if (res != 0) {
-          delete pem;
+
           return ThrowException(Exception::TypeError(String::New("Error creating certificate request")));
       }
+			
       //create composite remote object 
-      int len = strlen(pem);
-      //prettyPrintArray(pem,len);
-	  char* pem2 = new char[len+1];
-	  ::memset(pem2, 0, len+1);
-	  ::strncpy(pem2, pem, len);
-	  delete pem;
-
-      Local<String> result = String::New(pem2);
+      Local<String> result = String::New(pem);
+      free(pem);
       return scope.Close(result);
     }
     else {
@@ -125,34 +110,22 @@ v8::Handle<Value> _selfSignRequest(const Arguments& args)
 	  String::Utf8Value pemCAKey(args[2]->ToString());
 
 	  //call the wrapper & check for errors
-
-	  char* pem = new char[BUFFER_SIZE];
-	  ::memset(pem, 0, BUFFER_SIZE);
-
-	  int res = selfSignRequest(pemRequest.operator*(),days,pemCAKey.operator*(),pem);
+      char *pem=(char *)calloc(BUFFER_SIZE+1, sizeof(char)); /* Null-terminate */
+      int res = 0;
+      res = ::selfSignRequest(pemRequest.operator*(),days,pemCAKey.operator*(),pem);
 	  if (res != 0) {
-		  delete pem;
-		  printf("Error code %c",res);
-		  return ThrowException(Exception::TypeError(String::New("Error creating self-signed certificate")));
-	  }
 
-
-	  //create composite remote object
-	  int len = strlen(pem);
-	  //prettyPrintArray(pem,len);
-	  char* pem2 = new char[len+1];
-	  ::memset(pem2, 0, len+1);
-	  ::strncpy(pem2, pem, len);
-	  delete pem;
-
-
-	  Local<String> result = String::New(pem2);
-
-	  return scope.Close(result);
-	}
-	else {
-	  return ThrowException(Exception::TypeError(String::New("3 arguments expected: string int string")));
-	}
+          return ThrowException(Exception::TypeError(String::New("Error creating self-signed certificate")));
+      }
+			
+      //create composite remote object 
+      Local<String> result = String::New(pem);
+      free(pem);
+      return scope.Close(result);
+    }
+    else {
+      return ThrowException(Exception::TypeError(String::New("3 arguments expected: string int string")));
+    }
 }
 
 v8::Handle<Value> _signRequest(const Arguments& args)
@@ -168,29 +141,19 @@ v8::Handle<Value> _signRequest(const Arguments& args)
 	  String::Utf8Value pemCACert(args[3]->ToString());
 
 	  //call the wrapper & check for errors
-
-	  char* pem = new char[BUFFER_SIZE];
-	  ::memset(pem, 0, BUFFER_SIZE);
-	  int res = signRequest(pemRequest.operator*(),days,pemCAKey.operator*(),pemCACert.operator*(),pem);
+      char *pem=(char *)calloc(BUFFER_SIZE+1, sizeof(char)); /* Null-terminate */
+      int res = 0;
+      res = ::signRequest(pemRequest.operator*(),days,pemCAKey.operator*(),pemCACert.operator*(),pem);
 	  if (res != 0) {
-		  delete pem;
-		  return ThrowException(Exception::TypeError(String::New("Failed to sign a certificate")));
-	  }
 
-	  //create composite remote object
-
-	  int len = strlen(pem);
-	  //prettyPrintArray(pem,len);
-	  char* pem2 = new char[len+1];
-	  ::memset(pem2, 0, len+1);
-	  ::strncpy(pem2, pem, len);
-	  delete pem;
-
-
-	  Local<String> result = String::New(pem2);
-
-	  return scope.Close(result);
-	}
+          return ThrowException(Exception::TypeError(String::New("Failed to sign a certificate")));
+      }
+			
+      //create composite remote object 
+      Local<String> result = String::New(pem);
+      free(pem);
+      return scope.Close(result);
+    }
 	else {
 	  return ThrowException(Exception::TypeError(String::New("4 arguments expected: string int string string")));
 	}
@@ -212,23 +175,17 @@ v8::Handle<Value> _createEmptyCRL(const Arguments& args)
       
             
       //call the wrapper & check for errors
-      
-      char* pem = new char[BUFFER_SIZE];
-	  ::memset(pem, 0, BUFFER_SIZE);
-      int res = createEmptyCRL(pemKey.operator*(), pemCert.operator*(), days,hours,pem);
-      if (res != 0) {
-          delete pem;
+      char *pem=(char *)calloc(BUFFER_SIZE+1, sizeof(char)); /* Null-terminate */
+      int res = 0;
+      res = ::createEmptyCRL(pemKey.operator*(), pemCert.operator*(), days,hours,pem);
+	  if (res != 0) {
+
           return ThrowException(Exception::TypeError(String::New("Failed to create empty CRL")));
       }
-      //create composite remote object
-      int len = strlen(pem);
-      //prettyPrintArray(pem,len);
-	  char* pem2 = new char[len+1];
-	  ::memset(pem2, 0, len+1);
-	  ::strncpy(pem2, pem, len);
-	  delete pem;
-
-      Local<String> result = String::New(pem2);
+			
+      //create composite remote object 
+      Local<String> result = String::New(pem);
+      free(pem);
       return scope.Close(result);
     }
     else {
@@ -250,25 +207,17 @@ v8::Handle<Value> _addToCRL(const Arguments& args)
       
             
       //call the wrapper & check for errors
-      char* pem = new char[BUFFER_SIZE];
-	  ::memset(pem, 0, BUFFER_SIZE);
+      char *pem=(char *)calloc(BUFFER_SIZE+1, sizeof(char)); /* Null-terminate */
+      int res = 0;
+      res = ::addToCRL(pemKey.operator*(), pemOldCRL.operator*(), pemRevokedCert.operator*(),pem);
+	  if (res != 0) {
 
-      int res = ::addToCRL(pemKey.operator*(), pemOldCRL.operator*(), pemRevokedCert.operator*(),pem);
-      if (res != 0) {
-          delete pem;
           return ThrowException(Exception::TypeError(String::New("Failed to add a certificate to the CRL")));
       }
-
-      //create composite remote object
-      int len = strlen(pem);
-      //prettyPrintArray(pem,len);
-	  char* pem2 = new char[len+1];
-	  ::memset(pem2, 0, len+1);
-	  ::strncpy(pem2, pem, len);
-	  delete pem;
-
-	  //prettyPrintArray(pem2,len);
-      Local<String> result = String::New(pem2);
+			
+      //create composite remote object 
+      Local<String> result = String::New(pem);
+      free(pem);
       return scope.Close(result);
     }
     else {

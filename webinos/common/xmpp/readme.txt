@@ -38,9 +38,10 @@ Installation prerequests:
 
 On Ubuntu / Debian: apt-get install libexpat1
 
-3. Node-Xmpp: https://github.com/astro/node-xmpp#readme
+3. Node-Xmpp or Node-Bosh-Xmpp:
 
-npm install node-xmpp
+For native XMPP support install node-xmpp: npm install node-xmpp
+For XMPP over HTTP (BOSH) install node-bosh-xmpp: npm install node-bosh-xmpp
 
 4. node-stringprep (optional)
 

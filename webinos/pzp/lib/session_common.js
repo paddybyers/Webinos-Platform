@@ -5,23 +5,32 @@
  
 
 if (typeof exports !== "undefined") {
-var path = require('path');
+	var path = require('path');
 	var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
 	var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 	var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
 	var messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
 	var rpc = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js'));
+	var fs = require('fs');
+	var crashMsg = fs.createWriteStream('crash.txt', {'flags': 'a'});
+	var infoMsg = fs.createWriteStream('info.txt', {'flags': 'a'});
 }
 
 var debug = function(num, msg) {
 	"use strict";
 	var info = true; // Change this if you want no prints from session manager
-	var debug = true; 
+	var debug = true;
+	var fs = require('fs');
+	
 	if(num === 1) {
 		console.log('ERROR:' + msg);
+		crashMsg.write(msg);
+		crashMsg.write('\n');
 	} else if(num === 2 && info) {
 		console.log('INFO:' + msg);
+		infoMsg.write(msg);
+		infoMsg.write('\n');
 	} else if(num === 3 && debug) {
 		console.log('DEBUG:' + msg);
 	}
@@ -101,11 +110,14 @@ exports.selfSigned = function(self, name, obj, callback) {
 	try {
 		obj.key.value = certman.genRsaKey(1024);
 	} catch(err1) {
-		throw new Error("Error generating private key");
+		callback.call(self, "failed");
+		return;
 	}
 
 	var common = name+':'+self.config.common;
+	self.config.cn = common; 
 	
+
 	try {
 		obj.csr.value = certman.createCertificateRequest(obj.key.value, 
 			self.config.country,
@@ -116,19 +128,22 @@ exports.selfSigned = function(self, name, obj, callback) {
 			common, 
 			self.config.email);
 	} catch (e) {
-		throw new Error("Error generating certificate request");
+		callback.call(self, "failed");
+		return;
 	}
 
 	try {
 		obj.cert.value = certman.selfSignRequest(obj.csr.value, 30, obj.key.value);
-	} catch (e) {
-		throw new Error("Error generating self signed certificate");
+	} catch (e1) {
+		callback.call(self, "failed");
+		return;
 	}
 
 	try {
 		obj.crl.value = certman.createEmptyCRL(obj.key.value,  obj.cert.value, 30, 0);
-	} catch (e) {
-		throw new Error('Error generating CRL.')
+	} catch (e2) {
+		callback.call(self, "failed");
+		return;
 	}
 	callback.call(self, "certGenerated");
 };
@@ -149,9 +164,35 @@ exports.signRequest = function(self, csr, master, callback) {
 		var clientCert = certman.signRequest(csr, 30, master.key.value, master.cert.value);
 		callback.call(self, "certSigned", clientCert);
 	} catch(err1) {
-		throw new Error('Error generating signed request.')
+		callback.call(self, "failed");
+		return;
 	}	
 };
+
+exports.revokeClientCert = function(self, master, pzpCert, callback) {
+    "use strict";
+    var certman;
+	
+	try {
+		certman = require("../../common/manager/certificate_manager/src/build/Release/certificate_manager");		
+	} catch (err) {
+	    debug(1, "Failed to require the certificate manager");
+		callback.call(self, "failed");
+		return;
+	}
+	try {
+	    debug(2, "Calling certman.addToCRL\n");    
+		var crl = certman.addToCRL("" + master.key.value, "" + master.crl.value, "" + pzpCert); 
+		// master.key.value, master.cert.value
+		callback.call(self, "certRevoked", crl);
+	} catch(err1) {
+	    debug(1, "Error: " + err1);
+		callback.call(self, "failed");
+		return;
+	}
+}
+
+
 
 /** @desription It removes the connected PZP/Pzh details.
  */
@@ -171,7 +212,9 @@ exports.removeClient = function(self, conn) {
 	if (typeof delId !== "undefined") {
 		for ( i = 0 ; i < self.connectedPzpIds.length; i += 1) {
 			if ( delId === self.connectedPzpIds[i]) {
-				delete self.connectedPzpIds[i];
+				//delete self.connectedPzpIds[i];
+				self.connectedPzpIds.splice(i, 1);
+				return delId;
 			}
 		}
 	}
@@ -180,17 +223,21 @@ exports.removeClient = function(self, conn) {
 		if(self.connectedPzh.hasOwnProperty(i)) {
 			if(conn.socket._peername.address === self.connectedPzh[i].address) {
 				delPzhId = i;
-				delete self.connectedPzp[i];
+				self.connectedPzh.splice(i, 1);
+				//delete self.connectedPzh[i];
 			}
 		}
 	}
-	if (typeof delIPzhd !== "undefined") {
+	if (typeof delIPzhId !== "undefined") {
 		for ( i = 0 ; i < self.connectedPzhIds.length; i += 1) {
 			if ( delPzhId === self.connectedPzhIds[i]) {
-				delete self.connectedPzhIds[i];
+				//delete self.connectedPzhIds[i];
+				self.connectedPzhIds.splice(i, 1);
+				return delPzhId;
 			}
 		}
 	}
+	
 	
 };
 
@@ -199,17 +246,17 @@ var checkSchema = function(message) {
 	try {
 		myEnv = require('schema')('myEnvironment', {locale: 'en'});
 	} catch (err) {
-		throw err;
+		return 'failed';
 	}
 	try {
 		assert = require('assert');
-	} catch (err) {
-		throw err;
+	} catch (err1) {
+		return 'failed';
 	}
 	try {
 		message = JSON.parse(message);
-	} catch(err) {
-		throw err;
+	} catch(err2) {
+		return 'failed';
 	}	
 	
 	schema = myEnv.Schema.create({
@@ -295,7 +342,7 @@ exports.processedMsg = function(self, data, dataLen, callback) {
 */
 var send = function (message, address, object) {
 	"use strict";
-	//message.resp_to = address;
+	message.from = address;
 	object.sendMessage(message, address);
 };
 
@@ -431,6 +478,22 @@ exports.configure = function(self, id, contents, callback) {
 			callback.call(self,'Certificate Present');	
 		}		
 	});	
+};
+//TODO: IP first address fails, use second address support
+exports.resolveIP = function(serverName, callback) {
+	var dns = require('dns');
+	var net = require('net');
+	if(net.isIP(serverName) !== 0) {
+		callback(serverName);
+	} else {
+		dns.resolve(serverName, function(err, address) {
+			if(err) {
+				return "undefined";
+			} else {
+				callback(address[0]);
+			}
+		});
+	}
 };
 
 exports.getId = getId;

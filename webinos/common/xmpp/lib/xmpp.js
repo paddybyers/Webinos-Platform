@@ -42,8 +42,7 @@ exports.Connection = Connection;
 /**
  * params[jid]: full jid of the user.
  * params[password]: password of the user.
- * (optional) params[boshServer]: address of the BOSH server.
- * (optional) params[boshPort]: port of the BOSH server.
+ * (optional) params[bosh]: address of the BOSH server, for example: http://xmpp.servicelab.org:80/jabber
  */
 Connection.prototype.connect = function(params, onOnline) {
 	logger.trace("Entering connect()");
@@ -56,7 +55,7 @@ Connection.prototype.connect = function(params, onOnline) {
 		xmpp = require('node-xmpp');
 		this.client = new xmpp.Client(params);
 	} else {
-		xmpp = require('./node-xmpp-via-bosh/boshclient.js');
+		xmpp = require('node-bosh-xmpp');
 		this.client = new xmpp.Client(params['jid'], params['password'], params['bosh']);
 	}
 
