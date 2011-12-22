@@ -11,7 +11,6 @@
 <script type="text/javascript" src="/client/webinos.file.demo.js"></script>
 <script>
 	var init = function () {
-		var id = Math.floor(Math.random()*1001);
 		$("button#init").attr("disabled", "disabled");
 		$("table#left").css("visibility", "visible");
 		$("table#right").css("visibility", "visible");
@@ -19,17 +18,21 @@
 		var left = new webinos.file.demo.Explorer("table#left");
 		var right = new webinos.file.demo.Explorer("table#right");
 
-		var address = $('#pzh_pzp_list').val();
-		webinos.ServiceDiscovery.findServices(address, new ServiceType("http://webinos.org/api/file"), {
+		webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/file"), {
 			onFound: function (service) {
-				service.bind(function () {
-					service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 1024, function (filesystem) {
-						left.change(filesystem.root);
-						right.change(filesystem.root);
-					}, function (error) {
-						alert("Error requesting filesystem (#" + error.code + ")");
-					}, webinos.getSessionId(), id);
+				service.bindService({
+					onBind: function () {
+						service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 1024, function (filesystem) {
+							left.change(filesystem.root);
+							right.change(filesystem.root);
+						}, function (error) {
+							alert("Error requesting filesystem (#" + error.code + ")");
+						});
+					}
 				});
+			},
+			onError: function (error) {
+				alert("Error finding service: " + error.message + " (#" + error.code + ")");
 			}
 		});
 	}
