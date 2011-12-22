@@ -378,6 +378,27 @@
 				
             }
             
+            label.box{
+          		    background: none;
+                border-radius: 0px
+                border: 0px;
+				color: #fff;
+				padding: 3px;
+				font-family: Helvetica, Arial, sans-serif;
+				font-stretch:condensed;
+				font-weight:normal;
+				font-size:10px;
+                display: block;
+                float: left;
+                text-align: left;
+                width: 147px;
+                border-right: 0px;
+                text-shadow: none;
+				
+            
+            
+            }
+            
             #functions p, #info p{
             	margin-bottom: 1px;
             	margin-top: 2px;
