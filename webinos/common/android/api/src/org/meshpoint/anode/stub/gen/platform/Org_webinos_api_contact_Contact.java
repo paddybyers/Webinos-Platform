@@ -2,7 +2,7 @@
 
 package org.meshpoint.anode.stub.gen.platform;
 
-public final class Org_webinos_api_contact_Contact {
+public class Org_webinos_api_contact_Contact {
 
 	private static Object[] __args = new Object[0];
 

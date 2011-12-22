@@ -2,9 +2,9 @@
 
 package org.meshpoint.anode.stub.gen.user;
 
-public final class Org_webinos_api_SuccessCallback extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.SuccessCallback {
+public class Org_webinos_api_SuccessCallback extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.SuccessCallback {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.SuccessCallback.class);
+	private static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.SuccessCallback.class);
 
 	Org_webinos_api_SuccessCallback(long instHandle) { super(instHandle); }
 

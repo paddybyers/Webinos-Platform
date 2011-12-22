@@ -2,7 +2,7 @@
 
 package org.meshpoint.anode.stub.gen.platform;
 
-public final class Org_webinos_api_nfc_NdefMessage {
+public class Org_webinos_api_nfc_NdefMessage {
 
 	private static Object[] __args = new Object[2];
 

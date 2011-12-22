@@ -2,7 +2,7 @@
 
 package org.meshpoint.anode.stub.gen.dict;
 
-public final class Org_webinos_api_geolocation_Coordinates {
+public class Org_webinos_api_geolocation_Coordinates {
 
 	private static Object[] __args = new Object[7];
 

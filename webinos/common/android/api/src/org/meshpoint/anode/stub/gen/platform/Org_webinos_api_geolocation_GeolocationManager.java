@@ -2,7 +2,7 @@
 
 package org.meshpoint.anode.stub.gen.platform;
 
-public final class Org_webinos_api_geolocation_GeolocationManager {
+public class Org_webinos_api_geolocation_GeolocationManager {
 
 	private static Object[] __args = new Object[3];
 

@@ -2,9 +2,9 @@
 
 package org.meshpoint.anode.stub.gen.user;
 
-public final class Org_webinos_api_calendar_CalendarErrorCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.calendar.CalendarErrorCB {
+public class Org_webinos_api_calendar_CalendarErrorCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.calendar.CalendarErrorCB {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.calendar.CalendarErrorCB.class);
+	private static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.calendar.CalendarErrorCB.class);
 
 	Org_webinos_api_calendar_CalendarErrorCB(long instHandle) { super(instHandle); }
 

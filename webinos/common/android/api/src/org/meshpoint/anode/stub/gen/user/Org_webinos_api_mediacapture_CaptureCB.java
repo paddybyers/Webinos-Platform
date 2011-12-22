@@ -2,9 +2,9 @@
 
 package org.meshpoint.anode.stub.gen.user;
 
-public final class Org_webinos_api_mediacapture_CaptureCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.mediacapture.CaptureCB {
+public class Org_webinos_api_mediacapture_CaptureCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.mediacapture.CaptureCB {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.mediacapture.CaptureCB.class);
+	private static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.mediacapture.CaptureCB.class);
 
 	Org_webinos_api_mediacapture_CaptureCB(long instHandle) { super(instHandle); }
 

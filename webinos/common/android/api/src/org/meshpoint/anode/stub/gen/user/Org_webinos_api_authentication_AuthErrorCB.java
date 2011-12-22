@@ -2,9 +2,9 @@
 
 package org.meshpoint.anode.stub.gen.user;
 
-public final class Org_webinos_api_authentication_AuthErrorCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.authentication.AuthErrorCB {
+public class Org_webinos_api_authentication_AuthErrorCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.authentication.AuthErrorCB {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.authentication.AuthErrorCB.class);
+	private static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.authentication.AuthErrorCB.class);
 
 	Org_webinos_api_authentication_AuthErrorCB(long instHandle) { super(instHandle); }
 

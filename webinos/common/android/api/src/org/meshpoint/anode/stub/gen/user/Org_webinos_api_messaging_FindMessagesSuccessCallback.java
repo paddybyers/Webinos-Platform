@@ -2,9 +2,9 @@
 
 package org.meshpoint.anode.stub.gen.user;
 
-public final class Org_webinos_api_messaging_FindMessagesSuccessCallback extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.messaging.FindMessagesSuccessCallback {
+public class Org_webinos_api_messaging_FindMessagesSuccessCallback extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.messaging.FindMessagesSuccessCallback {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.messaging.FindMessagesSuccessCallback.class);
+	private static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.messaging.FindMessagesSuccessCallback.class);
 
 	Org_webinos_api_messaging_FindMessagesSuccessCallback(long instHandle) { super(instHandle); }
 

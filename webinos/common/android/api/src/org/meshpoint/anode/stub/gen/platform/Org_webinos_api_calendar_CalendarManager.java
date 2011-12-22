@@ -2,7 +2,7 @@
 
 package org.meshpoint.anode.stub.gen.platform;
 
-public final class Org_webinos_api_calendar_CalendarManager {
+public class Org_webinos_api_calendar_CalendarManager {
 
 	private static Object[] __args = new Object[3];
 

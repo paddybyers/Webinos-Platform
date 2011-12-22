@@ -2,9 +2,9 @@
 
 package org.meshpoint.anode.stub.gen.user;
 
-public final class Org_webinos_api_deviceorientation_OrientationCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.deviceorientation.OrientationCB {
+public class Org_webinos_api_deviceorientation_OrientationCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.deviceorientation.OrientationCB {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.deviceorientation.OrientationCB.class);
+	private static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.deviceorientation.OrientationCB.class);
 
 	Org_webinos_api_deviceorientation_OrientationCB(long instHandle) { super(instHandle); }
 

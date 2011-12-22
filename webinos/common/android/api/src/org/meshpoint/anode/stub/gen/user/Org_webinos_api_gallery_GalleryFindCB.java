@@ -2,9 +2,9 @@
 
 package org.meshpoint.anode.stub.gen.user;
 
-public final class Org_webinos_api_gallery_GalleryFindCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.gallery.GalleryFindCB {
+public class Org_webinos_api_gallery_GalleryFindCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.gallery.GalleryFindCB {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.gallery.GalleryFindCB.class);
+	private static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.gallery.GalleryFindCB.class);
 
 	Org_webinos_api_gallery_GalleryFindCB(long instHandle) { super(instHandle); }
 

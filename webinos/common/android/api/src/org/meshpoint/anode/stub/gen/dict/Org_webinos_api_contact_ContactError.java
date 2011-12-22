@@ -2,7 +2,7 @@
 
 package org.meshpoint.anode.stub.gen.dict;
 
-public final class Org_webinos_api_contact_ContactError {
+public class Org_webinos_api_contact_ContactError {
 
 	private static Object[] __args = new Object[8];
 

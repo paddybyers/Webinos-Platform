@@ -2,9 +2,9 @@
 
 package org.meshpoint.anode.stub.gen.user;
 
-public final class Org_webinos_api_ErrorCallback extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.ErrorCallback {
+public class Org_webinos_api_ErrorCallback extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.ErrorCallback {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.ErrorCallback.class);
+	private static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.ErrorCallback.class);
 
 	Org_webinos_api_ErrorCallback(long instHandle) { super(instHandle); }
 
