@@ -1,29 +1,33 @@
-# ignore context db
+# context db
 Manager/Context/Storage/data/context.json
 webinos/common/manager/context_manager/data/log.json
 
-# ignore generated webinos.js
+# generated webinos.js
 demo/client/webinos.js
-# ignore eclipse project files
+# eclipse project files
 .project
 .settings
-# ignore generated certificates
+# vstudio prj files
+*.sln
+*.vcxproj
+# generated certificates
 *.pem
 *.csr
+*.crl
 *.srl
-# ignore backup files
+# backup files
 *~
-# ignore waf lock files
+# waf lock files
 .lock-wscript
-# ignore vi swap file
+# vi swap file
 *.swp
-#ignore build folders
+# build folders
 build
-#ignore target folders
+# target folders
 target
-#ignore reports folders
+# reports folders
 reports
-#ignore modules for vehicle connection
+# modules for vehicle connection
 webinos/api/vehicle/contrib/vb-con/
 webinos/api/vehicle/contrib/vb-con/vc.js
 webinos/api/vehicle/contrib/vb-con/jsonrpc.js 
@@ -36,6 +40,9 @@ RPC/node_modules/dojo-node/
 RPC/node_modules/prototype/
 RPC/node_modules/xmlhttprequest/
 
-
 #node_modules
 /.metadata/
+
+#pzh logs
+demo/crash.txt
+demo/info.txt

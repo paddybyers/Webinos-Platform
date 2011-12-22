@@ -1,6 +1,6 @@
 Pzh = require('../webinos/pzh/lib/session_pzh.js');
 
-var ipAddr = 'localhost', port = 8000, serverPort = 8083, webServerPort = 8082;
+var ipAddr = '127.0.0.1', port = 8000, serverPort = 8083, webServerPort = 8082;
 process.argv.forEach(function(val, index, array) {
 	if(index === 2) 
 		ipAddr = val;

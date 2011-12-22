@@ -28,7 +28,7 @@
 	var sessionPzp = [];	
 	var connectedApp ={};
 	var webId = 0;
-	
+	var pzpCertDir;
 	Pzp = function () {
 		// Stores PZH server details
 		this.connectedPzh= [];
@@ -119,12 +119,11 @@
 	 * @returns {function} callback pzp certificate to use for connecting pzh. 
 	 */
 	Pzp.prototype.checkFiles = function (callback) {
-		var self = this, options;
-		var pzpCertDir, pzpKeyDir;
-		var pzhRoot = webinosDemo+'/certificates/pzp';
-		var pzpName = pzpRoot+'/'+'self.config.common.split(':')[0];
+		var self = this, options;		
+		var pzpRoot = webinosDemo+'/certificates/pzp';
+		var pzpName = pzpRoot+'/'+self.config.common.split(':')[0];
 		pzpCertDir = path.resolve(__dirname, pzpName+'/cert');
-		pzpKeyDir = path.resolve(__dirname, pzpName+'/keys');		
+		var pzpKeyDir = path.resolve(__dirname, pzpName+'/keys');		
 		
 		fs.readFile(pzpCertDir+'/'+self.config.master.cert.name, function (err) {
 			if (err !== null && err.code === 'ENOENT') {
@@ -145,7 +144,7 @@
 										fs.mkdirSync(pzpKeyDir, '0700');
 									}
 									fs.writeFileSync(pzpKeyDir+'/'+self.config.conn.key.name, self.config.conn.key.value);
-									options = {key: self.config.conn.key.value,	cert: self.config.conn.cert.value};
+									options = {key: self.config.conn.key.value, cert: self.config.conn.cert.value};
 									callback.call(self, options);
 								});
 							});
@@ -163,10 +162,14 @@
 					self.config.conn.cert.value = fs.readFileSync(pzpCertDir+'/'+self.config.conn.cert.name).toString();
 					self.config.conn.key.value = fs.readFileSync(pzpKeyDir+'/'+self.config.conn.key.name).toString();
 					self.config.master.cert.value = fs.readFileSync(pzpCertDir+'/'+self.config.master.cert.name).toString();
+					if (path.existsSync(self.config.master.crl.name)) {					
+    						self.config.master.crl.value = fs.readFileSync(pzpCertDir+'/'+self.config.master.crl.name).toString();
+					}
 					options = {
 						key: self.config.conn.key.value,
 						cert: self.config.conn.cert.value,
-						ca: self.config.master.cert.value
+						ca: self.config.master.cert.value,
+						crl: self.config.master.crl.value
 					};
 					callback.call(self, options);
 				} 
@@ -248,7 +251,7 @@
 					self.pzhId = client.getPeerCertificate().subject.CN.split(':')[1];//data2.from;
 					self.connectedPzh[self.pzhId] = {socket: client};
 					self.prepMsg(self.sessionId, self.pzhId, 'clientCert',
-						self.config.conn.csr.value); 
+						{ csr: self.config.conn.csr.value, name: self.config.common.split(':')[0] } ); 
 				}
 			});
 		} catch (err) {
@@ -309,9 +312,7 @@
 		var  msg, i ;		
 		utils.processedMsg(self, data, 1, function(data2) { // 1 is for #	
 			if(data2.type === 'prop' && data2.payload.status === 'signedCert') {
-				utils.debug(2, 'PZP Writing certificates data ');
-				var pzpName = webinosDemo+'/certificates/pzp/'+self.config.common.split(':')[0];
-				var pzpCertDir = path.resolve(__dirname, pzpName+'/cert');
+				utils.debug(2, 'PZP Writing certificates data ');				
 				self.config.conn.cert.value = data2.payload.message.clientCert;
 				fs.writeFile(pzpCertDir+'/'+self.config.conn.cert.name, data2.payload.message.clientCert, 
 				function() {
@@ -370,6 +371,7 @@
 									utils.debug(2, 'PZP ('+client.sessionId+') Client Connecting Again');
 									var config = {	key: client.config.conn.key.value,
 										cert: client.config.conn.cert.value,
+										crl: client.config.master.crl.value,
 										ca: client.config.master.cert.value};
 
 									client.connect(config, function(result) {
@@ -398,8 +400,8 @@
 
 	sessionPzp.startPzpWebSocketServer = function(hostname, serverPort, webServerPort, modules) {
 		var http = require('http'),
-			url = require('url'),
-				WebSocketServer = require('websocket').server;
+		url = require('url'),
+		WebSocketServer = require('websocket').server;
 		
 		// load specified modules
 		rpcHandler.loadModules(modules);
@@ -574,6 +576,7 @@
 		self = this;
 		var options = {	key: self.config.conn.key.value,
 				cert: self.config.conn.cert.value,
+				crl: self.config.master.crl.value,
 				ca: self.config.master.cert.value
 				};
 
@@ -626,6 +629,7 @@
 		var config = {	key: self.config.conn.key.value,
 				cert: self.config.conn.cert.value,
 				ca: self.config.master.cert.value,
+				crl: self.config.master.crl.value,
 				requestCert: true, 
 				rejectUnauthorized: true
 				};

@@ -10,37 +10,36 @@
 	<script type="text/javascript" src="/client/jquery-ui.js"></script>
 	<script type="text/javascript" src="/client/dojo.js"></script>
 	<script type="text/javascript">
-            $(document).ready(function() {	
-		$("#tabs").tabs();
+		$(document).ready(function() {	
+				$("#tabs").tabs();
                 $('#startPZP').bind('click', function() {
-			var config ='country='+ document.getElementById('pzpcountry').value + '\n' +
-				'state='+ document.getElementById('pzpstate').value + '\n' +
-				'city='+ document.getElementById('pzpcity').value + '\n' +
-				'organization='+ document.getElementById('pzporg').value + '\n' +
-				'organizationUnit='+ document.getElementById('pzporgunit').value + '\n' +
-				'common='+ document.getElementById('pzpcommon').value + '\n' +
-				'email='+ document.getElementById('pzpemail').value + '\n' +
-				'days='+ document.getElementById('pzpdays').value + '\n';
+				var config ='country='+ document.getElementById('pzpcountry').value + '\n' +
+					'state='+ document.getElementById('pzpstate').value + '\n' +
+					'city='+ document.getElementById('pzpcity').value + '\n' +
+					'organization='+ document.getElementById('pzporg').value + '\n' +
+					'organizationUnit='+ document.getElementById('pzporgunit').value + '\n' +
+					'common='+ document.getElementById('pzpcommon').value + '\n' +
+					'email='+ document.getElementById('pzpemail').value + '\n' +
+					'days='+ document.getElementById('pzpdays').value + '\n';
 
-			var payload = {status: 'startPzp', 
-				servername: document.getElementById('pzpservername').value,
-				serverport: document.getElementById('pzpserverport').value,
-				
-				value: config}; 
-			
-			var options = {type: 'prop', payload: payload};
-			webinos.session.message_send(options);
+				var payload = {status: 'startPzp', 
+					servername: document.getElementById('pzpservername').value,
+					serverport: document.getElementById('pzpserverport').value,				
+					value: config}; 			
+				var options = {type: 'prop', payload: payload};
+				webinos.session.message_send(options);
 		});
-                $('#disconnectPZP').bind('click', function() {
-                	var options = {type: 'prop', payload: {status:'disconnectPzp'}};
+		
+		$('#disconnectPZP').bind('click', function() {
+			var options = {type: 'prop', payload: {status:'disconnectPzp'}};
 			webinos.session.message_send(options);
                 
 		});		
-                $('#registerBrowser').bind('click', function() {
-                	var options = {type: 'prop', payload: {status:'registerBrowser'}};
-			webinos.session.message_send(options);
-                
-		});		 
+		$('#registerBrowser').bind('click', function() {
+			var options = {type: 'prop', payload: {status:'registerBrowser'}};
+			webinos.session.message_send(options);                
+		});
+		
 		var test = [];
 		         
 		$('#findService').bind('click', function() {
@@ -50,7 +49,7 @@
 		        {onFound: function (service) {
 		            test.push(service);		
 		    }});
-			});
+		});
 		
 		$('#bind').bind('click', function() {
 		    for (var i=0; i<test.length; i++) {

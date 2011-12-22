@@ -18,15 +18,11 @@
 
 	var __fs = require("fs");
 	var __path = require("path");
-
-	var localDependencies = require(__path.resolve(__dirname, __path.join("..", "dependencies.json")));
-
-	var root = __path.resolve(__dirname, __path.join("..", localDependencies.root.location));
-	var dependencies = require(__path.join(root, "dependencies.json"));
-
-	var dom = require("./webinos.dom.js");
-	var path = require("./webinos.path.js");
-	var utils = require(__path.join(root, dependencies.rpc.location, "lib", "webinos.utils.js"));
+	
+	var webinos = require("webinos")(__dirname);
+	var dom = webinos.local.require("lib/webinos.dom.js");
+	var path = webinos.local.require("lib/webinos.path.js");
+	var utils = webinos.global.require(webinos.global.rpc.location, "lib/webinos.utils.js");
 
 	// TODO Extract utilities to webinos.file.utils.js?
 	exports.utils = {}
