@@ -18,14 +18,14 @@
 	var sessionId;
 	
 	//Code to enable Context from settings file
-	var contextEnabled = false;
-	if (typeof module !== 'undefined'){
-    var path = require('path');
-    var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
-    var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
-    var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location)+'/';
-    contextEnabled = require(webinosRoot + dependencies.manager.context_manager.location + 'data/contextSettings.json').contextEnabled;
-  }   
+//	var contextEnabled = false;
+//	if (typeof module !== 'undefined'){
+//    var path = require('path');
+//    var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
+//    var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+//    var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location)+'/';
+//    contextEnabled = require(webinosRoot + dependencies.manager.context_manager.location + 'data/contextSettings.json').contextEnabled;
+//  }   
 
 
 	function logObj(obj, name){
@@ -152,9 +152,9 @@
 									res.id = id;						
 									that.executeRPC(res, undefined, undefined, from, msgid);
 									// CONTEXT LOGGING HOOK
-									if (contextEnabled){
-										webinos.context.logContext(myObject,res);
-									}
+//									if (contextEnabled){
+//										webinos.context.logContext(myObject,res);
+//									}
 								},
 								function (error){
 									if (typeof id === 'undefined') return;
@@ -185,8 +185,9 @@
 									that.executeRPC(res, undefined, undefined, from, msgid);
 
 									// CONTEXT LOGGING HOOK
-									if (contextEnabled)
-										webinos.context.logContext(myObject,res);
+//									if (contextEnabled){
+//										webinos.context.logContext(myObject,res);
+//									}
 								},
 								function (error){
 									if (typeof id === 'undefined') return;
@@ -564,7 +565,8 @@
 		//We need to add the trailing / or add it later on
 		var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location)+'/';
 		//sessionPzp = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_pzp.js'));
-		if (contextEnabled) {
+//		if (contextEnabled) {
+		if (require(webinosRoot + dependencies.manager.context_manager.location + 'data/contextSettings.json').contextEnabled){
 		  require(webinosRoot + dependencies.manager.context_manager.location); 
 			//modules.push(webinosRoot + dependencies.manager.context_manager.location);
 		}

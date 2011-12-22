@@ -28,6 +28,54 @@ var moduleDependencies = require(moduleRoot + '/dependencies.json');
 var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
 var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
 
+
+
+var listeners = {};
+listeners.id = {};
+listeners.fromObjectRef = {};
+
+RPCHandler.prototype.condext_handleMessage = RPCHandler.prototype.handleMessage;
+/*
+ * handleMessage = function (message, from, msgid)
+ */
+RPCHandler.prototype.handleMessage = function(){
+	if (arguments[0].jsonrpc) {
+		var message = arguments[0];
+		if (message.fromObjectRef){
+			if (typeof listeners.fromObjectRef[message.fromObjectRef] == "object") 
+				console.log("######## fromObjectRef: " + message.fromObjectRef + " already inuse. Replacing existing one.");
+			listeners.fromObjectRef[message.fromObjectRef] = message;
+		}else{
+			if (typeof listeners.id[message.id] == "object") 
+				console.log("######## id: " + message.id + " already inuse. Replacing existing one.");
+			listeners.id[message.id] = message;
+		}
+	}
+	this.condext_handleMessage.apply(this, arguments)
+}
+RPCHandler.prototype.condext_executeRPC = RPCHandler.prototype.executeRPC;
+/*
+ * executeRPC = function (rpc, callback, errorCB, from, msgid)
+ */
+RPCHandler.prototype.executeRPC = function(){
+	if (arguments[0].jsonrpc) {
+		var message;
+		var res = arguments[0];
+		var patt = /^(\d+)\.[\S]+$/i;
+		var fromObjectRef = patt.exec(res.method);
+		if (fromObjectRef !== null){
+			fromObjectRef = fromObjectRef[1];
+			message = listeners.fromObjectRef[fromObjectRef];
+			if (!res.result) res.result = res.params;
+		}else{
+			message = listeners.id[res.id];
+			delete listeners.id[res.id];
+		}
+		webinos.context.logContext(message, res);
+	}
+	this.condext_executeRPC.apply(this, arguments)
+}
+
 //console.log("moduleRoot: "+moduleRoot);
 //console.log("webinosRoot: "+webinosRoot);
 //console.log("context_managerRoot: "+webinosRoot+dependencies.manager.context_manager.location);
