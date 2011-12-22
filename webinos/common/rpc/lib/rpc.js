@@ -457,7 +457,6 @@
 			// add address where this service is available, namely this pzp/pzh sessionid
 			for (var i=0; i<results.length; i++) {
 				results[i].serviceAddress = sessionId; // This is source addres, it is used by messaging for returning back
-				results[i] = results[i].getInformation();
 			}
 			
 			// FIXME wow, this sucks. we shouldn't just return *all* but the ones
