@@ -17,6 +17,10 @@
 #include <stdexcept>
 #include <fstream>
 #include <iostream>
+#if defined(_WIN32) || defined(_WIN64)
+  //Windows don't have uint defined
+  #define uint unsigned int
+#endif
 
 std::string g_Empty = "";
 
