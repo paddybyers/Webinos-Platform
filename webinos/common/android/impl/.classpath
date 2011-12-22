@@ -6,5 +6,5 @@
 	<classpathentry kind="src" path="/api"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/libnode"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/bridge-java"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
