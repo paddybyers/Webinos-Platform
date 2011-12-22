@@ -309,7 +309,7 @@
 		utils.revokeClientCert(self, self.config.master, pzpCert, function(result, crl) {
 		    if (result === "certRevoked") {
 			self.config.master.crl.value = crl;
-			fs.writeFileSync(self.config.master.crl.name, crl);
+			fs.writeFileSync(pzhCertDir+'/'+self.config.master.crl.name, crl);
 			//TODO : trigger the PZH to reconnect all clients
 			//TODO : trigger a synchronisation with PZPs.
 			//TODO : rename the cert.
@@ -480,10 +480,9 @@
 		var i=0;
 		for (i=0;i<fileArr.length;i++) {
 			try {
-				//if(fs.lstatSync(fileArr[i]).isDirectory()) {
+				if(fileArr[i] !== "revoked") {
 					idArray.push( fileArr[i].split('.')[0]);			
-				//}
-				console.log(fileArr[i].split('.')[0]);
+				}
 			} catch (err) {
 				console.log(err);
 			}
@@ -502,7 +501,7 @@
                             self.unsetExpected(function() {
 				                //Save this certificate locally on the PZH.
 				                //pzp name: parse.payload.message.name
-				                fs.writeFileSync(webinosDemo+'/'+"client_cert_" + parse.payload.message.name + ".pem", cert);
+				                fs.writeFileSync(pzhSignedCertDir+'/'+ parse.payload.message.name + ".pem", cert);
 			
 				                var payload = {'clientCert': cert,
 					                'masterCert':self.config.master.cert.value};
@@ -528,7 +527,6 @@
 		    utils.debug(1, err.stack);
 			cb("Could not create client certificate", null);
 		}
-		callback(idArray, null);
 	}
 	
 	
@@ -727,7 +725,7 @@
         	    connection.sendUTF(JSON.stringify(msgErr));
             } else {
  	        console.log('CRL' + cert.toString());
-		pzh.conn.pair.credentials.context.addCRL(cert.toString());
+		    pzh.conn.pair.credentials.context.addCRL(cert.toString());
                 pzh.revoke(cert, function(result) {
                     if (result) {
                         utils.debug(2,"Revocation success! " + pzpid + " should not be able to connect anymore ");                       

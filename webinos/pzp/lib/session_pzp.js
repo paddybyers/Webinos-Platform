@@ -257,7 +257,7 @@
 					self.connectedPzh[self.pzhId] = {socket: client};
 					self.prepMsg(self.sessionId, self.pzhId, 'clientCert',
 						{   csr: self.config.conn.csr.value, 
-						    self.config.common.split(':')[0], 
+						    name: self.config.common.split(':')[0],
 						    code: self.code //"DEBUG"
 					    }); 
 				}
