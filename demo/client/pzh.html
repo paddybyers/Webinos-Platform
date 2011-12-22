@@ -10,46 +10,55 @@
 <script type="text/javascript" src="/client/dojo.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-	    $("#tabs").tabs();
-		$('#startPZH').bind('click', function() {
-			var config = 'country='+ document.getElementById('country').value + '\n' +
-				'state='+ document.getElementById('state').value + '\n' +
-				'city='+ document.getElementById('city').value + '\n' +
-				'organization='+ document.getElementById('org').value + '\n' +
-				'organizationUnit='+ document.getElementById('orgunit').value + '\n' +
-				'common='+ document.getElementById('common').value + '\n' +
-				'email='+ document.getElementById('email').value + '\n' +
-				'days='+ document.getElementById('days').value + '\n';
-			var payload = {status: 'startPzh', 
-				servername: document.getElementById('servername').value, 
-				serverport: document.getElementById('serverport').value, 
-				value: config}; 
-			var options = {type: 'prop', payload: payload};
-			webinos.session.message_send(options);                	   
-		});
-		$('#connectPZH').bind('click', function() {
-			var payload = {status: 'connectPzh', 
-				servername: document.getElementById('pzh_ip_addr').value,
-				serverport: document.getElementById('pzh_port').value}; 
-			var options = {type: 'prop', payload: payload};
-			webinos.session.message_send(options);
-		});	         
-		$('#downloadCert').bind('click', function() {
-			var payload = {status: 'downloadCert', 
-				servername: document.getElementById('pzh_ip_addr').value,
-				serverport: document.getElementById('pzh_http_port').value}; 
-			var options = {type: 'prop', payload: payload};
-			webinos.session.message_send(options);
-	 	});	         
-		$('#listPzhPzp').bind('click', function() {
-			webinos.session.message_send({type: 'prop', payload: {status: 'listPzh'}});
-		});	         
-		$('#crashLogPzh').bind('click', function() {
-			webinos.session.message_send({type: 'prop', payload: {status: 'crashLog'}});
-		});		
-	    $('#listAllPzpsButton').bind('click', function() {
-			webinos.session.message_send({type: 'prop', payload: {status: 'listAllPzps'}});
-	    });
+    	$("#tabs").tabs();
+	$('#startPZH').bind('click', function() {
+		var config = 'country='+ document.getElementById('country').value + '\n' +
+			'state='+ document.getElementById('state').value + '\n' +
+			'city='+ document.getElementById('city').value + '\n' +
+			'organization='+ document.getElementById('org').value + '\n' +
+			'organizationUnit='+ document.getElementById('orgunit').value + '\n' +
+			'common='+ document.getElementById('common').value + '\n' +
+			'email='+ document.getElementById('email').value + '\n' +
+			'days='+ document.getElementById('days').value + '\n';
+		var payload = {status: 'startPzh', 
+			servername: document.getElementById('servername').value, 
+			serverport: document.getElementById('serverport').value, 
+			value: config}; 
+		var options = {type: 'prop', payload: payload};
+		webinos.session.message_send(options);                	   
+        });
+        $('#connectPZH').bind('click', function() {
+		var payload = {status: 'connectPzh', 
+			servername: document.getElementById('pzh_ip_addr').value,
+			serverport: document.getElementById('pzh_port').value}; 
+		var options = {type: 'prop', payload: payload};
+		webinos.session.message_send(options);
+        });
+         
+	$('#downloadCert').bind('click', function() {
+		var payload = {status: 'downloadCert', 
+			servername: document.getElementById('pzh_ip_addr').value,
+			serverport: document.getElementById('pzh_http_port').value}; 
+		var options = {type: 'prop', payload: payload};
+		webinos.session.message_send(options);
+         });
+         
+         $('#listPzhPzp').bind('click', function() {
+         	webinos.session.message_send({type: 'prop', payload: {status: 'listPzh'}});
+         });
+         
+	$('#crashLogPzh').bind('click', function() {
+         	webinos.session.message_send({type: 'prop', payload: {status: 'crashLog'}});
+	});
+	
+    $('#listAllPzpsButton').bind('click', function() {
+     	webinos.session.message_send({type: 'prop', payload: {status: 'listAllPzps'}});
+    });
+    $('#addPzpQRButton').bind('click', function() {
+     	webinos.session.message_send({type: 'prop', payload: {status: 'addPzpQR'}});
+    });
+	
+
   });
   
  
@@ -76,7 +85,8 @@
 		<li> <a href="#listPzh"> List Pzh </a> </li>
 		<li> <a href="#crashLog"> Crash Details log </a> </li>
 		<li> <a href="#listAllPzps"> List All Zone PZPs </a> </li>	
-		<li> <a href="#pzhConfig"> Configure Pzh </a> </li>		
+		<li> <a href="#pzhConfig"> Configure Pzh </a> </li>	
+		<li> <a href="#addPzpQR"> Add a new PZP by QR Code </a> </li>		
 	</ul>
 	
 	<div id = "pzhConfig" style="background-color:#0879a9">
@@ -145,6 +155,13 @@
 			</table> 
 		</center>
 		<center> <button id="listAllPzpsButton" class="button"> List my PZPs  </button> </center>	
+	</div>
+	<div id = "addPzpQR" style="background-color:#0879a9">
+		<center> <p style="color:white"> Add a new PZP </p> </center>
+		<center>
+			<div  id="qrcode" style="background-color:lightgray; border:7px solid #0879a9" align="center"></div>
+		</center>
+		<center> <button id="addPzpQRButton" class="button"> Add new PZP via QR Code</button> </center>	
 	</div>	
 	
 </div>

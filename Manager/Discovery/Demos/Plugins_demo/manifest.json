@@ -1,8 +1,0 @@
-{
-	"name":"webinos",
-	"version":"0.1",
-	"description":"Demo of Webinos service discovery via npapi plugin",
-	"plugins":[
-		{ "path": "npwebinosplugin.so" , "public": true }		
-	]
-}

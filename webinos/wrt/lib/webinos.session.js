@@ -143,5 +143,9 @@
 			var log  = ' <tr> <td> '+ data.payload.message.name + '</td>  <td>'+ data.payload.message.log + '</td> </tr>';
 			$('#crashLogs').append(log);
 		}
+		else if(data.payload.status === "addPzpQR") {
+			var output  = '<h2>PZP URL</h2>\n'+ data.payload.message.img + ' ';
+			$('#qrcode').append(output);
+		}
 	}
 }());

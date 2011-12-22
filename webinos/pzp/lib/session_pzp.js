@@ -52,6 +52,9 @@
 		
 		// Used for session reuse
 		this.tlsId = '';
+		
+		// Code used for the first run to authenticate with PZH.
+		this.code = null;
 	};
 	
 	Pzp.prototype.prepMsg = function(from, to, status, message) {
@@ -226,6 +229,8 @@
 				self.prepMsg(self.sessionId, self.pzhId, 'pzpDetails', self.pzpServerPort);
 				callback.call(self, 'startedPZP');
 			});
+			self.prepMsg(self.sessionId, self.pzhId, 'findServices', self.pzpServerPort);
+			utils.debug(2, 'Sent msg to findServices');
 		}
 	};
 	
@@ -251,7 +256,10 @@
 					self.pzhId = client.getPeerCertificate().subject.CN.split(':')[1];//data2.from;
 					self.connectedPzh[self.pzhId] = {socket: client};
 					self.prepMsg(self.sessionId, self.pzhId, 'clientCert',
-						{ csr: self.config.conn.csr.value, name: self.config.common.split(':')[0] } ); 
+						{   csr: self.config.conn.csr.value, 
+						    name: self.config.common.split(':')[0],
+						    code: self.code //"DEBUG"
+					    }); 
 				}
 			});
 		} catch (err) {
@@ -342,7 +350,17 @@
 						}
 					}
 				}	
-			}		
+			} else if(data2.type === 'prop' && data2.payload.status === 'failedCert') {
+                utils.debug(1, "Failed to get certificate from PZH");                
+			    callback.call(self, "ERROR");
+			    
+			} else if(data2.type === 'prop' && 
+					data2.payload.status === 'foundServices') {
+				utils.debug(2, 'PZP ('+self.sessionId+') findServices dude!!!');
+				
+				debugger;
+				rpcHandler.setServicesFromPzh(data2.payload.message);
+			}
 			// Forward message to message handler
 			else {
 				rpc.SetSessionId(self.sessionId);
@@ -355,8 +373,9 @@
 	 * @param server name
 	 * @param port: port on which PZH is running
 	 */
-	sessionPzp.startPzp = function(contents, servername, port, callback) {
-		var client = new Pzp();		
+	sessionPzp.startPzp = function(contents, servername, port, code, callback) {
+		var client = new Pzp();
+		client.code = code;		
 		client.pzhPort = port;
 		utils.resolveIP(servername, function(name) {
 			client.pzhName = name;
@@ -533,7 +552,10 @@
 				// Each message is forwarded back to Message Handler to forward rpc message
 					if(msg.type === 'prop' ){
 						if( msg.payload.status === 'startPzp' ) {
-						instance = sessionPzp.startPzp(msg.payload.value, msg.payload.servername, msg.payload.serverport,
+						instance = sessionPzp.startPzp(msg.payload.value, 
+						msg.payload.servername, 
+						msg.payload.serverport,
+						msg.payload.code,
 						function(status) {
 							if(typeof status !== "undefined") {
 								connectedApp(connection);

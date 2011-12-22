@@ -1,6 +1,0 @@
-he Local discovery manager must
-
-promiscuously explore local data connections for webinos recognisable devices
-deal with bearer level connectivity to these devices so that the messaging manager can route over the
-host device drivers where necessary
-The local discovery manager will interface directly to low level OS specific APIs and be low on portability.

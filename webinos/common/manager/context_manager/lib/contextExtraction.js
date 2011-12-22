@@ -5,16 +5,11 @@ if (typeof webinos === 'undefined') {
 if (typeof webinos.context === 'undefined')
   webinos.context = {};
 
-//var moduleRoot = require('../dependencies.json');
-//var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
-//var webinosRoot = '../' + moduleRoot.root.location;
 var path = require('path');
 var moduleRoot = path.resolve(__dirname, '../') + '/';
 var moduleDependencies = require(moduleRoot + '/dependencies.json');
 var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
 var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
-
-
 var databasehelper = require(moduleRoot + '/contrib/JSORMDB');
 
 //Initialize helper classes
@@ -23,7 +18,6 @@ var Fs = require('fs');
 var vocdbpath = path.resolve(moduleRoot +'/data/contextVocabulary.json');
 
 webinos.context.DB = require(moduleRoot +'/lib/contextDBpzhManager.js')
-
 sessionPzp = require( webinosRoot + '/pzp/lib/session_pzp.js');
 
 webinos.context.saveContext = function(dataIn, success, fail) {
@@ -40,13 +34,21 @@ webinos.context.saveContext = function(dataIn, success, fail) {
   contextItem.paramstolog = [];
   contextItem.resultstolog = [];
 
-
   var findObjectsToStore = function(vocList, callList, arrayToFill,objRef){
     if(objRef == undefined){
       objRef = "0";
     }
+    //Case if the result is a single unnamed value
+    if (vocList.length && vocList.length == 1 && typeof(vocList[0].objectName) != "undefined" && vocList[0].objectName == "" && (typeof callList === vocList[0].type)){
+      var data = {};
+      data.objectName = "";
+      data.ObjectRef=objRef;
+      data.IsObject = false;
+      data.value = callList;
+      arrayToFill[arrayToFill.length] = data;
+    }
     //Case if results is an unnamed array
-    if(callList.length  && vocList.length == 1 && vocList[0].type == "array" && vocList[0].objectName == ""){ //Is Array
+    else if(callList.length  && vocList.length == 1 && vocList[0].type == "array" && vocList[0].objectName == ""){ //Is Array
       var data = {};
       data.objectName = "array";
       data.ObjectRef = objRef;
@@ -103,9 +105,6 @@ webinos.context.saveContext = function(dataIn, success, fail) {
       }
     }
   }
-
-
-
   //Find API
   for(APIIndex in contextVocJSON){
     if(contextVocJSON[APIIndex].URI == dataIn.api){
