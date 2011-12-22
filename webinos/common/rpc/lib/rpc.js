@@ -458,13 +458,13 @@
 			for (var i=0; i<results.length; i++) {
 				results[i].serviceAddress = sessionId; // This is source addres, it is used by messaging for returning back
 			}
-			
-			// FIXME wow, this sucks. we shouldn't just return *all* but the ones
-			// matching serviceType
-			results = this.serviceObjectsFromPzh;
-			console.log('!!!');
-			console.log(this.serviceObjectsFromPzh);
 
+			// add other services reported from the pzh
+			function filterServiceType(el) {
+				return el.api === serviceType.api ? true : false;
+			}
+			results = results.concat(this.serviceObjectsFromPzh.filter(filterServiceType));
+			
 			return results;
 		}
 	};
@@ -488,7 +488,7 @@
 		}
 
 		for (var service in this.objects) {
-			results = this.objects[service]; // FIXME
+			results = results.concat(this.objects[service]);
 		}
 		return results.map(getServiceInfo);
 	}
