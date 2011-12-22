@@ -1,18 +1,17 @@
 <!DOCTYPE html>
 <html dir="ltr" lang="en-US">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Webinos Context API</title>
-<script type="text/javascript" src="/client/jsrender.js"></script>
-<link rel="stylesheet" type="text/css" href="/client/jquery-ui-1.8.16.custom.css" />
-<link rel="stylesheet" type="text/css" href="contextTable.css" />
-<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
-<script type="text/javascript" src="/client/jquery.js"></script>
-<script type="text/javascript" src="/client/jquery-ui.js"></script>
-<script type="text/javascript" src="/client/dojo.js"></script>
-
-<script type="text/javascript" src="../webinos.js"></script>
-
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Webinos Context API</title>
+	<script type="text/javascript" src="/client/jsrender.js"></script>
+	<link rel="stylesheet" type="text/css" href="/client/jquery-ui-1.8.16.custom.css" />
+	<link rel="stylesheet" type="text/css" href="contextTable.css" />
+	<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
+	<script type="text/javascript" src="/client/jquery.js"></script>
+	<script type="text/javascript" src="/client/jquery-ui.js"></script>
+	<script type="text/javascript" src="/client/dojo.js"></script>
+	
+	<script type="text/javascript" src="../webinos.js"></script>
 </head>
 
 <body>
@@ -65,62 +64,60 @@
 </body>
 
 <script type="text/javascript">
-  var contextService = [];
-  $('#findService').bind(
-      'click',
-      function() {
-        var address = $('#pzh_pzp_list').val();
-        if (address === "null" || address === "undefined") {
-          alert("Select from list which you node you want to  connect");
-        } else {
-          webinos.setServiceLocation($('#pzh_pzp_list').val());
-          webinos.ServiceDiscovery.findServices(new ServiceType(
-              'http://webinos.org/api/context'), {
-            onFound : function(service) {
-              contextService.push(service);
-            }
-          });
-        }
-      });
-              $('#bindContext').bind('click', function() {
-            for (var i=0; i<contextService.length; i++) {
-                contextService[i].bindService({onBind:function(service) {
-                    $('#message').append('<li> Context API' + service.api + ' bound.</li>');
-                }});
-            }
-        });
-      
-      
-      
-      
+	var contextService = [];
+	$('#findService').bind('click', function() {
+		var address = $('#pzh_pzp_list').val();
+		if (address === "null" || address === "undefined") {
+			alert("Select from list which you node you want to  connect");
+		} else {
+			webinos.session.setServiceLocation($('#pzh_pzp_list').val());
+			webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'),{
+				onFound : function(service) {
+					contextService.push(service);
+					$('#message', window.parent.document).append('<li> Context API ' + service.api + ' found.</li>');
+				}
+			});
+		}
+	});
+	$('#bindContext').bind('click', function() {
+		for (var i = 0; i < contextService.length; i++) {
+			contextService[i].bindService({
+				onBind : function(service) {
+					$('#message', window.parent.document).append('<li> Context API ' + service.api + ' bound.</li>');
+				}
+			});
+		}
+	});
+
 	$('#getrawcontext').bind('click', function() {
 		$("#contextDataTblContainer").html('<img src="./ajaxloader.gif" alt=""/>');
 		var query = {};
 		query.type = "getrawview";
 		var headerGenerated = false;
-		for ( var i = 0; i < contextService.length; i++) {
+		for (var i = 0; i < contextService.length; i++) {
 			contextService[i].executeQuery(query, function(result) {
-				if (result.msg != null){
+				if (result.msg != null) {
 					$("#contextDataTblContainer").html('<b>An error occurred retriving data from the database.</b><br/><br/>Please check your console for debug info.');
+					console.group("Context Service Debug: result=>");
 					console.error(result);
+					console.groupEnd();
 					return;
 				}
-
-				if (!result.data.length){
+	
+				if (!result.data.length) {
 					$("#contextDataTblContainer").html('No Data found on your database.');
 					return;
-				}				
+				}
 				$("#contextDataTblContainer").html('<table><thead><tr id="contextDataTblHead"></tr></thead><tbody id="contextDataTbl"></tbody></table>');
-				
 				var oddRow = false;
-				for (rowIndex=0;rowIndex<result.data.length;rowIndex++){
+				for (rowIndex = 0; rowIndex < result.data.length; rowIndex++) {
 					row = result.data[rowIndex];
 					var htmlRow = "<tr" + ((oddRow)?" class='odd'":"") + ">";
-					for (fldName in row){
-						if (!headerGenerated){
+					for (fldName in row) {
+						if (!headerGenerated) {
 							$('#contextDataTblHead').append('<th>' + fldName + ' </th>');
 						}
-						htmlRow+='<td>' + ((row[fldName]==null)?"":row[fldName]) + ' </td>';
+						htmlRow += '<td>' + ((row[fldName] == null)?"":row[fldName]) + ' </td>';
 					}
 					htmlRow += "</tr>";
 					$('#contextDataTbl').append(htmlRow);
@@ -129,9 +126,7 @@
 				}
 			});
 		}
-
 	});
-  
 </script>
 
 <hr />

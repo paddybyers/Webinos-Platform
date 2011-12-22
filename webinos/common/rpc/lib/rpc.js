@@ -17,7 +17,16 @@
 
 	var sessionId;
 	
+	//Code to enable Context from settings file
 	var contextEnabled = false;
+	if (typeof module !== 'undefined'){
+    var path = require('path');
+    var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
+    var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+    var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location)+'/';
+    contextEnabled = require(webinosRoot + dependencies.manager.context_manager.location + 'data/contextSettings.json').contextEnabled;
+  }   
+
 
 	function logObj(obj, name){
 		for (var myKey in obj){

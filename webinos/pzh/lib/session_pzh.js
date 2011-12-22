@@ -558,47 +558,47 @@
 	
 	
 	function revokePzp(connection, pzpid, pzh) {
-		"use strict";
-		utils.debug(2,"Revocation requested of " + pzpid);
-		
-		var payloadErr = {
-		    status : "revokePzp",
-		    success: false,
-		    message: "Failed to revoke"
-		};
-		var msgErr = { type : 'prop', payload : payloadErr };       
-		var payloadSuccess = {
-		    status : "revokePzp",
-		    success: true,
-		    message: "Successfully revoked"
-		};
-		var msgSuccess = { type : 'prop', payload : payloadErr };
-		        
-		getPZPCertificate(pzpid, function(status, cert) {
-		    if (!status) {
-		        payloadErr.message = payloadErr.message + " - failed to find certificate";
-			    connection.sendUTF(JSON.stringify(msgErr));
-		    } else {
-		    	console.log(cert.toString());
-			pzh.conn.pair.credentials.context.addCRL(cert.toString());
-		        pzh.revoke(cert, function(result) {
-		            if (result) {
-		                utils.debug(2,"Revocation success! " + pzpid + " should not be able to connect anymore ");                       
-		                removeRevokedCert(pzpid, function(status2) {
-		                    if (!status2) {
-		                        utils.debug(2,"Could not rename certificate");                       
-		                        payloadSuccess.message = payloadSuccess.message + ", but failed to rename certificate";
-		                    }
-		            	    connection.sendUTF(JSON.stringify(msgSuccess));
-		                });                   
-		            } else {
-		                utils.debug(2,"Revocation failed! ");
-		                payloadErr.message = payloadErr.message + " - failed to update CRL";
-		        	    connection.sendUTF(JSON.stringify(msgErr));
-		            }        
-		        });      
-		    }
-		});	
+        "use strict";
+        utils.debug(2,"Revocation requested of " + pzpid);
+        
+        var payloadErr = {
+            status : "revokePzp",
+            success: false,
+            message: "Failed to revoke"
+        };
+        var msgErr = { type : 'prop', payload : payloadErr };       
+        var payloadSuccess = {
+            status : "revokePzp",
+            success: true,
+            message: "Successfully revoked"
+        };
+        var msgSuccess = { type : 'prop', payload : payloadSuccess };
+                
+        getPZPCertificate(pzpid, function(status, cert) {
+            if (!status) {
+                payloadErr.message = payloadErr.message + " - failed to find certificate";
+        	    connection.sendUTF(JSON.stringify(msgErr));
+            } else {
+ 	        console.log('CRL' + cert.toString());
+		pzh.conn.pair.credentials.context.addCRL(cert.toString());
+                pzh.revoke(cert, function(result) {
+                    if (result) {
+                        utils.debug(2,"Revocation success! " + pzpid + " should not be able to connect anymore ");                       
+                        removeRevokedCert(pzpid, function(status2) {
+                            if (!status2) {
+                                utils.debug(2,"Could not rename certificate");                       
+                                payloadSuccess.message = payloadSuccess.message + ", but failed to rename certificate";
+                            }
+                    	    connection.sendUTF(JSON.stringify(msgSuccess));
+                        });                   
+                    } else {
+                        utils.debug(2,"Revocation failed! ");
+                        payloadErr.message = payloadErr.message + " - failed to update CRL";
+                	    connection.sendUTF(JSON.stringify(msgErr));
+                    }        
+                });      
+            }
+        });
 	}
 	
 	function listAllPzps(connection) {

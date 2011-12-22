@@ -129,9 +129,10 @@
                 var list = "";
                 var pzps = data.payload.message;
                 if (pzps !== null) {
+                     list += "<tr style=\"border-bottom: thin solid black;\" ><th>Device name</th><th>Actions</th></tr>\n"
                     var i=0;
                     for (i=0;i<pzps.length;i++) {
-                        list += "<tr><td><strong>" + pzps[i] + "</strong></td><td><a href=\"\" onclick=\"revoke('" + pzps[i] + "')\" >revoke</a></td></tr>";
+                        list += "\t<tr><td>" + pzps[i] + "</td><td><button id=\"revoke" + pzps[i] + "\" class=\"button\" style=\"width:100px\" onclick=\"revoke('" + pzps[i] + "')\" >revoke</a></td></tr>\n";
                     }                
                 }
                 $("#pzpList").append(list);
