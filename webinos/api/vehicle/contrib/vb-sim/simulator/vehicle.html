@@ -1,9 +1,13 @@
 <html>
 <head>
-	<title>vehicle simulator - earlyp rototype</title>
+	<title>webinos | vehicle simulator</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="icon" href="webinos.ico" type="image/x-icon">
 	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
+	
 	<script type="text/javascript" src="jquery-1.6.4.min.js"></script>
+	<script src="iphone-style-checkboxes.js" type="text/javascript" charset="utf-8"></script>
+  <link rel="stylesheet" href="switch.css" type="text/css" media="screen" charset="utf-8" />
 	<script type="text/javascript" src="http://localhost:9898/nowjs/now.js"></script>
 	<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?sensor=false"></script>
 	<script type="text/javascript">
@@ -13,6 +17,8 @@
 	
 		$(document).ready(function() {
 		
+			 $(':checkbox').iphoneStyle();
+			 
 			if(navigator.geolocation){
 				$('#myLocation').removeAttr('disabled');
 			}
@@ -275,15 +281,28 @@
 	<p><label>MidRight:</label><input type='text' value='255' id='pr-mr'></p>
 	<p><label>Right:</label><input type='text' value='255' id='pr-r'></p>
 	<input type='button' id='setPsRear' value="Set Parksensors Rear"/>
-	
-	
-	<h3>Lights</h3>
-	<p></p>
-	<p></p>
 
-	<h3>Wipers</h3>
+	<h3>Lights (in progress) </h3>
+	<p><label class='box'>Signal left: </label><input type="checkbox" id="l-singal-left" /></p>
+	<p><label class='box'>Signal right: </label><input type="checkbox" id="l-singal-right" /></p>
+	<p><label class='box'>Signal warn: </label><input type="checkbox" id="l-singal-warn" /></p>
+	<p><label class='box'>Parking: </label><input type="checkbox" id="l-parking" /></p>
+	<p><label class='box'>Head: </label><input type="checkbox" id="l-head" /></p>
+	<p><label class='box'>Hibeam: </label><input type="checkbox" id="l-hibeam" /></p>
+	<p><label class='box'>Fog front: </label><input type="checkbox" id="l-fog-front" /></p>
+	<p><label class='box'>Fog rear: </label><input type="checkbox" id="l-fog-rear" /></p>
 	
-	<h3>Climate Control</h3>
+	
+	<h3>Wipers (in progress)</h3>
+		<p><label class='box'>Front Wash: </label><input type="checkbox" id="w-front-wash" /></p>
+	<p><label class='box'>Rear Wash: </label><input type="checkbox" id="w-rear-wash" /></p>
+	<p><label class='box'>Wiper auto: </label><input type="checkbox" id="w-automatic" /></p>
+	<p><label class='box'>Wiper front once: </label><input type="checkbox" id="w-front-once" /></p>
+	<p><label class='box'>Wiper rear once: </label><input type="checkbox" id="w-rear-once" /></p>
+	<p><label class='box'>Wiper front level 1 </label><input type="checkbox" id="w-front-level1" /></p>
+	<p><label class='box'>Wiper front level 2 </label><input type="checkbox" id="w-front-level2" /></p>
+	
+	<h3>Climate Control (in progress)</h3>
 	<p><label class='select'>Zone: </label>
 	<select id="climate_zone">
 				<option value=''></option>
@@ -292,9 +311,17 @@
 				<option value='climate-passenger-front'>passenger-front</option>
 				<option value='climate-passenger-rear-left'>rear-left</option>
 				<option value='climate-passenger-rear-right'>rear-right</option>
-
 			</select>
-			
+	</p>
+	<p><label>Desired Temp: </label><input type='text' value='255' id='climate-temp'>
+	</p>
+	<p><label >Vent Level: </label><input type='text' value='255' id='climate-ventlevel'></p>
+	<p><label class='box'>AC: </label><input type="checkbox" id="cimate-ac" />
+	</p>
+	<p><label class='box'>Vent Auto: </label><input type="checkbox" id="climate-vent" />
+	</p>
+	
+	<input type='button' id='setClimate' value="Set Climate" disabled/>
 	</p>
 
 
@@ -333,14 +360,12 @@
 		<p><input type='button' id='setDestinationReached' value="Destination-reached"/></p>
 		<p><input type='button' id='setDestinationChanged' value="Destination-cancelled"/></p>
 		
-		<h4>Geolocation</h4>
-			<p><input type='button' id='setLocation' value="Set Geolocation"/></p>
+		<h4>Geolocation (in progress)</h4>
+			<p><input type='button' id='setLocation' value="Set Geolocation" disabled/></p>
 		
 	</div>	
 	</div>
-	<div id='spacer'>
-	SPACER
-	</div>
+
 	<div id='footer'>VEHICLE SIMULATOR</div>
 
 </body>
