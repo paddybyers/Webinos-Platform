@@ -4,10 +4,9 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="icon" href="webinos.ico" type="image/x-icon">
 	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
-	
 	<script type="text/javascript" src="jquery-1.6.4.min.js"></script>
 	<script src="iphone-style-checkboxes.js" type="text/javascript" charset="utf-8"></script>
-  <link rel="stylesheet" href="switch.css" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" href="switch.css" type="text/css" media="screen" charset="utf-8" />
 	<script type="text/javascript" src="http://localhost:9898/nowjs/now.js"></script>
 	<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?sensor=false"></script>
 	<script type="text/javascript">
@@ -22,7 +21,6 @@
 			if(navigator.geolocation){
 				$('#myLocation').removeAttr('disabled');
 			}
-		
 			$('#inputGear').change(function(){
 				now.setGear($('#inputGear').val());	
 			});
@@ -56,7 +54,6 @@
 				psData.r = $('#pr-r').val();
 				now.setPsRear(psData);	
 			});
-			
 			$('#locateOnMap').click(function(){
 				var address = $('#d-street').val() + " " + $('d-streetnumber').val() + ", " + $('#d-city').val() + ", " + $('#d-country').val();
 				geocoder.geocode( { 'address': address}, handleGeocoder);
@@ -101,14 +98,9 @@
  				}
  				
  				function errorFunction(position) {
-    alert('Error!');
-}
-
-
-			});
-			
-			
-
+                    alert('Error!');
+                }
+            });
 			
 			initializeMap();
 		
@@ -225,12 +217,6 @@
    	 }
    	 
    	 
-   	 
-   	 
-   	 
-   	 
-
-   	 
     
 	
 	</script>
@@ -281,7 +267,6 @@
 	<p><label>MidRight:</label><input type='text' value='255' id='pr-mr'></p>
 	<p><label>Right:</label><input type='text' value='255' id='pr-r'></p>
 	<input type='button' id='setPsRear' value="Set Parksensors Rear"/>
-
 	<h3>Lights (in progress) </h3>
 	<p><label class='box'>Signal left: </label><input type="checkbox" id="l-singal-left" /></p>
 	<p><label class='box'>Signal right: </label><input type="checkbox" id="l-singal-right" /></p>
@@ -366,7 +351,7 @@
 	</div>	
 	</div>
 
-	<div id='footer'>VEHICLE SIMULATOR</div>
+	<!--<div id='footer'>VEHICLE SIMULATOR</div>-->
 
 </body>
 

@@ -23,6 +23,7 @@ function VehicleModule(rpcHandler) {
             console.log(e);
     	}
     }
+
 	var implFile;
     
     if(vehicleBusAvailable){
