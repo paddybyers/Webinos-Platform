@@ -96,67 +96,67 @@ function get(vehicleDataId, vehicleDataHandler, errorCB){
 		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 	  break;
     case "climate-all":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
+		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 		break;
 	case "climate-driver":
-		vehicleDataHandler(generateClimateControldriverEvent(vehicleDataId[0]));
+		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 		break;		 
     case "climate-passenger-front":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
+		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 		break;
 	case "climate-passenger-rear-left":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
+		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 		break;
     case "climate-passenger-rear-right":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
-		break;	
+        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
+        break;	
     case "lights-fog-front":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
-		break;
+        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
+        break;
     case "lights-fog-rear":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
+        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));;
 		break;	
     case "lights-signal-left":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
+        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 		break;		
     case "lights-signal-right":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
+        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 		break;
 	case "lights-signal-warn":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
+        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 		break;
 	case "lights-parking":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
+        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 		break;
 	case "lights-hibeam":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
+		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 		break;
 	case "lights-head":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
+		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 		break;
     case "wiper-front-wash":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
+		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 		break;
     case "wiper-rear-wash":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
+        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 		break;	
     case "wiper-automatic":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
-		break;		
+		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
+        break;		
     case "wiper-front-once":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
+        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 		break;
 	case "wiper-rear-once":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
-		break;
+		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
+        break;
 	case "wiper-front-level1":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
+		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 		break;
 	case "wiper-front-level2":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));		
-        break;
-	default:
         errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
+		break;
+	default:
+	  errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 	}
 
 }
@@ -535,7 +535,6 @@ function handleDestinationReached(psEvent){
         }
 	}
 }
-
 function handleDestinationCancelled(psEvent){
 	if(listeningToDestinationCancelled){
         for(i = 0; i < objectRefs.length; i++){
@@ -559,8 +558,6 @@ function handleDestinationChanged(psEvent){
         }
 	}
 }
-
-
 
 function requestGuidance(pois,successCb, errorCb){
 	if(setDestination(pois[0])){

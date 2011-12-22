@@ -16,14 +16,15 @@ function VehicleModule(rpcHandler) {
     }
     if(!vehicleBusAvailable){
     	try{
-        //try to getSimulator
-        car = require('../../vehicle/contrib/vb-sim/vs.js');
-		vehicleSimulatorAvailable = true;
-    }catch(e){
-		vehicleSimulatorAvailable = false;
-        console.log(e);
+            //try to getSimulator
+            car = require('../../vehicle/contrib/vb-sim/vs.js');
+            vehicleSimulatorAvailable = true;
+        }catch(e){
+            vehicleSimulatorAvailable = false;
+            console.log(e);
+        }
     }
-    }
+
 	var implFile;
     
     if(vehicleBusAvailable){
