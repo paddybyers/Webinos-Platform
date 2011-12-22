@@ -59,6 +59,7 @@
 					var handleTripData = function(data){
 						postMessage("info","new TripComputer-Event received.");
 						$('#info').empty();
+						console.log(data);
 						$('#info').append("<p>Average Consumption1: "+ data.averageConsumption1 +"</p>");
 						$('#info').append("<p>Average Consumption2: "+ data.averageConsumption2 +"</p>");
 						$('#info').append("<p>Average Speed1: "+ data.averageSpeed1 +"</p>");
@@ -83,10 +84,9 @@
 					//name, street, streetNumber, postalCode, city, country
 					
 					var handleNavigation = function(data){
-						postMessage("info","new Navigation Event Destination-data received.");
+						postMessage("info",".");
 						$('#info').empty();
-						$('#info').append("<p>Navigation Data: "+ data.type +"</p>");
-						$('#info').append("<p>name: "+ data.address.name +"</p>");
+						$('#info').append("<p>Type: "+ data.type +"</p>");
 						$('#info').append("<p>county: "+ data.address.country +"</p>");
 						$('#info').append("<p>region: "+ data.address.region +"</p>");
 						$('#info').append("<p>county: "+ data.address.county +"</p>");
@@ -212,7 +212,6 @@
 						
 						
 					$('#init').click(function(e) {
-					
                         webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
                 	    		vehicle = service;
                 	    		vehicle.bindService({onBind: function (service) {}});
@@ -231,7 +230,6 @@
 						
 								disableInit();
 						}});
-						
                         webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/deviceorientation'), {onFound: function (service) {
 								orientation = service;
 								orientation.bindService({onBind: function (service) {}});
@@ -242,7 +240,7 @@
 								disableInit();
 						}});
 						
-		
+
 						webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
 								console.log("geolocation service found...");
 								geolocation = service;
@@ -254,8 +252,6 @@
 								$('#findService').val('Geolocation found');
 								disableInit();
 						}});
-						
-					
                     });
 					
 					var disableInit = function(){

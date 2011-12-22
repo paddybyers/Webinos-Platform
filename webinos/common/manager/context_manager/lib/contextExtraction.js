@@ -45,8 +45,17 @@ webinos.context.saveContext = function(dataIn, success, fail) {
     if(objRef == undefined){
       objRef = "0";
     }
+    //Case if the result is a single unnamed value
+    if (vocList.length && vocList.length == 1 && typeof(vocList[0].objectName) != "undefined" && vocList[0].objectName == "" && (typeof callList === vocList[0].type)){
+      var data = {};
+      data.objectName = "";
+      data.ObjectRef=objRef;
+      data.IsObject = false;
+      data.value = callList;
+      arrayToFill[arrayToFill.length] = data;
+    }
     //Case if results is an unnamed array
-    if(callList.length  && vocList.length == 1 && vocList[0].type == "array" && vocList[0].objectName == ""){ //Is Array
+    else if(callList.length  && vocList.length == 1 && vocList[0].type == "array" && vocList[0].objectName == ""){ //Is Array
       var data = {};
       data.objectName = "array";
       data.ObjectRef = objRef;

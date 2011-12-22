@@ -226,6 +226,8 @@
 				self.prepMsg(self.sessionId, self.pzhId, 'pzpDetails', self.pzpServerPort);
 				callback.call(self, 'startedPZP');
 			});
+			self.prepMsg(self.sessionId, self.pzhId, 'findServices', self.pzpServerPort);
+			utils.debug(2, 'Sent msg to findServices');
 		}
 	};
 	
@@ -343,6 +345,13 @@
 					}
 				}	
 			}		
+			else if(data2.type === 'prop' && 
+					data2.payload.status === 'foundServices') {
+				utils.debug(2, 'PZP ('+self.sessionId+') findServices dude!!!');
+				
+				debugger;
+				rpcHandler.setServicesFromPzh(data2.payload.message);
+			}
 			// Forward message to message handler
 			else {
 				rpc.SetSessionId(self.sessionId);
