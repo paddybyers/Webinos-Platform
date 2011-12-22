@@ -87,13 +87,13 @@ function get(vehicleDataId, vehicleDataHandler, errorCB){
 		vehicleDataHandler(vs.get('parksensors-rear'));
 		break;	
 	case "destination-reached":
-		vehicleDataHandler(generateNavigationReachedEvent(vehicleDataId[0]));
+		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 	  break;
 	case "destination-changed":
-		vehicleDataHandler(generateNavigationChangedEvent(vehicleDataId[0]));
+		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 	  break;
     case "destination-cancelled":
-		vehicleDataHandler(generateNavigationCancelledEvent(vehicleDataId[0]));
+		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
 	  break;
     case "climate-all":
 		vehicleDataHandler(generateClimateControlallEvent(vehicleDataId[0]));
@@ -235,14 +235,12 @@ addEventListener = function (vehicleDataId, successHandler, errorHandler, object
 				objectRefs.push([objectRef, 'destination-changed']);
 				if(!listeningToDestinationChanged){
 					listeningToDestinationChanged = true;
-					handleNavigationEvents(vehicleDataId);	
 				}
 				break;
 			case "destination-cancelled":
 				objectRefs.push([objectRef, 'destination-cancelled']);
 				if(!listeningToDestinationCancelled){
 					listeningToDestinationCancelled = true;
-					handleNavigationEvents(vehicleDataId);	
 				}
 				break;	
 			case "climate-all":
@@ -546,8 +544,6 @@ function handleParkSensorsEvents(psEvent){
 	}
 }
 
-
-/*handleParkSensorsEvent*/
 function handleDestinationReached(psEvent){
 	if(listeningToDestinationReached){
         for(i = 0; i < objectRefs.length; i++){
@@ -560,238 +556,31 @@ function handleDestinationReached(psEvent){
 	}
 }
 
+function handleDestinationCancelled(psEvent){
+	if(listeningToDestinationCancelled){
+        for(i = 0; i < objectRefs.length; i++){
+			if(objectRefs[i][1] == "destination-cancelled"){
+   				json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", psEvent);
+                rpcHandler.executeRPC(json);
+			}
 
-// Climate All, Climate Driver, Climate Passenger Front, Climate Passenger Rear Left, Climate Passenger Rear Right
-
-function handleClimateControlEvents(zone){
-	var randomTime = Math.floor(Math.random()*1000*10);
-        console.log("random Time:" + randomTime);
-	for(i = 0; i < objectRefs.length; i++){
-			if(objectRefs[i][1] == "climate-all"){
-                	var ccEvent = generateClimateControlallEvent(zone);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", ccEvent);
-					console.log("random ccData:" + ccEvent.ventLevel);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "climate-driver"){
-                	var cc1Event = generateClimateControldriverEvent(zone);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", cc1Event);
-					console.log("random ccData:" + cc1Event.ventLevel);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "climate-passenger-front"){
-                	var cc2Event = generateClimateControlfrontEvent(zone);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", cc2Event);
-					console.log("random ccData:" + cc2Event.ventLevel);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "climate-passenger-rear-left"){
-                	var cc3Event = generateClimateControlrearleftEvent(zone);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", cc3Event);
-					console.log("random ccData:" + cc3Event.ventLevel);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "climate-passenger-rear-right"){
-                	var cc4Event = generateClimateControlrearrightEvent(zone);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", cc4Event);
-					console.log("random ccData:" + cc4Event.ventLevel);
-                 	rpcHandler.executeRPC(json);
-			}
-    }
-	if(listeningToClimateControlAll || listeningToClimateControlDriver || listeningToClimateControlPassFront || listeningToClimateControlPassRearLeft || listeningToClimateControlPassRearRight){
-		setTimeout(function(){ handleClimateControlEvents(zone); }, randomTime);  
-	}
-}
-	
- function generateClimateControlallEvent(zone){
-                var desiredTemperatureall = Math.floor(Math.random()*22);
-				var acstatus = Math.round(Math.random()*true); 
-	            var ventMode = Math.round(Math.random()*true);   
-                var ventLevel = Math.floor(Math.random()*10);
-				if (desiredTemperatureall > 16 && acstatus == 0 && ventMode == 0){
-                console.log(zone + " desired temperature is " + desiredTemperatureall);   
-                return new ClimateControlEvent(zone, desiredTemperatureall, acstatus, ventLevel, ventMode);
-                }else{
-		        var ControlEvent = "Not a desired setting";
-			    console.log("Not a desired setting");
-			    return new ClimateControlEvent(ControlEvent, desiredTemperatureall, acstatus, ventLevel, ventMode);
-		}				
-        } 
-		
- function generateClimateControldriverEvent(zone){
-                var desiredTemperaturedriver =  Math.floor(Math.random()*20);
-				var acstatus = Math.round(Math.random()*true); 
-	            var ventMode = Math.round(Math.random()*true);   
-                var ventLevel = Math.floor(Math.random()*10);
-                if (desiredTemperaturedriver > 16 && acstatus == 0 && ventMode == 0){
-                console.log(zone + " desired temperature is " + desiredTemperaturedriver);   
-                return new ClimateControlEvent(zone, desiredTemperaturedriver, acstatus, ventLevel, ventMode);
-                }else{
-		        var ControlEvent = "Not a desired setting";
-			    console.log("Not a desired setting");
-			    return new ClimateControlEvent(ControlEvent, desiredTemperaturedriver, acstatus, ventLevel, ventMode);
-		}							
-        } 
-
-function generateClimateControlfrontEvent(zone){
-				var desiredTemperaturefront =  Math.floor(Math.random()*21);
-				var acstatus = Math.round(Math.random()*true); 
-	            var ventMode = Math.round(Math.random()*true);   
-                var ventLevel = Math.floor(Math.random()*10);
-                if (desiredTemperaturefront > 16 && acstatus == 0 && ventMode == 0){
-                console.log(zone + " desired temperature is " + desiredTemperaturefront);   
-                return new ClimateControlEvent(zone, desiredTemperaturefront, acstatus, ventLevel, ventMode);
-                }else{
-		        var ControlEvent = "Not a desired setting";
-			    console.log("Not a desired setting");
-			    return new ClimateControlEvent(ControlEvent, desiredTemperaturefront, acstatus, ventLevel, ventMode);
-		}							
-        } 
-
-function generateClimateControlrearleftEvent(zone){
-                var desiredTemperaturerearleft =  Math.floor(Math.random()*23);
-				var acstatus = Math.round(Math.random()*true); 
-	            var ventMode = Math.round(Math.random()*true);   
-                var ventLevel = Math.floor(Math.random()*10);
-                if (desiredTemperaturerearleft > 16 && acstatus == 0 && ventMode == 0){
-                console.log(zone + " desired temperature is " + desiredTemperaturerearleft);   
-                return new ClimateControlEvent(zone, desiredTemperaturefront, acstatus, ventLevel, ventMode);
-                }else{
-		        var ControlEvent = "Not a desired setting";
-			    console.log("Not a desired setting");
-			    return new ClimateControlEvent(ControlEvent, desiredTemperaturerearleft, acstatus, ventLevel, ventMode);
-		}								
-        } 
-
-function generateClimateControlrearrightEvent(zone){
-                var desiredTemperaturerearright =  Math.floor(Math.random()*23);
-				var acstatus = Math.round(Math.random()*true); 
-	            var ventMode = Math.round(Math.random()*true);   
-                var ventLevel = Math.floor(Math.random()*10);
-                if (desiredTemperaturerearright > 16 && acstatus == 0 && ventMode == 0){
-                console.log(zone + " desired temperature is " + desiredTemperaturerearright);   
-                return new ClimateControlEvent(zone, desiredTemperaturerearright, acstatus, ventLevel, ventMode);
-                }else{
-		        var ControlEvent = "Not a desired setting";
-			    console.log("Not a desired setting");
-			    return new ClimateControlEvent(ControlEvent, desiredTemperaturerearright, acstatus, ventLevel, ventMode);
-		}								
-        } 
-
-// Lights - Fog Front, Rear, Hibeam, Signal Right, Warn, Head, Wiper - Front wash, Rear wash, Automatic, Front Once, Rear Once, Front Level1, Front Level2 
-
-function handleLightsWiperControlEvents(controlId){
-	var randomTime = Math.floor(Math.random()*1000*10);
-        console.log("random Time:" + randomTime);
-	for(i = 0; i < objectRefs.length; i++){
-			if(objectRefs[i][1] == "lights-fog-front"){
-                	var lcEvent = generateControlEvent(controlId);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", lcEvent);
-					console.log("random lcData:" + lcEvent.active);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "lights-fog-rear"){
-                	var lcEvent = generateControlEvent(controlId);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", lcEvent);
-					console.log("random lcData:" + lcEvent.active);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "lights-signal-left"){
-                	var lcEvent = generateControlEvent(controlId);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", lcEvent);
-					console.log("random lcData:" + lcEvent.active);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "lights-signal-right"){
-                	var lcEvent = generateControlEvent(controlId);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", lcEvent);
-					console.log("random lcData:" + lcEvent.active);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "lights-signal-warn"){
-                	var lcEvent = generateControlEvent(controlId);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", lcEvent);
-					console.log("random lcData:" + lcEvent.active);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "lights-parking"){
-                	var lcEvent = generateControlEvent(controlId);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", lcEvent);
-					console.log("random lcData:" + lcEvent.active);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "light-Hibeam"){
-                	var lcEvent = generateControlEvent(controlId);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", lcEvent);
-					console.log("random lcData:" + lcEvent.active);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "lights-Head"){
-                	var lcEvent = generateControlEvent(controlId);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", lcEvent);
-					console.log("random lcData:" + lcEvent.active);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "wiper-front-wash"){
-                	var wcEvent = generateControlEvent(controlId);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", wcEvent);
-					console.log("random wcData:" + wcEvent.active);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "wiper-rear-wash"){
-                	var wcEvent = generateControlEvent(controlId);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", wcEvent);
-					console.log("random wcData:" + wcEvent.active);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "wiper-automatic"){
-                	var wcEvent = generateControlEvent(controlId);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", wcEvent);
-					console.log("random wcData:" + wcEvent.active);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "wiper-front-once"){
-                	var wcEvent = generateControlEvent(controlId);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", wcEvent);
-					console.log("random wcData:" + wcEvent.active);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "wiper-rear-once"){
-                	var wcEvent = generateControlEvent(controlId);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", wcEvent);
-					console.log("random wcData:" + wcEvent.active);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "wiper-front-level1"){
-                	var wcEvent = generateControlEvent(controlId);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", wcEvent);
-					console.log("random wcData:" + wcEvent.active);
-                 	rpcHandler.executeRPC(json);
-			}
-			if(objectRefs[i][1] == "wiper-front-level2"){
-                	var wcEvent = generateControlEvent(controlId);
-					json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", wcEvent);
-					console.log("random wcData:" + wcEvent.active);
-                 	rpcHandler.executeRPC(json);
-			}
-    }
-	if(listeningToLightsFogFront || listeningToLightsFogRear || listeningToLightsSignalLeft || listeningToLightsSignalRight || listeningToLightsSignalWarn || listeningToLightsParking || listeningToLightsHibeam || listeningToLightsHead || listeningToWiperFront || listeningToWiperRear || listeningToWiperAutomatic || listeningToWiperFrontOnce || listeningToWiperRearOnce || listeningToWiperFrontLeve1 || listeningToWiperRearLevel2){
-		setTimeout(function(){ handleLightsWiperControlEvents(controlId); }, randomTime);  
+        }
 	}
 }
 
-function generateControlEvent(controlId){
-			var active = Math.round(Math.random()*true);
-			//var lcEvent; //    if(cEvent.controlId == "lights-hibeam"){
-                        if(active == 0){
-                            console.log("Turned ON");
-							return new ControlEvent(controlId,active);	
-                     }else{
-                            console.log("Turned OFF");
-							return new ControlEvent(controlId,active);	
-                     }
+function handleDestinationChanged(psEvent){
+	if(listeningToDestinationChanged){
+        for(i = 0; i < objectRefs.length; i++){
+			if(objectRefs[i][1] == "destination-changed"){
+   				json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", psEvent);
+                rpcHandler.executeRPC(json);
+			}
 
+        }
+	}
 }
+
+
 
 function requestGuidance(pois,successCb, errorCb){
 	if(setDestination(pois[0])){
@@ -814,12 +603,13 @@ function setRPCHandler(rpcHdlr) {
 
 function setRequired(obj) {
 	vs = obj;
-    
     vs.addListener('gear', handleShiftEvents);
     vs.addListener('tripcomputer', handleTripComputerEvents);
     vs.addListener('parksensors-rear', handleParkSensorsEvents);
     vs.addListener('parksensors-front', handleParkSensorsEvents);
     vs.addListener('destination-reached', handleDestinationReached);
+    vs.addListener('destination-changed', handleDestinationChanged);
+    vs.addListener('destination-cancelled', handleDestinationCancelled);
 }
 
 

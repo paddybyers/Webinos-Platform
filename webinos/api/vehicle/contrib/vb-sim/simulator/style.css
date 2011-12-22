@@ -194,6 +194,29 @@
 				text-transform:uppercase;
 			}
 			
+			
+			 input[type=button]:hover{
+			 	background: url(rauschen.png), -moz-linear-gradient(top, #959595, #626262); /* Firefox */
+				 background:  url(rauschen.png), -webkit-gradient(linear, left top, left bottom, from(#959595), to(#626262)), url(rauschen.png); /* Safari, Chrome*/
+				 background: url(rauschen.png), -webkit-linear-gradient(top, #959595, #626262); /* Safari, Chrome - neue Syntax! */
+				background:  url(rauschen.png), -o-linear-gradient(top, #959595, #626262); /* Opera */
+				background:  url(rauschen.png), -ms-linear-gradient(top, #959595, #626262); /* IE */
+				
+				
+				background:  url(rauschen.png), linear-gradient(top, #959595, #626262); /* W3C Standard */
+			 }
+			 
+			 input[type=button]:active{
+			 			 	background: url(rauschen.png), -moz-linear-gradient(top, #959595, #626262); /* Firefox */
+				 background:  url(rauschen.png), -webkit-gradient(linear, left top, left bottom, from(#959595), to(#626262)), url(rauschen.png); /* Safari, Chrome*/
+				 background: url(rauschen.png), -webkit-linear-gradient(top, #959595, #626262); /* Safari, Chrome - neue Syntax! */
+				background:  url(rauschen.png), -o-linear-gradient(top, #959595, #626262); /* Opera */
+				background:  url(rauschen.png), -ms-linear-gradient(top, #959595, #626262); /* IE */
+
+			 	box-shadow: none;
+			 }
+			 
+			
 			.running{
 				background: url(rauschen.png), -moz-linear-gradient(top, #ffb500, #ffff00); /* Firefox */
 				background:  url(rauschen.png), -webkit-gradient(linear, left top, left bottom, from(#ffb500), to(#ffff00)), url(rauschen.png); /* Safari, Chrome*/
