@@ -164,6 +164,7 @@ exports.signRequest = function(self, csr, master, callback) {
 		var clientCert = certman.signRequest(csr, 30, master.key.value, master.cert.value);
 		callback.call(self, "certSigned", clientCert);
 	} catch(err1) {
+	    debug(1, "Failed to sign certificate: " + err1.code + ", " + err1.stack);
 		callback.call(self, "failed");
 		return;
 	}	
@@ -486,12 +487,21 @@ exports.resolveIP = function(serverName, callback) {
 	if(net.isIP(serverName) !== 0) {
 		callback(serverName);
 	} else {
-		dns.resolve(serverName, function(err, address) {
-			if(err) {
-				return "undefined";
-			} else {
-				callback(address[0]);
-			}
+		dns.lookup(serverName, function(err, address, family) {			
+			if(err !== "null") {
+				debug(3, "Lookup IP Err", err);
+				dns.resolve(serverName, function(err, address) {
+					if(err) {
+						debug(3, "Resolve IP Err", err);
+						return "undefined";
+					}
+					debug(3, "Resolve IP Address "+ address);
+					callback(address[0]);
+					return "undefined";
+				});				
+			} 
+			debug(3, "Lookup Address "+ address);
+			callback(address[0]);			
 		});
 	}
 };

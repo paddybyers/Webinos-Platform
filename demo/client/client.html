@@ -22,12 +22,14 @@
 					'email='+ document.getElementById('pzpemail').value + '\n' +
 					'days='+ document.getElementById('pzpdays').value + '\n';
 
-				var payload = {status: 'startPzp', 
-					servername: document.getElementById('pzpservername').value,
-					serverport: document.getElementById('pzpserverport').value,				
-					value: config}; 			
-				var options = {type: 'prop', payload: payload};
-				webinos.session.message_send(options);
+			var payload = {status: 'startPzp', 
+				servername: document.getElementById('pzpservername').value,
+				serverport: document.getElementById('pzpserverport').value,
+				code:  document.getElementById('pzpcode').value,
+				value: config}; 
+			
+			var options = {type: 'prop', payload: payload};
+			webinos.session.message_send(options);
 		});
 		
 		$('#disconnectPZP').bind('click', function() {
@@ -111,6 +113,7 @@
 			<tr><td><i> (Info: This should match with PZH address you want to connect)</i></td><td> </td></tr>
 			<tr><td>PZH Port </td><td><input type="text" id="pzpserverport" value="8000"/></td></tr>
 			<tr><td><i> (Info: This should match with PZH Port)</i></td><td> </td></tr>
+			<tr><td>New PZP Code </td><td><input type="text" id="pzpcode" value="DEBUG"/></td></tr>			
 		</table>			
 			<center>
 				<button id="startPZP" class="button">Start PZP </button>
