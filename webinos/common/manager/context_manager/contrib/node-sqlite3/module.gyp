@@ -6,6 +6,9 @@
   },
   'targets': [
     {
+	   # Needed declarations for the target
+	   'target_name': '<(module_name)',
+	   'product_name':'<(module_name)',
 		'sources': [ #Specify your source files here
 			'deps/sqlite3/sqlite3.c',
 			'src/database.cc',
@@ -15,10 +18,6 @@
 		'include_dirs': [
 		   'deps/sqlite3/',
 		   'src/',
-		],
-		'includes': [ #This files loads all the required conditional staff for mac linux windows etc
-			# Don't forget to update the following to point to the node_module.gypi
-			'../../../../../../Tools/gyp_tools/node_module.gypi',
 		],
     },
   ] # end targets

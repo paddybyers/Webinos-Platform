@@ -7,7 +7,10 @@
   },
   'targets': [
     {
-		'sources': [ #Specify your source files here
+	   # Needed declarations for the target
+	   'target_name': '<(module_name)',
+	   'product_name':'<(module_name)',
+	    'sources': [ #Specify your source files here
 			'certificate_manager.cpp',
 			'openssl_wrapper.cpp',
 		],
@@ -15,7 +18,7 @@
 		'conditions': [
         [ 'OS=="win"', {
 		  #we need to link to the libeay32.lib
-          'libraries': [ '-l<(NODE_ROOT)/<(node_lib_folder)/node.lib','-l<(openssl_Root)/lib/libeay32.lib' ],
+          'libraries': ['-l<(openssl_Root)/lib/libeay32.lib' ],
 		  'include_dirs': [
 		   '<(openssl_Root)/include',
 		  ],
@@ -26,11 +29,6 @@
 		  ],
         }],
       ],
-		
-		'includes': [ #This files loads all the required conditional staff for mac linux windows etc
-			# Don't forget to update the following to point to the node_module.gypi
-			'../../../../../Tools/gyp_tools/node_module.gypi',
-		],
     },
   ] # end targets
 }
