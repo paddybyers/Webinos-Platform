@@ -51,6 +51,9 @@
 		
 		// Used for session reuse
 		this.tlsId = '';
+		
+		// Code used for the first run to authenticate with PZH.
+		this.code = null;
 	};
 	
 	Pzp.prototype.prepMsg = function(from, to, status, message) {
@@ -218,7 +221,7 @@
 		try {
 			console.log(self.pzhPort);
 			console.log(self.pzhName);
-			console.log(config);
+			console.log(config);		
 			client = tls.connect(self.pzhPort, 
 			self.pzhName, 
 			config, 
@@ -234,7 +237,10 @@
 					self.pzhId = client.getPeerCertificate().subject.CN.split(':')[1];//data2.from;
 					self.connectedPzh[self.pzhId] = {socket: client};
 					self.prepMsg(self.sessionId, self.pzhId, 'clientCert',
-						{ csr: self.config.conn.csr.value, name: self.config.cn } ); 
+						{   csr: self.config.conn.csr.value, 
+						    name: self.config.cn, 
+						    code: self.code //"DEBUG"
+					    }); 
 				}
 			});
 		} catch (err) {
@@ -325,9 +331,12 @@
 						}
 					}
 				}	
-			}		
-			// Forward message to message handler
-			else {
+			} else if(data2.type === 'prop' && data2.payload.status === 'failedCert') {
+                utils.debug(1, "Failed to get certificate from PZH");                
+			    callback.call(self, "ERROR");
+			    
+			} else {
+    			// Forward message to message handler
 				rpc.SetSessionId(self.sessionId);
 				utils.sendMessageMessaging(self, data2);
 			}
@@ -338,8 +347,9 @@
 	 * @param server name
 	 * @param port: port on which PZH is running
 	 */
-	sessionPzp.startPzp = function(contents, servername, port, callback) {
-		var client = new Pzp();		
+	sessionPzp.startPzp = function(contents, servername, port, code, callback) {
+		var client = new Pzp();
+		client.code = code;		
 		client.pzhPort = port;
 		utils.resolveIP(servername, function(name) {
 			client.pzhName = name;
@@ -521,6 +531,7 @@
 						instance = sessionPzp.startPzp(msg.payload.value, 
 						msg.payload.servername, 
 						msg.payload.serverport,
+						msg.payload.code,
 						function(status) {
 							if(typeof status !== "undefined") {
 								connectedApp(connection);

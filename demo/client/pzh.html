@@ -54,6 +54,9 @@
     $('#listAllPzpsButton').bind('click', function() {
      	webinos.session.message_send({type: 'prop', payload: {status: 'listAllPzps'}});
     });
+    $('#addPzpQRButton').bind('click', function() {
+     	webinos.session.message_send({type: 'prop', payload: {status: 'addPzpQR'}});
+    });
 	
 
   });
@@ -83,6 +86,7 @@
 		<li> <a href="#listPzh"> List Pzh </a> </li>
 		<li> <a href="#crashLog"> Crash Details log </a> </li>
 		<li> <a href="#listAllPzps"> List All Zone PZPs </a> </li>		
+		<li> <a href="#addPzpQR"> Add a new PZP by QR Code </a> </li>	
 	</ul>	
 	<div id = "pzh" style="background-color:#0879a9">
 		<p style="color:white" align="right"> Help Available on Redmine to start PZH <a href="http://dev.webinos.org/redmine/projects/wp4/wiki/Running_PZH"> Running PZH </a>
@@ -145,6 +149,13 @@
 			</table> 
 		</center>
 		<center> <button id="listAllPzpsButton" class="button"> List my PZPs  </button> </center>	
+	</div>
+	<div id = "addPzpQR" style="background-color:#0879a9">
+		<center> <p style="color:white"> Add a new PZP </p> </center>
+		<center>
+			<div  id="qrcode" style="background-color:lightgray; border:7px solid #0879a9" align="center"></div>
+		</center>
+		<center> <button id="addPzpQRButton" class="button"> Add new PZP via QR Code</button> </center>	
 	</div>	
 	
 </div>

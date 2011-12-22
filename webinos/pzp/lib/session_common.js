@@ -164,6 +164,7 @@ exports.signRequest = function(self, csr, master, callback) {
 		var clientCert = certman.signRequest(csr, 30, master.key.value, master.cert.value);
 		callback.call(self, "certSigned", clientCert);
 	} catch(err1) {
+	    debug(1, "Failed to sign certificate: " + err1.code + ", " + err1.stack);
 		callback.call(self, "failed");
 		return;
 	}	
