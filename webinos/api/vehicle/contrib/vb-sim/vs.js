@@ -111,7 +111,7 @@ NavigationEvent.prototype.initNavigationEvent = function(type, data){
     var stamp = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
     var stamp = stamp + d.getUTCMilliseconds();
 
-	ParkSensorEvent.parent.initEvent.call(this, 'destination-reached', null, null, null, false, false, stamp);
+	NavigationEvent.parent.initEvent.call(this, type, null, null, null, false, false, stamp);
 }
 
 
@@ -220,6 +220,22 @@ var psfData = new Object();
         if(typeof _listeners.destinationReached != 'undefined'){
             _listeners.destinationReached(new NavigationEvent('destination-reached',dData));
         }
+    }
+    
+     everyone.now.setdestinationCancelled = function(data){
+        dData = data;
+        console.log(data);
+        if(typeof _listeners.destinationCancelled != 'undefined'){
+            _listeners.destinationCancelled(new NavigationEvent('destination-cancelled',dData));
+        }
+    }
+    
+     everyone.now.setDestinationChanged = function(data){
+        dData = data;
+        console.log(data);
+        if(typeof _listeners.destinationChanged != 'undefined'){
+            _listeners.destinationChanged(new NavigationEvent('destination-changed',dData));
+        }
     } 
 
     function get(type){
@@ -259,10 +275,21 @@ var psfData = new Object();
              case 'destination-reached':
                 _listeners.destinationReached = listener;
                 break;
+             case 'destination-reached':
+                _listeners.destinationReached = listener;
+                break;
+             case 'destination-changed':
+                _listeners.destinationChanged = listener;
+                break;
+            case 'destination-cancelled':
+                _listeners.destinationCancelled = listener;
+                break;
+
             default:
                 console.log('type ' + type + ' undefined.');
         }
     }
-    exports.get = get;
+    
+     exports.get = get;
     exports.addListener = addListener;
 })(module.exports);
