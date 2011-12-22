@@ -1,12 +1,10 @@
 /**
 * @author <a href="mailto:habib.virji@samsung.com">Habib Virji</a>
-* @description It starts Pzh and handle communication with messaging manager. It has a websocket server embedded to allow starting Pzh via web browser
+* @description session_pzh.js starts Pzh and handle communication with a messaging manager. It is also responsible for loading rpc modules. 
+* It has a websocket server embedded to allow starting Pzh via web browser
 */
 (function() {
 	"use strict";
-	if(typeof webinos === "undefined") {
-		var webinos = {};
-	}
 
 	// Global variables and node modules that are required
 	var tls = require('tls'),
@@ -15,9 +13,10 @@
 		crypto = require('crypto'),
 		Pzh = null,
 		sessionPzh = [],
-		instance = [];
+		instance = [],
+		webinosDemo = path.resolve(__dirname, '../../../demo'),
+		pzhCertDir, pzhSignedCertDir, pzhOtherCertDir, pzhKeyDir, pzhRevokedCertDir;
 		
-    	var webinosDemo = path.resolve(__dirname, '../../../demo');		
 	if (typeof exports !== 'undefined') {
 		var rpc = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));
 		var rpcHandler = new RPCHandler();
@@ -110,43 +109,103 @@
 	Pzh.prototype.checkFiles = function (callback) {
 		var self = this;
 		try {
-			fs.readFile(webinosDemo+'/'+self.config.master.cert.name, function(err) {
-				if(err !== null && err.code === 'ENOENT') {	
+			var pzhRoot = webinosDemo+'/certificates/pzh';
+			var pzhName = pzhRoot+'/'+self.sessionId;
+			pzhCertDir = path.resolve(__dirname, pzhName+'/cert'),
+			pzhSignedCertDir = path.resolve(__dirname, pzhName+'/signed_cert'),
+			pzhOtherCertDir  = path.resolve(__dirname, pzhName+'/other_cert'),
+			pzhKeyDir = path.resolve(__dirname, pzhName+'/keys'),
+			pzhRevokedCertDir = path.resolve(__dirname, pzhName+'/signed_cert/revoked');
+			fs.readFile(pzhCertDir+'/'+self.config.master.cert.name, function(err) {
+				if(err !== null && err.code === 'ENOENT') {
 					utils.selfSigned(self, 'Pzh', self.config.conn, function(status) {
 						if(status === 'certGenerated') {
 							utils.debug(2, 'PZH Generating Certificates');
-							fs.writeFileSync(webinosDemo+'/'+self.config.conn.key.name, self.config.conn.key.value);
-							utils.selfSigned(self, 'Pzh:Master', self.config.master, function(result) {
-								if(result === 'certGenerated') {
-									fs.writeFileSync(webinosDemo+'/'+self.config.master.key.name, self.config.master.key.value);
-									fs.writeFileSync(webinosDemo+'/'+self.config.master.cert.name, self.config.master.cert.value);
-									fs.writeFileSync(webinosDemo+'/'+self.config.master.crl.name, self.config.master.crl.value);
-									utils.signRequest(self, self.config.conn.csr.value, self.config.master,
-									function(result, cert) {
-										if(result === 'certSigned'){ 
-											self.config.conn.cert.value = cert;
-											fs.writeFileSync(webinosDemo+'/'+self.config.conn.cert.name, cert);
-											callback.call(self, 'Certificates Created');
-										}
-									});
+							fs.readdir(webinosDemo+'/certificates', function(err) {
+								if(err !== null && err.code === "ENOENT") {
+									try {
+										fs.mkdirSync(webinosDemo+'/certificates', '0700');								
+									} catch (err) {
+										utils.debug(1,'PZH ('+self.sessionId+') Error creating certificates directory');
+										return;
+									}
 								}
+								fs.readdir(pzhRoot, function(err) {
+									if(err !== null && err.code === "ENOENT") {
+										try {
+											fs.mkdirSync(pzhRoot, '0700');
+										} catch(err) {
+											utils.debug(1,'PZH ('+self.sessionId+') Error creating certificates/pzh directory');
+											return;
+										}
+									}
+									fs.readdir(pzhName, function(err) {
+										if(err !== null && err.code === "ENOENT") {
+											try {	
+												fs.mkdirSync(pzhName,'0700');
+												fs.mkdirSync(pzhCertDir, '0700');								
+												fs.mkdirSync(pzhKeyDir, '0700');
+												fs.mkdirSync(pzhSignedCertDir, '0700');
+												fs.mkdirSync(pzhOtherCertDir, '0700');
+												fs.mkdirSync(pzhRevokedCertDir, '0700');
+											} catch(err) {
+												utils.debug(1,'PZH ('+self.sessionId+') Error creating certificates/pzh/pzh_name/ directories');
+												return;
+											}									
+										}
+										try {
+											fs.writeFileSync(pzhKeyDir+'/'+self.config.conn.key.name, self.config.conn.key.value);
+										} catch(err) {
+											utils.debug(1,'PZH ('+self.sessionId+') Error writing key file');
+											return;
+										}
+										utils.selfSigned(self, 'Pzh:Master', self.config.master, function(result) {
+											if(result === 'certGenerated') {
+												try {
+													fs.writeFileSync(pzhKeyDir+'/'+self.config.master.key.name, self.config.master.key.value);
+													fs.writeFileSync(pzhCertDir+'/'+self.config.master.cert.name, self.config.master.cert.value);
+													fs.writeFileSync(pzhCertDir+'/'+self.config.master.crl.name, self.config.master.crl.value);
+												} catch (err) {
+													utils.debug(1,'PZH ('+self.sessionId+') Error writing master certificates file');
+													return;
+												}
+												utils.signRequest(self, self.config.conn.csr.value, self.config.master, function(result, cert) {
+													if(result === 'certSigned'){ 
+														self.config.conn.cert.value = cert;
+														try {
+															fs.writeFileSync(pzhCertDir+'/'+self.config.conn.cert.name, cert);
+															callback.call(self, 'Certificates Created');
+														} catch (err) {
+															utils.debug(1,'PZH ('+self.sessionId+') Error writing connection certificate');
+															return;
+														}
+													}
+												});
+											}
+										});								
+									});
+									
+								});
 							});
+							
+							
 						}				
 					});
 				} else {
-					self.config.master.cert.value = fs.readFileSync(webinosDemo+'/'+self.config.master.cert.name).toString(); 
-					self.config.master.key.value = fs.readFileSync(webinosDemo+'/'+self.config.master.key.name).toString();
-                    if ( path.existsSync(webinosDemo+'/'+self.config.master.crl.name)) {
-                        self.config.master.crl.value = fs.readFileSync(webinosDemo+'/'+self.config.master.crl.name).toString();
-                        utils.debug(2, "Using CRL " + webinosDemo+'/'+self.config.master.crl.name);
-                    } else {
-                        self.config.master.crl.value = null;
-                        utils.debug(2, "WARNING: No CRL found.  May be worth regenerating your certificates");
-                    }					
-					self.config.conn.cert.value = fs.readFileSync(webinosDemo+'/'+self.config.conn.cert.name).toString(); 
-					self.config.conn.key.value = fs.readFileSync(webinosDemo+'/'+self.config.conn.key.name).toString();
+					self.config.master.cert.value = fs.readFileSync(pzhCertDir+'/'+self.config.master.cert.name).toString(); 
+					self.config.master.key.value = fs.readFileSync(pzhKeyDir+'/'+self.config.master.key.name).toString();
+					
+					if ( path.existsSync(pzhCertDir+'/'+self.config.master.crl.name)) {
+						self.config.master.crl.value = fs.readFileSync(pzhCertDir+'/'+self.config.master.crl.name).toString();
+						utils.debug(2, "Using CRL " + pzhCertDir+'/'+self.config.master.crl.name);
+					} else {
+						self.config.master.crl.value = null;
+						utils.debug(2, "WARNING: No CRL found.  May be worth regenerating your certificates");
+					}					
+					self.config.conn.cert.value = fs.readFileSync(pzhCertDir+'/'+self.config.conn.cert.name).toString(); 
+					self.config.conn.key.value = fs.readFileSync(pzhKeyDir+'/'+self.config.conn.key.name).toString();
 					callback.call(self, 'Certificates Present');
-				}		
+				}
 			});
 		} catch(err) {
 			utils.debug(1,'PZH ('+self.sessionId+') Exception in reading/creating certificates');
@@ -240,26 +299,26 @@
 	
 	
 	Pzh.prototype.revoke = function(pzpCert, callback) {
-	    "use strict";
-	    var self = this;
-	    if ( self.config.master.key.value === 'null') {
-    	    self.config.master.key.value = fs.readFileSync(webinosDemo+'/'+self.config.master.key.name).toString();
-	    	self.config.master.crl.value = fs.readFileSync(webinosDemo+'/'+self.config.master.crl.name).toString();
-    	}
+		"use strict";
+		var self = this;
+		if (self.config.master.key.value === 'null') {
+	    	    	self.config.master.key.value = fs.readFileSync(pzhKeyDir+'/'+self.config.master.key.name).toString();
+		    	self.config.master.crl.value = fs.readFileSync(pzhCertDir+'/'+self.config.master.crl.name).toString();
+		}
     	
-    	utils.revokeClientCert(self, self.config.master, pzpCert, function(result, crl) {
-    	    if (result === "certRevoked") {
-    	        self.config.master.crl.value = crl;
-    	        fs.writeFileSync(self.config.master.crl.name, crl);
-    	        //TODO : trigger the PZH to reconnect all clients
-    	        //TODO : trigger a synchronisation with PZPs.
-    	        //TODO : rename the cert.
-    	        callback(true);
-    	    } else {
-    	        utils.debug(1, "Failed to revoke client certificate [" + pzpCert + "]");
-    	        callback(false);
-    	    }   	    
-    	});		
+		utils.revokeClientCert(self, self.config.master, pzpCert, function(result, crl) {
+		    if (result === "certRevoked") {
+			self.config.master.crl.value = crl;
+			fs.writeFileSync(self.config.master.crl.name, crl);
+			//TODO : trigger the PZH to reconnect all clients
+			//TODO : trigger a synchronisation with PZPs.
+			//TODO : rename the cert.
+			callback(true);
+		    } else {
+			utils.debug(1, "Failed to revoke client certificate [" + pzpCert + "]");
+			callback(false);
+		    }   	    
+		});		
 	}
 	
 	/**
@@ -269,9 +328,7 @@
 		var self = this, server, ca;
 		try {
 			ca =  [self.config.master.cert.value];	
-			if(typeof self.config.otherPZHMasterCert !== 'undefined') {
-				   ca = [self.config.master.cert.value, fs.readFileSync(webinosDemo+'/'+self.config.otherPZHMasterCert)];
-			}
+			
 		} catch (err) {
 			utils.debug(1,'PZH ('+self.sessionId+') Exception in reading other Pzh certificates');
 			utils.debug(1, err.code);
@@ -302,7 +359,6 @@
 			var data = {}, cn, msg = {}, sessionId;
 			self.conn = conn;
 
-
 			if(conn.authorized) {
 			    utils.debug(2, "Connection authorised at PZH");
 				try {
@@ -320,10 +376,10 @@
 					var  pzhId, otherPzh = [], myKey;
 					try {
 						pzhId = data[1].split(':')[0];
-					} catch (err) {
+					} catch (err1) {
 						utils.debug(1,'PZH ('+self.sessionId+') Pzh information in certificate is in unrecognized format');
-						utils.debug(1, err.code);
-						utils.debug(1, err.stack);
+						utils.debug(1, err1.code);
+						utils.debug(1, err1.stack);
 						return;
 					}
 					utils.debug(2, 'PZH ('+self.sessionId+') PZH '+pzhId+' Connected');
@@ -361,7 +417,7 @@
                          conn.authorizationError !== "UNABLE_TO_GET_CRL"){
                          //we're not expecting anything - disallow.
         			    utils.debug(2, "Ending connect: " + conn.authorizationError); 
-                        conn.destroy();
+                        conn.socket.end();
                     } else {
                         utils.debug(2, "Continuing connect - expected: " + conn.authorizationError); 
                     }
@@ -418,18 +474,21 @@
 	}
 	
 	function getAllPZPIds(callback) {
-        "use strict";
-	    var fileArr = fs.readdirSync(webinosDemo+'/');
-	    var idArray = [];
-	    var i=0;
-	    for (i=0;i<fileArr.length;i++) {
-	        if (fileArr[i].indexOf("client_cert_") === 0) {
-                var start = "client_cert_".length;
-                var len = fileArr[i].indexOf(".pem")-start;
-	            idArray.push( fileArr[i].substr(start, len));
-	        }
-	    }
-	    callback(idArray, null);
+        	"use strict";
+		var fileArr = fs.readdirSync(pzhSignedCertDir+'/');
+		var idArray = [];
+		var i=0;
+		for (i=0;i<fileArr.length;i++) {
+			try {
+				//if(fs.lstatSync(fileArr[i]).isDirectory()) {
+					idArray.push( fileArr[i].split('.')[0]);			
+				//}
+				console.log(fileArr[i].split('.')[0]);
+			} catch (err) {
+				console.log(err);
+			}
+		}
+		callback(idArray, null);
 	}
 	
 	Pzh.prototype.addNewPZPCert = function (parse, cb) {
@@ -469,7 +528,7 @@
 		    utils.debug(1, err.stack);
 			cb("Could not create client certificate", null);
 		}
-	
+		callback(idArray, null);
 	}
 	
 	
@@ -515,25 +574,38 @@
 					} else {
 						utils.debug(1, 'PZH ('+self.sessionId+') Received PZP details from not registered device' + parse.from);
 					}
-				} catch (err) {
+				} catch (err1) {
 					utils.debug(1, 'PZH ('+self.sessionId+') Error Updating Pzh/Pzp');
-					utils.debug(1, err.code);
-					utils.debug(1, err.stack);
+					utils.debug(1, err1.code);
+					utils.debug(1, err1.stack);
 					return;
 				}				
+			} else if(parse.type === "prop" && parse.payload.status === 'findServices') {
+		        utils.debug(2, 'Trying to send Webinos Services from this RPC handler...');
+			    findServices(conn, self);				
 			} else { // Message is forwarded to Message handler function, onMessageReceived
 				try {			
 					rpc.SetSessionId(self.sessionId);
 					utils.sendMessageMessaging(self, parse);
-				} catch (err) {
+				} catch (err2) {
 					utils.debug(1, 'PZH ('+self.sessionId+') Error Setting RPC Session Id/Message Sending to Messaging');
-					utils.debug(1, err.code);
-					utils.debug(1, err.stack);
+					utils.debug(1, err2.code);
+					utils.debug(1, err2.stack);
 					return;
 				}
 			}
 		});	
 	};	
+	
+	function findServices(connection, pzh) {
+		var services = rpcHandler.getRegisteredServices();
+		debugger;
+		var msg = pzh.prepMsg(pzh.sessionId, null, 'foundServices', services);
+		
+		pzh.sendMessage(msg, null, connection);
+		
+        utils.debug(2, 'Sent Webinos Services from this RPC handler.');
+	}
 	
 	/** starts pzh, creates TLS server, resolve DNS and listens.
 	 * @param contents contains certificate details
@@ -546,14 +618,15 @@
 		try{
 			pzh = new Pzh();
 			instance.push(pzh);
+			pzh.port = port;
+			pzh.server = server;
 		} catch (err) {
 			utils.debug(1, 'PZH ('+pzh.sessionId+') Error Initializing Pzh');
 			utils.debug(1, err.code);
 			utils.debug(1, err.stack);
 			return;
 		}
-		pzh.port = port;
-		pzh.server = server;
+		
 		utils.configure(pzh, 'pzh', contents, function() {
 			try {
 				pzh.sessionId = pzh.config.common.split(':')[0];
@@ -587,18 +660,19 @@
 
 					pzh.sock.on('listening', function() {
 						utils.debug(2, 'PZH ('+pzh.sessionId+') Listening on PORT ' + pzh.port);
-						if(typeof callback !== 'undefined')
+						if(typeof callback !== 'undefined') {
 							callback.call(pzh, 'startedPzh');
+						}
 					});
 				
 					utils.resolveIP(server, function(name) {
 						server = name;
 						pzh.sock.listen(pzh.port, server);
 					});
-				} catch (err) {
+				} catch (err1) {
 					utils.debug(1, 'PZH ('+pzh.sessionId+') Error listening/resolving ip address ');
-					utils.debug(1, err.code);
-					utils.debug(1, err.stack);
+					utils.debug(1, err1.code);
+					utils.debug(1, err1.stack);
 					return;
 				}
 				
@@ -606,25 +680,22 @@
 		});
 		return pzh;
 	};
-	/**
-	* @param connection 
-	*/
 	
 	function getPZPCertificate(pzpid, callback) {
 	    "use strict";
 	    try { 
-	        var cert = fs.readFileSync(webinosDemo+'/'+"client_cert_" + pzpid + ".pem");  
+	        var cert = fs.readFileSync(pzhSignedCertDir+'/'+ pzpid + ".pem");  
 	        callback(true, cert);	    
 	    } catch (err) {
 	        utils.debug(2,"Did not find certificate " + err); 
-    	    callback(false, err);	    
+    	    	callback(false, err);	    
 	    }
 	}
 	
 	function removeRevokedCert(pzpid, callback) {
 	    "use strict";
 	    try { 
-	        var cert = fs.rename(webinosDemo+'/'+"client_cert_" + pzpid + ".pem", webinosDemo+'/'+"revoked_client_cert_" + pzpid + ".pem");  
+	        var cert = fs.rename(pzhSignedCertDir+'/'+ pzpid + ".pem", pzhRevokedCertDir+'/'+ pzpid + ".pem");  
 	        callback(true);	    
 	    } catch (err) {
 	        utils.debug(2,"Unable to rename certificate " + err); 
@@ -654,7 +725,9 @@
             if (!status) {
                 payloadErr.message = payloadErr.message + " - failed to find certificate";
         	    connection.sendUTF(JSON.stringify(msgErr));
-            } else {         
+            } else {
+ 	        console.log('CRL' + cert.toString());
+		pzh.conn.pair.credentials.context.addCRL(cert.toString());
                 pzh.revoke(cert, function(result) {
                     if (result) {
                         utils.debug(2,"Revocation success! " + pzpid + " should not be able to connect anymore ");                       
@@ -673,9 +746,11 @@
                 });      
             }
         });
-	
 	}
 	
+	/**
+	* @param connection 
+	*/
 	function listAllPzps(connection) {
 	    "use strict";
 	    getAllPZPIds( function(pzps, error) {
@@ -849,10 +924,10 @@
 			cs.listen(webServerPort, hostname, function(){
 				utils.debug(2, 'PZH WebServer: Listening on port ' +webServerPort);
 			});
-		} catch (err) {
+		} catch (err1) {
 			utils.debug(1, 'PZH ('+pzh.sessionId+') Error listening on Port');
-			utils.debug(1, err.code);
-			utils.debug(1, err.stack);
+			utils.debug(1, err1.code);
+			utils.debug(1, err1.stack);
 			return;	
 		}
 
@@ -860,7 +935,7 @@
 			request.on('data', function(chunk) {
 				utils.processedMessage(chunk, function(parse){
 					try {
-						fs.writeFile(webinosDemo+'/'+pzh.config.otherPzh, parse.payload.message, function() {
+						fs.writeFile(pzhOtherCertDir+'/'+pzh.config.otherPzh, parse.payload.message, function() {
 							//pzh.conn.pair.credentials.context.addCACert(pzh.config.mastercertname);
 							pzh.conn.pair.credentials.context.addCACert(parse.payload.message);
 							var payload = pzh.prepMsg(null, null, 'receiveMasterCert', pzh.config.master.cert.value);
@@ -896,10 +971,10 @@
 				utils.debug(2, 'PZH WSServer: Listening on port '+serverPort + ' and hostname '+hostname);
 
 			});
-		} catch (err) {
+		} catch (err2) {
 			utils.debug(1, 'PZH ('+pzh.sessionId+') Error WebSocket server Listening on Port');
-			utils.debug(1, err.code);
-			utils.debug(1, err.stack);
+			utils.debug(1, err2.code);
+			utils.debug(1, err2.stack);
 			return;
 		}
 
@@ -916,14 +991,10 @@
 				var msg = JSON.parse(message.utf8Data);
 				utils.debug(2, 'PZH WSServer: Received packet' + JSON.stringify(msg));
 				if(msg.type === 'prop' && msg.payload.status === 'startPzh') {
-					var pzh= sessionPzh.startPzh(msg.payload.value, 
-						msg.payload.servername, 
-						msg.payload.serverport, 
+					var pzh= sessionPzh.startPzh(msg.payload.value, msg.payload.servername,	msg.payload.serverport, 
 						function(result) {
 							if(result === 'startedPzh') {
-								var info = {"type":"prop", 
-								"payload":{"status": "info", 
-								"message":"PZH "+ pzh.sessionId+" started on port " + pzh.port}}; 
+								var info = {"type":"prop","payload":{"status": "info","message":"PZH "+ pzh.sessionId+" started on port " + pzh.port}}; 
 								connection.sendUTF(JSON.stringify(info));
 								instance.push(pzh);
 							}				
@@ -975,7 +1046,7 @@
 			res.on('data', function(data) {
 				utils.processedMsg(data, 2, function(parse) {	
 					try {
-						fs.writeFile(webinosDemo+'/'+'pzh_cert.pem', parse.payload.message, function() {
+						fs.writeFile(pzhOtherCertDir+'/'+'pzh_cert.pem', parse.payload.message, function() {
 							self.connectOtherPZH(servername, '443');
 						});
 					} catch (err) {
@@ -1007,7 +1078,7 @@
 			//No CRL support yet, as this is out-of-zone communication.  TBC.
 			options = {key: self.config.conn.key.value,
 				cert: self.config.conn.cert.value,
-				ca: [self.config.master.cert.value, fs.readFileSync('pzh_cert.pem')]}; 
+				ca: [self.config.master.cert.value]}; 
 		} catch (err) {
 			utils.debug(1, 'PZH ('+pzh.sessionId+') Options setting failed while connecting other Pzh');
 			utils.debug(1, err.code);
@@ -1034,10 +1105,10 @@
 						var msg = messaging.registerSender(self.sessionId, connPzhId);			
 						self.sendMessage(msg, connPzhId);
 					}
-				} catch (err) {
+				} catch (err1) {
 					utils.debug(1, 'PZH ('+pzh.sessionId+') Error storing pzh in the list');
-					utils.debug(1, err.code);
-					utils.debug(1, err.stack);
+					utils.debug(1, err1.code);
+					utils.debug(1, err1.stack);
 					return;
 				}
 			} else {
@@ -1080,3 +1151,4 @@
 		
 	}
 }());
+

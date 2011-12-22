@@ -134,14 +134,14 @@ exports.selfSigned = function(self, name, obj, callback) {
 
 	try {
 		obj.cert.value = certman.selfSignRequest(obj.csr.value, 30, obj.key.value);
-	} catch (e) {
+	} catch (e1) {
 		callback.call(self, "failed");
 		return;
 	}
 
 	try {
 		obj.crl.value = certman.createEmptyCRL(obj.key.value,  obj.cert.value, 30, 0);
-	} catch (e) {
+	} catch (e2) {
 		callback.call(self, "failed");
 		return;
 	}
@@ -213,7 +213,8 @@ exports.removeClient = function(self, conn) {
 	if (typeof delId !== "undefined") {
 		for ( i = 0 ; i < self.connectedPzpIds.length; i += 1) {
 			if ( delId === self.connectedPzpIds[i]) {
-				delete self.connectedPzpIds[i];
+				//delete self.connectedPzpIds[i];
+				self.connectedPzpIds.splice(i, 1);
 				return delId;
 			}
 		}
@@ -223,7 +224,8 @@ exports.removeClient = function(self, conn) {
 		if(self.connectedPzh.hasOwnProperty(i)) {
 			if(conn.socket._peername.address === self.connectedPzh[i].address) {
 				delPzhId = i;
-				delete self.connectedPzh[i];
+				self.connectedPzh.splice(i, 1);
+				//delete self.connectedPzh[i];
 			}
 		}
 	}
@@ -245,17 +247,17 @@ var checkSchema = function(message) {
 	try {
 		myEnv = require('schema')('myEnvironment', {locale: 'en'});
 	} catch (err) {
-		throw err;
+		return 'failed';
 	}
 	try {
 		assert = require('assert');
-	} catch (err) {
-		throw err;
+	} catch (err1) {
+		return 'failed';
 	}
 	try {
 		message = JSON.parse(message);
-	} catch(err) {
-		throw err;
+	} catch(err2) {
+		return 'failed';
 	}	
 	
 	schema = myEnv.Schema.create({

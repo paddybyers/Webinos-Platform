@@ -46,7 +46,22 @@
 		this.objRefCachTable = {};
 
 		this.awaitingResponse = {};
+		
+		/**
+		 * Holds registered Webinos Service objects local to this RPC.
+		 * 
+		 * Service objects are stored in this dictionary with their API url as
+		 * key.
+		 */
 		this.objects = {};
+		
+		/**
+		 * Holds other Service objects, not registered here. To be filled upon
+		 * connect.
+		 * FIXME we should always query for these, instead of holding them here
+		 */
+		this.serviceObjectsFromPzh = [];
+		
 		this.requesterMapping = [];
 		
 		this.write = null;
@@ -450,12 +465,42 @@
 			
 			// add address where this service is available, namely this pzp/pzh sessionid
 			for (var i=0; i<results.length; i++) {
-				results[i].serviceAddress = sessionId; // This is source addres, it is used by messaging for returning back 
+				results[i].serviceAddress = sessionId; // This is source addres, it is used by messaging for returning back
 			}
 
+			// add other services reported from the pzh
+			function filterServiceType(el) {
+				return el.api === serviceType.api ? true : false;
+			}
+			results = results.concat(this.serviceObjectsFromPzh.filter(filterServiceType));
+			
 			return results;
 		}
 	};
+	
+	RPCHandler.prototype.setServicesFromPzh = function(services) {
+		console.log("setServicesFromPzh: found " + services.length + " services.");
+		this.serviceObjectsFromPzh = services;
+	}
+	
+	/**
+	 * Return an array of all registered Service objects. 
+	 */
+	RPCHandler.prototype.getRegisteredServices = function() {
+		// FIXME this shouldn't be a public method i guess
+		var results = [];
+		
+		function getServiceInfo(el) {
+			el = el.getInformation();
+			el.serviceAddress = sessionId;
+			return el;
+		}
+
+		for (var service in this.objects) {
+			results = results.concat(this.objects[service]);
+		}
+		return results.map(getServiceInfo);
+	}
 
 	/**
 	 * RPCWebinosService object to be registered as RPC module.
@@ -519,7 +564,6 @@
 		//We need to add the trailing / or add it later on
 		var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location)+'/';
 		//sessionPzp = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_pzp.js'));
-
 		if (contextEnabled) {
 		  require(webinosRoot + dependencies.manager.context_manager.location); 
 			//modules.push(webinosRoot + dependencies.manager.context_manager.location);
