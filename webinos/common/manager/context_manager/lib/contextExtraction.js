@@ -10,8 +10,6 @@ var moduleRoot = path.resolve(__dirname, '../') + '/';
 var moduleDependencies = require(moduleRoot + '/dependencies.json');
 var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
 var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
-
-
 var databasehelper = require(moduleRoot + '/contrib/JSORMDB');
 
 //Initialize helper classes
@@ -20,7 +18,6 @@ var Fs = require('fs');
 var vocdbpath = path.resolve(moduleRoot +'/data/contextVocabulary.json');
 
 webinos.context.DB = require(moduleRoot +'/lib/contextDBpzhManager.js')
-
 sessionPzp = require( webinosRoot + '/pzp/lib/session_pzp.js');
 
 webinos.context.saveContext = function(dataIn, success, fail) {
@@ -36,7 +33,6 @@ webinos.context.saveContext = function(dataIn, success, fail) {
   contextItem.timestamp = {};
   contextItem.paramstolog = [];
   contextItem.resultstolog = [];
-
 
   var findObjectsToStore = function(vocList, callList, arrayToFill,objRef){
     if(objRef == undefined){
@@ -109,9 +105,6 @@ webinos.context.saveContext = function(dataIn, success, fail) {
       }
     }
   }
-
-
-
   //Find API
   for(APIIndex in contextVocJSON){
     if(contextVocJSON[APIIndex].URI == dataIn.api){
