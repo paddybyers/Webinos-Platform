@@ -21,9 +21,8 @@ function VehicleModule(rpcHandler) {
 		vehicleSimulatorAvailable = true;
     }catch(e){
 		vehicleSimulatorAvailable = false;
-    	}catch(e){
-            console.log(e);
-    	}
+        console.log(e);
+    }
     }
 	var implFile;
     
