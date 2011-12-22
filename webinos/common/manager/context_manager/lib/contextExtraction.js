@@ -5,9 +5,6 @@ if (typeof webinos === 'undefined') {
 if (typeof webinos.context === 'undefined')
   webinos.context = {};
 
-//var moduleRoot = require('../dependencies.json');
-//var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
-//var webinosRoot = '../' + moduleRoot.root.location;
 var path = require('path');
 var moduleRoot = path.resolve(__dirname, '../') + '/';
 var moduleDependencies = require(moduleRoot + '/dependencies.json');
