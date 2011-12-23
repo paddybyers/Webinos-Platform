@@ -12,6 +12,11 @@ import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
 
 import android.content.Context;
+import android.os.Looper;
+import android.widget.Toast;
+
+import android.database.Cursor;
+
 
 public class ContactManagerImpl extends ContactManager implements IModule {
 
@@ -21,19 +26,39 @@ public class ContactManagerImpl extends ContactManager implements IModule {
 	 * ContactManager methods
 	 *****************************/
 	@Override
-	public PendingOperation find(String[] fields, ContactFindCB successCB,
-			ContactErrorCB errorCB, ContactFindOptions options) {
+	public PendingOperation find(String[] fields, ContactFindCB successCB, ContactErrorCB errorCB, ContactFindOptions options) {
 		// TODO Auto-generated method stub
+        //Log.v("CONTACTS", "TEST!");
+        
+		try {
+          Toast toast = Toast.makeText(androidContext, fields.toString(), Toast.LENGTH_LONG);
+          toast.show();
+		}
+		catch(Throwable t){
+			t.printStackTrace(); 
+		}
+          
+		Contact[] contacts = this.getContacts();
+		successCB.onSuccess(contacts);
+	
+		return null;
+	}
+	
+	
+	private int getContactsNumber() {
+		return 2;
+	}
+	
+	private Contact[] getContacts(){
 		
-		Contact[] contacts = new Contact[1];
+		Contact[] contacts = new Contact[this.getContactsNumber()];
+		
 		contacts[0] = new ContactImpl(this);		
 		contacts[0].displayName = "NAME";
 		
-		successCB.onSuccess(contacts);
-	
-		
-		return null;
+		return contacts;
 	}
+	
 
 	/*****************************
 	 * IModule methods
@@ -45,6 +70,8 @@ public class ContactManagerImpl extends ContactManager implements IModule {
 		 * perform any module initialisation here ...
 		 */
 		
+		Looper.prepare();
+
 		return this;
 	}
 
