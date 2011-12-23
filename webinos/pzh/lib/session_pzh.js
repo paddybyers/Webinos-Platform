@@ -664,7 +664,11 @@
 					});
 				
 					utils.resolveIP(server, function(name) {
-						server = name;
+						if(typeof name === 'object') {
+							server = name[0];
+						} else {
+							server = name;
+						}
 						pzh.sock.listen(pzh.port, server);
 					});
 				} catch (err1) {

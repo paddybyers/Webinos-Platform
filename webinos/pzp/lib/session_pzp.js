@@ -378,7 +378,11 @@
 		client.code = code;		
 		client.pzhPort = port;
 		utils.resolveIP(servername, function(name) {
-			client.pzhName = name;
+			if(typeof name === "object") {
+				client.pzhName = name[0];
+			} else  {
+				client.pzhName = name;
+			}
 			utils.configure(client, 'Pzp', contents, function(result) {
 				utils.debug(2, 'PZP (Not Connected) '+result);
 				client.checkFiles(function(config) {

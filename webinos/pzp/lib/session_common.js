@@ -487,21 +487,21 @@ exports.resolveIP = function(serverName, callback) {
 	if(net.isIP(serverName) !== 0) {
 		callback(serverName);
 	} else {
-		dns.lookup(serverName, function(err, address, family) {			
+		dns.resolve(serverName, function(err, address, family) {			
 			if(err !== "null") {
-				debug(3, "Lookup IP Err", err);
-				dns.resolve(serverName, function(err, address) {
+				debug(3, "Resolve IP Err", err);
+				dns.lookup(serverName, function(err, address) {
 					if(err) {
-						debug(3, "Resolve IP Err", err);
+						debug(3, "Lookup IP Err", err);
 						return "undefined";
 					}
-					debug(3, "Resolve IP Address "+ address);
-					callback(address[0]);
+					debug(3, "Lookup IP Address "+ address);
+					callback(address);
 					return "undefined";
 				});				
 			} 
-			debug(3, "Lookup Address "+ address);
-			callback(address[0]);			
+			debug(3, "Resolve Address "+ address);
+			callback(address);			
 		});
 	}
 };
