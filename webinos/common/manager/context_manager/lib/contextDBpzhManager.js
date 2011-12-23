@@ -19,7 +19,9 @@
 
   sessionPzp = require(webinosRoot + '/pzp/lib/session_pzp.js');
 
-  //PZP
+  ////////////////////////////////////////////////////////////////////////////////////////
+  //Running on the PZP
+  //////////////////////////////////////////////////////////////////////////////////////
   exports.handleContextData = function(contextData){
     var connectedPzh = sessionPzp.getPzhId();
     if (connectedPzh == "null" || connectedPzh == "undefined"){
@@ -29,7 +31,7 @@
       bufferDB.db.load();
       bufferDB.insert(contextData);
       var data = bufferDB.query();
-      
+
       var contextService = [];
       var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'));
       service[0].serviceAddress = connectedPzh
@@ -46,7 +48,9 @@
     //success(true);
   }
 
-  //PZH
+  ////////////////////////////////////////////////////////////////////////////////////////
+  //Running on the PZH
+  //////////////////////////////////////////////////////////////////////////////////////
   exports.insert = function(contextData, success, fail) {
     saveToDB(contextData, function(){
       console.log("Successfully commited " + contextData.length + " Context Objects to the context DB on the PZH");
@@ -56,8 +60,6 @@
       //fail();
     });
   }
-
-  //PZH
   saveToDB = function(contextData, success, fail) {
     var inContextRAW = db.prepare("INSERT INTO tblcontextraw (fldAPI, fldDevice, fldApplication, fldSession, fldContextObject, fldMethod, fldTimestamp) VALUES (?,?,?,?,?,?,?)");
     var contextItem = {};
@@ -94,7 +96,6 @@
     }
     success();
   }
-//PZH
   exports.getrawview = function(success,fail){
     var result = {msg:null,data:[]};
     db.each(

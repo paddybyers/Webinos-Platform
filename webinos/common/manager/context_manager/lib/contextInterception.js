@@ -27,7 +27,7 @@ var moduleRoot = path.resolve(__dirname, '../') + '/';
 var moduleDependencies = require(moduleRoot + '/dependencies.json');
 var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
 var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
-
+var sessionPzp = require( webinosRoot + '/pzp/lib/session_pzp.js');
 
 
 var listeners = {};
@@ -102,12 +102,13 @@ webinos.context.logContext = function(myObj, res) {
   var myData = new webinos.context.ContextData(myObj['method'],myObj['params'], res['result']);
 
   var dataIn = {timestamp:myData.timestamp, api: myData.call.api, hash: myData.call.hash, method: myData.call.method, params:myData.params, result:myData.results};
-//console.log(webinos.session.pzp.getConnectedPzhId())
+  var dataInLog = {timestamp:myData.timestamp, api: myData.call.api, hash: myData.call.hash, method: myData.call.method, session: sessionPzp.getPzpId()};
+
 
   //Don't log Context API calls
   if (!(myData.call.api =='http://webinos.org/api/context'))
   {
-    webinos.context.database.insert([dataIn]);
+    webinos.context.database.insert([dataInLog]);
     console.log(" Context Data Saved");
     webinos.context.saveContext(dataIn);
   }
