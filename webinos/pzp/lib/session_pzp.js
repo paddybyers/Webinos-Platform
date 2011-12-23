@@ -117,67 +117,75 @@
 
 	};	
 	
+	
+	
 	/** @decription Generates self signed certificate, crl, private key and certificate request. Certificate creation is done only first time Pzp starts
 	 * crypto sensitive function
 	 * @returns {function} callback pzp certificate to use for connecting pzh. 
 	 */
 	Pzp.prototype.checkFiles = function (callback) {
+		
 		var self = this, options;		
 		var pzpRoot = webinosDemo+'/certificates/pzp';
 		var pzpName = pzpRoot+'/'+self.config.common.split(':')[0];
+		//This is a global, don't be fooled into thinking it needs to be a var.
 		pzpCertDir = path.resolve(__dirname, pzpName+'/cert');
 		var pzpKeyDir = path.resolve(__dirname, pzpName+'/keys');		
 		
-		fs.readFile(pzpCertDir+'/'+self.config.master.cert.name, function (err) {
-			if (err !== null && err.code === 'ENOENT') {
-					utils.selfSigned(self, 'Pzp', self.config.conn, function (status) {
-					if (status === 'certGenerated') {
-						fs.readdir(webinosDemo+'/certificates', function(err) {
-							if(err !== null && err.code === "ENOENT") {
-								fs.mkdirSync(webinosDemo+'/certificates', '0700');								
-							}
-							fs.readdir(pzpRoot, function(err) {
-								if(err !== null && err.code === "ENOENT") {
-									fs.mkdirSync(pzpRoot, '0700');								
-								}
-								fs.readdir(pzpName, function(err) {
-									if(err !== null && err.code === "ENOENT") {
-										fs.mkdirSync(pzpName, '0700');
-										fs.mkdirSync(pzpCertDir, '0700');							
-										fs.mkdirSync(pzpKeyDir, '0700');
-									}
-									fs.writeFileSync(pzpKeyDir+'/'+self.config.conn.key.name, self.config.conn.key.value);
-									options = {key: self.config.conn.key.value, cert: self.config.conn.cert.value};
-									callback.call(self, options);
-								});
-							});
-						});						
-					} else {
-						callback.call(self, 'failed');
-					}
-				});
-			} else {
-				if(self.sessionId && tlsId.hasOwnProperty(self.sessionId) ) {
-					options = {'session': tlsId[self.sessionId]};
+		//Check that all the directories exist.
+		if (!path.existsSync(webinosDemo+'/certificates')) {
+		    fs.mkdirSync(webinosDemo+'/certificates', '0700');
+		}
+		if (!path.existsSync(pzpRoot)) {
+		    fs.mkdirSync(pzpRoot, '0700');
+		}
+		if (!path.existsSync(pzpName)) {
+		    fs.mkdirSync(pzpName, '0700');
+		}
+		if (!path.existsSync(pzpCertDir)) {
+		    fs.mkdirSync(pzpCertDir, '0700');
+		}
+		if (!path.existsSync(pzpKeyDir)) {
+		    fs.mkdirSync(pzpKeyDir, '0700');
+		}
+		
+		
+		
+		if (!path.existsSync(pzpCertDir+'/'+self.config.master.cert.name)) {
+		    //We have no certificates - create some which are self-signed.
+		    utils.selfSigned(self, 'Pzp', self.config.conn, function (status) {
+				if (status === 'certGenerated') {
+		            fs.writeFileSync(pzpKeyDir+'/'+self.config.conn.key.name, self.config.conn.key.value);
+					options = {key: self.config.conn.key.value, cert: self.config.conn.cert.value};
 					callback.call(self, options);
+		        } else {
+		            callback.call(self, 'failed');
+		        }
+		    });
+		} else {
+			if(self.sessionId && tlsId.hasOwnProperty(self.sessionId) ) {
+				//resuming an old session
+				options = {'session': tlsId[self.sessionId]};
+				callback.call(self, options);
 
-				} else {
-					self.config.conn.cert.value = fs.readFileSync(pzpCertDir+'/'+self.config.conn.cert.name).toString();
-					self.config.conn.key.value = fs.readFileSync(pzpKeyDir+'/'+self.config.conn.key.name).toString();
-					self.config.master.cert.value = fs.readFileSync(pzpCertDir+'/'+self.config.master.cert.name).toString();
-					if (path.existsSync(self.config.master.crl.name)) {					
-    						self.config.master.crl.value = fs.readFileSync(pzpCertDir+'/'+self.config.master.crl.name).toString();
-					}
-					options = {
-						key: self.config.conn.key.value,
-						cert: self.config.conn.cert.value,
-						ca: self.config.master.cert.value,
-						crl: self.config.master.crl.value
-					};
-					callback.call(self, options);
-				} 
-			}
-		});
+			} else {
+			    //reusing existing certificates.
+				self.config.conn.cert.value = fs.readFileSync(pzpCertDir+'/'+self.config.conn.cert.name).toString();
+				self.config.conn.key.value = fs.readFileSync(pzpKeyDir+'/'+self.config.conn.key.name).toString();
+				self.config.master.cert.value = fs.readFileSync(pzpCertDir+'/'+self.config.master.cert.name).toString();
+				if (path.existsSync(self.config.master.crl.name)) {					
+						//we wont have a CRL until someone synchronises it.
+						self.config.master.crl.value = fs.readFileSync(pzpCertDir+'/'+self.config.master.crl.name).toString();
+				}
+				options = {
+					key: self.config.conn.key.value,
+					cert: self.config.conn.cert.value,
+					ca: self.config.master.cert.value,
+					crl: self.config.master.crl.value
+				};
+				callback.call(self, options);
+			} 
+		}
 	};
 	
 	sessionPzp.getPzpId = function() {
