@@ -383,6 +383,7 @@
 			} else  {
 				client.pzhName = name;
 			}
+			utils.debug(3, 'connecting address: ' + client.pzhName);
 			utils.configure(client, 'Pzp', contents, function(result) {
 				utils.debug(2, 'PZP (Not Connected) '+result);
 				client.checkFiles(function(config) {

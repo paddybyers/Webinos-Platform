@@ -669,6 +669,7 @@
 						} else {
 							server = name;
 						}
+						utils.debug(3, "Connecting Address" + server);
 						pzh.sock.listen(pzh.port, server);
 					});
 				} catch (err1) {

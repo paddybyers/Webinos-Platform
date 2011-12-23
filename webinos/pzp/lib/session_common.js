@@ -489,18 +489,18 @@ exports.resolveIP = function(serverName, callback) {
 	} else {
 		dns.resolve(serverName, function(err, address, family) {			
 			if(err !== "null") {
-				debug(3, "Resolve IP Err", err);
+				//debug(3, "Resolve IP Err", err);
 				dns.lookup(serverName, function(err, address) {
 					if(err) {
-						debug(3, "Lookup IP Err", err);
+						//debug(3, "Lookup IP Err", err);
 						return "undefined";
 					}
-					debug(3, "Lookup IP Address "+ address);
+					//debug(3, "Lookup IP Address "+ address);
 					callback(address);
 					return "undefined";
 				});				
 			} 
-			debug(3, "Resolve Address "+ address);
+			//debug(3, "Resolve Address "+ address);
 			callback(address);			
 		});
 	}
