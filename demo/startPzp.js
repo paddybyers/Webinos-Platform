@@ -27,7 +27,8 @@ pzpModules.list = [
     "vehicle",
     "context",
     "authentication",
-    "contacts"
+    "contacts",
+    "devicestatus"
 ];
 
 if (ipAddr === '' || port <= 0) {
