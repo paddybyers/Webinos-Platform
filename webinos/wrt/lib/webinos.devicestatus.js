@@ -1,35 +1,48 @@
 (function () {
-//	"use strict";
-//
-//	if (typeof webinos === "undefined") {
-//		webinos = {};
-//	}
-//
-//	if (!webinos.devicestatus) {
-//		webinos.devicestatus = {};
-//	}
-//
-//	var DeviceapisDeviceStatusManager, DeviceStatusManager, PropertyValueSuccessCallback, ErrorCallback, DeviceAPIError, PropertyRef;
-//
-//	DeviceapisDeviceStatusManager = function () {
-//		this.devicestatus = new DeviceStatusManager();
-//	};
-//
-//	DeviceapisDeviceStatusManager.prototype.devicestatus = null;
-
 	var PropertyValueSuccessCallback, ErrorCallback, DeviceAPIError, PropertyRef;
 
-	this.DeviceStatusManager = function (obj) {
+	DeviceStatusManager = function (obj) {
 		this.base = WebinosService;
 		this.base(obj);
 	};
 	DeviceStatusManager.prototype = new WebinosService;
 
-	DeviceStatusManager.prototype.getPropertyValue = function (successCallback, errorCallback, prop) {
-		var rpc = webinos.rpc.createRPC(this, "devicestatus.getPropertyValue", arguments);
-		webinos.rpc.executeRPC(rpc, 
+	DeviceStatusManager.prototype.bindService = function (bindCB, serviceId) {
+		// actually there should be an auth check here or whatever, but we just always bind
+		this.getComponents = getComponents;
+		this.isSupported = isSupported;
+		this.getPropertyValue = getPropertyValue;
+
+		if (typeof bindCB.onBind === 'function') {
+			bindCB.onBind(this);
+		};
+	}
+
+	function getComponents (aspect, successCallback, errorCallback)	{
+		var rpc = webinos.rpc.createRPC(this, "devicestatus.getComponents", [aspect]);
+		webinos.rpc.executeRPC(rpc,
+			function (params) { successCallback(params); }
+		);
+		return;
+	}
+
+	function isSupported (aspect, property, successCallback)
+	{
+		var rpc = webinos.rpc.createRPC(this, "devicestatus.isSupported", [aspect, property]);
+		webinos.rpc.executeRPC(
+			rpc, 
+			function (res) { successCallback(res); }
+		);
+		return;
+	}
+
+	function getPropertyValue (successCallback, errorCallback, prop) {
+		var rpc = webinos.rpc.createRPC(this, "devicestatus.getPropertyValue", [prop]);
+		webinos.rpc.executeRPC(
+			rpc, 
 			function (params) { successCallback(params); },
-			errorCallback);
+			function (err) { errorCallback(err); }
+		);
 		return;
 	};
 
