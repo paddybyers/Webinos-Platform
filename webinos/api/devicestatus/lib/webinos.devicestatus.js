@@ -2,7 +2,7 @@
 	"use strict";
 
 	var DeviceapisDeviceStatusManager, DeviceStatusManager, PropertyRef, WatchOptions, DeviceAPIError, PropertyValueSuccessCallback, ErrorCallback, PendingOperation,
-	nativeDeviceStatus = require("../src/build/default/nativedevicestatus"),
+	nativeDeviceStatus = (process.versions.node < "0.6.0" ) ? require('../src/build/default/nativedevicestatus') : require('../src/build/Release/nativedevicestatus'),
 	pmlib = require("../../../common/manager/policy_manager/lib/policymanager.js"),
 	policyManager;
 
