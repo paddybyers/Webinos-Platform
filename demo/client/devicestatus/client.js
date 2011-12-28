@@ -35,7 +35,6 @@ $(document).ready(
 				var address = $('#pzh_pzp_list').val();
 
 				webinos.ServiceDiscovery.findServices(
-					address,
 					new ServiceType("http://wacapps.net/api/devicestatus"),
 					{onFound:
 						function (service) { 

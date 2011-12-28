@@ -5,6 +5,7 @@
 		this.base = WebinosService;
 		this.base(obj);
 	};
+	
 	DeviceStatusManager.prototype = new WebinosService;
 
 	DeviceStatusManager.prototype.bindService = function (bindCB, serviceId) {
@@ -19,8 +20,8 @@
 	}
 
 	function getComponents (aspect, successCallback, errorCallback)	{
-		var rpc = webinos.rpc.createRPC(this, "devicestatus.getComponents", [aspect]);
-		webinos.rpc.executeRPC(rpc,
+		var rpc = webinos.rpcHandler.createRPC(this, "devicestatus.getComponents", [aspect]);
+		webinos.rpcHandler.executeRPC(rpc,
 			function (params) { successCallback(params); }
 		);
 		return;
@@ -28,8 +29,8 @@
 
 	function isSupported (aspect, property, successCallback)
 	{
-		var rpc = webinos.rpc.createRPC(this, "devicestatus.isSupported", [aspect, property]);
-		webinos.rpc.executeRPC(
+		var rpc = webinos.rpcHandler.createRPC(this, "devicestatus.isSupported", [aspect, property]);
+		webinos.rpcHandler.executeRPC(
 			rpc, 
 			function (res) { successCallback(res); }
 		);
@@ -37,8 +38,8 @@
 	}
 
 	function getPropertyValue (successCallback, errorCallback, prop) {
-		var rpc = webinos.rpc.createRPC(this, "devicestatus.getPropertyValue", [prop]);
-		webinos.rpc.executeRPC(
+		var rpc = webinos.rpcHandler.createRPC(this, "devicestatus.getPropertyValue", [prop]);
+		webinos.rpcHandler.executeRPC(
 			rpc, 
 			function (params) { successCallback(params); },
 			function (err) { errorCallback(err); }

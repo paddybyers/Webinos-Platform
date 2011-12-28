@@ -33,9 +33,13 @@
 
 	DeviceStatusManager = function () {};
 
-	DeviceStatusManager.prototype.getComponents = function (aspect) {};
+	DeviceStatusManager.prototype.getComponents = function (aspect, successCallback) {
+		successCallback(nativeDeviceStatus.getComponents(aspect));
+	};
 	
-	DeviceStatusManager.prototype.isSupported = function (aspect, property) {};
+	DeviceStatusManager.prototype.isSupported = function (aspect, property, successCallback) {
+		successCallback({'aspect':aspect, 'property':property, 'isSupported':nativeDeviceStatus.isSupported(aspect, property)});
+	};
 
 	DeviceStatusManager.prototype.getPropertyValue = function (successCallback, errorCallback, prop) {
 		//the following line will be removed
@@ -55,9 +59,13 @@
 		policyManager.enforceRequest(request, errorCallback, successCallback, nativeDeviceStatus.getPropertyValue(prop));
 	};
 
-	DeviceStatusManager.prototype.watchPropertyChange = function (successCallback, errorCallback, prop, options) { };
+	DeviceStatusManager.prototype.watchPropertyChange = function (successCallback, errorCallback, prop, options) {
+		nativeDeviceStatus.watchPropertyChange(prop, options);
+	};
 
-	DeviceStatusManager.prototype.clearPropertyChange = function (watchHandler) { };
+	DeviceStatusManager.prototype.clearPropertyChange = function (watchHandler) {
+		// Not Native?
+	};
 
 	/*
 	 *	PropertyRef Interface
