@@ -4,7 +4,7 @@
       "name": "Get 42",
       "location": "api/get42/"
     },
-	"events": {
+        "events": {
       "name": "Events API",
       "location": "api/events/"
     },
@@ -63,6 +63,10 @@
     "devicestatus": {
       "name": "DeviceStatus",
       "location": "api/devicestatus/"
+    },
+    "payment": {
+      "name": "Payment",
+      "location": "api/payment/"
     }
   },
   "manager": {
@@ -88,8 +92,8 @@
     "location": "common/rpc/"
   },
   "xmpp": {
-	"name": "xmpp",
-	"location": "common/xmpp/"
+        "name": "xmpp",
+        "location": "common/xmpp/"
   },
   "pzp": {
     "name": "PZP",
