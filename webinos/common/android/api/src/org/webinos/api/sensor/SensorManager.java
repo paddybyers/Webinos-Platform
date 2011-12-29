@@ -1,13 +1,12 @@
 package org.webinos.api.sensor;
 
 import org.meshpoint.anode.bridge.Env;
-import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 import org.webinos.api.PendingOperation;
 
 public abstract class SensorManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(SensorManager.class);
-	protected SensorManager() { super(iface); }
+	private static short classId = Env.getInterfaceId(SensorManager.class);
+	protected SensorManager() { super(classId); }
 	
 	public Double maximumRange;
     public Integer minDelay;

@@ -2,9 +2,9 @@
 
 package org.meshpoint.anode.stub.gen.user;
 
-public final class Org_webinos_api_contact_ContactFindCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.contact.ContactFindCB {
+public class Org_webinos_api_contact_ContactFindCB extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.contact.ContactFindCB {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getCurrent().getInterfaceManager().getByClass(org.webinos.api.contact.ContactFindCB.class).getId();
+	private static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.contact.ContactFindCB.class);
 
 	Org_webinos_api_contact_ContactFindCB(long instHandle) { super(instHandle); }
 

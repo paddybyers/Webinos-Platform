@@ -1,13 +1,12 @@
 package org.webinos.api.gallery;
 
 import org.meshpoint.anode.bridge.Env;
-import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 import org.webinos.api.PendingOperation;
 
 public abstract class GalleryManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(GalleryManager.class);
-	protected GalleryManager() { super(iface); }
+	private static short classId = Env.getInterfaceId(GalleryManager.class);
+	protected GalleryManager() { super(classId); }
 
 	public static final int AUDIO_TYPE = 0;
 	public static final int VIDEO_TYPE = 1;

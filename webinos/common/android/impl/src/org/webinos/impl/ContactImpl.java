@@ -8,4 +8,5 @@ public class ContactImpl extends Contact {
 	ContactImpl(ContactManagerImpl mgr) {
 		this.mgr = mgr;
 	}
+	
 }

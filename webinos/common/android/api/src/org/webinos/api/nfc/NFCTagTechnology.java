@@ -1,12 +1,11 @@
 package org.webinos.api.nfc;
 
 import org.meshpoint.anode.bridge.Env;
-import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 
 public abstract class NFCTagTechnology extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(NFCTagTechnology.class);
-	protected NFCTagTechnology() { super(iface); }
+	private static short classId = Env.getInterfaceId(NFCTagTechnology.class);
+	protected NFCTagTechnology() { super(classId); }
 
 	public static final int TECH_OTHERS = 0;
 	public static final int TECH_NFCA = 1;

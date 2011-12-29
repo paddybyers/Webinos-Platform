@@ -2,7 +2,7 @@
 
 package org.meshpoint.anode.stub.gen.platform;
 
-public final class Org_webinos_api_messaging_MessagingManager {
+public class Org_webinos_api_messaging_MessagingManager {
 
 	private static Object[] __args = new Object[3];
 

@@ -1,6 +1,7 @@
 package org.webinos.impl;
 
 import org.webinos.api.PendingOperation;
+import org.webinos.api.contact.Contact;
 import org.webinos.api.contact.ContactErrorCB;
 import org.webinos.api.contact.ContactFindCB;
 import org.webinos.api.contact.ContactFindOptions;
@@ -23,6 +24,14 @@ public class ContactManagerImpl extends ContactManager implements IModule {
 	public PendingOperation find(String[] fields, ContactFindCB successCB,
 			ContactErrorCB errorCB, ContactFindOptions options) {
 		// TODO Auto-generated method stub
+		
+		Contact[] contacts = new Contact[1];
+		contacts[0] = new ContactImpl(this);		
+		contacts[0].displayName = "NAME";
+		
+		successCB.onSuccess(contacts);
+	
+		
 		return null;
 	}
 
@@ -35,6 +44,7 @@ public class ContactManagerImpl extends ContactManager implements IModule {
 		/*
 		 * perform any module initialisation here ...
 		 */
+		
 		return this;
 	}
 

@@ -2,7 +2,7 @@
 
 package org.meshpoint.anode.stub.gen.platform;
 
-public final class Org_webinos_api_authentication_AuthenticationManager {
+public class Org_webinos_api_authentication_AuthenticationManager {
 
 	private static Object[] __args = new Object[2];
 

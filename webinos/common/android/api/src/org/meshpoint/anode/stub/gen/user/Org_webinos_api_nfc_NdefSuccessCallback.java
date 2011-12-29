@@ -2,9 +2,9 @@
 
 package org.meshpoint.anode.stub.gen.user;
 
-public final class Org_webinos_api_nfc_NdefSuccessCallback extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.nfc.NdefSuccessCallback {
+public class Org_webinos_api_nfc_NdefSuccessCallback extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.nfc.NdefSuccessCallback {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getCurrent().getInterfaceManager().getByClass(org.webinos.api.nfc.NdefSuccessCallback.class).getId();
+	private static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.nfc.NdefSuccessCallback.class);
 
 	Org_webinos_api_nfc_NdefSuccessCallback(long instHandle) { super(instHandle); }
 

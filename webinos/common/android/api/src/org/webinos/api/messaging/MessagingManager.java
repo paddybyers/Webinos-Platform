@@ -1,7 +1,6 @@
 package org.webinos.api.messaging;
 
 import org.meshpoint.anode.bridge.Env;
-import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 
 import org.webinos.api.DeviceAPIError;
@@ -9,8 +8,8 @@ import org.webinos.api.ErrorCallback;
 import org.webinos.api.PendingOperation;
 
 public abstract class MessagingManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(MessagingManager.class);
-	protected MessagingManager() { super(iface); }
+	private static short classId = Env.getInterfaceId(MessagingManager.class);
+	protected MessagingManager() { super(classId); }
 
 	public static final int TYPE_SMS = 1;
 	public static final int TYPE_MMS = 2;

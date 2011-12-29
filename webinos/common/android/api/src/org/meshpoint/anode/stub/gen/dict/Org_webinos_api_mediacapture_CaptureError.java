@@ -2,7 +2,7 @@
 
 package org.meshpoint.anode.stub.gen.dict;
 
-public final class Org_webinos_api_mediacapture_CaptureError {
+public class Org_webinos_api_mediacapture_CaptureError {
 
 	private static Object[] __args = new Object[5];
 

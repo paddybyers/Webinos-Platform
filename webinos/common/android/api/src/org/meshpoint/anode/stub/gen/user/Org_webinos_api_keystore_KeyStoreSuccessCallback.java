@@ -2,9 +2,9 @@
 
 package org.meshpoint.anode.stub.gen.user;
 
-public final class Org_webinos_api_keystore_KeyStoreSuccessCallback extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.keystore.KeyStoreSuccessCallback {
+public class Org_webinos_api_keystore_KeyStoreSuccessCallback extends org.meshpoint.anode.js.JSInterface implements org.webinos.api.keystore.KeyStoreSuccessCallback {
 
-	static int classId = org.meshpoint.anode.bridge.Env.getCurrent().getInterfaceManager().getByClass(org.webinos.api.keystore.KeyStoreSuccessCallback.class).getId();
+	private static int classId = org.meshpoint.anode.bridge.Env.getInterfaceId(org.webinos.api.keystore.KeyStoreSuccessCallback.class);
 
 	Org_webinos_api_keystore_KeyStoreSuccessCallback(long instHandle) { super(instHandle); }
 

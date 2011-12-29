@@ -1,15 +1,14 @@
 package org.webinos.api.devicestatus;
 
 import org.meshpoint.anode.bridge.Env;
-import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 import org.webinos.api.DeviceAPIError;
 import org.webinos.api.ErrorCallback;
 import org.webinos.api.PendingOperation;
 
 public abstract class DevicestatusManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(DevicestatusManager.class);
-	protected DevicestatusManager() { super(iface); }
+	private static short classId = Env.getInterfaceId(DevicestatusManager.class);
+	protected DevicestatusManager() { super(classId); }
 
 	public abstract String[] getComponents(String aspect) throws DeviceAPIError;
 	public abstract boolean isSupported(String aspect, String property) throws DeviceAPIError;

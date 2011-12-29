@@ -2,7 +2,7 @@
 
 package org.meshpoint.anode.stub.gen.platform;
 
-public final class Org_webinos_api_devicestatus_DevicestatusManager {
+public class Org_webinos_api_devicestatus_DevicestatusManager {
 
 	private static Object[] __args = new Object[4];
 

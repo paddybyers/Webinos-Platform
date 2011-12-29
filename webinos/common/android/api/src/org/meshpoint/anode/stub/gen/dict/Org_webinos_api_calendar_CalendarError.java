@@ -2,7 +2,7 @@
 
 package org.meshpoint.anode.stub.gen.dict;
 
-public final class Org_webinos_api_calendar_CalendarError {
+public class Org_webinos_api_calendar_CalendarError {
 
 	private static Object[] __args = new Object[8];
 

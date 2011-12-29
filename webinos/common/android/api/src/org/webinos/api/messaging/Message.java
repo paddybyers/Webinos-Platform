@@ -3,7 +3,6 @@ package org.webinos.api.messaging;
 import java.util.Date;
 
 import org.meshpoint.anode.bridge.Env;
-import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 import org.w3c.dom.ObjectArray;
 import org.webinos.api.DeviceAPIError;
@@ -12,8 +11,8 @@ import org.webinos.api.File;
 import org.webinos.api.PendingOperation;
 
 public abstract class Message extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(Message.class);
-	protected Message() { super(iface); }
+	private static short classId = Env.getInterfaceId(Message.class);
+	protected Message() { super(classId); }
 
 	public String id;
 	public int type; 

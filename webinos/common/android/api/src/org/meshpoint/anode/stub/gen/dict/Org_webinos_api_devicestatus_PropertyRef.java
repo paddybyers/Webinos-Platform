@@ -2,7 +2,7 @@
 
 package org.meshpoint.anode.stub.gen.dict;
 
-public final class Org_webinos_api_devicestatus_PropertyRef {
+public class Org_webinos_api_devicestatus_PropertyRef {
 
 	private static Object[] __args = new Object[3];
 

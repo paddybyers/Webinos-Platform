@@ -3,12 +3,11 @@ package org.webinos.api.contact;
 import java.util.Date;
 
 import org.meshpoint.anode.bridge.Env;
-import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 
 public class Contact extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(Contact.class);
-	protected Contact() { super(iface); }
+	private static short classId = Env.getInterfaceId(Contact.class);
+	protected Contact() { super(classId); }
 
     public String id;
     public String displayName;

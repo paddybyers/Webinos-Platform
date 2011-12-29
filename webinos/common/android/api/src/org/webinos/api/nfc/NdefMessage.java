@@ -1,13 +1,12 @@
 package org.webinos.api.nfc;
 
 import org.meshpoint.anode.bridge.Env;
-import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 import org.w3c.dom.ObjectArray;
 
 public abstract class NdefMessage extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(NdefMessage.class);
-	protected NdefMessage() { super(iface); }
+	private static short classId = Env.getInterfaceId(NdefMessage.class);
+	protected NdefMessage() { super(classId); }
 
 	public static final int NDEFRECTYPE_UNKNOWN = 0;
 	public static final int NDEFRECTYPE_URI = 1;

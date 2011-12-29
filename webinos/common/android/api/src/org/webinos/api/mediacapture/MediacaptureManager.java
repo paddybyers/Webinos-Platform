@@ -1,14 +1,13 @@
 package org.webinos.api.mediacapture;
 
 import org.meshpoint.anode.bridge.Env;
-import org.meshpoint.anode.idl.IDLInterface;
 import org.meshpoint.anode.java.Base;
 import org.w3c.dom.ObjectArray;
 import org.webinos.api.PendingOperation;
 
 public abstract class MediacaptureManager extends Base {
-	private static IDLInterface iface = Env.getCurrent().getInterfaceManager().getByClass(MediacaptureManager.class);
-	protected MediacaptureManager() { super(iface); }
+	private static short classId = Env.getInterfaceId(MediacaptureManager.class);
+	protected MediacaptureManager() { super(classId); }
 
 	public ObjectArray<MediaFileData> supportedImageFormats;
 	public ObjectArray<MediaFileData> supportedVideoFormats;
