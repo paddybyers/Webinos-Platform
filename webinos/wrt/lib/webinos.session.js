@@ -1,8 +1,9 @@
 (function() {
 	webinos.session = {};
 	var sessionid = null;
-	var pzpId, pzhId, connectedPzp={}, connectedPzh={};
+	var pzpId, pzhId;
 	var serviceLocation;
+	var listenerMap = {};
 	var channel;	
 	webinos.session.setChannel = function(channel1) {
 		channel = channel1;
@@ -66,86 +67,64 @@
 		return otherpzp;
 	}
 	
+	webinos.session.addListener = function(statusType, listener) {
+		var listeners = listenerMap[statusType] || [];
+		
+		listeners.push(listener);
+		
+		listenerMap[statusType] = listeners;
+		
+		return listeners.length;
+	};
+	
+	webinos.session.removeListener = function(statusType, id) {
+		var listeners = listenerMap[statusType] || [];
+		
+		try {
+			listeners[id - 1] = undefined;
+		} catch (e) {};
+	};
+	
+	function callListenerForMsg(data) {
+		var listeners = listenerMap[data.payload.status] || [];
+		for (var i=0; i<listeners.length; i++) {
+			listeners[i](data);
+		}
+	}
+	
 	webinos.session.handleMsg = function(data) {
-		if(data.payload.status === 'registeredBrowser') {
+		switch (data.payload.status) {
+		case "registeredBrowser":
 			sessionid = data.to;
 			pzpId = data.from;
 
-			if(typeof data.payload.message !== "undefined") {
+			if (typeof data.payload.message !== "undefined") {
 				pzhId = data.payload.message.pzhId;
-				connectedPzp = data.payload.message.connectedPzp;
-				connectedPzh = data.payload.message.connectedPzh;
 			}
-			if(document.getElementById('pzh_pzp_list'))
-				document.getElementById('pzh_pzp_list').innerHTML="";
-		
-			$("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
-			var i;
-			for(i =0; i < connectedPzp.length; i++) {
-				$("<option value=" + connectedPzp[i] + " >" +connectedPzp[i] + "</option>").appendTo("#pzh_pzp_list");					
-			}
-			$("<option value="+pzpId+" >" + pzpId+ "</option>").appendTo("#pzh_pzp_list");						
-			$("</optgroup>").appendTo("#pzh_pzp_list");
-			$("<optgroup label = 'PZH' id ='pzh_list' >").appendTo("#pzh_pzp_list");
-			for(i =0; i < connectedPzh.length; i++) {
-				$("<option value=" + connectedPzh[i] + " >" +connectedPzh[i] + "</option>").appendTo("#pzh_pzp_list");					
-			}
-			$("</optgroup>").appendTo("#pzh_pzp_list");
+			
+			callListenerForMsg(data);
+			
 			webinos.message.setGetOwnId(sessionid);
 	
 			var msg = webinos.message.registerSender(sessionid , pzpId);
 			webinos.session.message_send(msg, pzpId);
 		
-		} else if(data.payload.status === "info") {
-			$('#message').append('<li>'+data.payload.message+'</li>');
-		} else if(data.type === "prop" && data.payload.status === "update") {
-			if(typeof data.payload.message.pzp !== "undefined") {
-				$("<option value=" + data.payload.message.pzp + " >" +data.payload.message.pzp + "</option>").appendTo("#pzp_list");
-			} else {
-				$("<option value=" + data.payload.message.pzh + " >" +data.payload.message.pzh + "</option>").appendTo("#pzh_list");
+			break;
+			
+		case "update":
+			if(data.type === "prop") {
+				callListenerForMsg(data);
 			}
-		} else if(data.payload.status === "listPzh") {
-			var i, list = '', pzh = '', pzp ='';
-			document.getElementById('connectedList').innerHTML = '';
-			list += '<tr> <td>' + data.payload.message.name +'</td>';						
-			if(typeof data.payload.message.pzhId !== "undefined") {									
-				for( i = 0 ; i < data.payload.message.pzhId.length; i += 1) {					
-					pzh += '<td> ' + data.payload.message.pzhId[i] +'</td>';						
-				}
-				list += pzh;
-			}
-			if(typeof data.payload.message.pzpId !== "undefined") {
-				for( i = 0 ; i < data.payload.message.pzpId.length; i += 1) {
-					if(data.payload.message.pzpId[i] !== null) {
-						pzp += '<td> ' + data.payload.message.pzpId[i] +'</td>';						
-					}
-				}
-				list += pzp+ '</tr>';
-			}
-			$('#connectedList').append(list);
-            
-        } else if(data.payload.status === "listAllPzps") {
-			 document.getElementById("pzpList").innerHTML = "";
-                var list = "";
-                var pzps = data.payload.message;
-                if (pzps !== null) {
-                     list += "<tr style=\"border-bottom: thin solid black;\" ><th>Device name</th><th>Actions</th></tr>\n"
-                    var i=0;
-                    for (i=0;i<pzps.length;i++) {
-                        list += "\t<tr><td>" + pzps[i] + "</td><td><button id=\"revoke" + pzps[i] + "\" class=\"button\" style=\"width:100px\" onclick=\"revoke('" + pzps[i] + "')\" >revoke</a></td></tr>\n";
-                    }                
-                }
-                $("#pzpList").append(list);
-
-
-
-		} else if(data.payload.status === "crashLog") {
-			var log  = ' <tr> <td> '+ data.payload.message.name + '</td>  <td>'+ data.payload.message.log + '</td> </tr>';
-			$('#crashLogs').append(log);
-		}
-		else if(data.payload.status === "addPzpQR") {
-			var output  = '<h2>PZP URL</h2>\n'+ data.payload.message.img + ' ';
-			$('#qrcode').append(output);
+			break;
+			
+		case "info":
+		case "listPzh":
+		case "listAllPzps":
+		case "crashLog":
+		case "addPzpQR":
+			callListenerForMsg(data);
+			break;
+			
 		}
 	}
 }());
