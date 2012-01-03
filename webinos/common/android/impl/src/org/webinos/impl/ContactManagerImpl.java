@@ -12,6 +12,7 @@ import org.webinos.api.contact.ContactFindCB;
 import org.webinos.api.contact.ContactFindOptions;
 import org.webinos.api.contact.ContactManager;
 import org.webinos.api.contact.ContactName;
+import org.webinos.api.contact.ContactOrganization;
 
 import org.meshpoint.anode.AndroidContext;
 import org.meshpoint.anode.module.IModule;
@@ -87,6 +88,13 @@ public class ContactManagerImpl extends ContactManager implements IModule {
     		contact.phoneNumbers = getConcactPhoneNumbers(cursor, contactID);
     		contact.emails = getContactEmails(cursor, contactID);
     		contact.addresses = getContactAddresses(cursor, contactID);
+    		contact.ims = getContactIms(cursor, contactID);
+    		contact.organizations = getContactOrganizations(cursor, contactID);
+    		contact.birthday = getContactBirthday(cursor, contact.displayName);
+    		contact.note = getContactNote(cursor, contactID);
+    		contact.photos = getContactPhoto(cursor, contactID);
+    		contact.categories = getContactCategories(cursor, contactID);
+    		contact.urls = getContactUrls(cursor, contactID);
     		
     		contacts.add(contact);   		
     		//contacts[i] = contact;
@@ -328,6 +336,7 @@ public class ContactManagerImpl extends ContactManager implements IModule {
 			
 			ContactAddress address = new ContactAddress();
 			
+			//TODO: to be checked
 			if(addresses_cursor.getString(addresses_cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.IS_PRIMARY)).compareTo("0") != 0)
 				address.pref = true;
 			
@@ -362,6 +371,110 @@ public class ContactManagerImpl extends ContactManager implements IModule {
 		return addresses.toArray(new ContactAddress[0]);
 	}
 	
+	private ContactField[] getContactIms(Cursor cursor, String contactID) {
+		
+		ArrayList<ContactField> ims = new ArrayList<ContactField>();
+		
+		Cursor ims_cursor = androidContext.getContentResolver().query(  ContactsContract.Data.CONTENT_URI, 
+																		null, 
+																		ContactsContract.Data.CONTACT_ID + " = ? AND " + ContactsContract.Data.MIMETYPE + " = ?", 
+																		new String[]{contactID, ContactsContract.CommonDataKinds.Im.CONTENT_ITEM_TYPE}, 
+																		null);
+		while (ims_cursor.moveToNext()) {
+			
+			ContactField tmp = new ContactField();
+
+			//TODO: to be checked
+			if(ims_cursor.getString(ims_cursor.getColumnIndex(ContactsContract.CommonDataKinds.Organization.IS_PRIMARY)).compareTo("0") != 0)
+				tmp.pref = true;
+			
+			tmp.value = ims_cursor.getString(ims_cursor.getColumnIndex(ContactsContract.CommonDataKinds.Im.DATA));
+			String imType = ims_cursor.getString(ims_cursor.getColumnIndex(ContactsContract.CommonDataKinds.Im.PROTOCOL));
+			
+			//tmp.type = ims_cursor.getString(ims_cursor.getColumnIndex(ContactsContract.CommonDataKinds.Im.PROTOCOL));
+			
+			
+			switch(Integer.parseInt(imType)) {
+				case ContactsContract.CommonDataKinds.Im.PROTOCOL_AIM :
+					tmp.type = "AIM";
+				break;
+				case ContactsContract.CommonDataKinds.Im.PROTOCOL_CUSTOM :
+					tmp.type = "CUSTOM";
+				break;
+				case ContactsContract.CommonDataKinds.Im.PROTOCOL_GOOGLE_TALK :
+					tmp.type = "GOOGLE_TALK";
+				break;
+				case ContactsContract.CommonDataKinds.Im.PROTOCOL_ICQ :
+					tmp.type = "ICQ";
+				break;
+				case ContactsContract.CommonDataKinds.Im.PROTOCOL_JABBER :
+					tmp.type = "JABBER";
+				break;
+				case ContactsContract.CommonDataKinds.Im.PROTOCOL_MSN :
+					tmp.type = "MSN";
+				break;
+				case ContactsContract.CommonDataKinds.Im.PROTOCOL_QQ :
+					tmp.type = "QQ";
+				break;
+				case ContactsContract.CommonDataKinds.Im.PROTOCOL_SKYPE :
+					tmp.type = "SKYPE";
+				break;
+				case ContactsContract.CommonDataKinds.Im.PROTOCOL_YAHOO :
+					tmp.type = "YAHOO";
+				break;
+			}
+				
+			ims.add(tmp);
+		} 
+		ims_cursor.close();
+
+		return ims.toArray(new ContactField[0]);
+	}
+	
+	private ContactOrganization[] getContactOrganizations(Cursor cursor, String contactID) {
+		
+		ArrayList<ContactOrganization> organization = new ArrayList<ContactOrganization>();
+		
+		Cursor org_cursor = androidContext.getContentResolver().query(	ContactsContract.Data.CONTENT_URI, 
+																		null, 
+																		ContactsContract.Data.CONTACT_ID + " = ? AND " + ContactsContract.Data.MIMETYPE + " = ?", 
+																		new String[]{contactID, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE}, 
+																		null);
+		while (org_cursor.moveToNext()) {
+			String orgName = org_cursor.getString(org_cursor.getColumnIndex(ContactsContract.CommonDataKinds.Organization.DATA));
+			String orgTitle = org_cursor.getString(org_cursor.getColumnIndex(ContactsContract.CommonDataKinds.Organization.TITLE));
+			
+			ContactOrganization tmp = new ContactOrganization();
+			tmp.name = org_cursor.getString(org_cursor.getColumnIndex(ContactsContract.CommonDataKinds.Organization.DATA));
+			tmp.title = org_cursor.getString(org_cursor.getColumnIndex(ContactsContract.CommonDataKinds.Organization.TITLE));
+			
+			if (orgName.length() > 0)
+				organization.add(tmp);
+		}
+		org_cursor.close();
+		
+		return organization.toArray(new ContactOrganization[0]);
+	}
+	
+	private Date getContactBirthday(Cursor cursor, String displayName) {
+		return null;
+	}
+	
+	private String getContactNote(Cursor cursor, String contactID) {
+		return null;
+	}
+	
+	private ContactField[] getContactPhoto(Cursor cursor, String contactID) {
+		return null;
+	}
+	
+	private String[] getContactCategories(Cursor cursor, String contactID) {
+		return null;
+	}
+	
+	private ContactField[] getContactUrls(Cursor cursor, String contactID) {
+		return null;
+	}
 	
 	
 	/*****************************
