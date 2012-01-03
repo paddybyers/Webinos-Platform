@@ -5,7 +5,9 @@ import java.util.Date;
 
 import org.webinos.api.PendingOperation;
 import org.webinos.api.contact.Contact;
+import org.webinos.api.contact.ContactAddress;
 import org.webinos.api.contact.ContactErrorCB;
+import org.webinos.api.contact.ContactField;
 import org.webinos.api.contact.ContactFindCB;
 import org.webinos.api.contact.ContactFindOptions;
 import org.webinos.api.contact.ContactManager;
@@ -19,6 +21,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.os.Looper;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.PhoneLookup;
 import android.widget.Toast;
 
 import android.database.Cursor;
@@ -81,7 +84,9 @@ public class ContactManagerImpl extends ContactManager implements IModule {
     		contact.name = getContactName(cursor, contactID);
     		contact.revision = getContactRevision(cursor, contactID);
     		contact.nickname = getContactNickname(cursor, contactID);
-    		
+    		contact.phoneNumbers = getConcactPhoneNumbers(cursor, contactID);
+    		contact.emails = getContactEmails(cursor, contactID);
+    		contact.addresses = getContactAddresses(cursor, contactID);
     		
     		contacts.add(contact);   		
     		//contacts[i] = contact;
@@ -163,7 +168,202 @@ public class ContactManagerImpl extends ContactManager implements IModule {
 		return nickName;
 	}
 	
+	private ContactField[] getConcactPhoneNumbers(Cursor cursor, String contactID) {
+		
+		ArrayList<ContactField> phoneNumbers = new ArrayList<ContactField>();
+		
+		if(cursor.getColumnIndex(PhoneLookup.HAS_PHONE_NUMBER) != 0){
+			Cursor phones_cursor = androidContext.getContentResolver().query( ContactsContract.CommonDataKinds.Phone.CONTENT_URI, 
+																				null, 
+																				ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = "+ contactID, 
+																				null, null); 
+				while(phones_cursor.moveToNext()) {
+					
+					ContactField tmp = new ContactField();
 
+					if(phones_cursor.getString(phones_cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.IS_PRIMARY)).compareTo("0") != 0) {
+						tmp.pref = true;
+					}
+					
+					String type = phones_cursor.getString(phones_cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE));
+					
+					switch (Integer.parseInt(type)) {
+						case ContactsContract.CommonDataKinds.Phone.TYPE_ASSISTANT :
+							tmp.type = "ASSISTANT";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_CALLBACK :
+							tmp.type = "CALLBACK";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_CAR :
+							tmp.type = "CAR";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_COMPANY_MAIN :
+							tmp.type = "CAMPANY_MAIN";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_FAX_HOME :
+							tmp.type = "FAX_HOME";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_FAX_WORK :
+							tmp.type = "FAX_WORK";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_HOME :
+							tmp.type = "HOME";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_ISDN :
+							tmp.type = "ISDN";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_MAIN :
+							tmp.type = "MAIN";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_MMS :
+							tmp.type = "MMS";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE	:
+							tmp.type = "MOBILE";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_OTHER :
+							tmp.type = "OTHER";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_OTHER_FAX :
+							tmp.type = "OTHER_FAX";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_PAGER :
+							tmp.type = "PAGER";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_RADIO :
+							tmp.type = "RADIO";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_TELEX :
+							tmp.type = "TELEX";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_TTY_TDD :
+							tmp.type = "TTY_TDD";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_WORK :
+							tmp.type = "WORK";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_WORK_MOBILE :
+							tmp.type = "WORK_MOBILE";
+						break;
+						case ContactsContract.CommonDataKinds.Phone.TYPE_WORK_PAGER :
+							tmp.type = "WORK_PAGER";
+						break;
+						default:
+							tmp.value = "UNKNOWN";
+						break;
+					}
+					tmp.value = phones_cursor.getString(phones_cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+					phoneNumbers.add(tmp);
+				}
+			phones_cursor.close();
+			return phoneNumbers.toArray(new ContactField[0]);
+		}		
+		
+		return null;
+	}
+	
+	private ContactField[] getContactEmails(Cursor cursor, String contactID) {
+		
+		ArrayList<ContactField> emails = new ArrayList<ContactField>();
+		
+		Cursor emails_cursor = androidContext.getContentResolver().query(	ContactsContract.CommonDataKinds.Email.CONTENT_URI, 
+																			null, 
+																			ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = " + contactID, 
+																			null, null); 
+		while (emails_cursor.moveToNext()) {
+			
+			ContactField tmp = new ContactField();
+			
+			//TODO: preferred needs to be checked
+			if(emails_cursor.getString(emails_cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.IS_PRIMARY)).compareTo("0") != 0)
+				tmp.pref = true;
+			
+			//TODO: type needs to be checked
+			String type = emails_cursor.getString(emails_cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA2));
+			
+			switch(Integer.parseInt(type)) {
+				case ContactsContract.CommonDataKinds.Email.TYPE_HOME:
+					tmp.value = "HOME";
+				break;
+				case ContactsContract.CommonDataKinds.Email.TYPE_MOBILE:
+					tmp.value = "MOBILE";
+				break;
+				case ContactsContract.CommonDataKinds.Email.TYPE_OTHER:
+					tmp.value = "OTHER";
+				break;
+				case ContactsContract.CommonDataKinds.Email.TYPE_WORK:
+					tmp.value = "WORK";
+				break;
+				case ContactsContract.CommonDataKinds.Email.TYPE_CUSTOM:
+					tmp.value = "CUSTOM";
+				break;
+				default:
+					tmp.value = "UNKNOWN";
+				break;
+			}
+
+			tmp.value = emails_cursor.getString(emails_cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA1));
+			emails.add(tmp);
+		}
+		emails_cursor.close();
+		
+		return emails.toArray(new ContactField[0]);
+	}
+
+	private ContactAddress[] getContactAddresses(Cursor cursor, String contactID) {
+		
+		ArrayList<ContactAddress> addresses = new ArrayList<ContactAddress>();
+		
+		Cursor addresses_cursor = androidContext.getContentResolver().query(	ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_URI,
+												                null,
+												                ContactsContract.CommonDataKinds.StructuredPostal.CONTACT_ID + " = " + contactID,
+												                null, null);
+		while (addresses_cursor.moveToNext()) { 
+			
+			String tmp = addresses_cursor.getString(addresses_cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.STREET));
+			tmp += addresses_cursor.getString(addresses_cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.CITY));
+			tmp += addresses_cursor.getString(addresses_cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.REGION));
+			tmp += addresses_cursor.getString(addresses_cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.POSTCODE));
+			tmp += addresses_cursor.getString(addresses_cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.COUNTRY));
+			
+			ContactAddress address = new ContactAddress();
+			
+			if(addresses_cursor.getString(addresses_cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.IS_PRIMARY)).compareTo("0") != 0)
+				address.pref = true;
+			
+			address.country = addresses_cursor.getString(addresses_cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.COUNTRY));
+			address.formatted = tmp;
+			address.locality = addresses_cursor.getString(addresses_cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.CITY));
+			address.postalCode = addresses_cursor.getString(addresses_cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.POSTCODE));
+			address.region = addresses_cursor.getString(addresses_cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.REGION));
+			address.streetAddress = addresses_cursor.getString(addresses_cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.STREET));
+			
+			String type = addresses_cursor.getString(addresses_cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.TYPE));
+			
+			switch(Integer.parseInt(type)) {
+				case ContactsContract.CommonDataKinds.StructuredPostal.TYPE_HOME:
+					address.type = "HOME";
+				break;
+				case ContactsContract.CommonDataKinds.StructuredPostal.TYPE_OTHER:
+					address.type = "OTHER";
+				break;
+				case ContactsContract.CommonDataKinds.StructuredPostal.TYPE_WORK:
+					address.type = "WORK";
+				break;
+				default:
+					address.type = "UNKNOWN";
+				break;
+			}
+			
+			addresses.add(address);
+		}  
+		addresses_cursor.close();
+		
+		return addresses.toArray(new ContactAddress[0]);
+	}
+	
+	
+	
 	/*****************************
 	 * IModule methods
 	 *****************************/
