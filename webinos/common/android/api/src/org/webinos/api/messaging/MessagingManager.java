@@ -14,6 +14,7 @@ public abstract class MessagingManager extends Base {
 	public static final int TYPE_SMS = 1;
 	public static final int TYPE_MMS = 2;
 	public static final int TYPE_EMAIL = 3;
+	public static final int TYPE_IM = 4;
 	public static final int FOLDER_INBOX = 1;
 	public static final int FOLDER_OUTBOX = 2;
 	public static final int FOLDER_DRAFTS = 3;
