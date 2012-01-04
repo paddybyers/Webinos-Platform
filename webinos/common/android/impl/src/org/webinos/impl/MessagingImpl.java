@@ -15,6 +15,7 @@ import android.net.Uri;
 import java.util.ArrayList;
 
 import org.meshpoint.anode.AndroidContext;
+import org.meshpoint.anode.bridge.Env;
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
 import org.webinos.api.DeviceAPIError;
@@ -319,6 +320,7 @@ public class MessagingImpl extends MessagingManager implements IModule {
 	
 	class SmsFinder implements Runnable {
 
+		private Env env = Env.getCurrent();
 		private FindMessagesSuccessCallback successCallback;
 		private ErrorCallback errorCallback;
 		private MessageFilter filter;
@@ -331,6 +333,7 @@ public class MessagingImpl extends MessagingManager implements IModule {
 		
 		public void run() {
 			Log.v(LABEL, "smsFinder run");
+			Env.setEnv(env);
 			try {
 //				Uri uriSMSURI = Uri.parse("content://sms/inbox");
 				Uri uriSMSURI = Uri.parse("content://sms/sent");
