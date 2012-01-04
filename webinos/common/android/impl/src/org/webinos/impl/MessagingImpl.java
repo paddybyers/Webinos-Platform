@@ -35,7 +35,6 @@ public class MessagingImpl extends MessagingManager implements IModule {
 	private	SmsManager	smsManager;
 
 	private static final String LABEL = "org.webinos.impl.MessagingImpl";
-//	private static final String SMS_SENT = "org.webinos.messaging.SMS_SENT";
 	
 	/*****************************
 	 * MessagingManager methods
@@ -75,10 +74,13 @@ public class MessagingImpl extends MessagingManager implements IModule {
 		Log.v(LABEL, "sendMessage - 02 ("+message.to.getLength()+")");
 		if(message.type == TYPE_SMS) {
 			if(message.to.getLength()>0){
-				Runnable smsSender = new SmsSender(successCallback, errorCallback, message);
+				MessagingRunnable smsSender = new SmsSender(successCallback, errorCallback, message);
 				Thread t = new Thread(smsSender);
 				t.start();
 				Log.v(LABEL, "sendMessage - thread started with id "+(int)t.getId());
+				MessagingPendingOperation pOp = new MessagingPendingOperation();
+				pOp.setData(t, smsSender);
+				return pOp;
 			}
 			else {
 				//TODO what if the message has 0 recipients?
@@ -90,7 +92,7 @@ public class MessagingImpl extends MessagingManager implements IModule {
 			//TODO Add support for mms, email and im
 			throw new DeviceAPIError(DeviceAPIError.NOT_SUPPORTED_ERR);
 		}
-		//TODO The method should return a PendingOperation
+		//TODO The method should always return a PendingOperation?
 		return null;
 	}
 
@@ -101,11 +103,14 @@ public class MessagingImpl extends MessagingManager implements IModule {
 			throws DeviceAPIError {
 		Log.v(LABEL, "findMessages");
 
-		Runnable smsFinder = new SmsFinder(successCallback, errorCallback, filter);
+		MessagingRunnable smsFinder = new SmsFinder(successCallback, errorCallback, filter);
 		Thread t = new Thread(smsFinder);
 		t.start();
-		
-		return null;
+
+		MessagingPendingOperation pOp = new MessagingPendingOperation();
+		pOp.setData(t, smsFinder);
+		return pOp;
+
 	}
 
 	@Override
@@ -147,9 +152,14 @@ public class MessagingImpl extends MessagingManager implements IModule {
 	public void stopModule() {
 		Log.v(LABEL, "stopModule");
 	}
+
+	abstract interface MessagingRunnable extends Runnable {
+		public abstract void stop();
+		public abstract boolean isStopped();
+	}
 	
 	//sms sender
-	class SmsSender implements Runnable {
+	class SmsSender implements MessagingRunnable {
 		
 		private MessageSendCallback successCallback;
 		private ErrorCallback errorCallback;
@@ -158,14 +168,24 @@ public class MessagingImpl extends MessagingManager implements IModule {
 		private SmsResponseReceiver smsResponseReceiver;
 		private String SMS_SENT;
 		private ArrayList<String> bodyParts;
+		private boolean stopped;
 
 		private SmsSender(MessageSendCallback succCallback, ErrorCallback errCallback, Message msg) {
 			successCallback = succCallback;
 			errorCallback = errCallback;
 			message = msg;
 			smsCounter = 0;
+			stopped = false;
 			smsResponseReceiver = new SmsResponseReceiver(successCallback, errorCallback, message.to.getLength(), this);
 			Log.v(LABEL, "SmsSender constructed");
+		}
+
+		public synchronized boolean isStopped() {
+			return stopped;
+		}
+
+		public synchronized void stop() {
+			stopped = true;
 		}
 		
 		public void run() {
@@ -214,6 +234,10 @@ public class MessagingImpl extends MessagingManager implements IModule {
 		
 		public void sendNextMessage() {
 			Log.v(LABEL, "SmsSender - sendNextMessage");
+			if(stopped) {
+				Log.v(LABEL, "SmsSender - sendNextMessage - stopped");
+				return;
+			}
 			if(smsCounter<message.to.getLength()) {
 				try {
 					Intent intent=new Intent(SMS_SENT);
@@ -257,6 +281,10 @@ public class MessagingImpl extends MessagingManager implements IModule {
 		
 		@Override
 		public void onReceive(Context ctx, Intent intent) {
+			if(smsSender.isStopped()) {
+				Log.v(LABEL, "SmsResponseReceiver onReceive - stopped");
+				return;
+			}
 			String rec=null;
 			Bundle extras = intent.getExtras();
 			if(extras!=null){
@@ -318,12 +346,13 @@ public class MessagingImpl extends MessagingManager implements IModule {
 		
 	}
 	
-	class SmsFinder implements Runnable {
+	class SmsFinder implements MessagingRunnable {
 
 		private Env env = Env.getCurrent();
 		private FindMessagesSuccessCallback successCallback;
 		private ErrorCallback errorCallback;
 		private MessageFilter filter;
+		private boolean stopped;
 		
 		private SmsFinder(FindMessagesSuccessCallback successCallback, ErrorCallback errorCallback, MessageFilter filter) {
 			this.successCallback = successCallback;
@@ -331,6 +360,14 @@ public class MessagingImpl extends MessagingManager implements IModule {
 			this.filter = filter;
 		}
 		
+		public synchronized boolean isStopped() {
+			return stopped;
+		}
+
+		public synchronized void stop() {
+			stopped = true;
+		}
+
 		public void run() {
 			Log.v(LABEL, "smsFinder run");
 			Env.setEnv(env);
@@ -391,6 +428,29 @@ public class MessagingImpl extends MessagingManager implements IModule {
 			Log.v(LABEL, "smsFinder run - END");
 			
 		}
+	}
+	
+	class MessagingPendingOperation extends PendingOperation {
+
+		private Thread t=null;
+		private MessagingRunnable r=null;
+		
+		public void setData(Thread t, MessagingRunnable r) {
+			this.t = t;
+			this.r = r;
+		}
+		
+		public void cancel() {
+			Log.v(LABEL, "MessagingPendingOperation cancel");
+			if(t!=null) {
+				Log.v(LABEL, "MessagingPendingOperation cancel - send interrupt...");
+				//TODO is this interrupt needed???
+				t.interrupt();
+				if(r!=null)
+					r.stop();
+			}
+		}
+
 	}
 	
 }
