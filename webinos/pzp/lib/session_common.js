@@ -487,7 +487,7 @@ exports.resolveIP = function(serverName, callback) {
 	if(net.isIP(serverName) !== 0) {
 		callback(serverName);
 	} else {
-		dns.resolve(serverName, function(err, address, family) {			
+		dns.resolve(serverName, function(err, addresses) {			
 			if (typeof err !== 'undefined') {
 				// try again with lookup
 				dns.lookup(serverName, function(err, address, family) {
@@ -495,7 +495,7 @@ exports.resolveIP = function(serverName, callback) {
 				});				
 			} else {
 				// resolve succeeded
-				callback(address);			
+				callback(addresses[0]);			
 			}
 		});
 	}

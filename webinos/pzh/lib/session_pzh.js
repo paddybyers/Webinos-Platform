@@ -663,12 +663,8 @@
 						}
 					});
 				
-					utils.resolveIP(server, function(name) {
-						if(typeof name === 'object') {
-							server = name[0];
-						} else {
-							server = name;
-						}
+					utils.resolveIP(server, function(resolvedAddress) {
+						server = resolvedAddress;
 						utils.debug(3, "Connecting Address" + server);
 						pzh.sock.listen(pzh.port, server);
 					});
