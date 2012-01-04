@@ -235,10 +235,12 @@
 			self.sendMessage(msg, self.pzhId);
 			self.startServer(function() {
 				self.prepMsg(self.sessionId, self.pzhId, 'pzpDetails', self.pzpServerPort);
+				
+				self.prepMsg(self.sessionId, self.pzhId, 'findServices', self.pzpServerPort);
+				utils.debug(2, 'Sent msg to findServices');
+				
 				callback.call(self, 'startedPZP');
 			});
-			self.prepMsg(self.sessionId, self.pzhId, 'findServices', self.pzpServerPort);
-			utils.debug(2, 'Sent msg to findServices');
 		}
 	};
 	
