@@ -84,20 +84,20 @@ public class ContactManagerImpl extends ContactManager implements IModule {
     		contact.id = contactID;
     		contact.displayName = getContactDisplayName(cursor);
     		contact.name = getContactName(cursor, contactID);
-    		contact.revision = getContactRevision(cursor, contactID);	//not working
+    		contact.revision = getContactRevision(cursor, contactID);		//not working
     		contact.nickname = getContactNickname(cursor, contactID);
     		contact.phoneNumbers = getConcactPhoneNumbers(cursor, contactID);
     		contact.emails = getContactEmails(cursor, contactID);
     		contact.addresses = getContactAddresses(cursor, contactID);
     		contact.ims = getContactIms(cursor, contactID);
     		contact.organizations = getContactOrganizations(cursor, contactID);
-    		contact.birthday = getContactBirthday(cursor, contactID);	//to be tested
+    		contact.birthday = getContactBirthday(cursor, contactID);		//to be tested
     		contact.note = getContactNote(cursor, contactID);
-    		contact.photos = getContactPhoto(cursor, contactID);		//not implemented
-    		contact.categories = getContactCategories(cursor, contactID);
+    		contact.photos = getContactPhoto(cursor, contactID);			//not implemented
+    		contact.categories = getContactCategories(cursor, contactID);	//to be tested
     		contact.urls = getContactUrls(cursor, contactID);
-    		contact.gender = null;										//not implemented on android
-    		contact.timezone = null;									//not implemented on android
+    		contact.gender = null;											//not implemented on android
+    		contact.timezone = null;										//not implemented on android
     		contacts.add(contact);   		
     	}
     		
