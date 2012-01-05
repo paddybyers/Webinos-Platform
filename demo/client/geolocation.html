@@ -17,8 +17,7 @@
 		var watchId = null;
 	
         function findservice() {
-            var address = $('#pzh_pzp_list').val();
-            webinos.ServiceDiscovery.findServices(address, new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
+            webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
                 geoLocationService = service;
                 document.getElementById('position').innerHTML = "Geolocation service found";    
             }});        

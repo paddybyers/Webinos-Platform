@@ -11,7 +11,6 @@
 		<script type="text/javascript" src="/client/dojo.js"></script>
 		
 		<script type="text/javascript" src="./webinos.js"></script>
-		<script type="text/javascript" src= "./contacts/contacts.js"></script>
 		
 	</head>
 	
@@ -94,9 +93,8 @@
 			
 			var val = document.getElementById('Service').value;
 			console.log("val:" + val); 
-			var address = $('#pzh_pzp_list').val();
 			// "*", "*temper*", http://webinos.org/api/sensors.temperature
-			webinos.ServiceDiscovery.findServices(address, new ServiceType(val), {onFound: function (service) {
+			webinos.ServiceDiscovery.findServices(new ServiceType(val), {onFound: function (service) {
 			
 			emptyList(servicelist);
 			textarray.push(service.api);

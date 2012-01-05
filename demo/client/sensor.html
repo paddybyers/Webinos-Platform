@@ -12,14 +12,12 @@
 			if (typeof obj[myKey] == 'object') logObj(obj[myKey], name + "." + myKey);
 		}
 	}
-	var address;
 	
             $(document).ready(function() {
             	    sensors = [];
                     $('#findService').bind('click', function() {
-						address = $('#pzh_pzp_list').val();
 
-                	    webinos.ServiceDiscovery.findServices(address, new ServiceType('http://webinos.org/api/sensors.temperature'), 
+                	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/sensors.temperature'), 
 						{onFound: function (service) {
                 	    	sensors.push(service);
                 	    	$('#messages').append('<li> New Sensor found: ' + service.api + '</li>');
