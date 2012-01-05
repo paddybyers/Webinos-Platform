@@ -1,5 +1,7 @@
 package org.webinos.impl;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -16,18 +18,23 @@ import org.webinos.api.contact.ContactName;
 import org.webinos.api.contact.ContactOrganization;
 
 import org.meshpoint.anode.AndroidContext;
+import org.meshpoint.anode.java.ByteArray;
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.os.Looper;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.PhoneLookup;
 import android.text.format.DateFormat;
+import android.util.Base64;
 import android.widget.Toast;
 
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 
 @SuppressWarnings("unused") //TODO: to be removed...
@@ -93,7 +100,7 @@ public class ContactManagerImpl extends ContactManager implements IModule {
     		contact.organizations = getContactOrganizations(cursor, contactID);
     		contact.birthday = getContactBirthday(cursor, contactID);		//to be tested
     		contact.note = getContactNote(cursor, contactID);
-    		contact.photos = getContactPhoto(cursor, contactID);			//not implemented
+    		contact.photos = getContactPhotos(contactID);					//to be tested
     		contact.categories = getContactCategories(cursor, contactID);	//to be tested
     		contact.urls = getContactUrls(cursor, contactID);
     		contact.gender = null;											//not implemented on android
@@ -558,8 +565,23 @@ public class ContactManagerImpl extends ContactManager implements IModule {
 		return note;
 	}
 	
-	private ContactField[] getContactPhoto(Cursor cursor, String contactID) {
-		return null;
+	private ContactField[] getContactPhotos(String contactID) {
+		
+		ArrayList<ContactField> photos = new ArrayList<ContactField>();
+		InputStream input = ContactsContract.Contacts.openContactPhotoInputStream(androidContext.getContentResolver(), 
+										ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Integer.parseInt(contactID)));
+
+		if(input != null) {
+			ContactField pic = new ContactField();
+			
+			ByteArrayOutputStream tmp = new ByteArrayOutputStream();
+			BitmapFactory.decodeStream(input).compress(Bitmap.CompressFormat.PNG, 100, tmp);	
+			
+			pic.value = Base64.encodeToString(tmp.toByteArray(), Base64.DEFAULT);
+			photos.add(pic);
+		}
+		
+		return photos.toArray(new ContactField[0]);
 	}
 	
 	private String[] getContactCategories(Cursor cursor, String contactID) {
