@@ -165,9 +165,8 @@ public class ContactManagerImpl extends ContactManager implements IModule {
 																		null);
 		if(name_cursor.moveToFirst())
 			tmp = name_cursor.getString(name_cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.CONTACT_STATUS_TIMESTAMP));
-		
-		Date date = new Date();
-		//date.setTime(Integer.parseInt(tmp));
+			if(tmp != null && Integer.parseInt(tmp) == 0)
+				return new Date();
 		
 		return null;
 	}
