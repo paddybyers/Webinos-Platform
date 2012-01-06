@@ -436,7 +436,6 @@
 			//*, *c
 			else {
 				if(serviceType.api.length == 1) {
-					logObj(this.objects,"services");
 					for (var i in this.objects){
 						for( var j = 0; j <this.objects[i].length;j++){ 
 							results.push(this.objects[i][j]);
@@ -454,6 +453,7 @@
 					}
 				}
 			}
+		return results;
 
 		}
 		else {
@@ -477,6 +477,7 @@
 			
 			return results;
 		}
+		
 	};
 	
 	RPCHandler.prototype.setServicesFromPzh = function(services) {
