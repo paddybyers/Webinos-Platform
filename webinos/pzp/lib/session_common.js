@@ -480,28 +480,23 @@ exports.configure = function(self, id, contents, callback) {
 		}		
 	});	
 };
-//TODO: IP first address fails, use second address support
+
 exports.resolveIP = function(serverName, callback) {
 	var dns = require('dns');
 	var net = require('net');
 	if(net.isIP(serverName) !== 0) {
 		callback(serverName);
 	} else {
-		dns.resolve(serverName, function(err, address) {			
-			if(err !== "null") {
-				//debug(3, "Resolve IP Err", err);
-				dns.lookup(serverName, function(err, address) {
-					if(err) {
-						//debug(3, "Lookup IP Err", err);
-						return "undefined";
-					}
-					//debug(3, "Lookup IP Address "+ address);
+		dns.resolve(serverName, function(err, addresses) {			
+			if (typeof err !== 'undefined') {
+				// try again with lookup
+				dns.lookup(serverName, function(err, address, family) {
 					callback(address);
-					return "undefined";
-				});
-			} 
-			//debug(3, "Resolve Address "+ address);
-			callback(address);			
+				});				
+			} else {
+				// resolve succeeded
+				callback(addresses[0]);			
+			}
 		});
 	}
 };

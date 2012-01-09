@@ -236,10 +236,12 @@
 			self.sendMessage(msg, self.pzhId);
 			self.startServer(function() {
 				self.prepMsg(self.sessionId, self.pzhId, 'pzpDetails', self.pzpServerPort);
+				
+				self.prepMsg(self.sessionId, self.pzhId, 'findServices', self.pzpServerPort);
+				utils.debug(2, 'Sent msg to findServices');
+				
 				callback.call(self, 'startedPZP');
 			});
-			self.prepMsg(self.sessionId, self.pzhId, 'findServices', self.pzpServerPort);
-			utils.debug(2, 'Sent msg to findServices');
 		}
 	};
 	
@@ -386,12 +388,8 @@
 		var client = new Pzp();
 		client.code = code;		
 		client.pzhPort = port;
-		utils.resolveIP(servername, function(name) {
-			if(typeof name === "object") {
-				client.pzhName = name[0];
-			} else  {
-				client.pzhName = name;
-			}
+		utils.resolveIP(servername, function(resolvedAddress) {
+			client.pzhName = resolvedAddress;
 			utils.debug(3, 'connecting address: ' + client.pzhName);
 			utils.configure(client, 'Pzp', contents, function(result) {
 				utils.debug(2, 'PZP (Not Connected) '+result);

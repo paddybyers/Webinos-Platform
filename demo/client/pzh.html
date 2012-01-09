@@ -11,6 +11,57 @@
 <script type="text/javascript">
     $(document).ready(function() {
     	$("#tabs").tabs();
+    	
+        function listPZH(data) {
+            var i, list = '', pzh = '', pzp ='';
+            document.getElementById('connectedList').innerHTML = '';
+            list += '<tr> <td>' + data.payload.message.name +'</td>';                       
+            if(typeof data.payload.message.pzhId !== "undefined") {                                 
+                for( i = 0 ; i < data.payload.message.pzhId.length; i += 1) {                   
+                    pzh += '<td> ' + data.payload.message.pzhId[i] +'</td>';                        
+                }
+                list += pzh;
+            }
+            if(typeof data.payload.message.pzpId !== "undefined") {
+                for( i = 0 ; i < data.payload.message.pzpId.length; i += 1) {
+                    if(data.payload.message.pzpId[i] !== null) {
+                        pzp += '<td> ' + data.payload.message.pzpId[i] +'</td>';                        
+                    }
+                }
+                list += pzp+ '</tr>';
+            }
+            $('#connectedList').append(list);
+        }
+        webinos.session.addListener('listPzh', listPZH);
+        
+        function listAllPzps(data) {
+            document.getElementById("pzpList").innerHTML = "";
+            var list = "";
+            var pzps = data.payload.message;
+            if (pzps !== null) {
+                 list += "<tr style=\"border-bottom: thin solid black;\" ><th>Device name</th><th>Actions</th></tr>\n"
+                var i=0;
+                for (i=0;i<pzps.length;i++) {
+                    list += "\t<tr><td>" + pzps[i] + "</td><td><button id=\"revoke" + pzps[i] + "\" class=\"button\" style=\"width:100px\" onclick=\"revoke('" + pzps[i] + "')\" >revoke</a></td></tr>\n";
+                }                
+            }
+            $("#pzpList").append(list);
+        }
+        webinos.session.addListener('listAllPzps', listAllPzps);
+        
+        function logCrash(data) {
+            var log  = ' <tr> <td> '+ data.payload.message.name + '</td>  <td>'+ data.payload.message.log + '</td> </tr>';
+            $('#crashLogs').append(log);
+        }
+        webinos.session.addListener('crashLog', logCrash);
+        
+        function addPzpQR(data) {
+            var output  = '<h2>PZP URL</h2>\n'+ data.payload.message.img + ' ';
+            $('#qrcode').append(output);
+        }
+        webinos.session.addListener('addPzpQR', addPzpQR);
+
+    	
 	$('#startPZH').bind('click', function() {
 		var config = 'country='+ document.getElementById('country').value + '\n' +
 			'state='+ document.getElementById('state').value + '\n' +
