@@ -36,8 +36,8 @@ if (ipAddr === '' || port <= 0) {
         console.log("Error starting Pzp.\n\t Start with: node startPzp.js <host> <port> <webServerPort> <serverPort> <CODE> \n\t E.g.: node startPzp.js localhost 8000 8080 8081 DEBUG");
 } else {
         var contents ="pzh_name=localhost\ncountry=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzp\nemail=internal@webinos.org\ndays=180\n"
-        pzp.startPzpWebSocketServer(ipAddr, serverPort, webServerPort, pzpModules);
-        pzp.startPzp(contents, ipAddr, port, code, function() {
+        pzp.startPzpWebSocketServer(ipAddr, serverPort, webServerPort);
+        pzp.startPzp(contents, ipAddr, port, code, pzpModules, function() {
                 //console.log(pzp);
         });
 }
