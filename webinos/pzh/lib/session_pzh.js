@@ -162,7 +162,15 @@
 										utils.selfSigned(self, 'Pzh:Master', self.config.master, function(result) {
 											if(result === 'certGenerated') {
 												try {
-													fs.writeFileSync(pzhKeyDir+'/'+self.config.master.key.name, self.config.master.key.value);
+													var key =require("../../common/manager/keystore/src/build/Release/keystore")
+												
+													//fs.writeFileSync(, );
+													try {
+														console.log(key);
+														key.put(self.config.master.key.value, /*pzhKeyDir+'/'+*/self.config.master.key.name);
+													} catch (err) {
+														console.log(err);
+													}
 													fs.writeFileSync(pzhCertDir+'/'+self.config.master.cert.name, self.config.master.cert.value);
 													fs.writeFileSync(pzhCertDir+'/'+self.config.master.crl.name, self.config.master.crl.value);
 												} catch (err) {
@@ -192,9 +200,14 @@
 						}				
 					});
 				} else {
+					var key =require("../../common/manager/keystore/src/build/Release/keystore");
 					self.config.master.cert.value = fs.readFileSync(pzhCertDir+'/'+self.config.master.cert.name).toString(); 
-					self.config.master.key.value = fs.readFileSync(pzhKeyDir+'/'+self.config.master.key.name).toString();
-					
+					try{ self.config.master.key.value = key.get(self.config.master.key.name);
+					} catch(err){
+						console.log(err);
+					}
+					//self.config.master.key.value = fs.readFileSync(pzhKeyDir+'/'+self.config.master.key.name).toString();
+					console.log (self.config.master.key.value);
 					if ( path.existsSync(pzhCertDir+'/'+self.config.master.crl.name)) {
 						self.config.master.crl.value = fs.readFileSync(pzhCertDir+'/'+self.config.master.crl.name).toString();
 						utils.debug(2, "Using CRL " + pzhCertDir+'/'+self.config.master.crl.name);

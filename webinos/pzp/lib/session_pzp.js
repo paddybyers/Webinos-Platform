@@ -155,9 +155,10 @@
 		    //We have no certificates - create some which are self-signed.
 		    utils.selfSigned(self, 'Pzp', self.config.conn, function (status) {
 				if (status === 'certGenerated') {
-		            fs.writeFileSync(pzpKeyDir+'/'+self.config.conn.key.name, self.config.conn.key.value);
+		            		fs.writeFileSync(pzpKeyDir+'/'+self.config.conn.key.name, self.config.conn.key.value);
 					options = {key: self.config.conn.key.value, cert: self.config.conn.cert.value};
 					callback.call(self, options);
+				}
 		        } else {
 		            callback.call(self, 'failed');
 		        }
@@ -686,8 +687,9 @@
 				if(self.connectedPzp[sessionId]) {
 					self.connectedPzp[sessionId]= {socket: conn};
 				} else {
-					self.connectedPzp[sessionId]= {socket: conn,
-					address: conn.socket.peerAddress.address, port: ''};
+				console.log(conn.socket);
+				console.log(conn.socket.peerAddress);
+					self.connectedPzp[sessionId]= {socket: conn, address: conn.socket.peerAddress.address, port: ''};
 				}
 			} 
 				
