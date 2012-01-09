@@ -14,22 +14,20 @@ process.argv.forEach(function(val, index, array) {
             code = val;
 });
 
-var pzpModules = {};
-pzpModules.list = [
-        "service_discovery",
-    "get42",
-    "file",
-    "geolocation",
-    "events",
-    "sensors",
-    "payment",
-    "tv",
-    "deviceorientation",
-    "vehicle",
-    "context",
-    "authentication",
-    "contacts",
-    "devicestatus"
+var pzpModules = [
+    {name: "get42", param: {}},
+    {name: "file", param: {}},
+    {name: "geolocation", param: {}},
+    {name: "events", param: {}},
+    {name: "sensors", param: {}},
+    {name: "payment", param: {}},
+    {name: "tv", param: {}},
+    {name: "deviceorientation", param: {}},
+    {name: "vehicle", param: {}},
+    {name: "context", param: {}},
+    {name: "authentication", param: {}},
+    {name: "contacts", param: {}},
+    {name: "devicestatus", param: {}}
 ];
 
 if (ipAddr === '' || port <= 0) {

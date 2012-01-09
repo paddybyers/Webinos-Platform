@@ -4,7 +4,7 @@
  * Webinos Service constructor.
  * @param rpcHandler A handler for functions that use RPC to deliver their result.  
  */
-var TestModule = function(rpcHandler) {
+var TestModule = function(rpcHandler, params) {
 	// inherit from RPCWebinosService
 	this.base = RPCWebinosService;
 	this.base({
@@ -18,6 +18,9 @@ var TestModule = function(rpcHandler) {
 
 	// member attribute 
 	this.listenAttr = {};
+	
+	// custom get42 attribute
+	this.blaa = typeof params !== 'undefined' ? params[0] : 42;
 	
 	// member function attached to listenAttr
 	this.listenAttr.listenFor42 = function(params, successCB, errorCB, objectRef){
@@ -37,7 +40,7 @@ TestModule.prototype = new RPCWebinosService;
 // another member function
 TestModule.prototype.get42 = function(params, successCB, errorCB, objectRef){
 	console.log("get42 was invoked");
-	successCB(42 + " " + params[0]);
+	successCB(this.blaa + " " + params[0]);
 }
 
 // export our object
