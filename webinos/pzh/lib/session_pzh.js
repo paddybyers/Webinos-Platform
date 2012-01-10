@@ -117,7 +117,7 @@
 			pzhRevokedCertDir = path.resolve(__dirname, pzhName+'/signed_cert/revoked');
 			fs.readFile(pzhCertDir+'/'+self.config.master.cert.name, function(err) {
 				if(err !== null && err.code === 'ENOENT') {
-					utils.selfSigned(self, 'Pzh', self.config.conn, function(status) {
+					utils.selfSigned(self, 'Pzh', self.config.conn, function(status, selfSignErr) {
 						if(status === 'certGenerated') {
 							utils.debug(2, 'PZH Generating Certificates');
 							fs.readdir(webinosDemo+'/certificates', function(err) {
@@ -188,7 +188,12 @@
 							});
 							
 							
-						}				
+						} else {
+							utils.debug(1, 'cert manager status: ' + status);
+							if (typeof selfSignErr !== 'undefined') {
+								utils.debug(1, 'cert manager error: ' + selfSignErr);
+							}
+						}
 					});
 				} else {
 					self.config.master.cert.value = fs.readFileSync(pzhCertDir+'/'+self.config.master.cert.name).toString(); 
