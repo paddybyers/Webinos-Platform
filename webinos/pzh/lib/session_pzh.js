@@ -11,6 +11,7 @@
 		fs = require('fs'),
 		path = require('path'),
 		crypto = require('crypto'),
+		authcode = require(path.resolve(__dirname, 'pzh_authcode.js')),
 		Pzh = null,
 		sessionPzh = [],
 		instance = [],
@@ -37,14 +38,11 @@
 		this.connectedPzhIds = [];
 		this.connectedPzpIds = [];
 		this.lastMsg = '';
-		
-		//TODO: Remove this when not testing.  What we're doing is setting the PZH to expect a PZP to connect sometime in the next day.
-
-		this.expectingNewPzp = { 
-		    status  : true, 
-    		code    : "DEBUG", 
-    		timeout : new Date("October 13, 2100 11:13:00")
-		};
+	    
+	    var self = this;
+		authcode.createAuthCounter(function(res) {
+		    self.expecting = res;
+		});
 
 	};
 	/**
@@ -215,87 +213,6 @@
 	};
 	
 	
-	Pzh.prototype.setExpectedCode = function(code, cb) {
-	    "use strict";
-	    utils.debug(2, "New PZP expected, code: " + code);
-	    var self = this;
-	    self.expectingNewPzp.status = true;
-	    self.expectingNewPzp.code = code;
-	    var d = new Date(); 
-	    d.setMinutes(d.getMinutes() + 10); //Timeout of ten minutes?  Should this be a config option?
-	    self.expectingNewPzp.timeout = d;
-	    cb();
-	}
-	
-	Pzh.prototype.unsetExpected = function(cb) {
-	    "use strict";
-	    var self = this;
-	    if (self.expectingNewPzp.code === "DEBUG") {
-	        //We don't unset if we're allowing debug additions.
-	    } else {
-	        utils.debug(2,"No longer expecting PZP with code " + self.expectingNewPzp.code);
-    	    self.expectingNewPzp.status = false;
-	        self.expectingNewPzp.code = null;
-    	    self.expectingNewPzp.timeout = null;
-	    }
-	    cb();
-	}
-	
-	Pzh.prototype.isExpected = function(cb) {
-	    "use strict";
-	    var self = this;
-	    
-	    if (!self.expectingNewPzp.status) {
-	        utils.debug(2, "Not expecting a new PZP");
-	        cb(false);
-	        return;
-	    }
-	    if (self.expectingNewPzp.timeout < new Date()) {
-	        utils.debug(2, "Was expecting a new PZP, timed out.");
-	        self.expectingNewPzp.status = false;
-	        self.expectingNewPzp.code = false;
-	        self.expectingNewPzp.timeout = null;
-	        cb(false);
-	        return;
-	    } 	    
-	    
-	    cb ( self.expectingNewPzp.status && 
-	            (self.expectingNewPzp.timeout > new Date()) );
-	}
-	
-	Pzh.prototype.isExpectedCode = function(newcode, cb) {
-	    "use strict";
-	    var self = this;
-	    
-	    utils.debug(2, "Trying to add a PZP, code: " + newcode);
-	    
-	    if (!self.expectingNewPzp.status) {
-	        utils.debug(2, "Not expecting a new PZP");
-	        cb(false);
-	        return;
-	    }
-	    	    
-	    if (self.expectingNewPzp.code !== newcode) {
-	        utils.debug(2, "Was expecting a new PZP, but code wrong");
-	        cb(false);
-	        return;
-	    }
-	        	    
-	    if (self.expectingNewPzp.timeout < new Date()) {
-	        utils.debug(2, "Was expecting a new PZP, code is right, but timed out.");
-	        self.expectingNewPzp.status = false;
-	        self.expectingNewPzp.code = false;
-	        self.expectingNewPzp.timeout = null;
-	        cb(false);
-	        return;
-	    }
-	    
-	    //All the above could be skipped in favour of this.
-	    
-	    cb( self.expectingNewPzp.status && 
-	        self.expectingNewPzp.code === newcode && 
-	        (self.expectingNewPzp.timeout > new Date()) );
-	}
 	
 	
 	Pzh.prototype.revoke = function(pzpCert, callback) {
@@ -412,7 +329,7 @@
 			} else {
 			    utils.debug(2, "Connection NOT authorised at PZH");
 			    //Sometimes, if this is a new PZP, we have to allow it.
-                self.isExpected(function(expected) {
+                self.expecting.isExpected(function(expected) {
                     if (!expected ||
                          conn.authorizationError !== "UNABLE_TO_GET_CRL"){
                          //we're not expecting anything - disallow.
@@ -494,11 +411,11 @@
         "use strict";
     	var self = this;
 	    try {
-	        self.isExpectedCode(parse.payload.message.code, function(expected) {
+	        self.expecting.isExpectedCode(parse.payload.message.code, function(expected) {
 	            if (expected) {
 		            utils.signRequest(self, parse.payload.message.csr, self.config.master, function(result, cert) {
 			            if(result === "certSigned") {
-                            self.unsetExpected(function() {
+                            self.expecting.unsetExpected(function() {
 				                //Save this certificate locally on the PZH.
 				                //pzp name: parse.payload.message.name
 				                fs.writeFileSync(pzhSignedCertDir+'/'+ parse.payload.message.name + ".pem", cert);
@@ -619,7 +536,7 @@
 			pzh.port = port;
 			pzh.server = server;
 		} catch (err) {
-			utils.debug(1, 'PZH ('+pzh.sessionId+') Error Initializing Pzh');
+			utils.debug(1, 'PZH - Error Initializing Pzh');
 			utils.debug(1, err.code);
 			utils.debug(1, err.stack);
 			return;
@@ -829,7 +746,7 @@
 	    
 	    var code = generateRandomCode();
 
-	    instance[0].setExpectedCode(code,function() {
+	    instance[0].expecting.setExpectedCode(code,function() {
 	        instance[0].getMyUrl(function(url) { 
 	            qr.create(url, code, function(err, qrimg) {
 	                if (err == null) {
@@ -842,7 +759,7 @@
 	                    var msg = {type: 'prop', payload: payload};	                    
 	                    connection.sendUTF(JSON.stringify(msg));
 	                } else {
-	                    instance[0].unsetExpected( function() {
+	                    instance[0].expecting.unsetExpected( function() {
 	                        var message = {
 	                            name: instance[0].sessionId, 
 	                            img: qrimg,
