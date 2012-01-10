@@ -21,6 +21,7 @@
 	if (typeof exports !== 'undefined') {
 		var rpc = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));
 		var RPCHandler = rpc.RPCHandler;
+		var revoker = require(path.resolve(__dirname, 'revoke.js'));
 		var rpcHandler = new RPCHandler();
 		var messaging = require(path.resolve(__dirname, '../../common/manager/messaging/lib/messagehandler.js'));
 		messaging.setRPCHandler(rpcHandler);
@@ -221,28 +222,7 @@
 	
 	
 	
-	Pzh.prototype.revoke = function(pzpCert, callback) {
-		"use strict";
-		var self = this;
-		if (self.config.master.key.value === 'null') {
-	    	    	self.config.master.key.value = fs.readFileSync(pzhKeyDir+'/'+self.config.master.key.name).toString();
-		    	self.config.master.crl.value = fs.readFileSync(pzhCertDir+'/'+self.config.master.crl.name).toString();
-		}
-    	
-		utils.revokeClientCert(self, self.config.master, pzpCert, function(result, crl) {
-		    if (result === "certRevoked") {
-			self.config.master.crl.value = crl;
-			fs.writeFileSync(pzhCertDir+'/'+self.config.master.crl.name, crl);
-			//TODO : trigger the PZH to reconnect all clients
-			//TODO : trigger a synchronisation with PZPs.
-			//TODO : rename the cert.
-			callback(true);
-		    } else {
-			utils.debug(1, "Failed to revoke client certificate [" + pzpCert + "]");
-			callback(false);
-		    }   	    
-		});		
-	}
+	
 	
 	/**
 	* @description Starts Pzh server. It creates server configuration and then createsServer 
@@ -396,22 +376,6 @@
 	     cb("http://127.0.0.1:8082/");
 	}
 	
-	function getAllPZPIds(callback) {
-        	"use strict";
-		var fileArr = fs.readdirSync(pzhSignedCertDir+'/');
-		var idArray = [];
-		var i=0;
-		for (i=0;i<fileArr.length;i++) {
-			try {
-				if(fileArr[i] !== "revoked") {
-					idArray.push( fileArr[i].split('.')[0]);			
-				}
-			} catch (err) {
-				console.log(err);
-			}
-		}
-		callback(idArray, null);
-	}
 	
 	Pzh.prototype.addNewPZPCert = function (parse, cb) {
         "use strict";
@@ -602,105 +566,7 @@
 		return pzh;
 	};
 	
-	function getPZPCertificate(pzpid, callback) {
-	    "use strict";
-	    try { 
-	        var cert = fs.readFileSync(pzhSignedCertDir+'/'+ pzpid + ".pem");  
-	        callback(true, cert);	    
-	    } catch (err) {
-	        utils.debug(2,"Did not find certificate " + err); 
-    	    	callback(false, err);	    
-	    }
-	}
-	
-	function removeRevokedCert(pzpid, callback) {
-	    "use strict";
-	    try { 
-	        var cert = fs.rename(pzhSignedCertDir+'/'+ pzpid + ".pem", pzhRevokedCertDir+'/'+ pzpid + ".pem");  
-	        callback(true);	    
-	    } catch (err) {
-	        utils.debug(2,"Unable to rename certificate " + err); 
-    	    callback(false);	    
-	    }
-	}
-	
-	
-	function revokePzp(connection, pzpid, pzh) {
-        "use strict";
-        utils.debug(2,"Revocation requested of " + pzpid);
-        
-        var payloadErr = {
-            status : "revokePzp",
-            success: false,
-            message: "Failed to revoke"
-        };
-        var msgErr = { type : 'prop', payload : payloadErr };       
-        var payloadSuccess = {
-            status : "revokePzp",
-            success: true,
-            message: "Successfully revoked"
-        };
-        var msgSuccess = { type : 'prop', payload : payloadSuccess };
-                
-        getPZPCertificate(pzpid, function(status, cert) {
-            if (!status) {
-                payloadErr.message = payloadErr.message + " - failed to find certificate";
-        	    connection.sendUTF(JSON.stringify(msgErr));
-            } else {
- 	        console.log('CRL' + cert.toString());
-		    pzh.conn.pair.credentials.context.addCRL(cert.toString());
-                pzh.revoke(cert, function(result) {
-                    if (result) {
-                        utils.debug(2,"Revocation success! " + pzpid + " should not be able to connect anymore ");                       
-                        removeRevokedCert(pzpid, function(status2) {
-                            if (!status2) {
-                                utils.debug(2,"Could not rename certificate");                       
-                                payloadSuccess.message = payloadSuccess.message + ", but failed to rename certificate";
-                            }
-                    	    connection.sendUTF(JSON.stringify(msgSuccess));
-                        });                   
-                    } else {
-                        utils.debug(2,"Revocation failed! ");
-                        payloadErr.message = payloadErr.message + " - failed to update CRL";
-                	    connection.sendUTF(JSON.stringify(msgErr));
-                    }        
-                });      
-            }
-        });
-	}
-	
-	/**
-	* @param connection 
-	*/
-	function listAllPzps(connection) {
-	    "use strict";
-	    getAllPZPIds( function(pzps, error) {
-	        if (error === null) {
-	            var payload = {
-                        status : "listAllPzps",
-                        success: true,
-                        message: []
-                }; 
-                var i=0;
-	            for (i=0;i<pzps.length;i++) {
-	                if (pzps[i] !== null) {
-	                    payload.message.push(pzps[i]);
-                    }
-	            };
-	        } else {
-        	        var payload = {
-                        status : "listAllPzps",
-                        success: false,
-                        message: ""
-                    };                   
-	        }
-            var msg = {
-                type    : 'prop', 
-                payload : payload
-            }; 
-            connection.sendUTF(JSON.stringify(msg));
-	    });
-	}
+
 	
 	function connectedPzhPzp(connection) {
 		var i;
@@ -737,47 +603,10 @@
 	}
 	
 	
-	function generateRandomCode() {
-	    return crypto.randomBytes(8).toString("base64");
-	}
-	
-	// Add a new PZP by generating a QR code.  This function:
-	// (1) returns a QR code 
-	// (2) generates a new secret code, to be held by the PZH
-	// (3) tells the PZH to be ready for a new PZP to be added
 	function addPzpQR(connection) {
 	    "use strict";
 	    var qr = require(path.resolve(__dirname, 'webinosQR.js'));
-	    
-	    var code = generateRandomCode();
-
-	    instance[0].expecting.setExpectedCode(code,function() {
-	        instance[0].getMyUrl(function(url) { 
-	            qr.create(url, code, function(err, qrimg) {
-	                if (err == null) {
-	                    var message = {
-	                        name: instance[0].sessionId, 
-	                        img: qrimg,
-	                        result: "success"
-	                        };
-			            var payload = {status : 'addPzpQR', message : message};
-	                    var msg = {type: 'prop', payload: payload};	                    
-	                    connection.sendUTF(JSON.stringify(msg));
-	                } else {
-	                    instance[0].expecting.unsetExpected( function() {
-	                        var message = {
-	                            name: instance[0].sessionId, 
-	                            img: qrimg,
-	                            result: "failure: not suppported"
-	                            };			            
-                            var payload = {status : 'addPzpQR', message : message};
-	                        var msg = {type: 'prop', payload: payload};
-        	                connection.sendUTF(JSON.stringify(msg));
-	                    });
-	                }
-	            });
-	        });	    
-	    }); 
+	    qr.addPzpQR(instance[0], connection);
 	}
 	
 
@@ -931,13 +760,13 @@
 					} else if(msg.type === "prop" && msg.payload.status === 'listPzh') {
 						connectedPzhPzp(connection);
 					} else if(msg.type === "prop" && msg.payload.status === 'listAllPzps') {
-						listAllPzps(connection);
+						revoker.listAllPzps(pzhSignedCertDir, connection);
 					} else if(msg.type === "prop" && msg.payload.status === 'addPzpQR') {
 						addPzpQR(connection);
 					} else if(msg.type === "prop" && msg.payload.status === 'crashLog') {
 						crashLog(connection);
 					} else if(msg.type === "prop" && msg.payload.status === 'revokePzp') {
-					    revokePzp(connection, msg.payload.pzpid, instance[0]);				
+					    revoker.revokePzp(connection, msg.payload.pzpid, instance[0], pzhCertDir, pzhSignedCertDir, pzhKeyDir, pzhRevokedCertDir);				
 					}
 				}
 			});
