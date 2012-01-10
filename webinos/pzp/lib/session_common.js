@@ -343,7 +343,6 @@ exports.processedMsg = function(self, data, dataLen, callback) {
 */
 var send = function (message, address, object) {
 	"use strict";
-	message.from = address;
 	object.sendMessage(message, address);
 };
 
