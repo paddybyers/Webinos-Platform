@@ -85,6 +85,7 @@
                 var test = [];
                          
                 $('#findService').bind('click', function() {
+                		test = [];
                         webinos.session.setServiceLocation($('#pzh_pzp_list').val());
                         webinos.ServiceDiscovery.findServices( 
                         new ServiceType('http://webinos.org/api/test'),                         

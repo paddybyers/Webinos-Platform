@@ -158,13 +158,17 @@
 		
 		if (!path.existsSync(pzpCertDir+'/'+self.config.master.cert.name)) {
 		    //We have no certificates - create some which are self-signed.
-		    utils.selfSigned(self, 'Pzp', self.config.conn, function (status) {
+		    utils.selfSigned(self, 'Pzp', self.config.conn, function (status, selfSignErr) {
 				if (status === 'certGenerated') {
 		            fs.writeFileSync(pzpKeyDir+'/'+self.config.conn.key.name, self.config.conn.key.value);
 					options = {key: self.config.conn.key.value, cert: self.config.conn.cert.value};
 					callback.call(self, options);
 		        } else {
-		            callback.call(self, 'failed');
+					utils.debug(1, 'creating certificated failed.');			
+					if (typeof selfSignErr !== 'undefined') {
+						utils.debug(1, 'cert manager error: ' + selfSignErr);
+					}
+		            callback.call(self, status);
 		        }
 		    });
 		} else {

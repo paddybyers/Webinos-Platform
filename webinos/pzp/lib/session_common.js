@@ -103,14 +103,14 @@ exports.selfSigned = function(self, name, obj, callback) {
 	try {
 		certman = require("../../common/manager/certificate_manager/src/build/Release/certificate_manager");		
 	} catch (err) {
-		callback.call(self, "failed");
+		callback.call(self, "failed", err);
 		return;
 	}
 
 	try {
 		obj.key.value = certman.genRsaKey(1024);
 	} catch(err1) {
-		callback.call(self, "failed");
+		callback.call(self, "failed", err1);
 		return;
 	}
 
@@ -128,21 +128,21 @@ exports.selfSigned = function(self, name, obj, callback) {
 			common, 
 			self.config.email);
 	} catch (e) {
-		callback.call(self, "failed");
+		callback.call(self, "failed", e);
 		return;
 	}
 
 	try {
 		obj.cert.value = certman.selfSignRequest(obj.csr.value, 30, obj.key.value);
 	} catch (e1) {
-		callback.call(self, "failed");
+		callback.call(self, "failed", e1);
 		return;
 	}
 
 	try {
 		obj.crl.value = certman.createEmptyCRL(obj.key.value,  obj.cert.value, 30, 0);
 	} catch (e2) {
-		callback.call(self, "failed");
+		callback.call(self, "failed", e2);
 		return;
 	}
 	callback.call(self, "certGenerated");
@@ -343,7 +343,6 @@ exports.processedMsg = function(self, data, dataLen, callback) {
 */
 var send = function (message, address, object) {
 	"use strict";
-	message.from = address;
 	object.sendMessage(message, address);
 };
 
