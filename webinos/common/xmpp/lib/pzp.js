@@ -63,7 +63,7 @@ logger.trace("Done parsing command line.");
 port = 8000+10*index;
 logger.info("Using index=" + index + ", jid=" + jid + " and port=" + port);
 
-var rpcHandler = new RPCHandler();
+var rpcHandler = new _RPCHandler();
 var connection = new xmpp.Connection(rpcHandler);
 
 logger.trace("Starting servers...");
