@@ -14,30 +14,28 @@ process.argv.forEach(function(val, index, array) {
             code = val;
 });
 
-var pzpModules = {};
-pzpModules.list = [
-        "service_discovery",
-    "get42",
-    "file",
-    "geolocation",
-    "events",
-    "sensors",
-    "payment",
-    "tv",
-    "deviceorientation",
-    "vehicle",
-    "context",
-    "authentication",
-    "contacts",
-    "devicestatus"
+var pzpModules = [
+    {name: "get42", param: {}},
+    {name: "file", param: {}},
+    {name: "geolocation", param: {}},
+    {name: "events", param: {}},
+    {name: "sensors", param: {}},
+    {name: "payment", param: {}},
+    {name: "tv", param: {}},
+    {name: "deviceorientation", param: {}},
+    {name: "vehicle", param: {}},
+    {name: "context", param: {}},
+    {name: "authentication", param: {}},
+    {name: "contacts", param: {}},
+    {name: "devicestatus", param: {}}
 ];
 
 if (ipAddr === '' || port <= 0) {
         console.log("Error starting Pzp.\n\t Start with: node startPzp.js <host> <port> <webServerPort> <serverPort> <CODE> \n\t E.g.: node startPzp.js localhost 8000 8080 8081 DEBUG");
 } else {
         var contents ="pzh_name=localhost\ncountry=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzp\nemail=internal@webinos.org\ndays=180\n"
-        pzp.startPzpWebSocketServer(ipAddr, serverPort, webServerPort, pzpModules);
-        pzp.startPzp(contents, ipAddr, port, code, function() {
+        pzp.startPzpWebSocketServer(ipAddr, serverPort, webServerPort);
+        pzp.startPzp(contents, ipAddr, port, code, pzpModules, function() {
                 //console.log(pzp);
         });
 }

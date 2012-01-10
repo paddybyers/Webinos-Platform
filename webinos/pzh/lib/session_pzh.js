@@ -20,6 +20,7 @@
 		
 	if (typeof exports !== 'undefined') {
 		var rpc = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));
+		var RPCHandler = rpc.RPCHandler;
 		var rpcHandler = new RPCHandler();
 		var messaging = require(path.resolve(__dirname, '../../common/manager/messaging/lib/messagehandler.js'));
 		messaging.setRPCHandler(rpcHandler);
@@ -514,7 +515,6 @@
 	
 	function findServices(connection, pzh) {
 		var services = rpcHandler.getRegisteredServices();
-		debugger;
 		var msg = pzh.prepMsg(pzh.sessionId, null, 'foundServices', services);
 		
 		pzh.sendMessage(msg, null, connection);

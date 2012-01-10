@@ -14,8 +14,8 @@
   var databasehelper = require(moduleRoot + '/contrib/JSORMDB');
   bufferDB = new databasehelper.JSONDatabase({path : bufferpath, transactional : false});
 
-  webinos.ServiceDiscovery = new RPCHandler;
-  webinos.ServiceDiscovery.loadModules({list:["context"]});
+  webinos.ServiceDiscovery = new _RPCHandler;
+  webinos.ServiceDiscovery.loadModules([{name: "context", param: {}}]);
 
   sessionPzp = require(webinosRoot + '/pzp/lib/session_pzp.js');
 

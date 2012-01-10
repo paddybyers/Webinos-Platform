@@ -34,11 +34,11 @@ var listeners = {};
 listeners.id = {};
 listeners.fromObjectRef = {};
 
-RPCHandler.prototype.condext_handleMessage = RPCHandler.prototype.handleMessage;
+_RPCHandler.prototype.condext_handleMessage = _RPCHandler.prototype.handleMessage;
 /*
  * handleMessage = function (message, from, msgid)
  */
-RPCHandler.prototype.handleMessage = function(){
+_RPCHandler.prototype.handleMessage = function(){
 	if (arguments[0].jsonrpc) {
 		var message = arguments[0];
 		if (message.fromObjectRef){
@@ -53,11 +53,11 @@ RPCHandler.prototype.handleMessage = function(){
 	}
 	this.condext_handleMessage.apply(this, arguments)
 }
-RPCHandler.prototype.condext_executeRPC = RPCHandler.prototype.executeRPC;
+_RPCHandler.prototype.condext_executeRPC = _RPCHandler.prototype.executeRPC;
 /*
  * executeRPC = function (rpc, callback, errorCB, from, msgid)
  */
-RPCHandler.prototype.executeRPC = function(){
+_RPCHandler.prototype.executeRPC = function(){
 	if (arguments[0].jsonrpc) {
 		var message;
 		var res = arguments[0];

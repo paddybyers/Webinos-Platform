@@ -39,7 +39,7 @@
 	/**
 	 * RPCHandler constructor
 	 */
-	this.RPCHandler = function() {
+	_RPCHandler = function() {
 		/*
 		 * used to store objectRefs for callbacks that get invoked more than once
 		 */ 
@@ -70,14 +70,14 @@
 	/**
 	 * Sets the writer that should be used to write the stringified JSON RPC request.
 	 */
-	RPCHandler.prototype.setWriter = function (writer){
+	_RPCHandler.prototype.setWriter = function (writer){
 		this.write = writer;
 	};
 
 	/**
 	 * Handles a new JSON RPC message (as string)
 	 */
-	RPCHandler.prototype.handleMessage = function (message, from, msgid){
+	_RPCHandler.prototype.handleMessage = function (message, from, msgid){
 		console.log("New packet from messaging");
 		console.log("Response to " + from);
 		var myObject = message;
@@ -242,7 +242,7 @@
 	 * Executes the given RPC Request and registers an optional callback that
 	 * is invoked if an RPC response with same id was received
 	 */
-	RPCHandler.prototype.executeRPC = function (rpc, callback, errorCB, from, msgid) {
+	_RPCHandler.prototype.executeRPC = function (rpc, callback, errorCB, from, msgid) {
 		//service invocation case
 		if (typeof rpc.serviceAddress !== 'undefined') {
 			// this only happens in the web browser
@@ -296,7 +296,7 @@
 	 * @param method The method that should be invoked on the service.
 	 * @param params An optional array of parameters to be used.
 	 */
-	RPCHandler.prototype.createRPC = function (service, method, params) {
+	_RPCHandler.prototype.createRPC = function (service, method, params) {
 
 		if (typeof service === 'undefined') throw "Service is undefined";
 		if (typeof method === 'undefined') throw "Method is undefined";
@@ -323,7 +323,7 @@
 		return rpc;
 	};
 	
-	RPCHandler.prototype.request = function (service, method, objectRef, successCallback, errorCallback) {
+	_RPCHandler.prototype.request = function (service, method, objectRef, successCallback, errorCallback) {
 		var self = this; // TODO Bind returned function to "this", i.e., an instance of RPCHandler?
 		
 		return function () {
@@ -337,7 +337,7 @@
 		};
 	};
 
-	RPCHandler.prototype.notify = function (service, method, objectRef) {
+	_RPCHandler.prototype.notify = function (service, method, objectRef) {
 		var self = this; // TODO Bind returned function to "this", i.e., an instance of RPCHandler?
 		
 		return function () {
@@ -355,7 +355,7 @@
 	 * Registers a Webinos service object as RPC request receiver.
 	 * @param callback The callback object the contains the methods available via RPC.
 	 */
-	RPCHandler.prototype.registerObject = function (callback) {
+	_RPCHandler.prototype.registerObject = function (callback) {
 		if (typeof callback !== 'undefined') {
 			console.log("Adding handler: " + callback.api);
 
@@ -381,7 +381,7 @@
 	 * Registers an object as RPC request receiver.
 	 * @param callback the callback object the contains the methods available via RPC
 	 */
-	RPCHandler.prototype.registerCallbackObject = function (callback) {
+	_RPCHandler.prototype.registerCallbackObject = function (callback) {
 		if (typeof callback !== 'undefined') {
 			console.log("Adding handler: " + callback.api);
 
@@ -398,7 +398,7 @@
 	 * 
 	 * 
 	 */
-	RPCHandler.prototype.unregisterObject = function (callback) {
+	_RPCHandler.prototype.unregisterObject = function (callback) {
 		if (typeof callback !== 'undefined' && callback != null){
 			console.log("Removing handler: " + callback.api);	
 			var receiverObjs = this.objects[callback.api];
@@ -416,7 +416,7 @@
 	/**
 	 * 
 	 */
-	RPCHandler.prototype.findServices = function (serviceType) {
+	_RPCHandler.prototype.findServices = function (serviceType) {
 		console.log("findService: searching for ServiceType: " + serviceType.api);
 		var results = [];
 		var cstar = serviceType.api.indexOf("*");
@@ -480,7 +480,7 @@
 		
 	};
 	
-	RPCHandler.prototype.setServicesFromPzh = function(services) {
+	_RPCHandler.prototype.setServicesFromPzh = function(services) {
 		console.log("setServicesFromPzh: found " + services.length + " services.");
 		this.serviceObjectsFromPzh = services;
 	}
@@ -488,7 +488,7 @@
 	/**
 	 * Return an array of all registered Service objects. 
 	 */
-	RPCHandler.prototype.getRegisteredServices = function() {
+	_RPCHandler.prototype.getRegisteredServices = function() {
 		// FIXME this shouldn't be a public method i guess
 		var results = [];
 		
@@ -557,7 +557,7 @@
 		this.api = api; 
 	};
 
-	RPCHandler.prototype.loadModules = function(modules) {
+	_RPCHandler.prototype.loadModules = function(modules) {
 		if (typeof module === 'undefined') return;
 		
 		var path = require('path');
@@ -571,17 +571,22 @@
 		  require(webinosRoot + dependencies.manager.context_manager.location); 
 			//modules.push(webinosRoot + dependencies.manager.context_manager.location);
 		}
-
-		var mods = modules.list;
 		
-		for (var i = 0; i < mods.length; i++){
+		if (typeof modules === 'undefined') {
+			modules = [];
+		}
+		
+		// add ServiceDiscovery, which should always be present
+		modules.unshift({name: "service_discovery", param: {}});
+
+		for (var i = 0; i < modules.length; i++){
 			try{
-				var Service = require(webinosRoot + dependencies.api[mods[i]].location).Service;
-				this.registerObject(new Service(this));
+				var Service = require(webinosRoot + dependencies.api[modules[i].name].location).Service;
+				this.registerObject(new Service(this, modules[i].params));
 			}
 			catch (error){
 				console.log(error);
-				console.log("Could not load module " + mods[i] + " with message: " + error );
+				console.log("Could not load module " + modules[i].name + " with message: " + error );
 			}
 		}
 	};
@@ -589,16 +594,20 @@
 	function SetSessionId (id) {
 		sessionId = id;
 	}
+	
 	/**
 	 * Export definitions for node.js
 	 */
 	if (typeof module !== 'undefined'){
-		exports.RPCHandler = RPCHandler;
+		exports.RPCHandler = _RPCHandler;
 		exports.RPCWebinosService = RPCWebinosService;
 		exports.ServiceType = ServiceType;
 		exports.SetSessionId = SetSessionId;
 		// none webinos modules
 		var md5 = require('../contrib/md5.js');
 
+	} else {
+		// export for web browser
+		this.RPCHandler = _RPCHandler;
 	}
 })();
