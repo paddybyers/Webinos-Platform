@@ -13,7 +13,7 @@ process.argv.forEach(function(val, index, array) {
 });
 
 var pzhModules = [
-    {name: "get42", params: {}}
+    {name: "get42", params: [99]}
 ];
 
 if (ipAddr === '' || port <= 0) {
