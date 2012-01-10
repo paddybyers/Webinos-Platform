@@ -99,7 +99,7 @@
 		$("#contextDataTblContainer").html('<img src="./ajaxloader.gif" alt=""/>');
 		var query = {};
 		query.type = "getrawview";
-		var headerGenerated = false;
+		
 		for (var i = 0; i < contextService.length; i++) {
 			contextService[i].executeQuery(query, function(result) {
 				if (result.msg != null) {
@@ -115,6 +115,7 @@
 					return;
 				}
 				$("#contextDataTblContainer").html('<table><thead><tr id="contextDataTblHead" class="persist"></tr></thead><tbody id="contextDataTbl"></tbody></table>');
+				var headerGenerated = false;
 				var oddRow = false;
 				for (rowIndex = 0; rowIndex < result.data.length; rowIndex++) {
 					row = result.data[rowIndex];
@@ -133,6 +134,7 @@
 
 				clonedHeaderRow = $(".persist", "#contextDataTblContainer");
 				var floatingHeader = clonedHeaderRow.clone();
+				floatingHeader.attr("id",clonedHeaderRow.attr("id")+"_clone");
 				floatingHeader.children().width(function (i, val) {
 				    return clonedHeaderRow.children().eq(i).width();
 			    });
