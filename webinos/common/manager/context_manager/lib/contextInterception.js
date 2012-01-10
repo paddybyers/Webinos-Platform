@@ -34,7 +34,7 @@ var listeners = {};
 listeners.id = {};
 listeners.fromObjectRef = {};
 
-_RPCHandler.prototype.condext_handleMessage = _RPCHandler.prototype.handleMessage;
+_RPCHandler.prototype.context_handleMessage = _RPCHandler.prototype.handleMessage;
 /*
  * handleMessage = function (message, from, msgid)
  */
@@ -51,9 +51,9 @@ _RPCHandler.prototype.handleMessage = function(){
 			listeners.id[message.id] = message;
 		}
 	}
-	this.condext_handleMessage.apply(this, arguments)
+	this.context_handleMessage.apply(this, arguments)
 }
-_RPCHandler.prototype.condext_executeRPC = _RPCHandler.prototype.executeRPC;
+_RPCHandler.prototype.context_executeRPC = _RPCHandler.prototype.executeRPC;
 /*
  * executeRPC = function (rpc, callback, errorCB, from, msgid)
  */
@@ -73,7 +73,7 @@ _RPCHandler.prototype.executeRPC = function(){
 		}
 		webinos.context.logContext(message, res);
 	}
-	this.condext_executeRPC.apply(this, arguments)
+	this.context_executeRPC.apply(this, arguments)
 }
 
 //console.log("moduleRoot: "+moduleRoot);
