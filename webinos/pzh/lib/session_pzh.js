@@ -11,6 +11,7 @@
 		fs = require('fs'),
 		path = require('path'),
 		crypto = require('crypto'),
+		authcode = require(path.resolve(__dirname, 'pzh_authcode.js')),
 		Pzh = null,
 		sessionPzh = [],
 		instance = [],
@@ -19,6 +20,8 @@
 		
 	if (typeof exports !== 'undefined') {
 		var rpc = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));
+		var RPCHandler = rpc.RPCHandler;
+		var revoker = require(path.resolve(__dirname, 'revoke.js'));
 		var rpcHandler = new RPCHandler();
 		var messaging = require(path.resolve(__dirname, '../../common/manager/messaging/lib/messagehandler.js'));
 		messaging.setRPCHandler(rpcHandler);
@@ -37,14 +40,11 @@
 		this.connectedPzhIds = [];
 		this.connectedPzpIds = [];
 		this.lastMsg = '';
-		
-		//TODO: Remove this when not testing.  What we're doing is setting the PZH to expect a PZP to connect sometime in the next day.
-
-		this.expectingNewPzp = { 
-		    status  : true, 
-    		code    : "DEBUG", 
-    		timeout : new Date("October 13, 2100 11:13:00")
-		};
+	    
+	    var self = this;
+		authcode.createAuthCounter(function(res) {
+		    self.expecting = res;
+		});
 
 	};
 	/**
@@ -118,7 +118,7 @@
 			pzhRevokedCertDir = path.resolve(__dirname, pzhName+'/signed_cert/revoked');
 			fs.readFile(pzhCertDir+'/'+self.config.master.cert.name, function(err) {
 				if(err !== null && err.code === 'ENOENT') {
-					utils.selfSigned(self, 'Pzh', self.config.conn, function(status) {
+					utils.selfSigned(self, 'Pzh', self.config.conn, function(status, selfSignErr) {
 						if(status === 'certGenerated') {
 							utils.debug(2, 'PZH Generating Certificates');
 							fs.readdir(webinosDemo+'/certificates', function(err) {
@@ -197,7 +197,12 @@
 							});
 							
 							
-						}				
+						} else {
+							utils.debug(1, 'cert manager status: ' + status);
+							if (typeof selfSignErr !== 'undefined') {
+								utils.debug(1, 'cert manager error: ' + selfSignErr);
+							}
+						}
 					});
 				} else {
 					var key =require("../../common/manager/keystore/src/build/Release/keystore");
@@ -228,111 +233,9 @@
 	};
 	
 	
-	Pzh.prototype.setExpectedCode = function(code, cb) {
-	    "use strict";
-	    utils.debug(2, "New PZP expected, code: " + code);
-	    var self = this;
-	    self.expectingNewPzp.status = true;
-	    self.expectingNewPzp.code = code;
-	    var d = new Date(); 
-	    d.setMinutes(d.getMinutes() + 10); //Timeout of ten minutes?  Should this be a config option?
-	    self.expectingNewPzp.timeout = d;
-	    cb();
-	}
-	
-	Pzh.prototype.unsetExpected = function(cb) {
-	    "use strict";
-	    var self = this;
-	    if (self.expectingNewPzp.code === "DEBUG") {
-	        //We don't unset if we're allowing debug additions.
-	    } else {
-	        utils.debug(2,"No longer expecting PZP with code " + self.expectingNewPzp.code);
-    	    self.expectingNewPzp.status = false;
-	        self.expectingNewPzp.code = null;
-    	    self.expectingNewPzp.timeout = null;
-	    }
-	    cb();
-	}
-	
-	Pzh.prototype.isExpected = function(cb) {
-	    "use strict";
-	    var self = this;
-	    
-	    if (!self.expectingNewPzp.status) {
-	        utils.debug(2, "Not expecting a new PZP");
-	        cb(false);
-	        return;
-	    }
-	    if (self.expectingNewPzp.timeout < new Date()) {
-	        utils.debug(2, "Was expecting a new PZP, timed out.");
-	        self.expectingNewPzp.status = false;
-	        self.expectingNewPzp.code = false;
-	        self.expectingNewPzp.timeout = null;
-	        cb(false);
-	        return;
-	    } 	    
-	    
-	    cb ( self.expectingNewPzp.status && 
-	            (self.expectingNewPzp.timeout > new Date()) );
-	}
-	
-	Pzh.prototype.isExpectedCode = function(newcode, cb) {
-	    "use strict";
-	    var self = this;
-	    
-	    utils.debug(2, "Trying to add a PZP, code: " + newcode);
-	    
-	    if (!self.expectingNewPzp.status) {
-	        utils.debug(2, "Not expecting a new PZP");
-	        cb(false);
-	        return;
-	    }
-	    	    
-	    if (self.expectingNewPzp.code !== newcode) {
-	        utils.debug(2, "Was expecting a new PZP, but code wrong");
-	        cb(false);
-	        return;
-	    }
-	        	    
-	    if (self.expectingNewPzp.timeout < new Date()) {
-	        utils.debug(2, "Was expecting a new PZP, code is right, but timed out.");
-	        self.expectingNewPzp.status = false;
-	        self.expectingNewPzp.code = false;
-	        self.expectingNewPzp.timeout = null;
-	        cb(false);
-	        return;
-	    }
-	    
-	    //All the above could be skipped in favour of this.
-	    
-	    cb( self.expectingNewPzp.status && 
-	        self.expectingNewPzp.code === newcode && 
-	        (self.expectingNewPzp.timeout > new Date()) );
-	}
 	
 	
-	Pzh.prototype.revoke = function(pzpCert, callback) {
-		"use strict";
-		var self = this;
-		if (self.config.master.key.value === 'null') {
-	    	    	self.config.master.key.value = fs.readFileSync(pzhKeyDir+'/'+self.config.master.key.name).toString();
-		    	self.config.master.crl.value = fs.readFileSync(pzhCertDir+'/'+self.config.master.crl.name).toString();
-		}
-    	
-		utils.revokeClientCert(self, self.config.master, pzpCert, function(result, crl) {
-		    if (result === "certRevoked") {
-			self.config.master.crl.value = crl;
-			fs.writeFileSync(pzhCertDir+'/'+self.config.master.crl.name, crl);
-			//TODO : trigger the PZH to reconnect all clients
-			//TODO : trigger a synchronisation with PZPs.
-			//TODO : rename the cert.
-			callback(true);
-		    } else {
-			utils.debug(1, "Failed to revoke client certificate [" + pzpCert + "]");
-			callback(false);
-		    }   	    
-		});		
-	}
+	
 	
 	/**
 	* @description Starts Pzh server. It creates server configuration and then createsServer 
@@ -425,7 +328,7 @@
 			} else {
 			    utils.debug(2, "Connection NOT authorised at PZH");
 			    //Sometimes, if this is a new PZP, we have to allow it.
-                self.isExpected(function(expected) {
+                self.expecting.isExpected(function(expected) {
                     if (!expected ||
                          conn.authorizationError !== "UNABLE_TO_GET_CRL"){
                          //we're not expecting anything - disallow.
@@ -486,32 +389,16 @@
 	     cb("http://127.0.0.1:8082/");
 	}
 	
-	function getAllPZPIds(callback) {
-        	"use strict";
-		var fileArr = fs.readdirSync(pzhSignedCertDir+'/');
-		var idArray = [];
-		var i=0;
-		for (i=0;i<fileArr.length;i++) {
-			try {
-				if(fileArr[i] !== "revoked") {
-					idArray.push( fileArr[i].split('.')[0]);			
-				}
-			} catch (err) {
-				console.log(err);
-			}
-		}
-		callback(idArray, null);
-	}
 	
 	Pzh.prototype.addNewPZPCert = function (parse, cb) {
         "use strict";
     	var self = this;
 	    try {
-	        self.isExpectedCode(parse.payload.message.code, function(expected) {
+	        self.expecting.isExpectedCode(parse.payload.message.code, function(expected) {
 	            if (expected) {
 		            utils.signRequest(self, parse.payload.message.csr, self.config.master, function(result, cert) {
 			            if(result === "certSigned") {
-                            self.unsetExpected(function() {
+                            self.expecting.unsetExpected(function() {
 				                //Save this certificate locally on the PZH.
 				                //pzp name: parse.payload.message.name
 				                fs.writeFileSync(pzhSignedCertDir+'/'+ parse.payload.message.name + ".pem", cert);
@@ -610,7 +497,6 @@
 	
 	function findServices(connection, pzh) {
 		var services = rpcHandler.getRegisteredServices();
-		debugger;
 		var msg = pzh.prepMsg(pzh.sessionId, null, 'foundServices', services);
 		
 		pzh.sendMessage(msg, null, connection);
@@ -632,7 +518,7 @@
 			pzh.port = port;
 			pzh.server = server;
 		} catch (err) {
-			utils.debug(1, 'PZH ('+pzh.sessionId+') Error Initializing Pzh');
+			utils.debug(1, 'PZH - Error Initializing Pzh');
 			utils.debug(1, err.code);
 			utils.debug(1, err.stack);
 			return;
@@ -693,105 +579,7 @@
 		return pzh;
 	};
 	
-	function getPZPCertificate(pzpid, callback) {
-	    "use strict";
-	    try { 
-	        var cert = fs.readFileSync(pzhSignedCertDir+'/'+ pzpid + ".pem");  
-	        callback(true, cert);	    
-	    } catch (err) {
-	        utils.debug(2,"Did not find certificate " + err); 
-    	    	callback(false, err);	    
-	    }
-	}
-	
-	function removeRevokedCert(pzpid, callback) {
-	    "use strict";
-	    try { 
-	        var cert = fs.rename(pzhSignedCertDir+'/'+ pzpid + ".pem", pzhRevokedCertDir+'/'+ pzpid + ".pem");  
-	        callback(true);	    
-	    } catch (err) {
-	        utils.debug(2,"Unable to rename certificate " + err); 
-    	    callback(false);	    
-	    }
-	}
-	
-	
-	function revokePzp(connection, pzpid, pzh) {
-        "use strict";
-        utils.debug(2,"Revocation requested of " + pzpid);
-        
-        var payloadErr = {
-            status : "revokePzp",
-            success: false,
-            message: "Failed to revoke"
-        };
-        var msgErr = { type : 'prop', payload : payloadErr };       
-        var payloadSuccess = {
-            status : "revokePzp",
-            success: true,
-            message: "Successfully revoked"
-        };
-        var msgSuccess = { type : 'prop', payload : payloadSuccess };
-                
-        getPZPCertificate(pzpid, function(status, cert) {
-            if (!status) {
-                payloadErr.message = payloadErr.message + " - failed to find certificate";
-        	    connection.sendUTF(JSON.stringify(msgErr));
-            } else {
- 	        console.log('CRL' + cert.toString());
-		    pzh.conn.pair.credentials.context.addCRL(cert.toString());
-                pzh.revoke(cert, function(result) {
-                    if (result) {
-                        utils.debug(2,"Revocation success! " + pzpid + " should not be able to connect anymore ");                       
-                        removeRevokedCert(pzpid, function(status2) {
-                            if (!status2) {
-                                utils.debug(2,"Could not rename certificate");                       
-                                payloadSuccess.message = payloadSuccess.message + ", but failed to rename certificate";
-                            }
-                    	    connection.sendUTF(JSON.stringify(msgSuccess));
-                        });                   
-                    } else {
-                        utils.debug(2,"Revocation failed! ");
-                        payloadErr.message = payloadErr.message + " - failed to update CRL";
-                	    connection.sendUTF(JSON.stringify(msgErr));
-                    }        
-                });      
-            }
-        });
-	}
-	
-	/**
-	* @param connection 
-	*/
-	function listAllPzps(connection) {
-	    "use strict";
-	    getAllPZPIds( function(pzps, error) {
-	        if (error === null) {
-	            var payload = {
-                        status : "listAllPzps",
-                        success: true,
-                        message: []
-                }; 
-                var i=0;
-	            for (i=0;i<pzps.length;i++) {
-	                if (pzps[i] !== null) {
-	                    payload.message.push(pzps[i]);
-                    }
-	            };
-	        } else {
-        	        var payload = {
-                        status : "listAllPzps",
-                        success: false,
-                        message: ""
-                    };                   
-	        }
-            var msg = {
-                type    : 'prop', 
-                payload : payload
-            }; 
-            connection.sendUTF(JSON.stringify(msg));
-	    });
-	}
+
 	
 	function connectedPzhPzp(connection) {
 		var i;
@@ -828,47 +616,10 @@
 	}
 	
 	
-	function generateRandomCode() {
-	    return crypto.randomBytes(8).toString("base64");
-	}
-	
-	// Add a new PZP by generating a QR code.  This function:
-	// (1) returns a QR code 
-	// (2) generates a new secret code, to be held by the PZH
-	// (3) tells the PZH to be ready for a new PZP to be added
 	function addPzpQR(connection) {
 	    "use strict";
 	    var qr = require(path.resolve(__dirname, 'webinosQR.js'));
-	    
-	    var code = generateRandomCode();
-
-	    instance[0].setExpectedCode(code,function() {
-	        instance[0].getMyUrl(function(url) { 
-	            qr.create(url, code, function(err, qrimg) {
-	                if (err == null) {
-	                    var message = {
-	                        name: instance[0].sessionId, 
-	                        img: qrimg,
-	                        result: "success"
-	                        };
-			            var payload = {status : 'addPzpQR', message : message};
-	                    var msg = {type: 'prop', payload: payload};	                    
-	                    connection.sendUTF(JSON.stringify(msg));
-	                } else {
-	                    instance[0].unsetExpected( function() {
-	                        var message = {
-	                            name: instance[0].sessionId, 
-	                            img: qrimg,
-	                            result: "failure: not suppported"
-	                            };			            
-                            var payload = {status : 'addPzpQR', message : message};
-	                        var msg = {type: 'prop', payload: payload};
-        	                connection.sendUTF(JSON.stringify(msg));
-	                    });
-	                }
-	            });
-	        });	    
-	    }); 
+	    qr.addPzpQR(instance[0], connection);
 	}
 	
 
@@ -1022,13 +773,13 @@
 					} else if(msg.type === "prop" && msg.payload.status === 'listPzh') {
 						connectedPzhPzp(connection);
 					} else if(msg.type === "prop" && msg.payload.status === 'listAllPzps') {
-						listAllPzps(connection);
+						revoker.listAllPzps(pzhSignedCertDir, connection);
 					} else if(msg.type === "prop" && msg.payload.status === 'addPzpQR') {
 						addPzpQR(connection);
 					} else if(msg.type === "prop" && msg.payload.status === 'crashLog') {
 						crashLog(connection);
 					} else if(msg.type === "prop" && msg.payload.status === 'revokePzp') {
-					    revokePzp(connection, msg.payload.pzpid, instance[0]);				
+					    revoker.revokePzp(connection, msg.payload.pzpid, instance[0], pzhCertDir, pzhSignedCertDir, pzhKeyDir, pzhRevokedCertDir);				
 					}
 				}
 			});

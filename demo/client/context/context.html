@@ -12,7 +12,13 @@
 	<script type="text/javascript" src="/client/dojo.js"></script>
 	
 	<script type="text/javascript" src="../webinos.js"></script>
-</head>
+	<style type="text/css">
+		.floatingHeader {
+			position: fixed;
+			top: 0;
+			visibility: hidden;
+		}
+	</style>
 
 <body>
 	<h1>Webinos Context API</h1>
@@ -93,7 +99,7 @@
 		$("#contextDataTblContainer").html('<img src="./ajaxloader.gif" alt=""/>');
 		var query = {};
 		query.type = "getrawview";
-		var headerGenerated = false;
+		
 		for (var i = 0; i < contextService.length; i++) {
 			contextService[i].executeQuery(query, function(result) {
 				if (result.msg != null) {
@@ -108,7 +114,8 @@
 					$("#contextDataTblContainer").html('No Data found on your database.');
 					return;
 				}
-				$("#contextDataTblContainer").html('<table><thead><tr id="contextDataTblHead"></tr></thead><tbody id="contextDataTbl"></tbody></table>');
+				$("#contextDataTblContainer").html('<table><thead><tr id="contextDataTblHead" class="persist"></tr></thead><tbody id="contextDataTbl"></tbody></table>');
+				var headerGenerated = false;
 				var oddRow = false;
 				for (rowIndex = 0; rowIndex < result.data.length; rowIndex++) {
 					row = result.data[rowIndex];
@@ -124,6 +131,17 @@
 					headerGenerated = true;
 					oddRow = !oddRow;
 				}
+
+				clonedHeaderRow = $(".persist", "#contextDataTblContainer");
+				var floatingHeader = clonedHeaderRow.clone();
+				floatingHeader.attr("id",clonedHeaderRow.attr("id")+"_clone");
+				floatingHeader.children().width(function (i, val) {
+				    return clonedHeaderRow.children().eq(i).width();
+			    });
+				clonedHeaderRow.before(floatingHeader);
+				floatingHeader.css("width", clonedHeaderRow.width())
+					.addClass("floatingHeader");
+
 			});
 		}
 	});
@@ -166,7 +184,30 @@
             $('#message').append('<li>'+data.payload.message+'</li>');
         }
         webinos.session.addListener('info', printInfo);
+        
+        $(window)
+		    .scroll(UpdateTableHeaders)
+		    .trigger("scroll");
     });
+
+	function UpdateTableHeaders() {
+		var el = $("#contextDataTblContainer"), 
+			offset = el.offset(), 
+			scrollTop = $(window).scrollTop(), 
+			floatingHeader = $(".floatingHeader", el)
+
+		if ((scrollTop > offset.top) && (scrollTop < offset.top + el.height())) {
+			floatingHeader.css("left",  clonedHeaderRow.offset().left - $(window).scrollLeft());
+			floatingHeader.css({
+				"visibility" : "visible"
+			});
+		} else {
+			floatingHeader.css({
+				"visibility" : "hidden"
+			});
+		}
+	}
+	var clonedHeaderRow = null;
 </script>
 
 <hr />

@@ -34,11 +34,11 @@ var listeners = {};
 listeners.id = {};
 listeners.fromObjectRef = {};
 
-RPCHandler.prototype.condext_handleMessage = RPCHandler.prototype.handleMessage;
+_RPCHandler.prototype.context_handleMessage = _RPCHandler.prototype.handleMessage;
 /*
  * handleMessage = function (message, from, msgid)
  */
-RPCHandler.prototype.handleMessage = function(){
+_RPCHandler.prototype.handleMessage = function(){
 	if (arguments[0].jsonrpc) {
 		var message = arguments[0];
 		if (message.fromObjectRef){
@@ -51,13 +51,13 @@ RPCHandler.prototype.handleMessage = function(){
 			listeners.id[message.id] = message;
 		}
 	}
-	this.condext_handleMessage.apply(this, arguments)
+	this.context_handleMessage.apply(this, arguments)
 }
-RPCHandler.prototype.condext_executeRPC = RPCHandler.prototype.executeRPC;
+_RPCHandler.prototype.context_executeRPC = _RPCHandler.prototype.executeRPC;
 /*
  * executeRPC = function (rpc, callback, errorCB, from, msgid)
  */
-RPCHandler.prototype.executeRPC = function(){
+_RPCHandler.prototype.executeRPC = function(){
 	if (arguments[0].jsonrpc) {
 		var message;
 		var res = arguments[0];
@@ -73,7 +73,7 @@ RPCHandler.prototype.executeRPC = function(){
 		}
 		webinos.context.logContext(message, res);
 	}
-	this.condext_executeRPC.apply(this, arguments)
+	this.context_executeRPC.apply(this, arguments)
 }
 
 //console.log("moduleRoot: "+moduleRoot);

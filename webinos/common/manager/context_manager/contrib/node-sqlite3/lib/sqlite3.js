@@ -1,10 +1,4 @@
-try {
-  var sqlite3 = module.exports = exports = require('./node_sqlite3.node');
-}
-catch(err){
-  var sqlite3 = module.exports = exports = require('./sqlite3_bindings.node');
-}
-
+var sqlite3 = module.exports = exports = require('../build/Release/node_sqlite3.node');
 
 
 var path = require('path');

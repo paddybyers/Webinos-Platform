@@ -1,6 +1,6 @@
 {
   'variables': {
-    'module_name': 'node-sqlite3',#Specify the module name here
+    'module_name': 'node_sqlite3',#Specify the module name here
 	#you may override the variables found in node_module.gypi here or through command line
 	'output_directory': 'lib',
   },

@@ -10,7 +10,7 @@ import Options
 import Utils
 
 
-TARGET = 'sqlite3_bindings'
+TARGET = 'node_sqlite3'
 TARGET_FILE = '%s.node' % TARGET
 built = 'build/Release/%s' % TARGET_FILE
 dest = 'lib/%s' % TARGET_FILE

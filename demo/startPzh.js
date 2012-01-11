@@ -12,9 +12,8 @@ process.argv.forEach(function(val, index, array) {
 		serverPort = val;
 });
 
-var pzhModules = {};
-pzhModules.list = [
-    "get42",
+var pzhModules = [
+    {name: "get42", params: [99]}
 ];
 
 if (ipAddr === '' || port <= 0) {

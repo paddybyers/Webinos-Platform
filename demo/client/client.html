@@ -65,6 +65,7 @@
                                 servername: document.getElementById('pzpservername').value,
                                 serverport: document.getElementById('pzpserverport').value,
                                 code:  document.getElementById('pzpcode').value,
+                                modules: [{name:'get42', params: [23]}], // FIXME just for testing, need gui to configure modules
                                 value: config}; 
                         
                         var options = {type: 'prop', payload: payload};
@@ -84,6 +85,7 @@
                 var test = [];
                          
                 $('#findService').bind('click', function() {
+                		test = [];
                         webinos.session.setServiceLocation($('#pzh_pzp_list').val());
                         webinos.ServiceDiscovery.findServices( 
                         new ServiceType('http://webinos.org/api/test'),                         
@@ -237,5 +239,12 @@
 </div>
 
 <div id="status">STATUS: <span id="message"></span></div>
+<script type="text/javascript">
+$('#status').mouseenter(function(){
+	var that = $(this);
+	var right = that.css("right");
+	that.css("right",(right==="0px")?"":"0px");
+});
+</script>
 </body>
 </html>

@@ -13,10 +13,8 @@
 		
 	if (typeof exports !== "undefined") {
 		var rpc = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js'));
-		var rpcHandler = new RPCHandler();
-		
+		var RPCHandler = rpc.RPCHandler;
 		var messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
-		messaging.setRPCHandler(rpcHandler);
 		
 		var utils = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 	}
@@ -29,7 +27,7 @@
 	var connectedApp ={};
 	var webId = 0;
 	var pzpCertDir;
-	Pzp = function () {
+	Pzp = function (modules) {
 		// Stores PZH server details
 		this.connectedPzh= [];
 		this.connectedPzhIds = [];
@@ -55,6 +53,13 @@
 		
 		// Code used for the first run to authenticate with PZH.
 		this.code = null;
+		
+		// Handler for remote method calls.
+		this.rpcHandler = new RPCHandler();
+		messaging.setRPCHandler(this.rpcHandler);
+		
+		// load specified modules
+		this.rpcHandler.loadModules(modules);
 	};
 	
 	Pzp.prototype.prepMsg = function(from, to, status, message) {
@@ -153,14 +158,18 @@
 		
 		if (!path.existsSync(pzpCertDir+'/'+self.config.master.cert.name)) {
 		    //We have no certificates - create some which are self-signed.
-		    utils.selfSigned(self, 'Pzp', self.config.conn, function (status) {
+		    utils.selfSigned(self, 'Pzp', self.config.conn, function (status, selfSignErr) {
 				if (status === 'certGenerated') {
 		            		fs.writeFileSync(pzpKeyDir+'/'+self.config.conn.key.name, self.config.conn.key.value);
 					options = {key: self.config.conn.key.value, cert: self.config.conn.cert.value};
 					callback.call(self, options);
 				}
 		        } else {
-		            callback.call(self, 'failed');
+					utils.debug(1, 'creating certificated failed.');			
+					if (typeof selfSignErr !== 'undefined') {
+						utils.debug(1, 'cert manager error: ' + selfSignErr);
+					}
+		            callback.call(self, status);
 		        }
 		    });
 		} else {
@@ -369,8 +378,7 @@
 					data2.payload.status === 'foundServices') {
 				utils.debug(2, 'PZP ('+self.sessionId+') findServices dude!!!');
 				
-				debugger;
-				rpcHandler.setServicesFromPzh(data2.payload.message);
+				this.rpcHandler.setServicesFromPzh(data2.payload.message);
 			}
 			// Forward message to message handler
 			else {
@@ -384,8 +392,8 @@
 	 * @param server name
 	 * @param port: port on which PZH is running
 	 */
-	sessionPzp.startPzp = function(contents, servername, port, code, callback) {
-		var client = new Pzp();
+	sessionPzp.startPzp = function(contents, servername, port, code, modules, callback) {
+		var client = new Pzp(modules);
 		client.code = code;		
 		client.pzhPort = port;
 		utils.resolveIP(servername, function(resolvedAddress) {
@@ -429,13 +437,10 @@
 		});				
 	};
 
-	sessionPzp.startPzpWebSocketServer = function(hostname, serverPort, webServerPort, modules) {
+	sessionPzp.startPzpWebSocketServer = function(hostname, serverPort, webServerPort) {
 		var http = require('http'),
 		url = require('url'),
 		WebSocketServer = require('websocket').server;
-		
-		// load specified modules
-		rpcHandler.loadModules(modules);
 		
 		function getContentType(uri) {
 			var contentType = 'text/plain';
@@ -568,6 +573,7 @@
 						msg.payload.servername, 
 						msg.payload.serverport,
 						msg.payload.code,
+						msg.payload.modules,
 						function(status) {
 							if(typeof status !== "undefined") {
 								connectedApp(connection);
