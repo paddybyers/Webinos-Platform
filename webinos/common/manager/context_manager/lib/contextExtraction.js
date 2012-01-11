@@ -33,6 +33,10 @@ webinos.context.saveContext = function(dataIn, success, fail) {
   contextItem.timestamp = {};
   contextItem.paramstolog = [];
   contextItem.resultstolog = [];
+  
+  var myTypeOf = function(input){
+	  return (input instanceof Array)?"array":((input===null)?"null":(typeof input));
+  }
 
   var findObjectsToStore = function(vocList, callList, arrayToFill,objRef){
     if(objRef == undefined){
@@ -45,15 +49,17 @@ webinos.context.saveContext = function(dataIn, success, fail) {
       data.ObjectRef=objRef;
       data.IsObject = false;
       data.value = callList;
+      data.type = myTypeOf(callList);
       arrayToFill[arrayToFill.length] = data;
     }
     //Case if results is an unnamed array
     else if(callList.length  && vocList.length == 1 && vocList[0].type == "array" && vocList[0].objectName == ""){ //Is Array
       var data = {};
-      data.objectName = "array";
+      data.objectName = "";//"array";
       data.ObjectRef = objRef;
       data.IsObject = true;
       data.value = objRef + ".";
+      data.type = myTypeOf(callList);
       arrayToFill[arrayToFill.length] = data;
       for (var arID=0; arID < callList.length; arID++){        
         findObjectsToStore(vocList[0].values, callList[arID],arrayToFill, data.value + arID);
@@ -83,6 +89,7 @@ webinos.context.saveContext = function(dataIn, success, fail) {
                   data.ObjectRef = objRef;
                   data.IsObject = true;
                   data.value = objRef + ".";
+                  data.type = myTypeOf(callList[callItem]);
                   arrayToFill[arrayToFill.length] = data;
                   for (var arID=0; arID < callList[callItem].length; arID++){
                     findObjectsToStore(vocList[vocItem].values, callList[callItem][arID],arrayToFill,data.value + arID);
@@ -95,6 +102,7 @@ webinos.context.saveContext = function(dataIn, success, fail) {
                   data.ObjectRef=objRef;
                   data.IsObject = false;
                   data.value = callList[callItem];
+                  data.type = myTypeOf(callList[callItem]);
                   arrayToFill[arrayToFill.length] = data;
                   break;
                 }

@@ -73,10 +73,10 @@
         }
 
         var fldcontextrawID = this.lastID;
-        var incontextrawvalues = db.prepare("INSERT INTO tblcontextrawvalues (fldContextRAWID,fldObjectRef,fldIsObject,fldValueTypeID, fldValueName, fldValue) VALUES (?,?,?,?,?,?)");
+        var incontextrawvalues = db.prepare("INSERT INTO tblcontextrawvalues (fldContextRAWID,fldObjectRef,fldIsObject,fldValueTypeID, fldValueName, fldValueType, fldValue) VALUES (?,?,?,?,?,?,?)");
         for (inputID=0; inputID < contextItem.paramstolog.length; inputID++) {
           var input = contextItem.paramstolog[inputID];
-          incontextrawvalues.run(fldcontextrawID, input.ObjectRef, input.IsObject, 1, input.objectName, input.value, function(err) {
+          incontextrawvalues.run(fldcontextrawID, input.ObjectRef, input.IsObject, 1, input.objectName, input.type, input.value, function(err) {
             if (err) {
               throw err;
               fail(); 
@@ -85,7 +85,7 @@
         }
         for (outputID=0; outputID < contextItem.resultstolog.length; outputID++) {
           var output = contextItem.resultstolog[outputID];
-          incontextrawvalues.run(fldcontextrawID, output.ObjectRef, output.IsObject, 2, output.objectName, output.value, function(err) {
+          incontextrawvalues.run(fldcontextrawID, output.ObjectRef, output.IsObject, 2, output.objectName, output.type, output.value, function(err) {
             if (err) {
               throw err;
               fail();
@@ -102,7 +102,7 @@
         "SELECT fldcontextrawID AS ContextRawID,  " +
         "fldcontextrawvalueID AS ContextRawValueID,  fldAPI AS API, fldDevice AS Device, fldApplication AS Application, " +
         "fldSession AS Session, fldContextObject AS ContextObject, fldMethod AS Method, fldTimestamp AS Timestamp, " +
-        "fldDescription AS ValueType, fldValueName AS ValueName, fldValue AS Value FROM vwcontextraw", 
+        "fldDescription AS ValueType, fldValueName AS ValueName, fldValueType AS ValueType, fldValue AS Value FROM vwcontextraw", 
         function (err,row){
           result.data[result.data.length] = row;
         },
