@@ -164,8 +164,14 @@ var httpServer = require('http').createServer(function(request, response) {
 			});  
 		});
         
+httpServer.on('error', function(err) {
+	// this catches EADDRINUSE and makes sure node doesn't quit
+	console.log('verhicle api: error on vehicle sim server: ' + err);
+});
 
 try{
+	// FIXME this fails when this service is loaded more than once on one host
+	// as the port will already be taken
     httpServer.listen(9898);
     var nowjs = require('now');
     var everyone = nowjs.initialize(httpServer);
