@@ -508,20 +508,42 @@
                   ],
                   "inputs" : [
                      {
-                        "logged" : false,
-                        "objectName" : "enableHighAccuracy",
+                        "logged" : true,
+                        "objectName" : "0",
                         "required" : false,
-                        "type" : "boolean"
+                        "type" : "array",
+                        "values" : [
+                           {
+                              "logged" : true,
+                              "objectName" : "",
+                              "required" : true,
+                              "type" : "Object",
+                              "values" : [
+                                 {
+                                    "logged" : false,
+                                    "objectName" : "enableHighAccuracy",
+                                    "required" : false,
+                                    "type" : "boolean"
+                                 },
+                                 {
+                                    "logged" : false,
+                                    "objectName" : "maximumAge",
+                                    "type" : "long"
+                                 },
+                                 {
+                                    "logged" : false,
+                                    "objectName" : "timeout",
+                                    "type" : "long"
+                                 }
+                              ]
+                           }
+                        ]
                      },
                      {
                         "logged" : false,
-                        "objectName" : "maximumAge",
-                        "type" : "long"
-                     },
-                     {
-                        "logged" : false,
-                        "objectName" : "timeout",
-                        "type" : "long"
+                        "objectName" : "1",
+                        "required" : true,
+                        "type" : "number"
                      }
                   ],
                   "objectName" : "watchPosition",
@@ -670,18 +692,6 @@
       ],
       "URI" : "http://www.w3.org/ns/api-perms/geolocation",
       "otherMethods" : [
-         {
-            "Errors" : [],
-            "inputs" : [
-               {
-                  "logged" : false,
-                  "objectName" : "watchId",
-                  "type" : "long"
-               }
-            ],
-            "objectName" : "clearWatch",
-            "outputs" : []
-         },
          {
             "Errors" : [],
             "inputs" : [
