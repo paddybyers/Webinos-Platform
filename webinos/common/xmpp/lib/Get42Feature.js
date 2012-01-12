@@ -14,7 +14,7 @@ var moduleRoot = require('../dependencies.json');
 var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
 var webinosRoot = '../' + moduleRoot.root.location;
 
-var get42 = require(webinosRoot + dependencies.api.get42.location + "lib/rpc_test.js");
+var get42 = require(webinosRoot + dependencies.api.get42.location);
 
 /*
  * Remote-alert Feature, defines as subclass of GenericFeature

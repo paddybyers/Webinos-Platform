@@ -15,7 +15,7 @@ var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
 var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
-var rpc = require(path.join(webinosRoot, dependencies.rpc.location, "lib/rpc.js"));
+var rpc = require(path.join(webinosRoot, dependencies.rpc.location));
 
 /*
  * 'Class' definition of generic webinos feature
