@@ -87,7 +87,7 @@ _RPCHandler.prototype.executeRPC = function(){
 //console.log("context_managerRoot: "+webinosRoot+dependencies.manager.context_manager.location);
 
 //Require the database class
-var databasehelper = require(moduleRoot + '/contrib/JSORMDB');
+var databasehelper = require('JSORMDB');
 
 //Initialize helper classes
 var dbpath = path.resolve(webinosRoot + '/../storage/context/pzp/log.json');

@@ -6,12 +6,12 @@
   var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
   var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
 
-  var sqlite3 = require(moduleRoot+'/contrib/node-sqlite3/').verbose();
+  var sqlite3 = require('node-sqlite3').verbose();
 
   var dbpath = path.resolve(webinosRoot + '/../storage/context/pzh/contextDB.db');
   var bufferpath = path.resolve(webinosRoot + '/../storage/context/pzp/contextDBbuffer.json');
   var db =  new sqlite3.Database(dbpath);
-  var databasehelper = require(moduleRoot + '/contrib/JSORMDB');
+  var databasehelper = require('JSORMDB');
   bufferDB = new databasehelper.JSONDatabase({path : bufferpath, transactional : false});
 
   webinos.ServiceDiscovery = new _RPCHandler;

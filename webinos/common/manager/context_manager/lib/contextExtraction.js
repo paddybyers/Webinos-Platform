@@ -10,7 +10,7 @@ var moduleRoot = path.resolve(__dirname, '../') + '/';
 var moduleDependencies = require(moduleRoot + '/dependencies.json');
 var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
 var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
-var databasehelper = require(moduleRoot + '/contrib/JSORMDB');
+var databasehelper = require('JSORMDB');
 
 //Initialize helper classes
 
