@@ -41,7 +41,7 @@ On Ubuntu / Debian: apt-get install libexpat1
 3. Node-Xmpp or Node-Bosh-Xmpp:
 
 For native XMPP support install node-xmpp: npm install node-xmpp
-For XMPP over HTTP (BOSH) install node-bosh-xmpp: npm install node-bosh-xmpp
+For XMPP over HTTP (BOSH) install node-bosh-xmpp-client: npm install node-bosh-xmpp-client
 
 4. node-stringprep (optional)
 
