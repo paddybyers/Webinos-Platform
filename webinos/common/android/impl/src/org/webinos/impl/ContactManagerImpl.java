@@ -24,12 +24,15 @@ import org.meshpoint.anode.module.IModuleContext;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.os.Looper;
+
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.PhoneLookup;
 import android.text.format.DateFormat;
 import android.util.Base64;
+import android.util.Log;
 import android.widget.Toast;
 
 import android.database.Cursor;
@@ -49,7 +52,7 @@ public class ContactManagerImpl extends ContactManager implements IModule {
 	@Override
 	public PendingOperation find(String[] fields, ContactFindCB successCB, ContactErrorCB errorCB, ContactFindOptions options) {
 		// TODO Auto-generated method stub
-        //Log.v("CONTACTS", "TEST!");
+        Log.v("DBG", "Parametes from JS:\n" + fields[0].toString());
         
 		/*try {
           Toast toast = Toast.makeText(androidContext, fields.toString(), Toast.LENGTH_LONG);
@@ -58,20 +61,41 @@ public class ContactManagerImpl extends ContactManager implements IModule {
 		catch(Throwable t){
 			t.printStackTrace(); 
 		}*/
+        
+        Log.v("DBG", "---------->#contact SEARCHED: " + Integer.toString(getContactsNumber()));
           
-		Contact[] contacts = this.getContacts();	
-		successCB.onSuccess(contacts);
+		//Contact[] contacts = this.getContacts();	
+		//successCB.onSuccess(contacts);
 	
 		return null;
 	}
 	
-	
 	private int getContactsNumber() {
 		
-		Cursor cursor = androidContext.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+//		Cursor cursor = androidContext.getContentResolver().query(	ContactsContract.Contacts.CONTENT_URI,
+//																	new String[] { ContactsContract.Contacts._ID },
+//																	ContactsContract.Contacts._ID + " = ?", 
+//																	new String[] { "1" },
+//																	null);
+		
+		Cursor cursor = androidContext.getContentResolver().query( ContactsContract.Data.CONTENT_URI, 
+																	new String[] {  ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME,
+																					ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
+																					ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME,
+																					ContactsContract.CommonDataKinds.StructuredName.MIDDLE_NAME,
+																					ContactsContract.CommonDataKinds.StructuredName.PREFIX,
+																					ContactsContract.CommonDataKinds.StructuredName.SUFFIX
+																				 }, 
+																	ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME + " = ? AND " + ContactsContract.Data.MIMETYPE + " = ?", 
+																	new String[]{"Darth", ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE}, 
+																	null);
+		
 		int i;
 		
-		for(i = 0; cursor.moveToNext(); i++);
+		for(i = 0; cursor.moveToNext(); i++)
+			Log.v("DBG", "--------> " + cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.PREFIX)));
+		
+		cursor.close();
 		
 		return i;
 	}
@@ -79,7 +103,7 @@ public class ContactManagerImpl extends ContactManager implements IModule {
 	
 	private Contact[] getContacts(){
 				
-		ArrayList<Contact> contacts = new ArrayList<Contact>();	
+		ArrayList<Contact> contacts = new ArrayList<Contact>();
 		Cursor cursor = androidContext.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
 		
     	while(cursor.moveToNext()) {
