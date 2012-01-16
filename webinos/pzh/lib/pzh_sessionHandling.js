@@ -23,8 +23,8 @@
 			var rpc = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));
 			var messaging = require(path.resolve(__dirname, '../../common/manager/messaging/lib/messagehandler.js'));					
 			var authcode = require(path.resolve(__dirname, 'pzh_authcode.js'));
-			var utils = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
-
+			var cert = require(path.resolve(__dirname, '../../pzp/lib/session_certificate.js'));
+			var utils = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));	
 			var webinosDemo = path.resolve(__dirname, '../../../demo');
 		} catch (err) {
 			helper.debug(1, "Webinos modules missing, please check webinos installation" + err);
@@ -127,7 +127,7 @@
 			pzhRevokedCertDir = path.resolve(__dirname, pzhName+'/signed_cert/revoked');
 			fs.readFile(pzhCertDir+'/'+self.config.master.cert.name, function(err) {
 				if(err !== null && err.code === 'ENOENT') {
-					utils.selfSigned(self, 'Pzh', self.config.conn, function(status, selfSignErr) {
+					cert.selfSigned(self, 'Pzh', self.config.conn, function(status, selfSignErr) {
 						if(status === 'certGenerated') {
 							helper.debug(2, 'PZH Generating Certificates');
 							fs.readdir(webinosDemo+'/certificates', function(err) {
@@ -163,7 +163,7 @@
 											}									
 										}
 										
-										utils.selfSigned(self, 'Pzh:Master', self.config.master, function(result) {
+										cert.selfSigned(self, 'Pzh:Master', self.config.master, function(result) {
 											if(result === 'certGenerated') {
 												try {
 													// This is working, waiting for completion of Android and Windows part to commit code.
@@ -185,7 +185,7 @@
 													helper.debug(1,'PZH ('+self.sessionId+') Error writing master certificates file');
 													return;
 												}
-												utils.signRequest(self, self.config.conn.csr.value, self.config.master, function(result, cert) {
+												cert.signRequest(self, self.config.conn.csr.value, self.config.master, function(result, cert) {
 													if(result === 'certSigned'){ 
 														self.config.conn.cert.value = cert;
 														try {
@@ -390,7 +390,7 @@
 	    try {
 	        self.expecting.isExpectedCode(parse.payload.message.code, function(expected) {
 	            if (expected) {
-		            utils.signRequest(self, parse.payload.message.csr, self.config.master, function(result, cert) {
+		            cert.signRequest(self, parse.payload.message.csr, self.config.master, function(result, cert) {
 			            if(result === "certSigned") {
                             self.expecting.unsetExpected(function() {
 				                //Save this certificate locally on the PZH.

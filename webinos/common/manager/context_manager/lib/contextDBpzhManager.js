@@ -17,7 +17,7 @@
   webinos.ServiceDiscovery = new _RPCHandler;
   webinos.ServiceDiscovery.loadModules([{name: "context", param: {}}]);
 
-  sessionPzp = require(webinosRoot + '/pzp/lib/session_pzp.js');
+  sessionPzp = require(webinosRoot + '/pzp/lib/pzp_sessionHandling.js');
 
   ////////////////////////////////////////////////////////////////////////////////////////
   //Running on the PZP

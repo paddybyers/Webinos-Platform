@@ -5,12 +5,15 @@ var instance;
 websocket.updateInstance = function(pzpInstance) {
 	instance = pzpInstance;
 }
+
+websocket.webId = 0;
+websocket.connectedApp = [];
+
 websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort, callback) {
 		var http = require('http'),
 		url = require('url'),
 		path = require('path'),
 		fs = require('fs'),
-		webId = 0,
 		moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
 		dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json')),
 		webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location),
@@ -18,7 +21,9 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 		utils = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')),
 		WebSocketServer = require('websocket').server,
 		rpc = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js')),
-		messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
+		messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js')),		
+		pzp_session = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/pzp_sessionHandling.js'));
+		
 		function getContentType(uri) {
 			var contentType = 'text/plain';
 		    switch (uri.substr(uri.lastIndexOf('.'))) {
@@ -109,8 +114,8 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 		function messageWS (msg, address) {
 			msg.from = "virgin_pzp";
 			// TODO why is "msg" a whole service object? we should only send the service info fields.
-			if(connectedApp[address]) {
-				connectedApp[address].sendUTF(JSON.stringify(msg));
+			if(websocket.connectedApp[address]) {
+				websocket.connectedApp[address].sendUTF(JSON.stringify(msg));
 			}
 		}
 		
@@ -122,9 +127,9 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 				payload = {'pzhId':instance.pzhId,'connectedPzp': instance.connectedPzpIds,'connectedPzh': instance.connectedPzhIds};
 				instance.prepMsg(instance.sessionId, instance.sessionWebAppId, 'registeredBrowser', payload);  
 			} else {
-				webId += 1;
-				var payload, addr = "virgin_pzp"+'/'+webId;
-				connectedApp[addr] = connection;
+				websocket.webId += 1;
+				var payload, addr = "virgin_pzp"+'/'+websocket.webId;
+				websocket.connectedApp[addr] = connection;
 				payload = {type:"prop", from:"virgin_pzp", to: addr , payload:{status:"registeredBrowser"}};
 				messageWS(payload, addr);
 			}		
@@ -147,7 +152,7 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 				// Each message is forwarded back to Message Handler to forward rpc message
 					if(msg.type === 'prop' ){
 						if( msg.payload.status === 'startPzp' ) {
-						instance = sessionPzp.startPzp(msg.payload.value, 
+						instance = pzp_session.startPzp(msg.payload.value, 
 						msg.payload.servername, 
 						msg.payload.serverport,
 						msg.payload.code,

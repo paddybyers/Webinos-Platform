@@ -27,7 +27,7 @@ var moduleRoot = path.resolve(__dirname, '../') + '/';
 var moduleDependencies = require(moduleRoot + '/dependencies.json');
 var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
 var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
-var sessionPzp = require( webinosRoot + '/pzp/lib/session_pzp.js');
+var sessionPzp = require( webinosRoot + '/pzp/lib/pzp_sessionHandling.js');
 
 require(moduleRoot +'/lib/AsciiArt.js')
 

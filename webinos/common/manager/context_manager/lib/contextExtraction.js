@@ -18,7 +18,7 @@ var Fs = require('fs');
 var vocdbpath = path.resolve(moduleRoot +'/data/contextVocabulary.json');
 
 webinos.context.DB = require(moduleRoot +'/lib/contextDBpzhManager.js')
-var sessionPzp = require( webinosRoot + '/pzp/lib/session_pzp.js');
+var sessionPzp = require( webinosRoot + '/pzp/lib/pzp_sessionHandling.js');
 
 webinos.context.saveContext = function(dataIn, success, fail) {
 

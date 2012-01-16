@@ -15,9 +15,6 @@ if (typeof exports !== "undefined") {
 	
 }
 
-exports.setDebugStream = function(stream) {
-	crashMsg = stream;
-}
 
 var debug = function(num, msg) {
 	"use strict";
@@ -26,11 +23,7 @@ var debug = function(num, msg) {
 	var fs = require('fs');
 	
 	if(num === 1) {
-		console.log('ERROR:' + msg);
-		if(crashMsg != null) {
-			crashMsg.write(msg);
-			crashMsg.write('\n');
-		}
+		console.log('ERROR:' + msg);	
 	} else if(num === 2 && info) {
 		console.log('INFO:' + msg);		
 	} else if(num === 3 && debug) {
