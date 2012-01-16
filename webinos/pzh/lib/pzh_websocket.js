@@ -11,8 +11,8 @@ if (typeof exports !== 'undefined') {
 	var webinosDemo = path.resolve(__dirname, '../../../demo');
 	var messaging = require(path.resolve(__dirname, '../../common/manager/messaging/lib/messagehandler.js'));
 	messaging.setRPCHandler(rpcHandler);
-	var revoker = require(path.resolve(__dirname, 'revoke.js'));
-	var sessionPzh = require(path.resolve(__dirname, 'session_pzh.js'));
+	var revoker = require(path.resolve(__dirname, 'pzh_revoke.js'));
+	var sessionPzh = require(path.resolve(__dirname, 'pzh_sessionHandling.js'));
 	var helper = require(path.resolve(__dirname, 'pzh_helper.js'));
 	var connectPzh = require(path.resolve(__dirname, 'pzh_connecting.js'));
 }

@@ -17,7 +17,7 @@ GnomeKeyringPasswordSchema SecretSchema =
 {
   GNOME_KEYRING_ITEM_GENERIC_SECRET,
   {
-    {"user", GNOME_KEYRING_ATTRIBUTE_TYPE_STRING },
+    { "user", GNOME_KEYRING_ATTRIBUTE_TYPE_STRING },
     { "service", GNOME_KEYRING_ATTRIBUTE_TYPE_STRING },
     { NULL }
   }
@@ -44,10 +44,6 @@ std::string userName() throw(::KeyStoreException)
 int __get(const char * svc, void ** secret) throw(::KeyStoreException)
 {
   std::string account(userName());
-  std::cerr<< "account" << account << std::endl;
-  
-  std::cerr << "svc" << svc << std::endl;
-  
   gchar * secretMem = static_cast<gchar *>(::gnome_keyring_memory_alloc(MAXSECLEN));
   ::memset(secretMem,0,MAXSECLEN);
 	    
@@ -55,7 +51,7 @@ int __get(const char * svc, void ** secret) throw(::KeyStoreException)
   if (res != GNOME_KEYRING_RESULT_OK) {
     throw ::KeyStoreException(::gnome_keyring_result_to_message(res));
   } else {  
-	  std::cerr<< " found password " << secretMem <<	 std::endl;  	
+	  std::cerr<< " found password "  <<	 std::endl;  	
   }  
   *secret = secretMem;
     
@@ -65,10 +61,7 @@ int __get(const char * svc, void ** secret) throw(::KeyStoreException)
 void __put(const char * svc, void * secret) throw(::KeyStoreException)
 {
   std::string account(userName());
-  std::cerr<< "Account "<<account << std::endl;
   gchar * secretStr = static_cast<gchar *>(secret);
-  std::cerr<< "secret str " << secretStr << std::endl;
-  std::cerr << "SVC" << svc << std::endl;
   int secretLength = ::strlen(secretStr);
   if (secretLength > MAXSECLEN) {
     char errBuf[ERRBUFLEN];
@@ -77,7 +70,6 @@ void __put(const char * svc, void * secret) throw(::KeyStoreException)
   }
   GnomeKeyringResult res = ::gnome_keyring_store_password_sync(&SecretSchema, GNOME_KEYRING_DEFAULT, svc, secretStr, "user", account.c_str(),  "service", svc, NULL);  
   if (res != GNOME_KEYRING_RESULT_OK) {
-		std::cerr<< "result "<< ::gnome_keyring_result_to_message(res) << std::endl;
 		throw ::KeyStoreException(::gnome_keyring_result_to_message(res));
 	} else {
 		std::cerr<< "Stored Successfull" << std::endl;

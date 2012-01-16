@@ -1,4 +1,4 @@
-Pzh = require('../webinos/pzh/lib/session_pzh.js');
+Pzh = require('../webinos/pzh/lib/pzh_sessionHandling.js');
 WebSocket = require('../webinos/pzh/lib/pzh_websocket.js');
 
 var ipAddr = 'localhost', port = 8000, serverPort = 8083, webServerPort = 8082;
@@ -24,7 +24,7 @@ if (ipAddr === '' || port <= 0) {
 	var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh\nemail=internal@webinos.org\ndays=180\n" ;
 	WebSocket.startServer(ipAddr, serverPort, webServerPort, pzhModules, function() {
 		Pzh.startPzh(contents, ipAddr, port, function() {
-			console.log(Pzh);
+			console.log('=== PZH STARTED ===');
 		});
 	});
 	

@@ -98,7 +98,7 @@
 			sessionid = data.to;
 			pzpId = data.from;
 
-			if (typeof data.payload.message !== "undefined") {
+			if (typeof data.payload.message !== "undefined" && data.from !== "virgin_pzp") {
 				pzhId = data.payload.message.pzhId;
 			}
 			
