@@ -29,6 +29,8 @@ var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + 
 var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
 var sessionPzp = require( webinosRoot + '/pzp/lib/session_pzp.js');
 
+require(moduleRoot +'/lib/AsciiArt.js')
+
 
 var listeners = {};
 listeners.id = {};
@@ -71,7 +73,11 @@ _RPCHandler.prototype.executeRPC = function(){
 			message = listeners.id[res.id];
 			delete listeners.id[res.id];
 		}
-		webinos.context.logContext(message, res);
+		if (message == undefined){
+			console.log("WARNING: Check rpc response. Not in expected format.", 'yellow+black_bg');
+		}else{
+			webinos.context.logContext(message, res);
+		}
 	}
 	this.context_executeRPC.apply(this, arguments)
 }
@@ -81,7 +87,7 @@ _RPCHandler.prototype.executeRPC = function(){
 //console.log("context_managerRoot: "+webinosRoot+dependencies.manager.context_manager.location);
 
 //Require the database class
-var databasehelper = require(moduleRoot + '/contrib/JSORMDB');
+var databasehelper = require('JSORMDB');
 
 //Initialize helper classes
 var dbpath = path.resolve(webinosRoot + '/../storage/context/pzp/log.json');

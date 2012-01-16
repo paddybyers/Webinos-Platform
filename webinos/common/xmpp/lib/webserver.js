@@ -19,7 +19,7 @@ var dependencyPath = path.join(__dirname, '../', moduleRoot.root.location, '/dep
 var dependencies = require(path.normalize(dependencyPath));
 var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
-var rpc = require(path.join(webinosRoot, dependencies.rpc.location, "lib/rpc.js"));
+var rpc = require(path.join(webinosRoot, dependencies.rpc.location));
 
 function handler(request, response) {
 	logger.trace("Entering request callback");

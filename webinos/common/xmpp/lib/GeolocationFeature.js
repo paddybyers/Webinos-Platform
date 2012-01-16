@@ -16,7 +16,7 @@ var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
 //var rpc = require(path.join(webinosRoot, dependencies.rpc.location, "lib/rpc.js"));
 
-var geolocation = require(path.join(webinosRoot, dependencies.api.geolocation.location, "lib/webinos.geolocation.rpc.js"));
+var geolocation = require(path.join(webinosRoot, dependencies.api.geolocation.location));
 
 /*
  * Geolocation feature, defined as subclass of GenericFeature
