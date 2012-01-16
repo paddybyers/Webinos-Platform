@@ -1,22 +1,33 @@
 var pzhWebSocket = exports;
 
 var path = require('path');
-var instance = [];
 
-if (typeof exports !== 'undefined') {
-	var rpc = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));
-	var RPCHandler = rpc.RPCHandler;
-	var rpcHandler = new RPCHandler();
-	var utils = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
-	var webinosDemo = path.resolve(__dirname, '../../../demo');
-	var messaging = require(path.resolve(__dirname, '../../common/manager/messaging/lib/messagehandler.js'));
-	messaging.setRPCHandler(rpcHandler);
-	var revoker = require(path.resolve(__dirname, 'pzh_revoke.js'));
-	var sessionPzh = require(path.resolve(__dirname, 'pzh_sessionHandling.js'));
-	var helper = require(path.resolve(__dirname, 'pzh_helper.js'));
-	var connectPzh = require(path.resolve(__dirname, 'pzh_connecting.js'));
+var rpc = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));
+var RPCHandler = rpc.RPCHandler;
+var rpcHandler = new RPCHandler();
+var utils = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
+var webinosDemo = path.resolve(__dirname, '../../../demo');
+var messaging = require(path.resolve(__dirname, '../../common/manager/messaging/lib/messagehandler.js'));
+messaging.setRPCHandler(rpcHandler);
+var revoker = require(path.resolve(__dirname, 'pzh_revoke.js'));
+var pzh_session = require(path.resolve(__dirname, 'pzh_sessionHandling.js'));
+var helper = require(path.resolve(__dirname, 'pzh_helper.js'));
+
+var connect_pzh = require(path.resolve(__dirname, 'pzh_connecting.js'));
+var pzhCertDir, pzhSignedCertDir, pzhOtherCertDir, pzhKeyDir, pzhRevokedCertDir;
+
+pzhWebSocket.instance = [];
+
+pzhWebSocket.setDirectories = function(pzhCert, pzhSigned, pzhOther, pzhKey, pzhRevoke) {
+	pzhCertDir = pzhCert;
+	pzhSignedCertDir = pzhSigned;
+	pzhOtherCertDir = pzhOther;
+	pzhKeyDir = pzhKey;
+	pzhRevokedCertDir = pzhRevoke;
 }
+
 pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, modules, callback) {
+	var fs = require('fs');
 	try {
 		var http = require('http'),			
 		WebSocketServer = require('websocket').server;
@@ -140,24 +151,24 @@ pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, modules
 			utils.debug(2, 'PZH WSServer: Received packet' + JSON.stringify(msg));
 			
 			if(msg.type === 'prop' && msg.payload.status === 'startPzh') {
-				var pzh= sessionPzh.startPzh(msg.payload.value, msg.payload.servername,	msg.payload.serverport, 
+				var pzh= pzh_session.startPzh(msg.payload.value, msg.payload.servername,	msg.payload.serverport, 
 					function(result) {
 						if(result === 'startedPzh') {
-							instance.push(pzh);
+							pzhWebSocket.instance.push(pzh);
 							var info = {"type":"prop","payload":{"status": "info","message":"PZH "+ pzh.sessionId+" started on port " + pzh.port}}; 
 							connection.sendUTF(JSON.stringify(info));
 						}				
 					});
-			} else if(instance.length > 0) {
+			} else if(pzhWebSocket.instance.length > 0) {
 				if(msg.type === "prop" && msg.payload.status === 'downloadCert') {
-					for( i = 0 ; i < instance.length; i++) {
-						if(instance[i].sessionId === msg.payload.name) {
-							connectPzh.downloadCertificate(instance[i], msg.payload.servername, msg.payload.serverport);
+					for( i = 0 ; i < pzhWebSocket.instance.length; i++) {
+						if(pzhWebSocket.instance[i].sessionId === msg.payload.name) {
+							connect_pzh.downloadCertificate(pzhWebSocket.instance[i], msg.payload.servername, msg.payload.serverport);
 							return;	
 						}							
 					}
 				} else if(msg.type === "prop" && msg.payload.status === 'listPzh') {
-					helper.connectedPzhPzp(connection);
+					helper.connectedPzhPzp(pzhWebSocket.instance, connection);
 				} else if(msg.type === "prop" && msg.payload.status === 'listAllPzps') {
 					revoker.listAllPzps(pzhSignedCertDir, connection);
 				} else if(msg.type === "prop" && msg.payload.status === 'addPzpQR') {
@@ -165,7 +176,7 @@ pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, modules
 				} else if(msg.type === "prop" && msg.payload.status === 'crashLog') {
 					helper.crashLog(connection);
 				} else if(msg.type === "prop" && msg.payload.status === 'revokePzp') {
-				    revoker.revokePzp(connection, msg.payload.pzpid, instance[0], pzhCertDir, pzhSignedCertDir, pzhKeyDir, pzhRevokedCertDir);				
+				    revoker.revokePzp(connection, msg.payload.pzpid, pzhWebSocket.instance[0], pzhCertDir, pzhSignedCertDir, pzhKeyDir, pzhRevokedCertDir);				
 				}
 			}
 		});

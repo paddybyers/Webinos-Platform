@@ -1,5 +1,6 @@
 var certificate = exports;
-
+var path = require('path');	
+var debug =  require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
 /* @description Create private key, certificate request, self signed certificate and empty crl. This is crypto sensitive function
  * @param {Object} self is currect object of Pzh/Pzp
  * @param {String} name used in common field to differentiate Pzh and Pzp 

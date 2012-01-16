@@ -13,8 +13,7 @@
 		crypto = require('crypto');		
 
 	/** Global variables used in Pzh */
-	var Pzh = null,		
-		pzhCertDir, pzhSignedCertDir, pzhOtherCertDir, pzhKeyDir, pzhRevokedCertDir;
+	var Pzh = null;
 
 	var helper = require(path.resolve(__dirname, 'pzh_helper.js'));
 
@@ -26,6 +25,7 @@
 			var cert = require(path.resolve(__dirname, '../../pzp/lib/session_certificate.js'));
 			var utils = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));	
 			var webinosDemo = path.resolve(__dirname, '../../../demo');
+			var websocket = require(path.resolve(__dirname, 'pzh_websocket.js'));	
 		} catch (err) {
 			helper.debug(1, "Webinos modules missing, please check webinos installation" + err);
 			return;
@@ -120,11 +120,13 @@
 		try {
 			var pzhRoot = webinosDemo+'/certificates/pzh';
 			var pzhName = pzhRoot+'/'+self.sessionId;
+			var pzhCertDir, pzhSignedCertDir, pzhOtherCertDir, pzhKeyDir, pzhRevokedCertDir;
 			pzhCertDir = path.resolve(__dirname, pzhName+'/cert'),
 			pzhKeyDir = path.resolve(__dirname, pzhName+'/keys'),
 			pzhSignedCertDir = path.resolve(__dirname, pzhName+'/signed_cert'),
 			pzhOtherCertDir  = path.resolve(__dirname, pzhName+'/other_cert'),
 			pzhRevokedCertDir = path.resolve(__dirname, pzhName+'/signed_cert/revoked');
+			websocket.setDirectories(pzhCertDir, pzhSignedCertDir, pzhOtherCertDir, pzhKeyDir, pzhRevokedCertDir);
 			fs.readFile(pzhCertDir+'/'+self.config.master.cert.name, function(err) {
 				if(err !== null && err.code === 'ENOENT') {
 					cert.selfSigned(self, 'Pzh', self.config.conn, function(status, selfSignErr) {
@@ -511,14 +513,13 @@
 				pzh.sessionId = pzh.config.common.split(':')[0];
 				var crashMsg = fs.createWriteStream(webinosDemo + '/'+ pzh.sessionId + '_crash.txt', {'flags': 'a'});
 				helper.setDebugStream(crashMsg);
+				websocket.instance.push(pzh);
 			} catch (err) {
 				helper.debug(1, 'PZH ('+pzh.sessionId+') Pzh information is not in correct format ' + err);
 				return;
 			}
 			//sessionPzh.push({ 'id': pzh.sessionId, 'connectedPzh': pzh.connectedPzhIds, 'connectedPzp': pzh.connectedPzpIds });
-				debugger;
 			pzh.checkFiles(function(result) {
-				debugger;
 				helper.debug(2, 'PZH ('+pzh.sessionId+') Starting PZH: ' + result);
 				try {
 					pzh.sock = pzh.connect();

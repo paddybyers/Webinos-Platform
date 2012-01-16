@@ -6,7 +6,7 @@ var fs      = require('fs');
 var path    = require('path');
 var	crypto  = require('crypto');
 var utils   = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
-
+var cert 	= require(path.resolve(__dirname, '../../pzp/lib/session_certificate.js'));
 
 revoker.revokePzp = function (connection, pzpid, pzh, pzhCertDir, pzhSignedCertDir, pzhKeyDir, pzhRevokedCertDir) {
     "use strict";
@@ -24,7 +24,8 @@ revoker.revokePzp = function (connection, pzpid, pzh, pzhCertDir, pzhSignedCertD
         message: "Successfully revoked"
     };
     var msgSuccess = { type : 'prop', payload : payloadSuccess };
-            
+    console.log(pzpid);
+    console.log(pzhSignedCertDir);
     getPZPCertificate(pzpid, pzhSignedCertDir, function(status, cert) {
         if (!status) {
             payloadErr.message = payloadErr.message + " - failed to find certificate";
@@ -92,7 +93,7 @@ function revoke(pzh, pzhKeyDir, pzhCertDir, pzpCert, callback) {
     	pzh.config.master.crl.value = fs.readFileSync(pzhCertDir+'/'+pzh.config.master.crl.name).toString();
 	}
 	
-	utils.revokeClientCert(pzh, pzh.config.master, pzpCert, function(result, crl) {
+	cert.revokeClientCert(pzh, pzh.config.master, pzpCert, function(result, crl) {
 	    if (result === "certRevoked") {
 		    pzh.config.master.crl.value = crl;
 		    fs.writeFileSync(pzhCertDir+'/'+pzh.config.master.crl.name, crl);
@@ -130,10 +131,13 @@ function getAllPZPIds(pzhSignedCertDir, callback) {
 function getPZPCertificate(pzpid, pzhSignedCertDir, callback) {
     "use strict";
     try { 
-        var cert = fs.readFileSync(pzhSignedCertDir+'/'+ pzpid + ".pem");  
-        callback(true, cert);	    
+        var cert = fs.readFileSync(pzhSignedCertDir+'/'+ pzpid + ".pem", function() {
+          callback(true, cert);	    
+        });  
+
     } catch (err) {
-        utils.debug(2,"Did not find certificate " + err); 
+        utils.debug(2,"Did not find certificate ");
+        console.log(err.stack); 
 	    	callback(false, err);	    
     }
 }
