@@ -10,7 +10,7 @@ public class Org_webinos_api_contact_ContactManager {
 
 	static Object __invoke(org.webinos.api.contact.ContactManager inst, int opIdx, Object[] args) {
 		return inst.find(
-			(String[])args[0],
+			(java.util.HashMap<String, String>)args[0],
 			(org.webinos.api.contact.ContactFindCB)args[1],
 			(org.webinos.api.contact.ContactErrorCB)args[2],
 			(org.webinos.api.contact.ContactFindOptions)args[3]

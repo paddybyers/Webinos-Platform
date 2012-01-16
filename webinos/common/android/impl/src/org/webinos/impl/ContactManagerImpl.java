@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 
 import org.webinos.api.PendingOperation;
 import org.webinos.api.contact.Contact;
@@ -50,9 +51,9 @@ public class ContactManagerImpl extends ContactManager implements IModule {
 	 * ContactManager methods
 	 *****************************/
 	@Override
-	public PendingOperation find(String[] fields, ContactFindCB successCB, ContactErrorCB errorCB, ContactFindOptions options) {
+	public PendingOperation find(HashMap<String, String> fields, ContactFindCB successCB, ContactErrorCB errorCB, ContactFindOptions options) {
 		// TODO Auto-generated method stub
-        Log.v("DBG", "Parametes from JS:\n" + fields[0].toString());
+        Log.v("DBG", "Parametes from JS:\n" + fields.get("name"));
         
 		/*try {
           Toast toast = Toast.makeText(androidContext, fields.toString(), Toast.LENGTH_LONG);
