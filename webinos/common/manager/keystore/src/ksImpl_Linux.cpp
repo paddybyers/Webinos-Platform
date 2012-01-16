@@ -8,17 +8,20 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <iostream>
+
 #define PWDBUFLEN 200
 #define ERRBUFLEN 200
 #define MAXSECLEN 2056
 
-/*typedef GnomeKeyringPasswordSchema {
+GnomeKeyringPasswordSchema SecretSchema = 
+{
   GNOME_KEYRING_ITEM_GENERIC_SECRET,
   {
     {"user", GNOME_KEYRING_ATTRIBUTE_TYPE_STRING },
     { "service", GNOME_KEYRING_ATTRIBUTE_TYPE_STRING },
-    { NULL, 0}
-  }} SecretSchema; */
+    { NULL }
+  }
+}; 
   
 std::string userName() throw(::KeyStoreException)
 {
@@ -41,36 +44,44 @@ std::string userName() throw(::KeyStoreException)
 int __get(const char * svc, void ** secret) throw(::KeyStoreException)
 {
   std::string account(userName());
-  std::cerr<< "account" << account;
+  std::cerr<< "account" << account << std::endl;
+  
+  std::cerr << "svc" << svc << std::endl;
+  
   gchar * secretMem = static_cast<gchar *>(::gnome_keyring_memory_alloc(MAXSECLEN));
   ::memset(secretMem,0,MAXSECLEN);
-  GnomeKeyringResult r = ::gnome_keyring_find_password_sync(GNOME_KEYRING_NETWORK_PASSWORD,&secretMem,"user",account.c_str(),"server",svc,NULL);
-  
-  if (r != GNOME_KEYRING_RESULT_OK) {
-    throw ::KeyStoreException(::gnome_keyring_result_to_message(r));
-  }
-  std::cerr<< "secretMem" << secretMem;
+	    
+  GnomeKeyringResult res = ::gnome_keyring_find_password_sync(&SecretSchema, &secretMem, "user", account.c_str(), "service", svc,  NULL);
+  if (res != GNOME_KEYRING_RESULT_OK) {
+    throw ::KeyStoreException(::gnome_keyring_result_to_message(res));
+  } else {  
+	  std::cerr<< " found password " << secretMem <<	 std::endl;  	
+  }  
   *secret = secretMem;
+    
   return ::strlen(secretMem);
 }
 
 void __put(const char * svc, void * secret) throw(::KeyStoreException)
 {
   std::string account(userName());
-  std::cerr<< account;
+  std::cerr<< "Account "<<account << std::endl;
   gchar * secretStr = static_cast<gchar *>(secret);
-  std::cerr<< secretStr;
+  std::cerr<< "secret str " << secretStr << std::endl;
+  std::cerr << "SVC" << svc << std::endl;
   int secretLength = ::strlen(secretStr);
   if (secretLength > MAXSECLEN) {
     char errBuf[ERRBUFLEN];
     ::sprintf(errBuf,"Secret is %d bytes, but the maximum secret length is %d",secretLength,MAXSECLEN);
     throw ::KeyStoreException(errBuf);
   }
-  GnomeKeyringResult r = ::gnome_keyring_store_password_sync(GNOME_KEYRING_NETWORK_PASSWORD,GNOME_KEYRING_DEFAULT,svc,secretStr,"user",account.c_str(),"server",svc,NULL);
-  std::cerr<< r;
-  if (r != GNOME_KEYRING_RESULT_OK) {
-    throw ::KeyStoreException(::gnome_keyring_result_to_message(r));
-  }
+  GnomeKeyringResult res = ::gnome_keyring_store_password_sync(&SecretSchema, GNOME_KEYRING_DEFAULT, svc, secretStr, "user", account.c_str(),  "service", svc, NULL);  
+  if (res != GNOME_KEYRING_RESULT_OK) {
+		std::cerr<< "result "<< ::gnome_keyring_result_to_message(res) << std::endl;
+		throw ::KeyStoreException(::gnome_keyring_result_to_message(res));
+	} else {
+		std::cerr<< "Stored Successfull" << std::endl;
+	}
 }
 
 void __freeSecretResource(void * secret) throw(::KeyStoreException)

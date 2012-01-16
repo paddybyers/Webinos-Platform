@@ -13,8 +13,11 @@ if (typeof exports !== "undefined") {
 	var messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
 	var rpc = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js'));
 	var fs = require('fs');
-	var crashMsg = fs.createWriteStream('crash.txt', {'flags': 'a'});
-	var infoMsg = fs.createWriteStream('info.txt', {'flags': 'a'});
+	var crashMsg;
+}
+
+exports.setDebugStream = function(stream) {
+	crashMsg = stream;
 }
 
 var debug = function(num, msg) {
@@ -25,70 +28,22 @@ var debug = function(num, msg) {
 	
 	if(num === 1) {
 		console.log('ERROR:' + msg);
-		crashMsg.write(msg);
-		crashMsg.write('\n');
+		if(crashMsg != null) {
+			crashMsg.write(msg);
+			crashMsg.write('\n');
+		}
 	} else if(num === 2 && info) {
-		console.log('INFO:' + msg);
-		infoMsg.write(msg);
-		infoMsg.write('\n');
+		console.log('INFO:' + msg);		
 	} else if(num === 3 && debug) {
 		console.log('DEBUG:' + msg);
-	}
+	}	
 };
 
 // This is a device id through which we recognize device
 var getId = function (self, callback) {
 	"use strict";
-	console.log('PZ Common: Selected Platform - ' + process.platform);
-	// Unique id per platform work underway by ISMB. Below code is obsolute and will be removed shortly
+	console.log('PZ Common: Selected Platform - ' + process.platform);	
 	callback.call(self, process.platform);
-	/*if(process.platform === 'cygwin') {
-		var req = "getmac -V -FO CSV | awk -F \',\' \'{if(match($1, \"Local Area Connection\")) print $3;}\'";
-		child_process.exec(req, function (error, stdout, stderr) {
-			//console.log('PZ Common: GetID stdout: ' + stdout);
-			//console.log('PZ Common: GetID stderr: ' + stderr);
-			var id = stdout.split('\n');
-			if (error !== null) {
-				console.log('PZ Common: GetID exec error: ' + error);
-			} else {
-				callback.call(self, id[0]);
-			}	
-		});
-	} else if (process.platform === 'win32') {
-		var req = 'for /f "tokens=3 delims=," %a in (\'"getmac /v /nh /fo csv"\') do @echo %a && exit /b';
-		child_process.exec(req, function (error, stdout, stderr) {
-//			console.log('PZ Common: GetID stdout: ' + stdout);
-//			console.log('PZ Common: GetID stderr: ' + stderr);
-			var id = stdout.split('\n');
-			if (error !== null) {
-				console.log('PZ Common: GetID exec error: ' + error);
-			} else {
-				callback.call(self, id[0]);
-			}	
-		});
-	} else if (process.platform === 'linux') {
-		var req = "ifconfig eth0 | grep HWaddr | tr -s \' \' | cut -d \' \' -f5";
-		child_process.exec(req, function (error, stdout, stderr) {
-			//console.log('PZ Common: GetID stdout: ' + stdout);
-			//console.log('PZ Common: GetID stderr: ' + stderr);
-			var id = stdout.split('\n');
-			if (error !== null) {
-				console.log('PZ Common: GetID exec error: ' + error);
-			} else {
-				callback.call(self, id[0]);
-			}	
-		});
-	} else if(process.platform === 'darwin') {
-		var req = "ifconfig en1 | grep ether | tr -s \' \'|cut -d \' \' -f2"
-		child_process.exec(req, function(err, stdout, stderr) {
-			var id = stdout.split('\n');
-			if(err !== null)
-				console.log('PZ common: GetID exec error: ' + err);
-			else {
-				callback.call(self, id[0]); 
-			}				
-		});
-	}*/
 };
 
 /* @description Create private key, certificate request, self signed certificate and empty crl. This is crypto sensitive function
