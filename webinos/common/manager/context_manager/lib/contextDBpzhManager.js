@@ -1,15 +1,34 @@
 (function() {
-  var path = require('path');
+	if (typeof webinos === 'undefined') {
+	  webinos = {};
+	  console.log("webinos not found");
+	}
+	if (typeof webinos.context === 'undefined')
+	  webinos.context = {};
 
-  var moduleRoot = path.resolve(__dirname, '../') + '/';
-  var moduleDependencies = require(moduleRoot + '/dependencies.json');
+//	console.log("CONTEXT contextDBpzhManager.js LOADED");
+	
+	var path = require('path');
+	var moduleRoot = path.resolve(__dirname, '../') + '/';
+
+	require(moduleRoot +'/lib/AsciiArt.js')
+
+	var commonPaths = require(moduleRoot + '/lib/commonPaths.js');
+	if (commonPaths.storage === null){
+		console.log('[ERROR] User Storage Path not found.\nContext Manager disabled.', 'yellow+black_bg');
+		return;
+	}
+	require(moduleRoot + '/lib/storageCheck.js')(commonPaths, require(moduleRoot + '/data/storage.json'));
+	
+	
+	var moduleDependencies = require(moduleRoot + '/dependencies.json');
   var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
   var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
 
   var sqlite3 = require('node-sqlite3').verbose();
 
-  var dbpath = path.resolve(webinosRoot + '/../storage/context/pzh/contextDB.db');
-  var bufferpath = path.resolve(webinosRoot + '/../storage/context/pzp/contextDBbuffer.json');
+  var dbpath = path.resolve(commonPaths.storage + '/pzh/contextDB.db');
+  var bufferpath = path.resolve(commonPaths.storage + '/pzp/contextDBbuffer.json');
   var db =  new sqlite3.Database(dbpath);
   var databasehelper = require('JSORMDB');
   bufferDB = new databasehelper.JSONDatabase({path : bufferpath, transactional : false});

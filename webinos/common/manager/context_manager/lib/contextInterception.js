@@ -1,13 +1,35 @@
-
-
 if (typeof webinos === 'undefined') {
   webinos = {};
   console.log("webinos not found");
 }
 if (typeof webinos.context === 'undefined')
-{
   webinos.context = {};
+
+//console.log("CONTEXT MANAGER LOADED");
+
+var path = require('path');
+var moduleRoot = path.resolve(__dirname, '../') + '/';
+
+require(moduleRoot +'/lib/AsciiArt.js')
+
+var commonPaths = require(moduleRoot + '/lib/commonPaths.js');
+if (commonPaths.storage === null){
+	console.log('[ERROR] User Storage Path not found.\nContext Manager disabled.', 'yellow+black_bg');
+	return;
 }
+require(moduleRoot + '/lib/storageCheck.js')(commonPaths, require(moduleRoot + '/data/storage.json'));
+
+if (!require(commonPaths.storage + '/settings.json').contextEnabled){
+	console.log("CONTEXT MANAGER DISABLED");
+	return;
+}else{
+	console.log("CONTEXT MANAGER ENABLED");
+}
+
+var moduleDependencies = require(moduleRoot + '/dependencies.json');
+var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
+var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
+var sessionPzp = require( webinosRoot + '/pzp/lib/pzp_sessionHandling.js');
 
 //This class represents the context objects that will be logged
 webinos.context.ContextData = function(method, params, results) {
@@ -21,16 +43,6 @@ webinos.context.ContextData = function(method, params, results) {
   this.params = params;
   this.results = results;
 };
-
-var path = require('path');
-var moduleRoot = path.resolve(__dirname, '../') + '/';
-var moduleDependencies = require(moduleRoot + '/dependencies.json');
-var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
-var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
-var sessionPzp = require( webinosRoot + '/pzp/lib/pzp_sessionHandling.js');
-
-require(moduleRoot +'/lib/AsciiArt.js')
-
 
 var listeners = {};
 listeners.id = {};
@@ -82,15 +94,11 @@ _RPCHandler.prototype.executeRPC = function(){
 	this.context_executeRPC.apply(this, arguments)
 }
 
-//console.log("moduleRoot: "+moduleRoot);
-//console.log("webinosRoot: "+webinosRoot);
-//console.log("context_managerRoot: "+webinosRoot+dependencies.manager.context_manager.location);
-
 //Require the database class
 var databasehelper = require('JSORMDB');
 
 //Initialize helper classes
-var dbpath = path.resolve(webinosRoot + '/../storage/context/pzp/log.json');
+var dbpath = path.resolve(commonPaths.storage + '/pzp/log.json');
 require(moduleRoot + '/lib/contextExtraction.js');
 
 var registeredListeners = [];

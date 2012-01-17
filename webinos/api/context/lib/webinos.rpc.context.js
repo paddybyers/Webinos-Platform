@@ -1,5 +1,5 @@
 (function() {
-
+//	console.log("CONTEXT SERVICE LOADED");
   var moduleRoot = require('../dependencies.json');
   var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
   var webinosRoot = '../' + moduleRoot.root.location;

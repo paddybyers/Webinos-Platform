@@ -567,10 +567,10 @@
 		var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location)+'/';
 		//sessionPzp = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_pzp.js'));
 //		if (contextEnabled) {
-		if (require(webinosRoot + dependencies.manager.context_manager.location + 'data/contextSettings.json').contextEnabled){
+//		if (require(webinosRoot + dependencies.manager.context_manager.location + 'data/contextSettings.json').contextEnabled){
 		  require(webinosRoot + dependencies.manager.context_manager.location); 
 			//modules.push(webinosRoot + dependencies.manager.context_manager.location);
-		}
+//		}
 		
 		if (typeof modules === 'undefined') {
 			modules = [];
