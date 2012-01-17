@@ -14,7 +14,7 @@
 
 	/** Global variables used in Pzh */
 	var Pzh = null;
-
+	var pzhCertDir, pzhSignedCertDir, pzhOtherCertDir, pzhKeyDir, pzhRevokedCertDir;
 	var helper = require(path.resolve(__dirname, 'pzh_helper.js'));
 
 	if (typeof exports !== 'undefined') {
@@ -120,7 +120,7 @@
 		try {
 			var pzhRoot = webinosDemo+'/certificates/pzh';
 			var pzhName = pzhRoot+'/'+self.sessionId;
-			var pzhCertDir, pzhSignedCertDir, pzhOtherCertDir, pzhKeyDir, pzhRevokedCertDir;
+
 			pzhCertDir = path.resolve(__dirname, pzhName+'/cert'),
 			pzhKeyDir = path.resolve(__dirname, pzhName+'/keys'),
 			pzhSignedCertDir = path.resolve(__dirname, pzhName+'/signed_cert'),
