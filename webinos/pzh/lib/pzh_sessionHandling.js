@@ -14,7 +14,7 @@
 
 	/** Global variables used in Pzh */
 	var Pzh = null;
-	var pzhCertDir, pzhSignedCertDir, pzhOtherCertDir, pzhKeyDir, pzhRevokedCertDir;
+	
 	var helper = require(path.resolve(__dirname, 'pzh_helper.js'));
 
 	if (typeof exports !== 'undefined') {
@@ -124,15 +124,13 @@
 			var pzhRoot = webinosDemo+'/certificates/pzh';
 			var pzhName = pzhRoot+'/'+self.sessionId;
 
-			pzhCertDir = path.resolve(__dirname, pzhName+'/cert'),
-			pzhKeyDir = path.resolve(__dirname, pzhName+'/keys'),
-			pzhSignedCertDir = path.resolve(__dirname, pzhName+'/signed_cert'),
-			pzhOtherCertDir  = path.resolve(__dirname, pzhName+'/other_cert'),
-			pzhRevokedCertDir = path.resolve(__dirname, pzhName+'/signed_cert/revoked');
+			self.config.pzhCertDir = path.resolve(__dirname, pzhName+'/cert'),
+			self.config.pzhKeyDir = path.resolve(__dirname, pzhName+'/keys'),
+			self.config.pzhSignedCertDir = path.resolve(__dirname, pzhName+'/signed_cert'),
+			self.config.pzhOtherCertDir  = path.resolve(__dirname, pzhName+'/other_cert'),
+			self.config.pzhRevokedCertDir = path.resolve(__dirname, pzhName+'/signed_cert/revoked');
 			
-			websocket.setDirectories(pzhCertDir, pzhSignedCertDir, pzhOtherCertDir, pzhKeyDir, pzhRevokedCertDir);
-			
-			fs.readFile(pzhCertDir+'/'+self.config.master.cert.name, function(err) {
+			fs.readFile(self.config.pzhCertDir+'/'+self.config.master.cert.name, function(err) {
 				if(err !== null && err.code === 'ENOENT') {
 					cert.selfSigned(self, 'Pzh', self.config.conn, function(status, selfSignErr) {
 						if(status === 'certGenerated') {
@@ -159,11 +157,11 @@
 										if(err !== null && err.code === "ENOENT") {
 											try {	
 												fs.mkdirSync(pzhName,'0700');
-												fs.mkdirSync(pzhCertDir, '0700');								
-												fs.mkdirSync(pzhSignedCertDir, '0700');
-												fs.mkdirSync(pzhKeyDir, '0700');
-												fs.mkdirSync(pzhOtherCertDir, '0700');
-												fs.mkdirSync(pzhRevokedCertDir, '0700');
+												fs.mkdirSync(self.config.pzhCertDir, '0700');								
+												fs.mkdirSync(self.config.pzhSignedCertDir, '0700');
+												fs.mkdirSync(self.config.pzhKeyDir, '0700');
+												fs.mkdirSync(self.config.pzhOtherCertDir, '0700');
+												fs.mkdirSync(self.config.pzhRevokedCertDir, '0700');
 											} catch(err) {
 												helper.debug(1,'PZH ('+self.sessionId+') Error creating certificates/pzh/pzh_name/ directories');
 												return;
@@ -183,11 +181,11 @@
 														return;
 													}*/
 													
-													fs.writeFileSync(pzhKeyDir+'/'+self.config.master.key.name, self.config.master.key.value);
-													fs.writeFileSync(pzhKeyDir+'/'+self.config.conn.key.name, self.config.conn.key.value);
+													fs.writeFileSync(self.config.pzhKeyDir+'/'+self.config.master.key.name, self.config.master.key.value);
+													fs.writeFileSync(self.config.pzhKeyDir+'/'+self.config.conn.key.name, self.config.conn.key.value);
 														
-													fs.writeFileSync(pzhCertDir+'/'+self.config.master.cert.name, self.config.master.cert.value);
-													fs.writeFileSync(pzhCertDir+'/'+self.config.master.crl.name, self.config.master.crl.value);
+													fs.writeFileSync(self.config.pzhCertDir+'/'+self.config.master.cert.name, self.config.master.cert.value);
+													fs.writeFileSync(self.config.pzhCertDir+'/'+self.config.master.crl.name, self.config.master.crl.value);
 												} catch (err) {
 													helper.debug(1,'PZH ('+self.sessionId+') Error writing master certificates file');
 													return;
@@ -196,7 +194,7 @@
 													if(result === 'certSigned'){ 
 														self.config.conn.cert.value = cert;
 														try {
-															fs.writeFileSync(pzhCertDir+'/'+self.config.conn.cert.name, cert);
+															fs.writeFileSync(self.config.pzhCertDir+'/'+self.config.conn.cert.name, cert);
 															callback.call(self, 'Certificates Created');
 														} catch (err) {
 															helper.debug(1,'PZH ('+self.sessionId+') Error writing connection certificate');
@@ -221,10 +219,10 @@
 					});
 				} else {
 
-					self.config.master.cert.value = fs.readFileSync(pzhCertDir+'/'+self.config.master.cert.name).toString(); 
-					self.config.master.key.value = fs.readFileSync(pzhKeyDir+'/'+self.config.master.key.name).toString(); 
-					self.config.conn.key.value = fs.readFileSync(pzhKeyDir+'/'+self.config.conn.key.name).toString(); 
-					self.config.conn.cert.value = fs.readFileSync(pzhCertDir+'/'+self.config.conn.cert.name).toString(); 
+					self.config.master.cert.value = fs.readFileSync(self.config.pzhCertDir+'/'+self.config.master.cert.name).toString(); 
+					self.config.master.key.value = fs.readFileSync(self.config.pzhKeyDir+'/'+self.config.master.key.name).toString(); 
+					self.config.conn.key.value = fs.readFileSync(self.config.pzhKeyDir+'/'+self.config.conn.key.name).toString(); 
+					self.config.conn.cert.value = fs.readFileSync(self.config.pzhCertDir+'/'+self.config.conn.cert.name).toString(); 
 					
 					// TODO: This works fine for linux and mac. Requires implementation on Android and Windows
 					/*try{ 
@@ -237,9 +235,9 @@
 					}*/
 					
 					//self.config.master.key.value = fs.readFileSync(pzhKeyDir+'/'+self.config.master.key.name).toString();
-					if ( path.existsSync(pzhCertDir+'/'+self.config.master.crl.name)) {
-						self.config.master.crl.value = fs.readFileSync(pzhCertDir+'/'+self.config.master.crl.name).toString();
-						helper.debug(2, "Using CRL " + pzhCertDir+'/'+self.config.master.crl.name);
+					if ( path.existsSync(self.config.pzhCertDir+'/'+self.config.master.crl.name)) {
+						self.config.master.crl.value = fs.readFileSync(self.config.pzhCertDir+'/'+self.config.master.crl.name).toString();
+						helper.debug(2, "Using CRL " + self.config.pzhCertDir+'/'+self.config.master.crl.name);
 					} else {
 						self.config.master.crl.value = null;
 						helper.debug(2, "WARNING: No CRL found.  May be worth regenerating your certificates");
@@ -402,7 +400,7 @@
                             self.expecting.unsetExpected(function() {
 				                //Save this certificate locally on the PZH.
 				                //pzp name: parse.payload.message.name
-				                fs.writeFileSync(pzhSignedCertDir+'/'+ parse.payload.message.name + ".pem", cert);
+				                fs.writeFileSync(self.config.pzhSignedCertDir+'/'+ parse.payload.message.name + ".pem", cert);
 			
 				                var payload = {'clientCert': cert, 'masterCert':self.config.master.cert.value};
 				                var msg = self.prepMsg(self.sessionId, null, 'signedCert', payload);
@@ -545,7 +543,7 @@
 					pzh.sock.on('listening', function() {
 						helper.debug(2, 'PZH ('+pzh.sessionId+') Listening on PORT ' + pzh.port);
 						if(typeof callback !== 'undefined') {
-							callback.call(pzh, 'startedPzh');
+							callback.call(pzh, 'startedPzh', pzh);
 						}
 					});
 				

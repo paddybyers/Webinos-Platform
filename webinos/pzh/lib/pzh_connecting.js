@@ -8,7 +8,7 @@ var http      = require('http');
 var tls  	  = require('tls');
 var rpc       = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));			 
 
-pzhConnecting.downloadCertificate = function(pzh, servername, port) {
+pzhConnecting.downloadCertificate = function(pzh, servername, port, callback) {
 	var self = pzh;	
 	var agent = new http.Agent({maxSockets: 1});
 	var headers = {'connection': 'keep-alive'};
@@ -29,7 +29,8 @@ pzhConnecting.downloadCertificate = function(pzh, servername, port) {
 		res.on('data', function(data) {
 			utils.processedMsg(data, 2, function(parse) {	
 				try {
-					fs.writeFile(pzhOtherCertDir+'/'+parse.payload.message.name, parse.payload.message.cert, function() {
+					fs.writeFile(self.config.pzhOtherCertDir+'/'+parse.payload.message.name, parse.payload.message.cert, function() {
+						callback("downloadCertificate");
 						pzhConnecting.connectOtherPZH(pzh, servername, '443');
 					});
 				} catch (err) {
@@ -40,12 +41,12 @@ pzhConnecting.downloadCertificate = function(pzh, servername, port) {
 		});			
 	});
 	try {
-		var msg = {name: pzh.config.master.cert.name , cert: pzh.config.master.cert.value};
+		var msg = {name: self.config.master.cert.name , cert: self.config.master.cert.value};
 		var msg = self.prepMsg(null, null,'getMasterCert', msg);
 		req.write('#'+JSON.stringify(msg)+'#\n');
 		req.end();
 	} catch (err) {
-		helper.debug(1, 'PZH ('+self.sessionId+') Error sending master cert to Pzh' + err);
+		helper.debug(1, 'PZH Error sending master cert to Pzh' + err);
 		return;
 	}
 };

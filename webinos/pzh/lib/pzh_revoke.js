@@ -1,5 +1,3 @@
-
-
 var revoker = exports;
 
 var fs      = require('fs');
@@ -8,7 +6,7 @@ var	crypto  = require('crypto');
 var utils   = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
 var cert 	= require(path.resolve(__dirname, '../../pzp/lib/session_certificate.js'));
 
-revoker.revokePzp = function (connection, pzpid, pzh, pzhCertDir, pzhSignedCertDir, pzhKeyDir, pzhRevokedCertDir) {
+revoker.revokePzp = function (pzpid, pzh, callback ) {
     "use strict";
     utils.debug(2,"Revocation requested of " + pzpid);
     
@@ -24,34 +22,38 @@ revoker.revokePzp = function (connection, pzpid, pzh, pzhCertDir, pzhSignedCertD
         message: "Successfully revoked"
     };
     var msgSuccess = { type : 'prop', payload : payloadSuccess };
-    getPZPCertificate(pzpid, pzhSignedCertDir, function(status, cert) {
+    
+    getPZPCertificate(pzpid, pzh.config.pzhSignedCertDir, function(status, cert) {
         if (!status) {
             payloadErr.message = payloadErr.message + " - failed to find certificate";
-    	    connection.sendUTF(JSON.stringify(msgErr));
+    	    callback(msgErr);
+    	    return;
         } else {
  	        console.log('CRL' + cert.toString());
 	        //pzh.conn.pair.credentials.context.addCRL(cert.toString());
-            revoke(pzh, pzhKeyDir, pzhCertDir, cert, function(result) {
+            revoke(pzh, cert, function(result) {
                 if (result) {
                     utils.debug(2,"Revocation success! " + pzpid + " should not be able to connect anymore ");                       
-                    removeRevokedCert(pzpid, pzhSignedCertDir, pzhRevokedCertDir, function(status2) {
+                    removeRevokedCert(pzpid, pzh.config.pzhSignedCertDir, pzh.config.pzhRevokedCertDir, function(status2) {
                         if (!status2) {
                             utils.debug(2,"Could not rename certificate");                       
                             payloadSuccess.message = payloadSuccess.message + ", but failed to rename certificate";
                         }
-                	    connection.sendUTF(JSON.stringify(msgSuccess));
+                	    callback(msgSuccess);
+                	    return;
                     });                   
                 } else {
                     utils.debug(2,"Revocation failed! ");
                     payloadErr.message = payloadErr.message + " - failed to update CRL";
-            	    connection.sendUTF(JSON.stringify(msgErr));
+                    callback(msgErr);
+                    return;
                 }        
             });      
         }
     });
 }
 
-revoker.listAllPzps = function(pzhSignedCertDir, connection) {
+revoker.listAllPzps = function(certDir, callback) {
     "use strict";
     getAllPZPIds( pzhSignedCertDir, function(pzps, error) {
         if (error === null) {
@@ -77,7 +79,7 @@ revoker.listAllPzps = function(pzhSignedCertDir, connection) {
             type    : 'prop', 
             payload : payload
         }; 
-        connection.sendUTF(JSON.stringify(msg));
+        callback(msg);
     });
 }
 

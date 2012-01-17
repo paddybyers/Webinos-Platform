@@ -14,17 +14,8 @@ var pzh_session = require(path.resolve(__dirname, 'pzh_sessionHandling.js'));
 var helper = require(path.resolve(__dirname, 'pzh_helper.js'));
 
 var connect_pzh = require(path.resolve(__dirname, 'pzh_connecting.js'));
-var pzhCertDir, pzhSignedCertDir, pzhOtherCertDir, pzhKeyDir, pzhRevokedCertDir;
 
 pzhWebSocket.instance = [];
-
-pzhWebSocket.setDirectories = function(pzhCert, pzhSigned, pzhOther, pzhKey, pzhRevoke) {
-	pzhCertDir = pzhCert;
-	pzhSignedCertDir = pzhSigned;
-	pzhOtherCertDir = pzhOther;
-	pzhKeyDir = pzhKey;
-	pzhRevokedCertDir = pzhRevoke;
-}
 
 pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, modules, callback) {
 	var fs = require('fs');
@@ -132,10 +123,11 @@ pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, modules
 	try {
 		httpserver.listen(serverPort, hostname, function() {
 			utils.debug(2, 'PZH WSServer: Listening on port '+serverPort + ' and hostname '+hostname);
-			callback();
+			callback(true);
 		});
 	} catch (err2) {
 		utils.debug(1, 'PZH ('+pzh.sessionId+') Error WebSocket server Listening on Port' + err2);
+		callback(false);
 		return;
 	}
 
@@ -171,19 +163,31 @@ pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, modules
 						}							
 					}
 				} else if(msg.type === "prop" && msg.payload.status === 'listPzh') {
-					helper.connectedPzhPzp(pzhWebSocket.instance, connection);
+					helper.connectedPzhPzp(pzhWebSocket.instance, function(msg){
+						connection.sendUTF(JSON.stringify(msg));
+					});
 				} else if(msg.type === "prop" && msg.payload.status === 'listAllPzps') {
-					revoker.listAllPzps(pzhSignedCertDir, connection);
+					revoker.listAllPzps(pzhWebSocket.instance[0].config.pzhSignedCertDir, function(result) {
+						connection.sendUTF(JSON.stringify(result));
+					});					
 				} else if(msg.type === "prop" && msg.payload.status === 'addPzpQR') {
 					helper.addPzpQR(pzhWebSocket.instance, connection);
 				} else if(msg.type === "prop" && msg.payload.status === 'crashLog') {
-					helper.crashLog(pzhWebSocket.instance, connection);
+					helper.crashLog(pzhWebSocket.instance, function(msg) {
+						connection.sendUTF(JSON.stringify(msg));
+					});
 				} else if(msg.type === "prop" && msg.payload.status === 'revokePzp') {
-				    revoker.revokePzp(connection, msg.payload.pzpid, pzhWebSocket.instance[0], pzhCertDir, pzhSignedCertDir, pzhKeyDir, pzhRevokedCertDir);				
+				    revoker.revokePzp(msg.payload.pzpid, pzhWebSocket.instance[0], function(msg) {
+	    				connection.sendUTF(JSON.stringify(msg));
+				    });				
 				} else if(msg.type === "prop" && msg.payload.status === 'revokeClientList') {
-				    revoker.listAllPzps(pzhRevokedCertDir, connection);
+				    revoker.listAllPzps(pzhRevokedCertDir, function(msg){
+	    				connection.sendUTF(JSON.stringify(msg));
+				    });
 				} else if(msg.type === "prop" && msg.payload.status === 'restartPzh') {
-				    pzh_session.restartPzh(pzhWebSocket.instance[0], connection);
+				    pzh_session.restartPzh(pzhWebSocket.instance[0], function(msg) {
+				    	connection.sendUTF(JSON.stringify(msg));
+				    });
 				}
 			}
 		});

@@ -11,7 +11,7 @@ helper.addPzpQR = function (instance, connection) {
 	qr.addPzpQR(instance[0], connection);
 }
 
-helper.connectedPzhPzp = function(instance, connection) {
+helper.connectedPzhPzp = function(instance, callback) {
 	"use strict";
 	var i;
 	for( i = 0; i < instance.length; i += 1) {
@@ -19,15 +19,15 @@ helper.connectedPzhPzp = function(instance, connection) {
 		var payload = { status: 'listPzh', message: message};
 		try {
 			var msg = {type: 'prop', payload: payload};
-			connection.sendUTF(JSON.stringify(msg));
+			callback(msg);
 		} catch (err) {
-			helper.debug(1, 'PZH ('+pzh.sessionId+') Error sending connectedPzp/Pzh to WebClient ' + err);
+			helper.debug(1, 'PZH ('+pzh.sessionId+') Error sending connectedPzp/Pzh to WebClient ' + err);			
 			return;
 		}
 	}
 }
 	
-helper.crashLog = function(instance, connection) {
+helper.crashLog = function(instance, callback) {
 	"use strict";
 	var i;
 	for( i = 0; i < instance.length; i += 1) {
@@ -35,7 +35,7 @@ helper.crashLog = function(instance, connection) {
 			var message = {name: instance[i].sessionId, log: fs.readFileSync(webinosDemo + '/'+instance[i].sessionId + '_crash.txt').toString()};
 			var payload = {status : 'crashLog', message : message};
 			var msg = {type: 'prop', payload: payload};
-			connection.sendUTF(JSON.stringify(msg));
+			callback(msg);
 		} catch (err) {
 			helper.debug(1, 'PZH ('+instance[i].sessionId+') Error sending crashLog to WebClient ' + err);
 			return;
