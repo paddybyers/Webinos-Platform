@@ -1,6 +1,6 @@
 var certificate = exports;
 var path = require('path');	
-var debug =  require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
+var utils =  require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
 /* @description Create private key, certificate request, self signed certificate and empty crl. This is crypto sensitive function
  * @param {Object} self is currect object of Pzh/Pzp
  * @param {String} name used in common field to differentiate Pzh and Pzp 
@@ -74,7 +74,7 @@ certificate.signRequest = function(self, csr, master, callback) {
 		var clientCert = certman.signRequest(csr, 30, master.key.value, master.cert.value);
 		callback.call(self, "certSigned", clientCert);
 	} catch(err1) {
-	    debug(1, "Failed to sign certificate: " + err1.code + ", " + err1.stack);
+	    utils.debug(1, "Failed to sign certificate: " + err1.code + ", " + err1.stack);
 		callback.call(self, "failed");
 		return;
 	}	
@@ -87,17 +87,17 @@ certificate.revokeClientCert = function(self, master, pzpCert, callback) {
 	try {
 		certman = require("../../common/manager/certificate_manager/src/build/Release/certificate_manager");		
 	} catch (err) {
-	    debug(1, "Failed to require the certificate manager");
+	    utils.debug(1, "Failed to require the certificate manager");
 		callback.call(self, "failed");
 		return;
 	}
 	try {
-	    debug(2, "Calling certman.addToCRL\n");    
+	    utils.debug(2, "Calling certman.addToCRL\n");    
 		var crl = certman.addToCRL("" + master.key.value, "" + master.crl.value, "" + pzpCert); 
 		// master.key.value, master.cert.value
 		callback.call(self, "certRevoked", crl);
 	} catch(err1) {
-	    debug(1, "Error: " + err1);
+	    utils.debug(1, "Error: " + err1);
 		callback.call(self, "failed");
 		return;
 	}

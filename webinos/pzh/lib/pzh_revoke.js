@@ -131,7 +131,9 @@ function getAllPZPIds(pzhSignedCertDir, callback) {
 function getPZPCertificate(pzpid, pzhSignedCertDir, callback) {
     "use strict";
     try { 
-        var cert = fs.readFileSync(pzhSignedCertDir+'/'+ pzpid + ".pem", function() {
+        var file = pzhSignedCertDir+'/'+ pzpid + ".pem"
+        console.log("PZP cert name "+file);
+        var cert = fs.readFile(file, function(err, cert) {
           callback(true, cert);	    
         });  
 
