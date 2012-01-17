@@ -49,8 +49,11 @@
 		this.connectedPzhIds = [];
 		/** This is used for synchronization purpose with connected PZP and PZH */	
 		this.connectedPzpIds = [];
-	    
+		
+	    this.conn = [];
+		this.tlsId = [];		
 		var self = this;
+		
 		authcode.createAuthCounter(function(res) {
 		    self.expecting = res;
 		});
@@ -126,7 +129,9 @@
 			pzhSignedCertDir = path.resolve(__dirname, pzhName+'/signed_cert'),
 			pzhOtherCertDir  = path.resolve(__dirname, pzhName+'/other_cert'),
 			pzhRevokedCertDir = path.resolve(__dirname, pzhName+'/signed_cert/revoked');
+			
 			websocket.setDirectories(pzhCertDir, pzhSignedCertDir, pzhOtherCertDir, pzhKeyDir, pzhRevokedCertDir);
+			
 			fs.readFile(pzhCertDir+'/'+self.config.master.cert.name, function(err) {
 				if(err !== null && err.code === 'ENOENT') {
 					cert.selfSigned(self, 'Pzh', self.config.conn, function(status, selfSignErr) {
@@ -255,14 +260,13 @@
 	Pzh.prototype.connect = function () {
 		var self = this, server, ca;
 		try {
-			ca =  [self.config.master.cert.value];	
-			
+			ca =  [self.config.master.cert.value];			
 		} catch (err) {
 			helper.debug(1,'PZH ('+self.sessionId+') Exception in reading other Pzh certificates' + err);
 			return;
-		} 
-		/** @param {Object} options Creates options parameter, key, cert and ca are set */
+		}
 		
+		/** @param {Object} options Creates options parameter, key, cert and ca are set */		
 		var options = {key: self.config.conn.key.value,
 				cert: self.config.conn.cert.value,
 				ca: self.config.master.cert.value,
@@ -289,7 +293,7 @@
 			    helper.debug(2, "Connection authorised at PZH");
 				try {
 					cn = conn.getPeerCertificate().subject.CN;
-					data = cn.split(':');
+					data = cn.split(':');				
 				} catch(err) {
 					helper.debug(1,'PZH ('+self.sessionId+') Exception in reading common name of peer certificate ' + err);
 	
@@ -378,6 +382,7 @@
 			
 			});
 		});
+ 			
 		return server;
 	};
 	
@@ -498,7 +503,7 @@
 	 * @returns callback with startedPzh message 
 	 */
 	function startPzh(contents, server, port, callback) {
-		var pzh ;
+		var pzh;
 		try{
 			pzh = new Pzh();
 			pzh.port = port;
@@ -523,11 +528,11 @@
 				helper.debug(2, 'PZH ('+pzh.sessionId+') Starting PZH: ' + result);
 				try {
 					pzh.sock = pzh.connect();
+					
 				} catch (err) {
 					helper.debug(1, 'PZH ('+pzh.sessionId+') Error starting server ' + err);
 					return;
 				}
-				
 				try {
 					pzh.sock.on('error', function (err) {
 						if (err !==  null && err.code === 'EADDRINUSE') {
@@ -559,9 +564,20 @@
 		return pzh;
 	};
 	
+	function restartPzh(instance, connection) {
+		try	{		
+			console.log(websocket.instance[0].conn);
+			websocket.instance[0].conn.socket.end();
+			connectPzh(websocket.instance[0].tlsId);
+		} catch(err) {
+			helper.debug(1, 'Pzh restart did not work ' + err);
+		}
+	}
+	
 	
 	if (typeof exports !== 'undefined') {
 		exports.startPzh = startPzh;
+		exports.restartPzh = restartPzh;
 		
 	}
 }());

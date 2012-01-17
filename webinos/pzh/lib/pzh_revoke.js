@@ -24,8 +24,6 @@ revoker.revokePzp = function (connection, pzpid, pzh, pzhCertDir, pzhSignedCertD
         message: "Successfully revoked"
     };
     var msgSuccess = { type : 'prop', payload : payloadSuccess };
-    console.log(pzpid);
-    console.log(pzhSignedCertDir);
     getPZPCertificate(pzpid, pzhSignedCertDir, function(status, cert) {
         if (!status) {
             payloadErr.message = payloadErr.message + " - failed to find certificate";
@@ -83,9 +81,6 @@ revoker.listAllPzps = function(pzhSignedCertDir, connection) {
     });
 }
 
-
-
-
 function revoke(pzh, pzhKeyDir, pzhCertDir, pzpCert, callback) {
 	"use strict";
 	if (pzh.config.master.key.value === 'null') {
@@ -95,6 +90,11 @@ function revoke(pzh, pzhKeyDir, pzhCertDir, pzpCert, callback) {
 	
 	cert.revokeClientCert(pzh, pzh.config.master, pzpCert, function(result, crl) {
 	    if (result === "certRevoked") {
+	    	try {	
+	    		pzh.conn.pair.credentials.context.addCRL(crl);
+	    	} catch (err) {
+	    		console.log(err);
+	    	}
 		    pzh.config.master.crl.value = crl;
 		    fs.writeFileSync(pzhCertDir+'/'+pzh.config.master.crl.name, crl);
 		    //TODO : trigger the PZH to reconnect all clients
@@ -132,7 +132,6 @@ function getPZPCertificate(pzpid, pzhSignedCertDir, callback) {
     "use strict";
     try { 
         var file = pzhSignedCertDir+'/'+ pzpid + ".pem"
-        console.log("PZP cert name "+file);
         var cert = fs.readFile(file, function(err, cert) {
           callback(true, cert);	    
         });  

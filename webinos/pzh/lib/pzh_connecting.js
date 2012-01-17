@@ -1,8 +1,15 @@
 var pzhConnecting = exports;
 
-pzhConnecting.downloadCertificate = function(servername, port) {
-	var self = this;
-	var http = require('http');
+var path      = require('path');
+var helper    = require(path.resolve(__dirname, 'pzh_helper.js'));
+var utils     = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));	
+var messaging = require(path.resolve(__dirname, '../../common/manager/messaging/lib/messagehandler.js'));
+var http      = require('http');
+var tls  	  = require('tls');
+var rpc       = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));			 
+
+pzhConnecting.downloadCertificate = function(pzh, servername, port) {
+	var self = pzh;	
 	var agent = new http.Agent({maxSockets: 1});
 	var headers = {'connection': 'keep-alive'};
 	if (servername === '' && port === '') {
@@ -22,57 +29,50 @@ pzhConnecting.downloadCertificate = function(servername, port) {
 		res.on('data', function(data) {
 			utils.processedMsg(data, 2, function(parse) {	
 				try {
-					fs.writeFile(pzhOtherCertDir+'/'+'pzh_cert.pem', parse.payload.message, function() {
-						pzhConnecting.connectOtherPZH(servername, '443');
+					fs.writeFile(pzhOtherCertDir+'/'+parse.payload.message.name, parse.payload.message.cert, function() {
+						pzhConnecting.connectOtherPZH(pzh, servername, '443');
 					});
 				} catch (err) {
-					utils.debug(1, 'PZH ('+pzh.sessionId+') Error storing other Pzh cert');
-					utils.debug(1, err.code);
-					utils.debug(1, err.stack);
+					helper.debug(1, 'PZH ('+self.sessionId+') Error storing other Pzh cert ' + err);
 					return;
 				}
 			});
 		});			
 	});
 	try {
-		var msg = self.prepMsg(null,null,'getMasterCert', pzh.config.master.cert.value);
+		var msg = {name: pzh.config.master.cert.name , cert: pzh.config.master.cert.value};
+		var msg = self.prepMsg(null, null,'getMasterCert', msg);
 		req.write('#'+JSON.stringify(msg)+'#\n');
 		req.end();
 	} catch (err) {
-		utils.debug(1, 'PZH ('+pzh.sessionId+') Error sending master cert to Pzh');
-		utils.debug(1, err.code);
-		utils.debug(1, err.stack);
+		helper.debug(1, 'PZH ('+self.sessionId+') Error sending master cert to Pzh' + err);
 		return;
 	}
 };
 
 //sessionPzh.connectOtherPZH = function(server, port) {
-pzhConnecting.connectOtherPZH = function(server, port) {
-	var self = this, options;
-	utils.debug(2, 'PZH ('+self.sessionId+') Connect Other PZH');
+pzhConnecting.connectOtherPZH = function(pzh, server, port) {
+	var self = pzh, options;
+	helper.debug(2, 'PZH ('+self.sessionId+') Connect Other PZH');
 	try {
 		//No CRL support yet, as this is out-of-zone communication.  TBC.
 		options = {key: self.config.conn.key.value,
 			cert: self.config.conn.cert.value,
 			ca: [self.config.master.cert.value]}; 
 	} catch (err) {
-		utils.debug(1, 'PZH ('+pzh.sessionId+') Options setting failed while connecting other Pzh');
-		utils.debug(1, err.code);
-		utils.debug(1, err.stack);
+		helper.debug(1, 'PZH ('+self.sessionId+') Options setting failed while connecting other Pzh ' + err);
 		return;
 	}
 		
 	var connPzh = tls.connect(port, server, options, function() {
-		utils.debug(2, 'PZH ('+self.sessionId+') Connection Status : '+connPzh.authorized);
+		helper.debug(2, 'PZH ('+self.sessionId+') Connection Status : '+connPzh.authorized);
 		if(connPzh.authorized) {
 			var connPzhId;
-			utils.debug(2, 'PZH ('+self.sessionId+') Connected ');
+			helper.debug(2, 'PZH ('+self.sessionId+') Connected ');
 			try {
 				connPzhId = connPzh.getPeerCertificate().subject.CN.split(':')[1];
 			} catch (err) {
-				utils.debug(1, 'PZH ('+pzh.sessionId+') Error reading common name of peer certificate');
-				utils.debug(1, err.code);
-				utils.debug(1, err.stack);
+				helper.debug(1, 'PZH ('+self.sessionId+') Error reading common name of peer certificate ' + err);
 				return;
 			}
 			try {
@@ -82,9 +82,7 @@ pzhConnecting.connectOtherPZH = function(server, port) {
 					self.sendMessage(msg, connPzhId);
 				}
 			} catch (err1) {
-				utils.debug(1, 'PZH ('+pzh.sessionId+') Error storing pzh in the list');
-				utils.debug(1, err1.code);
-				utils.debug(1, err1.stack);
+				utils.debug(1, 'PZH ('+selfsessionId+') Error storing pzh in the list ' + err);
 				return;
 			}
 		} else {
@@ -97,9 +95,7 @@ pzhConnecting.connectOtherPZH = function(server, port) {
 					rpc.SetSessionId(self.sessionId);
 					utils.sendMessageMessaging(parse);				
 				} catch (err) {
-					utils.debug(1, 'PZH ('+pzh.sessionId+') Error sending message to messaging');
-					utils.debug(1, err.code);
-					utils.debug(1, err.stack);
+					utils.debug(1, 'PZH ('+self.sessionId+') Error sending message to messaging ' + err);
 				}
 			});				
 			

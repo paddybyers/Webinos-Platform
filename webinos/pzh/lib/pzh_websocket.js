@@ -90,16 +90,19 @@ pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, modules
 		return;	
 	}
 
-	var httpserver = http.createServer(function(request, response) {
-	
+	var httpserver = http.createServer(function(request, response) {	
 		request.on('data', function(chunk) {
 			utils.processedMessage(chunk, function(parse){
 				try {
-					fs.writeFile(pzhOtherCertDir+'/'+pzh.config.otherPzh, parse.payload.message, function() {
+					fs.writeFile(pzhOtherCertDir+'/'+parse.payload.message.name, parse.payload.message.cert, function() {
 						//pzh.conn.pair.credentials.context.addCACert(pzh.config.mastercertname);
-						pzh.conn.pair.credentials.context.addCACert(parse.payload.message);
-						var payload = pzh.prepMsg(null, null, 'receiveMasterCert', pzh.config.master.cert.value);
+						pzhWebSocket.instance[0].conn.pair.credentials.context.addCACert(parse.payload.message.cert);
+						var msg = {name: pzhWebSocket.instance[0].config.master.cert.name , 
+									cert: pzhWebSocket.instance[0].config.master.cert.value};
+						var payload = pzhWebSocket.instance[0].prepMsg(null, null, 'receiveMasterCert', msg);
+						
 						utils.debug(2, 'PZH  WSServer: Server sending certificate '+ JSON.stringify(payload).length);
+						
 						response.writeHead(200);
 						response.write('#'+JSON.stringify(payload)+'#\n');
 						response.end();
@@ -151,7 +154,7 @@ pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, modules
 			utils.debug(2, 'PZH WSServer: Received packet' + JSON.stringify(msg));
 			
 			if(msg.type === 'prop' && msg.payload.status === 'startPzh') {
-				var pzh= pzh_session.startPzh(msg.payload.value, msg.payload.servername,	msg.payload.serverport, 
+				pzh = pzh_session.startPzh(msg.payload.value, msg.payload.servername, msg.payload.serverport, 
 					function(result) {
 						if(result === 'startedPzh') {
 							pzhWebSocket.instance.push(pzh);
@@ -172,11 +175,15 @@ pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, modules
 				} else if(msg.type === "prop" && msg.payload.status === 'listAllPzps') {
 					revoker.listAllPzps(pzhSignedCertDir, connection);
 				} else if(msg.type === "prop" && msg.payload.status === 'addPzpQR') {
-					helper.addPzpQR(connection);
+					helper.addPzpQR(pzhWebSocket.instance, connection);
 				} else if(msg.type === "prop" && msg.payload.status === 'crashLog') {
-					helper.crashLog(connection);
+					helper.crashLog(pzhWebSocket.instance, connection);
 				} else if(msg.type === "prop" && msg.payload.status === 'revokePzp') {
 				    revoker.revokePzp(connection, msg.payload.pzpid, pzhWebSocket.instance[0], pzhCertDir, pzhSignedCertDir, pzhKeyDir, pzhRevokedCertDir);				
+				} else if(msg.type === "prop" && msg.payload.status === 'revokeClientList') {
+				    revoker.listAllPzps(pzhRevokedCertDir, connection);
+				} else if(msg.type === "prop" && msg.payload.status === 'restartPzh') {
+				    pzh_session.restartPzh(pzhWebSocket.instance[0], connection);
 				}
 			}
 		});

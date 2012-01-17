@@ -1,11 +1,12 @@
 var helper = exports;
 
-var path = require('path');
-
-var qr = require(path.resolve(__dirname, 'pzh_qrcode.js'));
+var path        = require('path');
+var fs          = require('fs');
+var qr          = require(path.resolve(__dirname, 'pzh_qrcode.js'));
+var webinosDemo = path.resolve(__dirname, '../../../demo');
 var crashMsg;
 
-helper.addPzpQR = function (connection) {
+helper.addPzpQR = function (instance, connection) {
 	"use strict";
 	qr.addPzpQR(instance[0], connection);
 }
@@ -20,7 +21,7 @@ helper.connectedPzhPzp = function(instance, connection) {
 			var msg = {type: 'prop', payload: payload};
 			connection.sendUTF(JSON.stringify(msg));
 		} catch (err) {
-			utils.debug(1, 'PZH ('+pzh.sessionId+') Error sending connectedPzp/Pzh to WebClient ' + err);
+			helper.debug(1, 'PZH ('+pzh.sessionId+') Error sending connectedPzp/Pzh to WebClient ' + err);
 			return;
 		}
 	}
@@ -30,13 +31,13 @@ helper.crashLog = function(instance, connection) {
 	"use strict";
 	var i;
 	for( i = 0; i < instance.length; i += 1) {
-		var message = {name: instance[i].sessionId, log: fs.readFileSync(instance[i].sessionId + '_crash.txt').toString()};
-		var payload = {status : 'crashLog', message : message};
 		try {
+			var message = {name: instance[i].sessionId, log: fs.readFileSync(webinosDemo + '/'+instance[i].sessionId + '_crash.txt').toString()};
+			var payload = {status : 'crashLog', message : message};
 			var msg = {type: 'prop', payload: payload};
 			connection.sendUTF(JSON.stringify(msg));
 		} catch (err) {
-			utils.debug(1, 'PZH ('+pzh.sessionId+') Error sending crashLog to WebClient ' + err);
+			helper.debug(1, 'PZH ('+instance[i].sessionId+') Error sending crashLog to WebClient ' + err);
 			return;
 		}
 	}
@@ -56,7 +57,7 @@ helper.debug = function(num, msg) {
 		console.log('ERROR:' + msg);
 		if(crashMsg != null) {
 			crashMsg.write(msg);
-			crashMsg.write('\n');
+			crashMsg.write('\n<br>');
 		}
 	} else if(num === 2 && info) {
 		console.log('INFO:' + msg);		
