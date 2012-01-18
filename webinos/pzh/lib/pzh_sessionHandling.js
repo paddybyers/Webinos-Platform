@@ -573,8 +573,8 @@
 	
 	function restartPzh(instance, callback) {
 		try	{
-			instance.sock.close();
 			instance.conn.end();
+			instance.sock.close();
 			startPzh(instance.contents, instance.server, instance.port, function(result){
 				callback(result);
 			});

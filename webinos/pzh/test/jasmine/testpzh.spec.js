@@ -75,7 +75,7 @@ describe("PZH functionalities", function() {
 			});
 		});
 		
-		waits(1000);
+		waits(500);
 		runs( function() {
 			expect(pzh.config).not.toBeNull();
 			Revoker.listAllPzps(pzh.config.pzhSignedCertDir, function(result) {
@@ -120,14 +120,21 @@ describe("PZH functionalities", function() {
 				expect(result).not.toBeNull();
 				expect(result).toEqual("startedPzh");
 				pzh = pzh1;				
-				Pzp.startPzp(PzpContents, ipAddr, port, code, pzpModules, function(result, pzp1) {
-					expect(result).not.toBeNull();
-					expect(result).toEqual("startedPZP");
-					pzp = pzp1;   
-				});
 			});
 		});
-
+		
+		waits(500);
+		runs(function(){
+			Pzp.startPzp(PzpContents, ipAddr, port, code, pzpModules, function(result, pzp1) {				
+				expect(result).not.toEqual("startedPZP");					
+				pzp = pzp1;
+			});
+		});
+		
+		waits(500);
+		runs( function() {
+			process.exit(0);
+		});
  	});
 });
 
