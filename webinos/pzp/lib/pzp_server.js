@@ -1,5 +1,9 @@
 var pzp_server = exports;
-var tls = require('tls');
+
+var tls   = require('tls');
+var path  = require('path');
+var utils = require(path.resolve(__dirname, 'session_common.js'));
+
 pzp_server.connectOtherPZP = function (msg) {
 	var self, client;
 	self = this;

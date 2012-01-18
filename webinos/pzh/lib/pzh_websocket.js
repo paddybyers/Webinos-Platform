@@ -173,7 +173,7 @@ pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, callbac
 	    				connection.sendUTF(JSON.stringify(msg));
 				    });				
 				} else if(msg.type === "prop" && msg.payload.status === 'revokeClientList') {
-				    revoker.listAllPzps(pzhRevokedCertDir, function(msg){
+				    revoker.listAllPzps(pzhWebSocket.instance[0].config.pzhRevokedCertDir, function(msg){
 	    				connection.sendUTF(JSON.stringify(msg));
 				    });
 				} else if(msg.type === "prop" && msg.payload.status === 'restartPzh') {

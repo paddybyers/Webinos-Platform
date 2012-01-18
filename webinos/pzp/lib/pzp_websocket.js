@@ -102,7 +102,7 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 
 		httpserver.listen(serverPort, hostname, function() {
 			utils.debug(2, "PZP WSServer: Listening on port "+serverPort + " and hostname "+hostname);
-			callback("started");
+			callback("startedWebSocketServer");
 
 		});
 
