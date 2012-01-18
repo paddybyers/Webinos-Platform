@@ -5,13 +5,15 @@ var oldSettings = null;
 var commonPaths = null;
 //console.log("STORAGE CHECK LOADED");
 
+var pathSeperator = process.platform !== 'win32' ? '/' : '\\';
+
 module.exports = function(myCommonPaths, myStorageInfo){
 	commonPaths = myCommonPaths;
 	storageInfo = myStorageInfo;
 	if (commonPaths.storage == null) throw 'Storage Path not set';
 	var clearStorage = false;
-	if (path.existsSync(commonPaths.storage+"/.storageVersion.json")){
-		if(require(commonPaths.storage+"/.storageVersion.json").version != storageInfo.Version){
+	if (path.existsSync(commonPaths.storage + pathSeperator + ".storageVersion.json")){
+		if(require(commonPaths.storage + pathSeperator + ".storageVersion.json").version != storageInfo.Version){
 			clearStorage = true;
 		}else{
 			//Storage should be ok.
@@ -22,25 +24,26 @@ module.exports = function(myCommonPaths, myStorageInfo){
 		clearStorage = true;
 	}
 	if (clearStorage){
-		if (path.existsSync(commonPaths.storage+"/.contextSettings.json")){
-			oldSettings = require(commonPaths.storage+"/.contextSettings.json");
+		if (path.existsSync(commonPaths.storage + pathSeperator + ".contextSettings.json")){
+			oldSettings = require(commonPaths.storage + pathSeperator + ".contextSettings.json");
 		}
 		rmdirSyncRecursive(commonPaths.storage, true);
 	}
 	try{
 		fs.statSync(commonPaths.storage);
 	}catch(e){
+		debugger;
 		mkdirSyncRecursive(commonPaths.storage);
 	}
 	fixFolder(commonPaths.storage, storageInfo.Map);
 	if (oldSettings!=null){
-		newSettings = require(commonPaths.storage+"/.contextSettings.json");
+		newSettings = require(commonPaths.storage + pathSeperator + ".contextSettings.json");
 		for (newSetting in newSettings){
 			if (oldSettings[newSetting]) newSettings[newSetting] = oldSettings[newSetting];
 		}
-		fs.writeFileSync(commonPaths.storage+"/.contextSettings.json", JSON.stringify(newSettings));
+		fs.writeFileSync(commonPaths.storage + pathSeperator + ".contextSettings.json", JSON.stringify(newSettings));
 	}
-	fs.writeFileSync(commonPaths.storage+"/.storageVersion.json", JSON.stringify({version : storageInfo.Version}));
+	fs.writeFileSync(commonPaths.storage + pathSeperator + ".storageVersion.json", JSON.stringify({version : storageInfo.Version}));
 }
 
 function fixFolder(folderPath, contents){
@@ -54,14 +57,14 @@ function fixFolder(folderPath, contents){
 		item = contents[i];
 		switch (item.type){
 			case "folder":
-				fixFolder(folderPath+'/'+item.name+'/', item.contents);
+				fixFolder(folderPath+pathSeperator+item.name+pathSeperator, item.contents);
 				break;
 			default :
 				if (item.file){
-					var fileContent = fs.readFileSync(commonPaths.local + "/storage/" + item.file);
-		            fs.writeFileSync(folderPath+'/'+item.name, fileContent);
+					var fileContent = fs.readFileSync(commonPaths.local + pathSeperator + 'storage' + pathSeperator + item.file);
+		            fs.writeFileSync(folderPath+pathSeperator+item.name, fileContent);
 				}else{
-					fs.writeFileSync(folderPath+'/'+item.name, ((item.contents)?((item.type === "json")?JSON.stringify(item.contents):item.contents):""));
+					fs.writeFileSync(folderPath+pathSeperator+item.name, ((item.contents)?((item.type === "json")?JSON.stringify(item.contents):item.contents):""));
 				}
 				break;
 		}
@@ -72,7 +75,7 @@ function fixFolder(folderPath, contents){
  * based on: https://github.com/bpedro/node-fs/
  */
 function mkdirSyncRecursive(folderPath, position) {
-	var parts = path.resolve(folderPath).split('/');
+	var parts = path.resolve(folderPath).split(pathSeperator);
 
     position = position || 0;
     
@@ -81,7 +84,7 @@ function mkdirSyncRecursive(folderPath, position) {
       return true;
     }
   
-    var directory = parts.slice(0, position + 1).join('/') || '/';
+    var directory = parts.slice(0, position + 1).join(pathSeperator) || pathSeperator;
     try {
       fs.statSync(directory);
       mkdirSyncRecursive(folderPath, position + 1);
@@ -114,16 +117,16 @@ function rmdirSyncRecursive(path, failSilent) {
 
     /*  Loop through and delete everything in the sub-tree after checking it */
     for(var i = 0; i < files.length; i++) {
-        var currFile = fs.statSync(path + "/" + files[i]);
+        var currFile = fs.statSync(path + pathSeperator + files[i]);
 
         if(currFile.isDirectory()) // Recursive function back to the beginning
-        	rmdirSyncRecursive(path + "/" + files[i]);
+        	rmdirSyncRecursive(path + pathSeperator + files[i]);
 
         else if(currFile.isSymbolicLink()) // Unlink symlinks
-            fs.unlinkSync(path + "/" + files[i]);
+            fs.unlinkSync(path + pathSeperator + files[i]);
 
         else // Assume it's a file - perhaps a try/catch belongs here?
-            fs.unlinkSync(path + "/" + files[i]);
+            fs.unlinkSync(path + pathSeperator + files[i]);
     }
 
     /*  Now that we know everything in the sub-tree has been deleted, we can delete the main
