@@ -99,7 +99,7 @@
          });
          
 	$('#crashLogPzh').bind('click', function() {
-         	webinos.session.message_send({type: 'prop', payload: {status: 'crashLog'}});
+        webinos.session.message_send({type: 'prop', payload: {status: 'crashLog'}});
 	});
 	
     $('#listAllPzpsButton').bind('click', function() {
@@ -108,7 +108,12 @@
     $('#addPzpQRButton').bind('click', function() {
      	webinos.session.message_send({type: 'prop', payload: {status: 'addPzpQR'}});
     });
-	
+	$('#restartPzhButton').bind('click', function() {
+        webinos.session.message_send({type: 'prop', payload: {status: 'restartPzh'}});
+	});
+	$('#listRevokedPzpButton').bind('click', function() {
+        webinos.session.message_send({type: 'prop', payload: {status: 'listRevokedPzp'}});
+	});
 
   });
   
@@ -131,13 +136,16 @@
 <center><div id="header"> <h1><img src="testbed_logo.png"></h1> </div></center>
 <div id = "tabs">
 	<ul>
-		<li> <a href="#pzh"> Start Pzh </a> </li>
-		<li> <a href="#connectPzh"> Connect Other Pzh </a> </li>
-		<li> <a href="#listPzh"> List Pzh </a> </li>
-		<li> <a href="#crashLog"> Crash Details log </a> </li>
+
+		<li> <a href="#listPzh"> List Connected Pzh & Pzp </a> </li>
 		<li> <a href="#listAllPzps"> List All Zone PZPs </a> </li>	
-		<li> <a href="#pzhConfig"> Configure Pzh </a> </li>	
-		<li> <a href="#addPzpQR"> Add a new PZP by QR Code </a> </li>		
+		<li> <a href="#listRevokedPzp"> List Revoked PZPs </a> </li>	
+		<li> <a href="#pzh"> Start Pzh </a> </li>
+		<li> <a href="#restartPzh"> Restart Pzh </a> </li>
+		<li> <a href="#addPzpQR"> Add a new PZP by QR Code </a> </li>
+		<li> <a href="#connectPzh"> Connect Other Pzh </a> </li>
+		<li> <a href="#crashLog"> Crash log </a> </li>
+		<li> <a href="#pzhConfig"> Configure Pzh Certificate</a> </li>	
 	</ul>
 	
 	<div id = "pzhConfig" style="background-color:#0879a9">
@@ -213,7 +221,19 @@
 			<div  id="qrcode" style="background-color:lightgray; border:7px solid #0879a9" align="center"></div>
 		</center>
 		<center> <button id="addPzpQRButton" class="button"> Add new PZP via QR Code</button> </center>	
+	</div>
+	<div id = "restartPzh" style="background-color:#0879a9">
+		<center> <p style="color:white"> Restart Pzh </p> </center>
+		<center> <button id="restartPzhButton" class="button"> Restart PZH  </button> </center>	
 	</div>	
+	<div id = "listRevokedPzp" style="background-color:#0879a9">
+		<center> <p style="color:white"> List all revoked Pzp's </p> </center>
+		<center>
+			<table id="listRevokedPzpTable" style="background-color:lightgray; border:7px solid #0879a9" align="center"> 			
+			</table> 
+		</center>
+		<center> <button id="listRevokedPzpButton" class="button"> Revoked PZP's  </button> </center>	
+	</div>
 	
 </div>
 <div id="status">STATUS: <span id="message"></span></div>

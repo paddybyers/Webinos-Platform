@@ -21,7 +21,6 @@
 		var cert = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
 
 	}
-	
 	var tls = require('tls');
 	var fs = require('fs');
 	var Pzp = null; 
@@ -64,6 +63,7 @@
 		
 		// load specified modules
 		this.rpcHandler.loadModules(modules);
+		this.tried = false;
 	};
 	
 	Pzp.prototype.prepMsg = function(from, to, status, message) {
@@ -242,6 +242,7 @@
 			self.connectedPzp[self.sessionId] = {socket: client};
 			self.pzpAddress = client.socket.address().address;
 			self.tlsId[self.sessionId] = client.getSession();
+			client.socket.setKeepAlive(true, 100);
 			var msg = messaging.registerSender(self.sessionId, self.pzhId);		
 			self.sendMessage(msg, self.pzhId);
 			pzp_server.startServer(self, function() {
@@ -270,6 +271,7 @@
 				utils.debug(2,'PZP Reusing session : ' + client.isSessionReused());
 				
 				if(client.authorized){
+					self.tried = false;
 					var cn = client.getPeerCertificate().subject.CN.split(':')[1];
 					self.authenticated(cn, client, callback);
 				} else {
@@ -305,7 +307,7 @@
 		});
 		
 		client.on('end', function () {
-			var webApp;
+			var webApp;			
 			utils.debug(2, 'PZP ('+self.sessionId+') Connection terminated');
 			messaging.removeRoute(self.pzhId, self.sessionId);
 			delete self.connectedPzh[self.pzhId];
@@ -323,6 +325,8 @@
 					websocket.connectedApp[addr].sendUTF(JSON.stringify(payload));		
 				}
 			}
+			
+			// TODO: Try reconnecting back to server. 			
 		});
 
 		client.on('error', function (err) {
@@ -396,6 +400,8 @@
 		var client = new Pzp(modules);
 		client.code = code;		
 		client.pzhPort = port;
+		client.modules = modules;
+		client.contents = contents;
 		utils.resolveIP(servername, function(resolvedAddress) {
 			client.pzhName = resolvedAddress;
 			utils.debug(3, 'connecting address: ' + client.pzhName);
@@ -417,14 +423,14 @@
 										if(result === 'startedPZP' && typeof callback !== "undefined") {
 											instance = client;
 											websocket.updateInstance(instance);
-											callback.call(client, 'startedPZP');
+											callback.call(client, 'startedPZP', client);
 											return;
 										}
 									});
 								} else if(result === 'startedPZP' && typeof callback !== "undefined") {
 									instance = client;
 									websocket.updateInstance(instance);
-									callback.call(client, 'startedPZP');
+									callback.call(client, 'startedPZP', client);
 									return;
 								}
 							});

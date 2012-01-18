@@ -1,5 +1,5 @@
-Pzh = require('../webinos/pzh/lib/pzh_sessionHandling.js');
-WebSocket = require('../webinos/pzh/lib/pzh_websocket.js');
+Pzh            = require('../webinos/pzh/lib/pzh_sessionHandling.js');
+WebSocket      = require('../webinos/pzh/lib/pzh_websocket.js');
 
 var ipAddr = 'localhost', port = 8000, serverPort = 8083, webServerPort = 8082;
 

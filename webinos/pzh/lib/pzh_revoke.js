@@ -31,7 +31,7 @@ revoker.revokePzp = function (pzpid, pzh, callback ) {
         } else {
  	        console.log('CRL' + cert.toString());
 	        //pzh.conn.pair.credentials.context.addCRL(cert.toString());
-            revoke(pzh, cert, function(result) {
+            revoke(pzh, pzh.config.pzhKeyDir, pzh.config.pzhCertDir, cert, function(result) {
                 if (result) {
                     utils.debug(2,"Revocation success! " + pzpid + " should not be able to connect anymore ");                       
                     removeRevokedCert(pzpid, pzh.config.pzhSignedCertDir, pzh.config.pzhRevokedCertDir, function(status2) {
@@ -55,7 +55,7 @@ revoker.revokePzp = function (pzpid, pzh, callback ) {
 
 revoker.listAllPzps = function(certDir, callback) {
     "use strict";
-    getAllPZPIds( pzhSignedCertDir, function(pzps, error) {
+    getAllPZPIds( certDir, function(pzps, error) {
         if (error === null) {
             var payload = {
                     status : "listAllPzps",
@@ -135,7 +135,7 @@ function getPZPCertificate(pzpid, pzhSignedCertDir, callback) {
     try { 
         var file = pzhSignedCertDir+'/'+ pzpid + ".pem"
         var cert = fs.readFile(file, function(err, cert) {
-          callback(true, cert);	    
+			callback(true, cert);	    
         });  
 
     } catch (err) {

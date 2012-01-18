@@ -1,7 +1,7 @@
 pzp = require('../webinos/pzp/lib/pzp_sessionHandling.js');
 websocket = require('../webinos/pzp/lib/pzp_websocket.js');
 
-var ipAddr = 'localhost' , port = 8000, serverPort = 8081, webServerPort = 8080; code = "DEBUG";
+var ipAddr = 'localhost' , port = 8000, serverPort = 8081, webServerPort = 8080, code = "DEBUG";
 process.argv.forEach(function(val, index, array) {
         if(index === 2) 
                 ipAddr = val;
