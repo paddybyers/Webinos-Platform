@@ -2,13 +2,8 @@ var pzhWebSocket = exports;
 
 var path = require('path');
 
-var rpc = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));
-var RPCHandler = rpc.RPCHandler;
-var rpcHandler = new RPCHandler();
 var utils = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
 var webinosDemo = path.resolve(__dirname, '../../../demo');
-var messaging = require(path.resolve(__dirname, '../../common/manager/messaging/lib/messagehandler.js'));
-messaging.setRPCHandler(rpcHandler);
 var revoker = require(path.resolve(__dirname, 'pzh_revoke.js'));
 var pzh_session = require(path.resolve(__dirname, 'pzh_sessionHandling.js'));
 var helper = require(path.resolve(__dirname, 'pzh_helper.js'));
@@ -17,7 +12,7 @@ var connect_pzh = require(path.resolve(__dirname, 'pzh_connecting.js'));
 
 pzhWebSocket.instance = [];
 
-pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, modules, callback) {
+pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, callback) {
 	var fs = require('fs');
 	try {
 		var http = require('http'),			
@@ -26,9 +21,6 @@ pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, modules
 		utils.debug(1, 'PZH WebSocket Server modules missing. Http and WebSocketServer are main dependencies ' + err);
 		return;
 	}
-	
-	// load specified modules
-	rpcHandler.loadModules(modules);
 	
 	var cs = http.createServer(function(request, response) { 
 		var url, uri, filename;

@@ -22,8 +22,8 @@ if (ipAddr === '' || port <= 0) {
 	console.log("Error starting server.\n\t Start with: node startPzh.js <host> <port> <webserverPort> <serverPort>) \n\t E.g.: node startPzh.js localhost 8000 8082 8083");
 } else {
 	var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh\nemail=internal@webinos.org\ndays=180\n" ;
-	WebSocket.startServer(ipAddr, serverPort, webServerPort, pzhModules, function() {
-		Pzh.startPzh(contents, ipAddr, port, function() {
+	WebSocket.startServer(ipAddr, serverPort, webServerPort, function() {
+		Pzh.startPzh(contents, ipAddr, port, pzhModules, function() {
 			console.log('=== PZH STARTED ===');
 		});
 	});

@@ -20,6 +20,7 @@
 	if (typeof exports !== 'undefined') {
 		try {
 			var rpc = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));
+			var RPCHandler = rpc.RPCHandler;
 			var messaging = require(path.resolve(__dirname, '../../common/manager/messaging/lib/messagehandler.js'));					
 			var authcode = require(path.resolve(__dirname, 'pzh_authcode.js'));
 			var cert = require(path.resolve(__dirname, '../../pzp/lib/session_certificate.js'));
@@ -36,7 +37,7 @@
 	 * @description Creates a new Pzh object
 	 * @constructor
 	 */
-	Pzh = function () {
+	Pzh = function (modules) {
 		/** Holds PZH Session Id */
 		this.sessionId = 0;
 		/** Holds PZH Configuration i.e. file names and certificate configuration */
@@ -58,6 +59,12 @@
 		    self.expecting = res;
 		});
 
+		// Handler for remote method calls.
+		this.rpcHandler = new RPCHandler();
+		messaging.setRPCHandler(this.rpcHandler);
+		
+		// load specified modules
+		this.rpcHandler.loadModules(modules);
 	};
 	/**
 	 * @description A generic function used to set message parameter
@@ -474,7 +481,10 @@
 				}				
 			} else if(parse.type === "prop" && parse.payload.status === 'findServices') {
 				helper.debug(2, 'Trying to send Webinos Services from this RPC handler...');
-				findServices(conn, self);				
+				var services = self.rpcHandler.getRegisteredServices();
+				var msg = self.prepMsg(self.sessionId, null, 'foundServices', services);		
+				self.sendMessage(msg, null, conn);		
+		        helper.debug(2, 'Sent Webinos Services from this RPC handler.');
 			} else { // Message is forwarded to Message handler function, onMessageReceived
 				try {			
 					rpc.SetSessionId(self.sessionId);
@@ -487,23 +497,17 @@
 		});	
 	};	
 	
-	function findServices(connection, pzh) {
-		var services = rpcHandler.getRegisteredServices();
-		var msg = pzh.prepMsg(pzh.sessionId, null, 'foundServices', services);		
-		pzh.sendMessage(msg, null, connection);		
-        helper.debug(2, 'Sent Webinos Services from this RPC handler.');
-	}
-	
 	/** starts pzh, creates TLS server, resolve DNS and listens.
 	 * @param contents contains certificate details
 	 * @param server holds ipaddress or hostname on which pzh will be started
 	 * @param port port on which server is running
+	 * @param modules array of Webinos modules
 	 * @returns callback with startedPzh message 
 	 */
-	function startPzh(contents, server, port, callback) {
+	function startPzh(contents, server, port, modules, callback) {
 		var pzh;
 		try{
-			pzh = new Pzh();
+			pzh = new Pzh(modules);
 			pzh.port = port;
 			pzh.server = server;			
 		} catch (err) {
