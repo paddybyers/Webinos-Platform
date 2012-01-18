@@ -24,8 +24,8 @@ module.exports = function(myCommonPaths, myStorageInfo){
 		clearStorage = true;
 	}
 	if (clearStorage){
-		if (path.existsSync(commonPaths.storage + pathSeperator + ".contextSettings.json")){
-			oldSettings = require(commonPaths.storage + pathSeperator + ".contextSettings.json");
+		if (path.existsSync(commonPaths.storage + pathSeperator + "settings.json")){
+			oldSettings = require(commonPaths.storage + pathSeperator + "settings.json");
 		}
 		rmdirSyncRecursive(commonPaths.storage, true);
 	}
@@ -37,11 +37,11 @@ module.exports = function(myCommonPaths, myStorageInfo){
 	}
 	fixFolder(commonPaths.storage, storageInfo.Map);
 	if (oldSettings!=null){
-		newSettings = require(commonPaths.storage + pathSeperator + ".contextSettings.json");
+		newSettings = require(commonPaths.storage + pathSeperator + "settings.json");
 		for (newSetting in newSettings){
 			if (oldSettings[newSetting]) newSettings[newSetting] = oldSettings[newSetting];
 		}
-		fs.writeFileSync(commonPaths.storage + pathSeperator + ".contextSettings.json", JSON.stringify(newSettings));
+		fs.writeFileSync(commonPaths.storage + pathSeperator + "settings.json", JSON.stringify(newSettings));
 	}
 	fs.writeFileSync(commonPaths.storage + pathSeperator + ".storageVersion.json", JSON.stringify({version : storageInfo.Version}));
 }
