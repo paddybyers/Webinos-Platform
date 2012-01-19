@@ -69,14 +69,14 @@
 		
 		this.requesterMapping = [];
 		
-		this.write = null;
+		this.messageHandler = null;
 	}
 	
 	/**
 	 * Sets the writer that should be used to write the stringified JSON RPC request.
 	 */
-	_RPCHandler.prototype.setWriter = function (writer){
-		this.write = writer;
+	_RPCHandler.prototype.setMessageHandler = function (messageHandler){
+		this.messageHandler = messageHandler;
 	};
 
 	/**
@@ -291,7 +291,7 @@
 
 		//TODO check if rpc is request on a specific object (objectref) and get mapped from / destination session
 
-		this.write(rpc, from, msgid);
+		this.messageHandler.write(rpc, from, msgid);
 	};
 
 	/**

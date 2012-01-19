@@ -14,7 +14,6 @@ var webinosDemo  = path.resolve(__dirname, '../../../demo');
 
 		
 if (typeof exports !== "undefined") {
-	var messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
 	var rpc       = require(path.join(webinosRoot, dependencies.rpc.location));
 }
 
@@ -111,24 +110,24 @@ var send = function (message, address, object) {
 	object.sendMessage(message, address);
 };
 
-var setMessagingParam = function(self){
+var setMessagingParam = function(self, messageHandler){
 	"use strict";
-	messaging.setGetOwnId(self.sessionId);
-	messaging.setObjectRef(self);
-	messaging.setSendMessage(send);
-	messaging.setSeparator("/");
+	messageHandler.setGetOwnId(self.sessionId);
+	messageHandler.setObjectRef(self);
+	messageHandler.setSendMessage(send);
+	messageHandler.setSeparator("/");
 };
 
 /** Calls messaging function, to adapt to correct object and process received message
 * @param data message forwarded to messaging  
 */
-exports.sendMessageMessaging = function(self, data) {
+exports.sendMessageMessaging = function(self, messageHandler, data) {
 	"use strict";
-	setMessagingParam(self);
+	setMessagingParam(self, messageHandler);
 	if(typeof data.to !== 'undefined') {
-		messaging.onMessageReceived(data, data.to);
+		messageHandler.onMessageReceived(data, data.to);
 	} else {
-		messaging.onMessageReceived(data);
+		messageHandler.onMessageReceived(data);
 	}
 };
 

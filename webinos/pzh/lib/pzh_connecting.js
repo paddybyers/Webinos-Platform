@@ -3,7 +3,6 @@ var pzhConnecting = exports;
 var path      = require('path');
 var helper    = require(path.resolve(__dirname, 'pzh_helper.js'));
 var utils     = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));	
-var messaging = require(path.resolve(__dirname, '../../common/manager/messaging/lib/messagehandler.js'));
 var http      = require('http');
 var tls  	  = require('tls');
 var rpc       = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));			 
@@ -79,8 +78,7 @@ pzhConnecting.connectOtherPZH = function(pzh, server, port) {
 			try {
 				if(self.connectedPzh.hasOwnProperty(connPzhId)) {
 					self.connectedPzh[connPzhId] = {socket : connPzh};
-					var msg = messaging.registerSender(self.sessionId, connPzhId);			
-					self.sendMessage(msg, connPzhId);
+					self.sendRegisterMessage();
 				}
 			} catch (err1) {
 				utils.debug(1, 'PZH ('+selfsessionId+') Error storing pzh in the list ' + err);

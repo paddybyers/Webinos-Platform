@@ -21,7 +21,6 @@ var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
 	webinosDemo = path.resolve(__dirname, '../../../demo'),
 	utils = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')),
 	rpc = require(path.join(webinosRoot, dependencies.rpc.location)),
-	messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js')),		
 	pzp_session = require(path.join(webinosRoot, dependencies.pzp.location));
 		
 websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort, callback) {		
@@ -151,8 +150,8 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 				utils.debug(2, 'PZP WSServer: Received packet ' + JSON.stringify(msg));
 
 				// Each message is forwarded back to Message Handler to forward rpc message
-					if(msg.type === 'prop' ){
-						if( msg.payload.status === 'startPzp' ) {
+				if(msg.type === 'prop' ) {
+					if( msg.payload.status === 'startPzp' ) {
 						instance = pzp_session.startPzp(msg.payload.value, 
 						msg.payload.servername, 
 						msg.payload.serverport,
@@ -178,18 +177,21 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 				} else {
 					if( typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
 						rpc.setSessionId(instance.sessionId);
-						utils.sendMessageMessaging(instance, msg);
+						utils.sendMessageMessaging(instance, instance.messageHandler, msg);
 					} else {
 						rpc.setSessionId("virgin_pzp");
-						messaging.setGetOwnId("virgin_pzp");
-						messaging.setSendMessage(messageWS);
-						messaging.setSeparator("/");
-						messaging.onMessageReceived(msg, msg.to);
+						
+						// FIXME FIXME FIXME where do we get a messagehandler 
+						// instance from to call the following funcs
+//						messaging.setGetOwnId("virgin_pzp");
+//						messaging.setSendMessage(messageWS);
+//						messaging.setSeparator("/");
+//						messaging.onMessageReceived(msg, msg.to);
 					}
 				}
 			});
 			connection.on('close', function(connection) {
-					utils.debug(2, "PZP WSServer: Peer " + connection.remoteAddress + " disconnected.");
+				utils.debug(2, "PZP WSServer: Peer " + connection.remoteAddress + " disconnected.");
 			});	
 		});
 		

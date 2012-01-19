@@ -14,7 +14,7 @@
 	if (typeof exports !== "undefined") {
 		var rpc = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js'));
 		var RPCHandler = rpc.RPCHandler;
-		var messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
+		var MessageHandler = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js')).MessageHandler;
 		var pzp_server = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/pzp_server.js'));
 		var utils = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 		var websocket = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/pzp_websocket.js'));
@@ -62,7 +62,9 @@
 		
 		// Handler for remote method calls.
 		this.rpcHandler = new RPCHandler(this);
-		messaging.setRPCHandler(this.rpcHandler);
+		
+		// handler for all things message
+		this.messageHandler = new MessageHandler(this.rpcHandler);
 		
 		// load specified modules
 		this.rpcHandler.loadModules(modules);
@@ -251,7 +253,7 @@
 			self.pzpAddress = client.socket.address().address;
 			self.tlsId[self.sessionId] = client.getSession();
 			client.socket.setKeepAlive(true, 100);
-			var msg = messaging.registerSender(self.sessionId, self.pzhId);		
+			var msg = this.messageHandler.registerSender(self.sessionId, self.pzhId);
 			self.sendMessage(msg, self.pzhId);
 			pzp_server.startServer(self, function() {
 				self.prepMsg(self.sessionId, self.pzhId, 'pzpDetails', self.pzpServerPort);
@@ -310,7 +312,7 @@
 					client.resume();// unlocks socket. 
 				});			
 			} catch (err) {
-				utils.debug(1, 'PZP: Exception' + err);
+				utils.debug(1, 'PZP: Exception ' + err);
 			
 			}			
 		});
@@ -318,7 +320,7 @@
 		client.on('end', function () {
 			var webApp;			
 			utils.debug(2, 'PZP ('+self.sessionId+') Connection terminated');
-			messaging.removeRoute(self.pzhId, self.sessionId);
+			self.messageHandler.removeRoute(self.pzhId, self.sessionId);
 			delete self.connectedPzh[self.pzhId];
 			delete self.connectedPzp[self.sessionId];
 			self.pzhId = '';
@@ -397,7 +399,7 @@
 			// Forward message to message handler
 			else {
 				rpc.setSessionId(self.sessionId);
-				utils.sendMessageMessaging(self, data2);
+				utils.sendMessageMessaging(self, this.messageHandler, data2);
 			}
 		});
 	};	

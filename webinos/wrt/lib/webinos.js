@@ -26,10 +26,10 @@
             if(data.type === "prop") {
                 webinos.session.handleMsg(data);
             } else {
-                webinos.message.setGetOwnId(webinos.session.getSessionId());
-                webinos.message.setObjectRef(this);
-                webinos.message.setSendMessage(webinos.session.message_send_messaging);
-                webinos.message.onMessageReceived(data, data.to);
+                webinos.messageHandler.setGetOwnId(webinos.session.getSessionId());
+                webinos.messageHandler.setObjectRef(this);
+                webinos.messageHandler.setSendMessage(webinos.session.message_send_messaging);
+                webinos.messageHandler.onMessageReceived(data, data.to);
             }
         };
     }
@@ -38,7 +38,7 @@
     if (typeof webinos === 'undefined') webinos = {};
 
     webinos.rpcHandler = new RPCHandler();
-    webinos.message.setRPCHandler(webinos.rpcHandler);
+    webinos.messageHandler = new MessageHandler(webinos.rpcHandler);
 
 
     ///////////////////// WEBINOS INTERNAL COMMUNICATION INTERFACE ///////////////////////////////
