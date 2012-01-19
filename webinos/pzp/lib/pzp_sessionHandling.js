@@ -74,7 +74,6 @@
 				'message':message}};
 		
 		this.sendMessage(msg, to);
-		
 	};
 	
 	Pzp.prototype.wsServerMsg = function(message) {
@@ -122,10 +121,7 @@
 			utils.debug(1, 'PZP (' + self.sessionId + 'Error in sending send message' + err);
 		
 		}
-
 	};	
-	
-	
 	
 	/** @decription Generates self signed certificate, crl, private key and certificate request. Certificate creation is done only first time Pzp starts
 	 * crypto sensitive function
@@ -405,7 +401,8 @@
 		utils.resolveIP(servername, function(resolvedAddress) {
 			client.pzhName = resolvedAddress;
 			utils.debug(3, 'connecting address: ' + client.pzhName);
-			utils.configure(client, 'Pzp', contents, function(result) {
+			var dir = webinosDemo+'/certificates/pzp/';
+			utils.configure(client, dir, 'Pzp', contents, function(result) {
 				utils.debug(2, 'PZP (Not Connected) '+result);
 				client.checkFiles(function(config) {
 					if(config !== 'failed') {

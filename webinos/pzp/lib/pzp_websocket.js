@@ -9,21 +9,22 @@ websocket.updateInstance = function(pzpInstance) {
 websocket.webId = 0;
 websocket.connectedApp = [];
 
-websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort, callback) {
-		var http = require('http'),
-		url = require('url'),
-		path = require('path'),
-		fs = require('fs'),
-		moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
-		dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json')),
-		webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location),
-		webinosDemo = path.resolve(__dirname, '../../../demo'),
-		utils = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')),
-		WebSocketServer = require('websocket').server,
-		rpc = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js')),
-		messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js')),		
-		pzp_session = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/pzp_sessionHandling.js'));
+var http = require('http'),
+	url = require('url'),
+	path = require('path'),
+	fs = require('fs'),
+	WebSocketServer = require('websocket').server;
+	
+var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
+	dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json')),
+	webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location),
+	webinosDemo = path.resolve(__dirname, '../../../demo'),
+	utils = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')),
+	rpc = require(path.join(webinosRoot, dependencies.rpc.location)),
+	messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js')),		
+	pzp_session = require(path.join(webinosRoot, dependencies.pzp.location));
 		
+websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort, callback) {		
 		function getContentType(uri) {
 			var contentType = 'text/plain';
 		    switch (uri.substr(uri.lastIndexOf('.'))) {

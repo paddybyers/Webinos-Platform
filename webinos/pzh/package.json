@@ -1,0 +1,13 @@
+{ "name": "pzh",
+  "version": "0.0.1",
+  "main": "./lib/pzh_sessionHandling.js",
+  "repositories": [
+    { "type": "git",
+      "url": "http://dev.webinos.org/git/wp4.git"
+    }
+  ],
+  "directories": {
+    "lib": "./lib",
+    "test":"./test"
+  }
+}

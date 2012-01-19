@@ -4,6 +4,9 @@
 #include <openssl/bn.h>
 #include <openssl/pem.h>
 #include <openssl/err.h>
+#include <openssl/x509v3.h>
+#include <openssl/x509.h>
+#include <iostream>
 
 int genRsaKey(const int bits, char * privkey)
 { 
@@ -48,6 +51,10 @@ int createCertificateRequest(char* result, char* keyToCertify, char * country, c
     X509_NAME *nm;
     nm = X509_NAME_new();
 
+	//X509 Extensions
+	X509_EXTENSION *ex;
+	STACK_OF(X509_EXTENSION) *v3_ext = sk_X509_EXTENSION_new_null();
+	std::cerr << "After initialization" << std::endl;
     int err=0;
 
     //fill in details
@@ -81,7 +88,26 @@ int createCertificateRequest(char* result, char* keyToCertify, char * country, c
 	if(!(err = X509_REQ_set_subject_name(req, nm))) {
 		return err;
 	}
+	
+	// V3 extensions
 
+		std::cerr << "v3 extension 1" << std::endl;
+	if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_basic_constraints, (char*)"critical, CA:TRUE"))) {
+		return 0;
+	} else {
+		sk_X509_EXTENSION_push(v3_ext, ex);
+
+	}
+		std::cerr << "v3 extension 2" << std::endl;
+	if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_key_usage, (char*)"critical, keyCertSign, cRLSign"))) {
+		return 0;
+	} else {
+		sk_X509_EXTENSION_push(v3_ext, ex);
+
+	}	
+			std::cerr << "v3 add extension" << std::endl;
+	X509_REQ_add_extensions(req, v3_ext);
+	//sk_X509_EXTENSION_pop_free(v3_ext, X509_EXTENSION_free);
     //Set the public key   
     //...convert PEM private key into a BIO
     
@@ -104,7 +130,7 @@ int createCertificateRequest(char* result, char* keyToCertify, char * country, c
         return err;
     }
     
-    if(!(err = X509_REQ_set_version(req,0L)))
+    if(!(err = X509_REQ_set_version(req,2)))
     {
     	BIO_free(bmem);
         return err;

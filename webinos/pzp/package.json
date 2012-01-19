@@ -1,0 +1,13 @@
+{ "name": "pzp",
+  "version": "0.0.1",
+  "main": "./lib/pzp_sessionHandling.js",
+  "repositories": [
+    { "type": "git",
+      "url": "http://dev.webinos.org/git/wp4.git"
+    }
+  ],
+  "directories": {
+    "lib": "./lib",
+    "test":"./test"
+  }
+}

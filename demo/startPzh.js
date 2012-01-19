@@ -23,6 +23,7 @@ if (ipAddr === '' || port <= 0) {
 } else {
 	var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh\nemail=internal@webinos.org\ndays=180\n" ;
 	WebSocket.startServer(ipAddr, serverPort, webServerPort, pzhModules, function() {
+
 		Pzh.startPzh(contents, ipAddr, port, function() {
 			console.log('=== PZH STARTED ===');
 		});

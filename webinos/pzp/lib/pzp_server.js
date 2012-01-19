@@ -2,7 +2,11 @@ var pzp_server = exports;
 
 var tls   = require('tls');
 var path  = require('path');
-var utils = require(path.resolve(__dirname, 'session_common.js'));
+
+var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
+var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
+var utils        = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 
 pzp_server.connectOtherPZP = function (msg) {
 	var self, client;

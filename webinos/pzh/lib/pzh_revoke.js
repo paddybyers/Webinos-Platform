@@ -3,8 +3,12 @@ var revoker = exports;
 var fs      = require('fs');
 var path    = require('path');
 var	crypto  = require('crypto');
-var utils   = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
-var cert 	= require(path.resolve(__dirname, '../../pzp/lib/session_certificate.js'));
+
+var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
+var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
+var cert         = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
+var utils        = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 
 revoker.revokePzp = function (pzpid, pzh, callback ) {
     "use strict";

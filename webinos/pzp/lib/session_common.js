@@ -2,17 +2,20 @@
 * @description Session common has functions that are used by both Pzh and Pzp
 * @author <a href="mailto:habib.virji@samsung.com">Habib Virji</a>
 */
-
-if (typeof exports !== "undefined") {
-	var path = require('path');
-	var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
-	var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
-	var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
-
-	var messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
-	var rpc = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js'));
-	var fs = require('fs');
+var dns = require('dns');
+var net = require('net');
+var path = require('path');
+var fs = require('fs');
 	
+var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
+var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
+var webinosDemo  = path.resolve(__dirname, '../../../demo');
+
+		
+if (typeof exports !== "undefined") {
+	var messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
+	var rpc       = require(path.join(webinosRoot, dependencies.rpc.location));
 }
 
 
@@ -20,8 +23,7 @@ var debug = function(num, msg) {
 	"use strict";
 	var info = true; // Change this if you want no prints from session manager
 	var debug = true;
-	var fs = require('fs');
-	
+		
 	if(num === 1) {
 		console.log('ERROR:' + msg);	
 	} else if(num === 2 && info) {
@@ -136,29 +138,30 @@ exports.sendMessageMessaging = function(self, data) {
 * @param contents of certificate 
 * @param callback to be called after executing 
 */
-exports.configure = function(self, id, contents, callback) {
+exports.configure = function(self, certPath, id, contents, callback) {
 	"use strict";
 	var name, i =0, j, flag = true, common = '', data1;
-	var fs = require('fs');
-	fs.readdir(__dirname, function(err, files) {
-		for(i = 0; i < files.length; i += 1) {
-			if( (files[i].indexOf(id,0) === 0) &&  
-			files[i].indexOf('master_cert.pem', 0) !== -1) {
-				id = files[i].split('_');
-				data1 = contents.toString().split('\n');
-				for(j = 0; j < data1.length; j += 1) {
-					if(data1[j].split('=')[0] === 'common') {
-						// If matches no need to generate new config
-						common = data1[j].split('=')[1];
-						if(id[1] === common) {
-							common = id[1];
-							flag = false;
-						}								
+
+	fs.readdir(certPath, function(err, files) {
+		if(!err && typeof file !=="undefined") {
+			for(i = 0; i < files.length; i += 1) {
+				if( (files[i].indexOf(id,0) === 0) &&  
+				files[i].indexOf('master_cert.pem', 0) !== -1) {
+					id = files[i].split('_');
+					data1 = contents.toString().split('\n');
+					for(j = 0; j < data1.length; j += 1) {
+						if(data1[j].split('=')[0] === 'common') {
+							// If matches no need to generate new config
+							common = data1[j].split('=')[1];
+							if(id[1] === common) {
+								common = id[1];
+								flag = false;
+							}								
+						}
 					}
 				}
 			}
 		}
-		
 		if(flag === true) {
 			if(common === '') {
 				data1 = contents.toString().split('\n');
@@ -244,8 +247,6 @@ exports.configure = function(self, id, contents, callback) {
 };
 
 exports.resolveIP = function(serverName, callback) {
-	var dns = require('dns');
-	var net = require('net');
 	if(net.isIP(serverName) !== 0) {
 		callback(serverName);
 	} else {

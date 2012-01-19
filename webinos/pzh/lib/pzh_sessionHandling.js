@@ -12,20 +12,25 @@
 		path = require('path'),
 		crypto = require('crypto');		
 
+	var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
+	var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+	var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
+	var webinosDemo  = path.resolve(__dirname, '../../../demo');
+	
 	/** Global variables used in Pzh */
 	var Pzh = null;
+	var helper     = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_helper.js'));
 	
-	var helper = require(path.resolve(__dirname, 'pzh_helper.js'));
-
 	if (typeof exports !== 'undefined') {
 		try {
-			var rpc = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));
-			var messaging = require(path.resolve(__dirname, '../../common/manager/messaging/lib/messagehandler.js'));					
-			var authcode = require(path.resolve(__dirname, 'pzh_authcode.js'));
-			var cert = require(path.resolve(__dirname, '../../pzp/lib/session_certificate.js'));
-			var utils = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));	
-			var webinosDemo = path.resolve(__dirname, '../../../demo');
-			var websocket = require(path.resolve(__dirname, 'pzh_websocket.js'));	
+			var rpc       = require(path.join(webinosRoot, dependencies.rpc.location));
+			var messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
+			
+			var authcode  = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_authcode.js'));
+			var websocket = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_websocket.js'));	
+			
+			var cert      = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
+			var utils     = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 		} catch (err) {
 			helper.debug(1, "Webinos modules missing, please check webinos installation" + err);
 			return;
@@ -520,8 +525,8 @@
 			helper.debug(1, 'PZH - Error Initializing Pzh '  + err);
 			return;
 		}
-		
-		utils.configure(pzh, 'pzh', contents, function() {
+		var dir = webinosDemo + '/certificates/pzh'
+		utils.configure(pzh, dir, 'pzh', contents, function() {
 			try {
 				pzh.sessionId = pzh.config.common.split(':')[0];
 				var crashMsg = fs.createWriteStream(webinosDemo + '/'+ pzh.sessionId + '_crash.txt', {'flags': 'a'});

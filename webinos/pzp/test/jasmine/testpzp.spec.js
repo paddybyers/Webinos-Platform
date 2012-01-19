@@ -1,10 +1,7 @@
-Pzh        = require('../../lib/pzh_sessionHandling.js');
-WebSocket  = require('../../lib/pzh_websocket.js');
-ConnectPzh = require('../../lib/pzh_connecting.js');
-Helper     = require('../../lib/pzh_helper.js');
-Revoker    = require('../../lib/pzh_revoke.js');
-Pzp        = require('../../../pzp/lib/pzp_sessionHandling.js');
-PzpWebsocket = require('../../../pzp/lib/pzp_websocket.js');
+Pzh        = require('../../../pzh/lib/pzh_sessionHandling.js');
+WebSocket  = require('../../../pzh/lib/pzh_websocket.js');
+Pzp        = require('../../lib/pzp_sessionHandling.js');
+PzpWebsocket = require('../../lib/pzp_websocket.js');
 
 var ipAddr = 'localhost', port = 8000, serverPort = 8083, webServerPort = 8082;
 var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh\nemail=internal@webinos.org\ndays=180\n" ;
@@ -43,7 +40,6 @@ describe("delete cert", function() {
 });
 describe("PZH Web Socket Server", function() {
 	it("start pzh websocket server", function() {
-
 		WebSocket.startServer(ipAddr, serverPort, webServerPort, pzhModules, function(result) {
 			expect(result).not.toBeNull();
 			expect(result).not.toEqual(false);
@@ -78,62 +74,6 @@ describe("PZH functionalities", function() {
 				expect(result).not.toBeNull();
 				expect(result).toEqual("startedPZP");
 				pzp = pzp1;   
-			});
-		});
-		
-		waits(500);
-		runs( function() {
-			expect(pzh.config).not.toBeNull();
-			Revoker.listAllPzps(pzh.config.pzhSignedCertDir, function(result) {
-				expect(result).not.toBeNull();
-			});
-		});
-		
-		waits(500);
-		runs( function() {
-			Helper.connectedPzhPzp(WebSocket.instance, function(result) {
-				expect(result).not.toBeNull();
-				expect(result.payload.message.name).toEqual("WebinosPzh");
-			});
-		});
-		
-		waits(500);
-		runs(function(){		
-			Helper.crashLog(WebSocket.instance, function(msg) {
-				expect(msg.payload.status).toEqual("crashLog");
-			});				
-		});
-		
-		waits(500);
-		runs(function() {
-			Revoker.revokePzp(pzp.sessionId.split('/')[1], pzh, function(msg) {
-	    		expect(msg).not.toBeNull();
-	    		expect(msg.payload.success).toEqual(true);	    		
-	    		expect(msg.payload.message).toEqual("Successfully revoked");	    		
-			});
-		});
-		
-		waits(500);
-		runs( function() {			
-			Revoker.listAllPzps(pzh.config.pzhRevokedCertDir, function(result) {
-				expect(result).not.toBeNull();
-			});
-		});
-		
-		waits(500);
-		runs ( function() {
-			Pzh.restartPzh(pzh, function(result, pzh1) {
-				expect(result).not.toBeNull();
-				expect(result).toEqual("startedPzh");
-				pzh = pzh1;				
-			});
-		});
-		
-		waits(500);
-		runs(function(){
-			Pzp.startPzp(PzpContents, ipAddr, port, code, pzpModules, function(result, pzp1) {				
-				expect(result).not.toEqual("startedPZP");					
-				pzp = pzp1;
 			});
 		});
 		

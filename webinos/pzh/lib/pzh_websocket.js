@@ -1,19 +1,28 @@
 var pzhWebSocket = exports;
 
-var path = require('path');
+var path         = require('path');
 
-var rpc = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));
+var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
+var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
+var webinosDemo  = path.resolve(__dirname, '../../../demo');
+
+var rpc        = require(path.join(webinosRoot, dependencies.rpc.location));
 var RPCHandler = rpc.RPCHandler;
 var rpcHandler = new RPCHandler();
-var utils = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
-var webinosDemo = path.resolve(__dirname, '../../../demo');
-var messaging = require(path.resolve(__dirname, '../../common/manager/messaging/lib/messagehandler.js'));
-messaging.setRPCHandler(rpcHandler);
-var revoker = require(path.resolve(__dirname, 'pzh_revoke.js'));
-var pzh_session = require(path.resolve(__dirname, 'pzh_sessionHandling.js'));
-var helper = require(path.resolve(__dirname, 'pzh_helper.js'));
 
-var connect_pzh = require(path.resolve(__dirname, 'pzh_connecting.js'));
+var messaging  = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
+messaging.setRPCHandler(rpcHandler);
+
+var pzh_session = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_sessionHandling.js'));
+var authcode    = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_authcode.js'));
+var websocket   = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_websocket.js'));	
+var revoker     = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_revoke.js'));	
+var helper      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_helper.js'));
+var connect_pzh = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_connecting.js'));
+
+var cert        = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
+var utils       = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 
 pzhWebSocket.instance = [];
 
@@ -85,7 +94,7 @@ pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, modules
 		request.on('data', function(chunk) {
 			utils.processedMessage(chunk, function(parse){
 				try {
-					fs.writeFile(pzhOtherCertDir+'/'+parse.payload.message.name, parse.payload.message.cert, function() {
+					fs.writeFile(pzhWebsocket.instance[0].config.pzhOtherCertDir+'/'+parse.payload.message.name, parse.payload.message.cert, function() {
 						//pzh.conn.pair.credentials.context.addCACert(pzh.config.mastercertname);
 						pzhWebSocket.instance[0].conn.pair.credentials.context.addCACert(parse.payload.message.cert);
 						var msg = {name: pzhWebSocket.instance[0].config.master.cert.name , 
