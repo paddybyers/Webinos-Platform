@@ -57,8 +57,11 @@
 		// Code used for the first run to authenticate with PZH.
 		this.code = null;
 		
+		// For a single callback to be registered via addRemoteServiceListener.
+		this.serviceListener;
+		
 		// Handler for remote method calls.
-		this.rpcHandler = new RPCHandler();
+		this.rpcHandler = new RPCHandler(this);
 		messaging.setRPCHandler(this.rpcHandler);
 		
 		// load specified modules
@@ -232,6 +235,7 @@
 			utils.debug(2, 'PZP Connected to PZH & Authenticated');
 			self.pzhId = cn;				
 			self.sessionId = self.pzhId + "/" + self.config.common.split(':')[0];
+			rpc.setSessionId(self.sessionId);
 		
 			self.connectedPzh[self.pzhId] = {socket: client};
 			self.connectedPzhIds.push(self.pzhId);
@@ -244,8 +248,9 @@
 			pzp_server.startServer(self, function() {
 				self.prepMsg(self.sessionId, self.pzhId, 'pzpDetails', self.pzpServerPort);
 				
-				self.prepMsg(self.sessionId, self.pzhId, 'findServices', self.pzpServerPort);
-				utils.debug(2, 'Sent msg to findServices');
+				var localServices = self.rpcHandler.getRegisteredServices();
+				self.prepMsg(self.sessionId, self.pzhId, 'registerServices', localServices);
+				utils.debug(2, 'Sent msg to register local services with pzh');
 				
 				callback.call(self, 'startedPZP');
 			});
@@ -376,19 +381,30 @@
 			    
 			} else if(data2.type === 'prop' && 
 					data2.payload.status === 'foundServices') {
-				utils.debug(2, 'PZP ('+self.sessionId+') findServices dude!!!');
+				utils.debug(2, 'PZP ('+self.sessionId+') Received message about available remote services.');
 				
-				this.rpcHandler.setServicesFromPzh(data2.payload.message);
+				this.serviceListener && this.serviceListener(data2.payload.message);
+				this.serviceListener = undefined;
 			}
 			// Forward message to message handler
 			else {
-				rpc.SetSessionId(self.sessionId);
+				rpc.setSessionId(self.sessionId);
 				utils.sendMessageMessaging(self, data2);
 			}
 		});
 	};	
 	
-	/* starts pzp, creates client, start servers and event listeners
+	/**
+	 * Add callback to be used when PZH sends message about other remote
+	 * services being available. The callback is cleared once it was called.
+	 * @param callback the listener that gets called.
+	 */
+	Pzp.prototype.addRemoteServiceListener = function(callback) {
+		this.serviceListener = callback;
+	};
+	
+	/**
+	 * starts pzp, creates client, start servers and event listeners
 	 * @param server name
 	 * @param port: port on which PZH is running
 	 */

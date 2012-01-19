@@ -23,6 +23,7 @@
 	
 	if (typeof exports !== 'undefined') {
 		try {
+
 			var rpc       = require(path.join(webinosRoot, dependencies.rpc.location));
 			var messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
 			
@@ -31,6 +32,9 @@
 			
 			var cert      = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
 			var utils     = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
+
+			var RPCHandler = rpc.RPCHandler;
+
 		} catch (err) {
 			helper.debug(1, "Webinos modules missing, please check webinos installation" + err);
 			return;
@@ -41,7 +45,7 @@
 	 * @description Creates a new Pzh object
 	 * @constructor
 	 */
-	Pzh = function () {
+	Pzh = function (modules) {
 		/** Holds PZH Session Id */
 		this.sessionId = 0;
 		/** Holds PZH Configuration i.e. file names and certificate configuration */
@@ -63,6 +67,12 @@
 		    self.expecting = res;
 		});
 
+		// Handler for remote method calls.
+		this.rpcHandler = new RPCHandler();
+		messaging.setRPCHandler(this.rpcHandler);
+		
+		// load specified modules
+		this.rpcHandler.loadModules(modules);
 	};
 	/**
 	 * @description A generic function used to set message parameter
@@ -486,12 +496,19 @@
 					helper.debug(1, 'PZH ('+self.sessionId+') Error Updating Pzh/Pzp' + err1);
 					return;
 				}				
+			} else if(parse.type === "prop" && parse.payload.status === 'registerServices') {
+				helper.debug(2, 'Receiving Webinos Services from PZP...');
+				var pzpServices = parse.payload.message;
+				self.rpcHandler.addRemoteServiceObjects(pzpServices);
 			} else if(parse.type === "prop" && parse.payload.status === 'findServices') {
-				helper.debug(2, 'Trying to send Webinos Services from this RPC handler...');
-				findServices(conn, self);				
+				helper.debug(2, 'Trying to send Webinos Services from this RPC handler to ' + parse.from + '...');
+				var services = self.rpcHandler.getAllServices(parse.from);
+				var msg = self.prepMsg(self.sessionId, null, 'foundServices', services);		
+				self.sendMessage(msg, null, conn);		
+		        helper.debug(2, 'Sent ' + (services && services.length) || 0 + ' Webinos Services from this RPC handler.');
 			} else { // Message is forwarded to Message handler function, onMessageReceived
 				try {			
-					rpc.SetSessionId(self.sessionId);
+					rpc.setSessionId(self.sessionId);
 					utils.sendMessageMessaging(self, parse);
 				} catch (err2) {
 					helper.debug(1, 'PZH ('+self.sessionId+') Error Setting RPC Session Id/Message Sending to Messaging ' + err2);
@@ -501,23 +518,17 @@
 		});	
 	};	
 	
-	function findServices(connection, pzh) {
-		var services = rpcHandler.getRegisteredServices();
-		var msg = pzh.prepMsg(pzh.sessionId, null, 'foundServices', services);		
-		pzh.sendMessage(msg, null, connection);		
-        helper.debug(2, 'Sent Webinos Services from this RPC handler.');
-	}
-	
 	/** starts pzh, creates TLS server, resolve DNS and listens.
 	 * @param contents contains certificate details
 	 * @param server holds ipaddress or hostname on which pzh will be started
 	 * @param port port on which server is running
+	 * @param modules array of Webinos modules
 	 * @returns callback with startedPzh message 
 	 */
-	function startPzh(contents, server, port, callback) {
+	function startPzh(contents, server, port, modules, callback) {
 		var pzh;
 		try{
-			pzh = new Pzh();
+			pzh = new Pzh(modules);
 			pzh.port = port;
 			pzh.server = server;
 			pzh.contents = contents;		

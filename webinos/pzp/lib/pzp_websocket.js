@@ -177,10 +177,10 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 					}
 				} else {
 					if( typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
-						rpc.SetSessionId(instance.sessionId);
+						rpc.setSessionId(instance.sessionId);
 						utils.sendMessageMessaging(instance, msg);
 					} else {
-						rpc.SetSessionId("virgin_pzp");
+						rpc.setSessionId("virgin_pzp");
 						messaging.setGetOwnId("virgin_pzp");
 						messaging.setSendMessage(messageWS);
 						messaging.setSeparator("/");

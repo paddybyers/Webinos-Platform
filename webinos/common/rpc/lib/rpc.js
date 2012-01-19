@@ -39,8 +39,14 @@
 	/**
 	 * RPCHandler constructor
 	 */
-	_RPCHandler = function() {
-		/*
+	_RPCHandler = function(parent) {
+		/**
+		 * Parent is the PZP. The parameter is not used/optional on PZH and the
+		 * web browser.
+		 */
+		this.parent = parent;
+		
+		/**
 		 * used to store objectRefs for callbacks that get invoked more than once
 		 */ 
 		this.objRefCachTable = {};
@@ -56,11 +62,10 @@
 		this.objects = {};
 		
 		/**
-		 * Holds other Service objects, not registered here. To be filled upon
-		 * connect.
-		 * FIXME we should always query for these, instead of holding them here
+		 * Holds other Service objects, not registered here. Only used on the
+		 * PZH.
 		 */
-		this.serviceObjectsFromPzh = [];
+		this.remoteServiceObjects = [];
 		
 		this.requesterMapping = [];
 		
@@ -416,7 +421,7 @@
 	/**
 	 * 
 	 */
-	_RPCHandler.prototype.findServices = function (serviceType) {
+	_RPCHandler.prototype.findServices = function (serviceType, callback) {
 		console.log("findService: searching for ServiceType: " + serviceType.api);
 		var results = [];
 		var cstar = serviceType.api.indexOf("*");
@@ -453,7 +458,7 @@
 					}
 				}
 			}
-		return results;
+			callback(results);
 
 		}
 		else {
@@ -468,22 +473,50 @@
 			for (var i=0; i<results.length; i++) {
 				results[i].serviceAddress = sessionId; // This is source addres, it is used by messaging for returning back
 			}
-
-			// add other services reported from the pzh
-			function filterServiceType(el) {
-				return el.api === serviceType.api ? true : false;
-			}
-			results = results.concat(this.serviceObjectsFromPzh.filter(filterServiceType));
 			
-			return results;
+			// add other services reported from the pzh
+			this.parent.addRemoteServiceListener(function(remoteServices) {
+				function isServiceType(el) {
+					return el.api === serviceType.api ? true : false;
+				}
+				results = results.concat(remoteServices.filter(isServiceType));
+				
+				callback(results);
+			});
+			
+			// ask for remote service objects
+			this.parent.prepMsg(this.parent.sessionId, this.parent.pzhId, 'findServices');
 		}
-		
 	};
 	
-	_RPCHandler.prototype.setServicesFromPzh = function(services) {
-		console.log("setServicesFromPzh: found " + services.length + " services.");
-		this.serviceObjectsFromPzh = services;
-	}
+	/**
+	 * Add services to internal array. Used by PZH.
+	 * @param services Array of services to be added.
+	 */
+	_RPCHandler.prototype.addRemoteServiceObjects = function(services) {
+		console.log("addRemoteServiceObjects: found " + (services && services.length) || 0 + " services.");
+		this.remoteServiceObjects = this.remoteServiceObjects.concat(services);
+	};
+	
+	/**
+	 * Return an array of all known services, including local and remote
+	 * services. Used by PZH.
+	 * @param exceptAddress Address of services that match will be excluded from
+	 * results.
+	 */
+	_RPCHandler.prototype.getAllServices = function(exceptAddress) {
+		var results = [];
+		debugger;
+		
+		function isNotExceptAddress(el) {
+			return (el.serviceAddress !== exceptAddress) ? true : false;
+		}
+		results = this.remoteServiceObjects.filter(isNotExceptAddress);
+		
+		results = results.concat(this.getRegisteredServices());
+		
+		return results;
+	};
 	
 	/**
 	 * Return an array of all registered Service objects. 
@@ -492,17 +525,17 @@
 		// FIXME this shouldn't be a public method i guess
 		var results = [];
 		
+		for (var service in this.objects) {
+			results = results.concat(this.objects[service]);
+		}
+		
 		function getServiceInfo(el) {
 			el = el.getInformation();
 			el.serviceAddress = sessionId;
 			return el;
 		}
-
-		for (var service in this.objects) {
-			results = results.concat(this.objects[service]);
-		}
 		return results.map(getServiceInfo);
-	}
+	};
 
 	/**
 	 * RPCWebinosService object to be registered as RPC module.
@@ -591,7 +624,7 @@
 		}
 	};
 	
-	function SetSessionId (id) {
+	function setSessionId (id) {
 		sessionId = id;
 	}
 	
@@ -602,7 +635,7 @@
 		exports.RPCHandler = _RPCHandler;
 		exports.RPCWebinosService = RPCWebinosService;
 		exports.ServiceType = ServiceType;
-		exports.SetSessionId = SetSessionId;
+		exports.setSessionId = setSessionId;
 		// none webinos modules
 		var md5 = require('../contrib/md5.js');
 

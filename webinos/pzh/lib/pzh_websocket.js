@@ -8,11 +8,8 @@ var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
 var webinosDemo  = path.resolve(__dirname, '../../../demo');
 
 var rpc        = require(path.join(webinosRoot, dependencies.rpc.location));
-var RPCHandler = rpc.RPCHandler;
-var rpcHandler = new RPCHandler();
 
 var messaging  = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
-messaging.setRPCHandler(rpcHandler);
 
 var pzh_session = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_sessionHandling.js'));
 var authcode    = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_authcode.js'));
@@ -26,7 +23,7 @@ var utils       = require(path.join(webinosRoot, dependencies.pzp.location, 'lib
 
 pzhWebSocket.instance = [];
 
-pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, modules, callback) {
+pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, callback) {
 	var fs = require('fs');
 	try {
 		var http = require('http'),			
@@ -35,9 +32,6 @@ pzhWebSocket.startServer = function(hostname, serverPort, webServerPort, modules
 		utils.debug(1, 'PZH WebSocket Server modules missing. Http and WebSocketServer are main dependencies ' + err);
 		return;
 	}
-	
-	// load specified modules
-	rpcHandler.loadModules(modules);
 	
 	var cs = http.createServer(function(request, response) { 
 		var url, uri, filename;
