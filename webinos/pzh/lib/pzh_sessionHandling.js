@@ -488,15 +488,19 @@
 					helper.debug(1, 'PZH ('+self.sessionId+') Error Updating Pzh/Pzp' + err1);
 					return;
 				}				
+			} else if(parse.type === "prop" && parse.payload.status === 'registerServices') {
+				helper.debug(2, 'Receiving Webinos Services from PZP...');
+				var pzpServices = parse.payload.message;
+				self.rpcHandler.addRemoteServiceObjects(pzpServices);
 			} else if(parse.type === "prop" && parse.payload.status === 'findServices') {
 				helper.debug(2, 'Trying to send Webinos Services from this RPC handler...');
-				var services = self.rpcHandler.getRegisteredServices();
+				var services = self.rpcHandler.getAllServices(parse.from);
 				var msg = self.prepMsg(self.sessionId, null, 'foundServices', services);		
 				self.sendMessage(msg, null, conn);		
-		        helper.debug(2, 'Sent Webinos Services from this RPC handler.');
+		        helper.debug(2, 'Sent ' + (services && services.length) || 0 + ' Webinos Services from this RPC handler.');
 			} else { // Message is forwarded to Message handler function, onMessageReceived
 				try {			
-					rpc.SetSessionId(self.sessionId);
+					rpc.setSessionId(self.sessionId);
 					utils.sendMessageMessaging(self, parse);
 				} catch (err2) {
 					helper.debug(1, 'PZH ('+self.sessionId+') Error Setting RPC Session Id/Message Sending to Messaging ' + err2);
