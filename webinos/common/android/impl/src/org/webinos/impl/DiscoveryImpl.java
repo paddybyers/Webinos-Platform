@@ -12,6 +12,7 @@ import org.meshpoint.anode.AndroidContext;
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
 
+import org.webinos.api.DeviceAPIError;
 import org.webinos.api.PendingOperation;
 import org.webinos.api.discovery.DiscoveryManager;
 import org.webinos.api.discovery.Filter;
@@ -38,8 +39,10 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
     private static final String TAG = "org.webinos.impl.DiscoveryImpl";
     private static final boolean D = true;
     
-    Set<BluetoothDevice> devicesAvailable = null; 
-    Set<BluetoothDevice> devicesFound = null; 
+    /* hard coded array length */
+    ArrayList<BluetoothDevice> devicesAvailable = new ArrayList<BluetoothDevice>(10);
+    ArrayList<BluetoothDevice> devicesFound = new ArrayList<BluetoothDevice>(10);
+    
 	/*****************************
 	 * DiscoveryManager methods
 	 *****************************/
@@ -52,7 +55,7 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
 	{
 		if(D) Log.v(TAG, "DiscoveryImpl: findservices");
 		
-		if(serviceType == null) {
+			if(serviceType == null) {
 			Log.e(TAG, "DiscoveryImpl: Please specify a serviceType");
 			return null;
 		}
@@ -73,8 +76,8 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
 	 }
 	
 	public Service createService(){
-		// TODO Auto-generated method stub - this probably is not applicable for BT discovery
-		return null;
+		Service srv = new DiscoveryServiceImpl();
+		return srv;
 	}
 	
 	/*****************************
@@ -86,7 +89,7 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
 		if(D) Log.v(TAG, "DiscoveryImpl: startModule");
 		androidContext = ((AndroidContext)ctx).getAndroidContext();
 		
-		 mBluetoothAdapter = getDefaultBluetoothAdapter();
+		mBluetoothAdapter = getDefaultBluetoothAdapter();
 		
 		if (mBluetoothAdapter == null) {
 			if(D) Log.e(TAG, "Bluetooth is not available");
@@ -134,7 +137,6 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
 		    handler.post(new Runnable() {
 		      @Override
 		      public void run() {
-		    	  Log.e(TAG, "not main thread");
 		        adapters.add(BluetoothAdapter.getDefaultAdapter());
 		        synchronized (mutex) {
 		          mutex.notify();
@@ -170,9 +172,9 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
  	class BluetoothFindService implements DiscoveryRunnable {
 
 		private ServiceType serviceType;
-		private FindCallback findCallBack;
-	//	private Options options;
-	//	private Filter filter;
+		private FindCallback findCallback;
+		private Options options;
+		private Filter filter;
 		
 		private DiscoveryReceiver mReceiver;
 		private boolean stopped;
@@ -182,11 +184,12 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
 				Options opts, 
 				Filter fltr) {
 			serviceType = srvType;
-			findCallBack = findCB;
-		//	options = opts;
-		//	filter = fltr;
-			stopped = false;
-			mReceiver = new DiscoveryReceiver(serviceType, findCallBack, this);
+			findCallback = findCB;
+		    options = opts;
+		    filter = fltr;
+			
+		    stopped = false;
+			mReceiver = new DiscoveryReceiver(serviceType, findCallback, this);
 			if(D) Log.v(TAG,"constructed BluetoothFindService");
 		}
 		
@@ -199,15 +202,12 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
 		}
 			
 		public void run() {
-//			Looper.prepare();
 		// If we're already discovering, stop it
-		if(D) Log.e(TAG,"runnable -run1");
-        /*if (mBluetoothAdapter.isDiscovering()) 
-        	mBluetoothAdapter.cancelDiscovery(); */
+        if (mBluetoothAdapter.isDiscovering()) 
+        	mBluetoothAdapter.cancelDiscovery(); 
         
         // Request discover from BluetoothAdapter
         mBluetoothAdapter.startDiscovery();
-		if(D) Log.e(TAG,"runnable -run2");
 
         if(stopped)
         	return;
@@ -218,26 +218,23 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
         // Register for broadcasts when discovery has finished
         ifilter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         androidContext.registerReceiver(mReceiver, ifilter);
-  //      Looper.loop();
 		}
 		public void discoveryFinished() {
+			System.out.println("discoveryfinished");
+			
+			if (mBluetoothAdapter != null) {
+				mBluetoothAdapter.cancelDiscovery();
+	        }
 			androidContext.unregisterReceiver(mReceiver);
 	   }
  	}
 	 
  	class DiscoveryReceiver extends BroadcastReceiver {
 		private ServiceType serviceType;
-		private FindCallback findCallBack;  
+		private FindCallback findCallback;  
 		BluetoothFindService bluetoothFindService;
 		
-		private DiscoveryReceiver(ServiceType srvType,
-				FindCallback findCB,
-				BluetoothFindService btFnd) {
-			serviceType = srvType;
-			findCallBack = findCB;
-			bluetoothFindService = btFnd;
-		}
-			
+					
        @Override
        public void onReceive(Context context, Intent intent) {
     	   
@@ -270,44 +267,75 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
 		    	        	   for (BluetoothDevice device : devicesAvailable) {
 		    	        		   BluetoothClass bluetoothClass = device.getBluetoothClass();
 		    	        		   if ((bluetoothClass != null) && (bluetoothClass.hasService(Integer.parseInt(serviceType.api))))
+		    	        		   {	
+		    	        			   boolean dup = false; 
+		    	        			   for (BluetoothDevice founddevice : devicesFound) {
+		    	        				   if(founddevice.equals(device))
+		    	        				   {   
+		    	        					   System.out.println("duplicate device: " + device.getName() );
+		    	        					   dup = true;
+		    	        				   }
+		    	        			   }
+		    	        		   if(!dup)	    
 		    	        			   devicesFound.add(device);
+		    	        		   }
 		    	        	   	}
 		    	           }
 		            	   if(!devicesPaired.isEmpty()) {
 		    	        	   for (BluetoothDevice device : devicesPaired) {
 		    	        		   BluetoothClass bluetoothClass = device.getBluetoothClass();
-		    	        		   if ((bluetoothClass != null) && (bluetoothClass.hasService(Integer.parseInt(serviceType.api)))) 
-		                           		devicesFound.add(device); 
+		    	        		   if ((bluetoothClass != null) && (bluetoothClass.hasService(Integer.parseInt(serviceType.api))))
+		    	        		   {
+		    	        			   //filter out duplicated devices
+		    	        			    boolean dup = false;
+		    	        			    for (BluetoothDevice founddevice: devicesFound)
+		    	        			    {
+		    	        			    	if(founddevice.equals(device))
+		    	        			    		dup = true;
+		    	        			    }
+		    	        			    if(!dup)
+		    	        			    {	
+		    	        			    	devicesFound.add(device);
+		    	        			    	System.out.println("paired device_name: " + device.getName() );
+		    	        			    	System.out.println("paired device_address:" + device.getAddress());
+		    	        			    }
+		    	        		   }
 		    	        	   }
 		    	           }
 		        	   }
 		           
 		           String[] deviceNames;
-		           deviceNames = new String[devicesFound.size()];
+		           deviceNames = new String[devicesFound.size() + 1];
 		           String[] deviceAddresses;
-		           deviceAddresses = new String[devicesFound.size()];
+		           deviceAddresses = new String[devicesFound.size() + 1];
 		           int i = 0;
 		           for (BluetoothDevice device : devicesFound) {
 		        	   deviceNames[i] = device.getName();
 		        	   deviceAddresses[i] = device.getAddress(); 
-		        	   i++;
 		        	   System.out.println("device: " + i );
 		        	   System.out.println("Name:" + deviceNames[i]);
 		        	   System.out.println("Address:" + deviceAddresses[i]);
+		        	   i++;
 		           }
-		           Service service = null;
-		           service.api = serviceType.api;
-		           //need to double check the follows -		           
-		           findCallBack.onFound(service);
-		           
+		           Service srv = new DiscoveryServiceImpl();
+		           srv.api = serviceType.api;
+		           System.out.println("findCallback:" + srv);
+		           findCallback.onFound(srv); 
 	       	break;
 			default:
 					Log.d(TAG, "discovery failed" +getResultCode());
-					findCallBack.onError(new DiscoveryError());
+					findCallback.onError(new DiscoveryError());
 					break;
 				}
 	       }
 	    }
+       private DiscoveryReceiver(ServiceType srvType,
+				FindCallback findCB,
+				BluetoothFindService btFnd) {
+			serviceType = srvType;
+			findCallback = findCB;
+			bluetoothFindService = btFnd;
+		} 
    };    
    
    class DiscoveryPendingOperation extends PendingOperation {
@@ -330,7 +358,5 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
 					r.stop();
 			}
 		}
-
 	}
-   
 }
