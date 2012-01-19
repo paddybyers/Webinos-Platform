@@ -320,57 +320,54 @@
 				helper.debug(1, "Client connection error: " + Exception);				 
 			});
 			
-			conn.on('secureConnect', function() { 
-				if(conn.authorized) {
-					helper.debug(2, "Connection authorised at PZH");
+			if(conn.authorized) {
+				helper.debug(2, "Connection authorised at PZH");
+				try {
+					cn = conn.getPeerCertificate().subject.CN;
+					data = cn.split(':');				
+				} catch(err) {
+					helper.debug(1,'PZH ('+self.sessionId+') Exception in reading common name of peer certificate ' + err);
+
+					return;
+				}
+				// Assumption: PZH is of form ipaddr or web url
+				// Assumption: PZP is of form url@mobile:Deviceid@mac
+				if(data[0] === 'Pzh' ) {
+					var  pzhId, otherPzh = [], myKey;
 					try {
-						cn = conn.getPeerCertificate().subject.CN;
-						data = cn.split(':');				
-					} catch(err) {
-						helper.debug(1,'PZH ('+self.sessionId+') Exception in reading common name of peer certificate ' + err);
-	
+						pzhId = data[1].split(':')[0];
+					} catch (err1) {
+						helper.debug(1,'PZH ('+self.sessionId+') Pzh information in certificate is in unrecognized format ' + err);
 						return;
 					}
-					// Assumption: PZH is of form ipaddr or web url
-					// Assumption: PZP is of form url@mobile:Deviceid@mac
-					if(data[0] === 'Pzh' ) {
-						var  pzhId, otherPzh = [], myKey;
-						try {
-							pzhId = data[1].split(':')[0];
-						} catch (err1) {
-							helper.debug(1,'PZH ('+self.sessionId+') Pzh information in certificate is in unrecognized format ' + err);
-							return;
-						}
-						helper.debug(2, 'PZH ('+self.sessionId+') PZH '+pzhId+' Connected');
-						if(!self.connectedPzh.hasOwnProperty(pzhId)){
-							self.connectedPzh[pzhId] = {'socket': conn, 
-							'address': conn.socket.remoteAddress, 
-							'port': conn.socket.remotePort};
-					
-							self.connectedPzhIds.push(pzhId);
+					helper.debug(2, 'PZH ('+self.sessionId+') PZH '+pzhId+' Connected');
+					if(!self.connectedPzh.hasOwnProperty(pzhId)){
+						self.connectedPzh[pzhId] = {'socket': conn, 
+						'address': conn.socket.remoteAddress, 
+						'port': conn.socket.remotePort};
 				
-							msg = self.prepMsg(self.sessionId, pzhId, 'pzhUpdate', self.connectedPzhIds);
-							self.sendMessage(msg, pzhId);
-					
-							msg = messaging.registerSender(self.sessionId, pzhId);
-							self.sendMessage(msg, pzhId);
-						}
-					} else if(data[0] === 'Pzp' ) { 
-						sessionId = self.sessionId+'/'+data[1].split(':')[0];
-						helper.debug(2, 'PZH ('+self.sessionId+') PZP '+sessionId+' Connected');
-
-						if(!self.connectedPzp.hasOwnProperty(sessionId)){
-							self.connectedPzpIds.push(sessionId);
-							self.connectedPzp[sessionId] = {'socket': conn, 
-							'address': conn.socket.remoteAddress, 
-							'port': ''};
-										
-						}
-						msg = messaging.registerSender(self.sessionId, sessionId);
-						self.sendMessage(msg, sessionId);//
+						self.connectedPzhIds.push(pzhId);
+			
+						msg = self.prepMsg(self.sessionId, pzhId, 'pzhUpdate', self.connectedPzhIds);
+						self.sendMessage(msg, pzhId);
+				
+						msg = messaging.registerSender(self.sessionId, pzhId);
+						self.sendMessage(msg, pzhId);
 					}
-				} 
-			});
+				} else if(data[0] === 'Pzp' ) { 
+					sessionId = self.sessionId+'/'+data[1].split(':')[0];
+					helper.debug(2, 'PZH ('+self.sessionId+') PZP '+sessionId+' Connected');
+						if(!self.connectedPzp.hasOwnProperty(sessionId)){
+						self.connectedPzpIds.push(sessionId);
+						self.connectedPzp[sessionId] = {'socket': conn, 
+						'address': conn.socket.remoteAddress, 
+						'port': ''};
+									
+					}
+					msg = messaging.registerSender(self.sessionId, sessionId);
+					self.sendMessage(msg, sessionId);//
+				}
+			} 
 			
 			conn.on('data', function(data) {
 				try {
