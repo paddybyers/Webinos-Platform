@@ -1,6 +1,12 @@
 var certificate = exports;
 var path = require('path');	
-var utils =  require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
+
+var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
+var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
+
+
+var utils =  require(path.resolve(webinosRoot,dependencies.pzp.location, 'lib/session_common.js'));
 /* @description Create private key, certificate request, self signed certificate and empty crl. This is crypto sensitive function
  * @param {Object} self is currect object of Pzh/Pzp
  * @param {String} name used in common field to differentiate Pzh and Pzp 
@@ -11,7 +17,7 @@ certificate.selfSigned = function(self, name, obj, callback) {
 	"use strict";
 	var certman;
 	try {
-		certman = require("../../common/manager/certificate_manager/src/build/Release/certificate_manager");		
+		certman = require(path.resolve(webinosRoot,dependencies.manager.certificate_manager.location));		
 	} catch (err) {
 		callback.call(self, "failed", err);
 		return;
@@ -65,7 +71,7 @@ certificate.signRequest = function(self, csr, master, callback) {
 	var certman;
 	
 	try {
-		certman = require("../../common/manager/certificate_manager/src/build/Release/certificate_manager");		
+		certman = require(path.resolve(webinosRoot,dependencies.manager.certificate_manager.location));
 	} catch (err) {
 		callback.call(self, "failed");
 		return;
@@ -85,7 +91,7 @@ certificate.revokeClientCert = function(self, master, pzpCert, callback) {
     var certman;
 	
 	try {
-		certman = require("../../common/manager/certificate_manager/src/build/Release/certificate_manager");		
+		certman = require(path.resolve(webinosRoot,dependencies.manager.certificate_manager.location));		
 	} catch (err) {
 	    utils.debug(1, "Failed to require the certificate manager");
 		callback.call(self, "failed");
