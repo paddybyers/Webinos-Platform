@@ -239,6 +239,7 @@
 			utils.debug(2, 'PZP Connected to PZH & Authenticated');
 			self.pzhId = cn;				
 			self.sessionId = self.pzhId + "/" + self.config.common.split(':')[0];
+			rpc.setSessionId(self.sessionId);
 		
 			self.connectedPzh[self.pzhId] = {socket: client};
 			self.connectedPzhIds.push(self.pzhId);

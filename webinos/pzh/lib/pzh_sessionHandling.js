@@ -493,7 +493,7 @@
 				var pzpServices = parse.payload.message;
 				self.rpcHandler.addRemoteServiceObjects(pzpServices);
 			} else if(parse.type === "prop" && parse.payload.status === 'findServices') {
-				helper.debug(2, 'Trying to send Webinos Services from this RPC handler...');
+				helper.debug(2, 'Trying to send Webinos Services from this RPC handler to ' + parse.from + '...');
 				var services = self.rpcHandler.getAllServices(parse.from);
 				var msg = self.prepMsg(self.sessionId, null, 'foundServices', services);		
 				self.sendMessage(msg, null, conn);		
