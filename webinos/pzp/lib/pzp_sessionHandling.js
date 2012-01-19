@@ -204,7 +204,15 @@
 			return "virgin_pzp";
 		}
 	}
-	
+	//Added in order to be able to get the rpc handler from the current pzp
+	sessionPzp.getPzp = function() {
+    if (typeof instance !== "undefined") {
+      return instance;
+    } else { 
+      return null;
+    }
+  }
+
 	sessionPzp.getPzhId = function() {
 		if (typeof instance !== "undefined") {
 			return instance.pzhId;
@@ -462,6 +470,7 @@
 
 	if (typeof exports !== 'undefined') {
 		exports.startPzp = sessionPzp.startPzp;
+		exports.getPzp = sessionPzp.getPzp;
 		exports.getPzpId = sessionPzp.getPzpId;
 		exports.getPzhId = sessionPzp.getPzhId;
 		exports.getConnectedPzhId = sessionPzp.getConnectedPzpId;
