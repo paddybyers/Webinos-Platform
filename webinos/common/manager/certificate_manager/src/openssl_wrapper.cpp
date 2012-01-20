@@ -40,6 +40,9 @@ int genRsaKey(const int bits, char * privkey)
     return 0;
 }
 
+/**
+* This is used to generate CSR
+*/
 int createCertificateRequest(char* result, char* keyToCertify, char * country, char* state, char* loc, char* organisation, char *organisationUnit, char* cname, char* email)
 {
     //create a new memory BIO.
@@ -51,10 +54,7 @@ int createCertificateRequest(char* result, char* keyToCertify, char * country, c
     X509_NAME *nm;
     nm = X509_NAME_new();
 
-	//X509 Extensions
-	X509_EXTENSION *ex;
-	STACK_OF(X509_EXTENSION) *v3_ext = sk_X509_EXTENSION_new_null();
-	std::cerr << "After initialization" << std::endl;
+	
     int err=0;
 
     //fill in details
@@ -89,26 +89,7 @@ int createCertificateRequest(char* result, char* keyToCertify, char * country, c
 		return err;
 	}
 	
-	// V3 extensions
-
-		std::cerr << "v3 extension 1" << std::endl;
-	if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_basic_constraints, (char*)"critical, CA:TRUE"))) {
-		return 0;
-	} else {
-		sk_X509_EXTENSION_push(v3_ext, ex);
-
-	}
-		std::cerr << "v3 extension 2" << std::endl;
-	if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_key_usage, (char*)"critical, keyCertSign, cRLSign"))) {
-		return 0;
-	} else {
-		sk_X509_EXTENSION_push(v3_ext, ex);
-
-	}	
-			std::cerr << "v3 add extension" << std::endl;
-	X509_REQ_add_extensions(req, v3_ext);
-	//sk_X509_EXTENSION_pop_free(v3_ext, X509_EXTENSION_free);
-    //Set the public key   
+	//Set the public key   
     //...convert PEM private key into a BIO
     
     BIO* bmem = BIO_new_mem_buf(keyToCertify, -1);
@@ -130,7 +111,7 @@ int createCertificateRequest(char* result, char* keyToCertify, char * country, c
         return err;
     }
     
-    if(!(err = X509_REQ_set_version(req,2)))
+    if(!(err = X509_REQ_set_version(req,3)))
     {
     	BIO_free(bmem);
         return err;
@@ -149,7 +130,7 @@ int createCertificateRequest(char* result, char* keyToCertify, char * country, c
     
     BIO_free(bmem);
     BIO_free(mem);
-    
+
     return 0;
 }
 
@@ -165,37 +146,70 @@ ASN1_INTEGER* getRandomSN()
 	return res;
 }
 
-int selfSignRequest(char* pemRequest, int days, char* pemCAKey, char* result)  {
+/**
+* This is used to sign request
+*/
+int selfSignRequest(char* pemRequest, int days, char* pemCAKey, int master, char* result)  {
 
     BIO* bioReq = BIO_new_mem_buf(pemRequest, -1);
     BIO* bioCAKey = BIO_new_mem_buf(pemCAKey, -1);
     
     int err = 0;
-
-    X509_REQ *req=NULL;
+	
+	X509_REQ *req=NULL;
     if (!(req=PEM_read_bio_X509_REQ(bioReq, NULL, NULL, NULL))) {
     	BIO_free(bioReq);
     	BIO_free(bioCAKey);
     	return -5;
     }
-    
+
     EVP_PKEY* caKey = PEM_read_bio_PrivateKey(bioCAKey, NULL, NULL, NULL);
     if (!caKey) { 
     	BIO_free(bioReq);
     	BIO_free(bioCAKey);
     	return -6;
     }
-    
+
     X509* cert = X509_new();
     EVP_PKEY* reqPub;
     
     //redo all the certificate details, because OpenSSL wants us to work hard
-	err = X509_set_issuer_name(cert, X509_REQ_get_subject_name(req));
-	X509_gmtime_adj(X509_get_notBefore(cert),0);
-	X509_gmtime_adj(X509_get_notAfter(cert), (long)60*60*24*days);
-	err = X509_set_subject_name(cert, X509_REQ_get_subject_name(req));
-	reqPub = X509_REQ_get_pubkey(req);
-	if (!reqPub) {
+    if(!(err =  X509_set_version(cert, 3)))
+    {
+    	BIO_free(bioReq);
+    	BIO_free(bioCAKey);
+        return err;
+    }
+
+ 	if(!(err = X509_set_issuer_name(cert, X509_REQ_get_subject_name(req))))
+    {
+    	BIO_free(bioReq);
+    	BIO_free(bioCAKey);
+        return err;
+    }
+
+    if(!(X509_gmtime_adj(X509_get_notBefore(cert),0)))
+    {
+    	BIO_free(bioReq);
+    	BIO_free(bioCAKey);
+        return err;
+    }
+
+	if(!(X509_gmtime_adj(X509_get_notAfter(cert), (long)60*60*24*days)))
+    {
+    	BIO_free(bioReq);
+    	BIO_free(bioCAKey);
+        return err;
+    }
+    
+	if(!(err = X509_set_subject_name(cert, X509_REQ_get_subject_name(req))))
+    {
+    	BIO_free(bioReq);
+    	BIO_free(bioCAKey);
+        return err;
+    }
+	
+	if (!(reqPub = X509_REQ_get_pubkey(req))) {
 		BIO_free(bioReq);
 		BIO_free(bioCAKey);
 		return -7;
@@ -209,6 +223,82 @@ int selfSignRequest(char* pemRequest, int days, char* pemCAKey, char* result)  {
     //create a serial number at random
     ASN1_INTEGER* serial = getRandomSN(); 
     X509_set_serialNumber(cert, serial);
+
+	// V3 extensions
+	X509_EXTENSION *ex;
+	X509V3_CTX ctx;
+	X509V3_set_ctx_nodb(&ctx);
+	X509V3_set_ctx(&ctx, cert, cert, NULL, NULL, 0);
+	
+	if( master == 1) {
+		if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_basic_constraints, (char*)"critical, CA:TRUE, pathlen:0"))) {
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
+		
+		if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_key_usage, (char*)"critical, digitalSignature, nonRepudiation, keyCertSign, cRLSign"))) {
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
+
+		/*if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_subject_key_identifier, (char*)"hash"))) {
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}*/
+		
+		if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_ext_key_usage, (char*)"critical, serverAuth"))) {
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
+				
+		if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_netscape_cert_type, (char*)"sslCA"))) {
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
+		
+		if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_netscape_comment, (char*)"Webinos PZH certificate"))) {
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
+	
+	} else {
+		if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_basic_constraints, (char*)"critical, CA:FALSE"))) {
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
+		if( master == 0) { // conn cert
+			if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_netscape_cert_type, (char*)"server"))) {
+				return 0;
+			} else {
+				X509_add_ext(cert, ex, -1);
+			}
+			if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_netscape_comment, (char*)"Webinos Connection Certificate"))) {
+				return 0;
+			} else {
+				X509_add_ext(cert, ex, -1);
+			}
+		} else { // pzp
+			if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_netscape_cert_type, (char*)"client"))) {
+				return 0;
+			} else {
+				X509_add_ext(cert, ex, -1);
+			}
+			if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_netscape_comment, (char*)"Webinos PZP Certificate"))) {
+				return 0;
+			} else {
+				X509_add_ext(cert, ex, -1);
+			}
+		}
+		
+	}
+	
 
     //sign!
 	if (!(err = X509_sign(cert,caKey,EVP_sha1())))
@@ -232,7 +322,7 @@ int selfSignRequest(char* pemRequest, int days, char* pemCAKey, char* result)  {
 
 }
 
-int signRequest(char* pemRequest, int days, char* pemCAKey, char* pemCaCert, char* result)  {
+int signRequest(char* pemRequest, int days, char* pemCAKey, char* pemCaCert,  char* result)  {
     
     BIO* bioReq = BIO_new_mem_buf(pemRequest, -1);
     BIO* bioCAKey = BIO_new_mem_buf(pemCAKey, -1);
@@ -273,7 +363,25 @@ int signRequest(char* pemRequest, int days, char* pemCAKey, char* pemCaCert, cha
     //create a serial number at random
     ASN1_INTEGER* serial = getRandomSN(); 
     X509_set_serialNumber(cert, serial);
+    
+    X509_EXTENSION *ex;
+	X509V3_CTX ctx;
+	X509V3_set_ctx_nodb(&ctx);
+	X509V3_set_ctx(&ctx, cert, cert, NULL, NULL, 0);
+	
+	
+	if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_basic_constraints, (char*)"critical,CA:FALSE"))) {
+		return 0;
+	} else {
+		X509_add_ext(cert, ex, -1);
+	}
 
+
+	if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_netscape_comment, (char*)"Signed by PZH"))) {
+		return 0;
+	} else {
+		X509_add_ext(cert, ex, -1);
+	}
     //sign!
 	if (!(err = X509_sign(cert,caKey,EVP_sha1())))
 	{
@@ -314,13 +422,14 @@ int createEmptyCRL(char* pemSigningKey, char* pemCaCert, int crldays, int crlhou
     	BIO_free(bioSigningKey);
     	return -11;
     }
-    
+
     X509* caCert = PEM_read_bio_X509(bioCert, NULL, NULL, NULL);
     if (!caCert) {
     	BIO_free(bioCert);
 		BIO_free(bioSigningKey);
     	return -12;
     }
+
     EVP_PKEY* caKey = PEM_read_bio_PrivateKey(bioSigningKey, NULL, NULL, NULL);
     if (!caKey) {
     	BIO_free(bioCert);
@@ -348,6 +457,7 @@ int createEmptyCRL(char* pemSigningKey, char* pemCaCert, int crldays, int crlhou
 	
 	//extensions would go here.
 	
+
 	//Sign with out caKey
 	if (!(err = X509_CRL_sign(crl,caKey,EVP_sha1())))
     {

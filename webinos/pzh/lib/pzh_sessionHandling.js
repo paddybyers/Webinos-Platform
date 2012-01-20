@@ -157,7 +157,10 @@
 			
 			fs.readFile(self.config.pzhCertDir+'/'+self.config.master.cert.name, function(err) {
 				if(err !== null && err.code === 'ENOENT') {
-					cert.selfSigned(self, 'Pzh', self.config.conn, function(status, selfSignErr) {
+					// 0 here specifies connection certificate
+					// 1 is for master certificate
+					// 2 is for PZP certificate
+					cert.selfSigned(self, 'Pzh', self.config.conn, 0, function(status, selfSignErr) {
 						if(status === 'certGenerated') {
 							helper.debug(2, 'PZH Generating Certificates');
 							fs.readdir(webinosDemo+'/certificates', function(err) {
@@ -193,7 +196,7 @@
 											}									
 										}
 										
-										cert.selfSigned(self, 'Pzh:Master', self.config.master, function(result) {
+										cert.selfSigned(self, 'Pzh:Master', self.config.master, 1, function(result) {
 											if(result === 'certGenerated') {
 												try {
 													// This is working, waiting for completion of Android and Windows part to commit code.

@@ -160,7 +160,7 @@
 		
 		if (!path.existsSync(pzpCertDir+'/'+self.config.master.cert.name)) {
 		    //We have no certificates - create some which are self-signed.
-		    cert.selfSigned(self, 'Pzp', self.config.conn, function (status, selfSignErr) {
+		    cert.selfSigned(self, 'Pzp', self.config.conn, 2, function (status, selfSignErr) {
 				if (status === 'certGenerated') {
 		            fs.writeFileSync(pzpKeyDir+'/'+self.config.conn.key.name, self.config.conn.key.value);
 					options = {key: self.config.conn.key.value, cert: self.config.conn.cert.value};
