@@ -77,7 +77,6 @@ if (typeof webinos.file.demo === "undefined")
 	}
 	
 	exports.Explorer.prototype.directory = null;
-	
 	exports.Explorer.prototype.parent = null;
 	
 	exports.Explorer.prototype.addEntry = function (entry) {
@@ -87,7 +86,7 @@ if (typeof webinos.file.demo === "undefined")
 			var constructor = exports.File;
 		
 		var object = new constructor(this, entry);
-		var node = this.objects.insert(object, exports.Object.compare);
+		var node = this.objects.insert(object);
 		
 		if (node.next === null)
 			$("tbody", this.table).append(object.row);
@@ -112,14 +111,16 @@ if (typeof webinos.file.demo === "undefined")
 			this.addEntry(entry);
 	}
 	
+	// TODO Copy may overwrite?
 	exports.Explorer.prototype.copy = function (event, entry, newEntry) {
 		if (this.directory && path.equals(this.directory.fullPath, path.dirname(newEntry.fullPath)))
 			this.addEntry(newEntry);
 	}
 	
+	// TODO Move may overwrite.
 	exports.Explorer.prototype.move = function (event, oldEntry, newEntry) {
 		if (this.directory && oldEntry.isDirectory && oldEntry.isPrefixOf(this.directory.fullPath))
-			this.change(newEntry);
+			this.change(newEntry); // TODO Change to subdirectory of newEntry
 		else {
 			if (this.directory && path.equals(this.directory.fullPath, path.dirname(oldEntry.fullPath)))
 				this.deleteEntry(oldEntry);
@@ -138,6 +139,7 @@ if (typeof webinos.file.demo === "undefined")
 	
 	exports.Explorer.prototype.change = function (directory) {
 		this.directory = directory;
+
 		$("tbody", this.table).empty();
 		$("caption", this.table).text(this.directory.fullPath);
 		
