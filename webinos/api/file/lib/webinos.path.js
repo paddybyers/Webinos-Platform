@@ -62,6 +62,12 @@ if (typeof module === "undefined") {
 		return parts;
 	}
 
+	/**
+	 * Returns the directory components of the given path.
+	 * 
+	 * @param {String} path The path.
+	 * @returns {String} The directory components.
+	 */
 	exports.dirname = function (path) {
 		var result = exports.utils.split(path), root = result[0], dir = result[1];
 
@@ -74,6 +80,12 @@ if (typeof module === "undefined") {
 		return root + dir;
 	}
 
+	/**
+	 * Returns the basename component of the given path.
+	 * 
+	 * @param {String} path The path.
+	 * @returns {String} The basename component.
+	 */
 	exports.basename = function (path, ext) {
 		var base = exports.utils.split(path)[2];
 
@@ -83,6 +95,12 @@ if (typeof module === "undefined") {
 		return base;
 	}
 
+	/**
+	 * Returns the basename component's extension of the given path.
+	 * 
+	 * @param {String} path The path.
+	 * @returns {String} The basename component's extension.
+	 */
 	exports.extname = function (path) {
 		return exports.utils.split(path)[3];
 	}
