@@ -7,14 +7,7 @@
 	var utils = webinos.global.require(webinos.global.rpc.location, "lib/webinos.utils.js");
 
 	exports.DOMException = function (type, message) {
-		if (typeof type !== "string")
-			throw new TypeError("first argument must be a string");
-
 		this.name = type;
-
-		if (typeof message !== "string")
-			throw new TypeError("second argument must be a string");
-
 		this.message = message;
 
 		if (typeof exports.DOMException.typeToCodeMap[type] !== "undefined")
@@ -74,9 +67,6 @@
 	exports.DOMException.prototype.code = 0;
 
 	exports.DOMError = function (type) {
-		if (typeof type !== "string")
-			throw new TypeError("first argument must be a string");
-
 		this.name = type;
 	}
 
@@ -87,8 +77,6 @@
 	exports.EventTarget.prototype.addEventListener = function (type, listener, capture /* ignored */) {
 		if (listener === null)
 			return;
-		else if (typeof listener !== "function") // Anything else doesn't make sense.
-			throw new TypeError("second argument must be callable");
 
 		this.__eventEmitter.addListener(type, utils.bind(listener, this) /* bind to event's currentTarget */);
 	}
@@ -96,8 +84,6 @@
 	exports.EventTarget.prototype.removeEventListener = function (type, listener, capture /* ignored */) {
 		if (listener === null)
 			return;
-		else if (typeof listener !== "function") // Anything else doesn't make sense.
-			throw new TypeError("second argument must be callable");
 
 		this.__eventEmitter.removeListener(type, utils.bind(listener, this) /* bind to event's currentTarget */);
 	}
@@ -128,20 +114,16 @@
 	exports.Event = function (type, eventInitDict) {
 		this.initialized = true;
 
-		// Skip validation for inheritance support (or rework inheritance).
-		// if (typeof type !== "string")
-		//	throw new TypeError("first argument must be a string");
-
 		this.type = type;
 
 		if (typeof eventInitDict === "object") {
-			if (typeof eventInitDict.bubbles === "boolean")
+			if (typeof eventInitDict.bubbles !== "undefined")
 				this.bubbles = eventInitDict.bubbles;
 
-			if (typeof eventInitDict.cancelable === "boolean")
+			if (typeof eventInitDict.cancelable !== "undefined")
 				this.cancelable = eventInitDict.cancelable;
-
-			// TODO Set other event attributes defined in the dictionary? How to check respective types?
+			
+			// TODO Set other event attributes defined in the dictionary here?
 		}
 	}
 
@@ -204,13 +186,13 @@
 		exports.Event.call(this, type, eventInitDict);
 
 		if (typeof eventInitDict === "object") {
-			if (typeof eventInitDict.lengthComputable === "boolean")
+			if (typeof eventInitDict.lengthComputable !== "undefined")
 				this.lengthComputable = eventInitDict.lengthComputable;
 
-			if (typeof eventInitDict.loaded === "number")
+			if (typeof eventInitDict.loaded !== "undefined")
 				this.loaded = eventInitDict.loaded;
 
-			if (typeof eventInitDict.total === "number")
+			if (typeof eventInitDict.total !== "undefined")
 				this.total = eventInitDict.total;
 		}
 	}
