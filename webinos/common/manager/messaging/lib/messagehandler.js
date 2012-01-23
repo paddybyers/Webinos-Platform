@@ -1,13 +1,5 @@
 (function()	{
-
-	if (typeof webinos === "undefined") {
-		webinos = {};
-	}
-	
-	var rpc;
-	if (typeof module === "undefined") {
-		rpc = webinos.rpcHandler;
-	}
+"use strict";
 	
 	function logObj(obj, name)	{
 		for (var myKey in obj)	{
@@ -16,8 +8,6 @@
 		}
 	}
 
-	webinos.message = {};
-	
 	/** Message fields:
 	 * 
 	 * var message = {
@@ -49,67 +39,73 @@
 	 * other_user@her_domain.com/laptop/urn:services-webinos-org:calender/
 	 */
 
-    	var getOwnId = null;
-	var separator = null;
-    
-	var sendMessage = null;
-	var objectRef = null;
-	 
-	/** 
-	 * To store the session id after registration. e.g. PZP registers with
-	 * PZH, PZH creates a session id X for PZP. client[PZP->PZH] = X
-	 *  
-	 *  TODO need to adjust clients[] to accommodate PZH farm, PZP farm scenarios
-	 */  	
-	var clients = {};  
-
-	var message = {};
+	var MessageHandler = function (rpcHandler) {
+		this.sendMessage = null;
+		this.objectRef = null;
+		
+		this.getOwnId = null;
+		this.separator = null;
+		
+		this.rpcHandler = rpcHandler;
+		this.rpcHandler.setMessageHandler(this);
+		
+		/**
+		 * To store the session id after registration. e.g. PZP registers with
+		 * PZH, PZH creates a session id X for PZP. client[PZP->PZH] = X
+		 *
+		 *  TODO need to adjust clients[] to accommodate PZH farm, PZP farm scenarios
+		 */
+		this.clients = {};
+		
+		this.message = {};
+		
+		/**
+		 * To Store callback functions associated with each message.
+		 */
+		this.messageCallbacks = {};
+	};
 	
-	/** To Store callback functions associated with each message. 
-	 */
-	var messageCallbacks = {};
-
 	/**
 	 * Set the sendMessage function that should be used to send message. 
 	 * Developers use this function to call different sendmessage APIs under
 	 * different communication environment. e.g. in socket.io, the 
 	 * sendMessageFunction could be: io.sockets.send(sessionid); 
 	 */
-	webinos.message.setSendMessage = function (sendMessageFunction)	{
-		sendMessage = sendMessageFunction;
+	MessageHandler.prototype.setSendMessage = function (sendMessageFunction) {
+		this.sendMessage = sendMessageFunction;
 	};
 	
-	webinos.message.sendMessage = function (message, sessionid, objectRef)	{
-		sendMessage (message, sessionid, objectRef);
+	MessageHandler.prototype.sendMessage = function (message, sessionid, objectRef) {
+		this.sendMessage (message, sessionid, objectRef);
 	};
 	
 	/**
 	 * To set the reference to different objects. e.g. in a PZH farm, objectRef  
 	 * is used to refer to different PZH.
 	 */
-	webinos.message.setObjectRef = function (objref)	{
-		objectRef = objref;
+	MessageHandler.prototype.setObjectRef = function (objref) {
+		this.objectRef = objref;
 	};
 	
 	/**
 	 * Function to get own identity.  
 	 */
-	webinos.message.setGetOwnId = function (OwnIdGetter)	{
-		getOwnId = OwnIdGetter;
+	MessageHandler.prototype.setGetOwnId = function (OwnIdGetter) {
+		this.getOwnId = OwnIdGetter;
 	};
 
 	/**
 	 *  Set separator used to in Addressing to separator different part of the address. 
 	 *  e.g. PZH/PZP/APPID, "/" is the separator here 	
 	 */ 
-	webinos.message.setSeparator = function (sep)	{
-		separator = sep;
+	MessageHandler.prototype.setSeparator = function (sep) {
+		this.separator = sep;
 	};
 	
 	/**
 	 *  Create new message. Refer Message fields above for more details.
 	 */ 
-	webinos.message.createMessage = function (options)	{
+	MessageHandler.prototype.createMessage = function (options) {
 		var message = {};
 		
 		for (var i in options)	{
@@ -122,17 +118,17 @@
 	 *  Create messageid. This messageid is used as an identifier for callback function associated 
 	 *  with the message.  
 	 */ 
-	webinos.message.createMessageId = function(message, successHandler, errorHandler){
+	MessageHandler.prototype.createMessageId = function(message, successHandler, errorHandler) {
 		message.id =  1 + Math.floor(Math.random() * 1024);
-		if( errorHandler || successHandler)	{
-			messageCallbacks[message.id] = {onError: errorHandler, onSuccess: successHandler};
+		if (errorHandler || successHandler)	{
+			this.messageCallbacks[message.id] = {onError: errorHandler, onSuccess: successHandler};
 		}  
 	};
 
 	/**
 	 *  Only need to call this once. This will result a sessionid in the receiver's storage. 
 	 */ 
-	webinos.message.registerSender = function(from, to)	{
+	MessageHandler.prototype.registerSender = function(from, to) {
 		var options = {};
 		options.register = true;
 		options.to = to;
@@ -141,19 +137,18 @@
 		return message;
 	};
 
-	webinos.message.removeRoute = function(sender, receiver)
-	{
+	MessageHandler.prototype.removeRoute = function(sender, receiver) {
 		var session = [sender, receiver];		
 		session.join("->");
-		if(clients[session])
-			clients[session] = null;
+		if(this.clients[session]) {
+			this.clients[session] = null;
+		}
 	};
 	
 	/**
 	 * RPC writer
 	 */
-	 
-	function write(rpc, respto, msgid)	{
+	MessageHandler.prototype.write = function(rpc, respto, msgid) {
 
 		//create response message
 		var options = {};
@@ -169,161 +164,149 @@
 	    }
 	    
 		options.payload = rpc;
-		message = webinos.message.createMessage(options);
+		var message = this.createMessage(options);
 		
-		if(message.to !== undefined)
-		{
+		if(message.to !== undefined) {
 			var to = message.to;
-			var session1 = [to, self];
+			var session1 = [to, this.self];
 			session1.join("->");
-			var session2 = [self, to];
+			var session2 = [this.self, to];
 			session2.join("->");
 			
-			if((!clients[session1]) && (!clients[session2]))  // not registered either way
+			if((!this.clients[session1]) && (!this.clients[session2]))  // not registered either way
 			{
 				console.log("MSGHANDLER:  session not set up");
-				var occurences = (message.to.split(separator).length - 1);
+				var occurences = (message.to.split(this.separator).length - 1);
 			
-				var data = message.to.split(separator);
+				var data = message.to.split(this.separator);
 				var id = data[0];
 				var forwardto = data[0]; 
 
 				for(var i = 1; i < occurences; i++)	{
-					id = id + separator + data[i];
-					var new_session1 = [id, self];
+					id = id + this.separator + data[i];
+					var new_session1 = [id, this.self];
 					new_session1.join("->");
-					var new_session2 = [self, id];
+					var new_session2 = [this.self, id];
 					new_session2.join("->");
 	
-					if(clients[new_session1] || clients[new_session2]) {
+					if(this.clients[new_session1] || this.clients[new_session2]) {
 						forwardto = id;
 						console.log("MSGHANDLER:  forwardto", forwardto);
 					}
 				}
-				webinos.message.sendMessage(message, forwardto, objectRef);
+				this.sendMessage(message, forwardto, this.objectRef);
 			}
-		    else if(clients[session2]){
-		    	console.log("MSGHANDLER:  clients[session2]:" + clients[session2]);
-		    	webinos.message.sendMessage(message, clients[session2], objectRef);
+		    else if(this.clients[session2]){
+		    	console.log("MSGHANDLER:  clients[session2]:" + this.clients[session2]);
+		    	this.sendMessage(message, this.clients[session2], this.objectRef);
 		    }
-		    else if(clients[session1]){
-		    	console.log("MSGHANDLER:  clients[session1]:" + clients[session1]);
-		    	webinos.message.sendMessage(message, clients[session1], objectRef);
+		    else if(this.clients[session1]){
+		    	console.log("MSGHANDLER:  clients[session1]:" + this.clients[session1]);
+		    	this.sendMessage(message, this.clients[session1], this.objectRef);
 		    }
 		}
-	}
+	};
 
-	webinos.message.onMessageReceived = function(message, sessionid){
-		
-		if(typeof message === "string")
+	MessageHandler.prototype.onMessageReceived = function(message, sessionid) {
+		if(typeof message === "string") {
 			message = JSON.parse(message);
- 		if(message.hasOwnProperty("register") && message.register)
-		{ 
+		}
+		
+ 		if(message.hasOwnProperty("register") && message.register) {
 			var from = message.from;
 			var to = message.to;
-			if(to !== undefined)
-			{	
+			if(to !== undefined) {
 				var regid = [from, to];
 				regid.join("->");  
 
 				//Register message to associate the address with session id
-				if(message.from)
-					clients[regid] = message.from;
-				else if(sessionid)
-					clients[regid] = sessionid;
+				if(message.from) {
+					this.clients[regid] = message.from;
+				}
+				else if(sessionid) {
+					this.clients[regid] = sessionid;
+				}
    
 				logObj(message, "register Message");
 			}
     		return; 
 		}
 		// check message destination 
-		else if(message.hasOwnProperty("to") && (message.to))
-		{
-			self = getOwnId;
+		else if(message.hasOwnProperty("to") && (message.to)) {
+			this.self = this.getOwnId;
 			
 			//check if a session with destination has been stored 
-			if(message.to !== self) 
-			{
+			if(message.to !== this.self) {
 				logObj(message, "forward Message");
            
 				//if no session is available for the destination, forward to the hop nearest, 
 				//i.e A->D, if session for D is not reachable, check C, then check B if C is not reachable
 				var to = message.to;
-				var session1 = [to, self];
+				var session1 = [to, this.self];
 				session1.join("->");
-				var session2 = [self, to];
+				var session2 = [this.self, to];
 				session2.join("->");
 
 				// not registered either way
-				if((!clients[session1]) && (!clients[session2]))  
-				{
+				if((!this.clients[session1]) && (!this.clients[session2])) {
 					logObj(message, "Sender, receiver not registered either way");
 					//check occurances of separator used in addressing 
-					var occurences = (message.to.split(separator).length - 1);
-					var data = message.to.split(separator);
+					var occurences = (message.to.split(this.separator).length - 1);
+					var data = message.to.split(this.separator);
 					var id = data[0];
 				    var forwardto = data[0]; 
 				    
 					//strip from right side
-			        for(var i = 1; i < occurences; i++)
-			        {
-			          id = id + separator + data[i];
-			          var new_session1 = [id, self];
-			          new_session1.join("->");
-			          var new_session2 = [self, id];
-			          new_session2.join("->");
-				
-			          if(clients[new_session1] || clients[new_session2])
-			            forwardto = id;
-			        }
-			        webinos.message.sendMessage(message,forwardto, objectRef);
+				    for(var i = 1; i < occurences; i++) {
+				    	id = id + this.separator + data[i];
+				    	var new_session1 = [id, this.self];
+				    	new_session1.join("->");
+				    	var new_session2 = [this.self, id];
+				    	new_session2.join("->");
+
+				    	if(this.clients[new_session1] || this.clients[new_session2]) {
+				    		forwardto = id;
+				    	}
+				    }
+			        this.sendMessage(message, forwardto, this.objectRef);
 				}
-				else if(clients[session2])
-				{
-					webinos.message.sendMessage(message, clients[session2], objectRef);
+				else if(this.clients[session2]) {
+					this.sendMessage(message, this.clients[session2], this.objectRef);
 				}
-				else if(clients[session1])
-				{
-					webinos.message.sendMessage(message, clients[session1], objectRef);
+				else if(this.clients[session1]) {
+					this.sendMessage(message, this.clients[session1], this.objectRef);
 				}	
 				return;
 			}
 			//handle message on itself 
-			else  
-			{
-				if(message.payload) 
-				{	
-			       if(message.to != message.resp_to)
-			       {   
+			else {
+				if(message.payload) {
+			       if(message.to != message.resp_to) {
 						console.log(message.payload);
 						var from = message.from;
 						var msgid = message.id;
-						rpc.handleMessage(message.payload, from, msgid);
+						this.rpcHandler.handleMessage(message.payload, from, msgid);
 			        } 
-			        else
-			        {
-			        	if(typeof message.payload.method !== "undefined" )
-			        	{
+			        else {
+			        	if(typeof message.payload.method !== "undefined" ) {
 			        		// FIXME: can we call rpc.handleMessage here without checking messageCallbacks[] for message.id? 
 			        		logObj(message, "Message forwarded to RPC to handle callback");
 							var from = message.from;
 			        		var msgid = message.id;	       
-			        		rpc.handleMessage(message.payload, from, msgid);
+			        		this.rpcHandler.handleMessage(message.payload, from, msgid);
 			        	}
-			        	else{
-			        		if(typeof message.payload.result !== "undefined" || typeof message.payload.error !== "undefined"){
-			        			rpc.handleMessage(message.payload);
+			        	else {
+			        		if(typeof message.payload.result !== "undefined" || typeof message.payload.error !== "undefined") {
+			        			this.rpcHandler.handleMessage(message.payload);
 			        		}
 			        	}
 			        	
-			        	if(messageCallbacks[message.id])
-			        	{
-                            messageCallbacks[message.id].onSuccess(message.payload.result);
+			        	if(this.messageCallbacks[message.id]) {
+			        		this.messageCallbacks[message.id].onSuccess(message.payload.result);
 			        	}
 			        }
 				}
-				else
-				{
+				else {
 					// what other message type are we expecting?
 				}
 				return; 
@@ -332,28 +315,16 @@
 		}
 	};
 	
-	webinos.message.setRPCHandler = function(rpcHandler) {
-		rpc = rpcHandler;
-		rpc.setWriter(write);
-	};
+	// TODO add fucntion to release clients[] when session is closed -> this will also affect RPC callback funcs 
 
-//TODO add fucntion to release clients[] when session is closed -> this will also affect RPC callback funcs 
-
-/**
- * Export messaging handler definitions for node.js
- */
-if (typeof exports !== 'undefined'){
-	exports.setSeparator = webinos.message.setSeparator; 
-	exports.setGetOwnId = webinos.message.setGetOwnId;
-	exports.setObjectRef = webinos.message.setObjectRef;
-	exports.setSendMessage = webinos.message.setSendMessage;
-	exports.sendMessage = webinos.message.sendMessage;
-	exports.createMessage = webinos.message.createMessage;
-	exports.registerSender = webinos.message.registerSender;
-	exports.removeRoute = webinos.message.removeRoute;
-	exports.createMessageId = webinos.message.createMessageId;
-	exports.onMessageReceived = webinos.message.onMessageReceived;
-	exports.setRPCHandler = webinos.message.setRPCHandler;
-}
+	/**
+	 * Export messaging handler definitions for node.js
+	 */
+	if (typeof exports !== 'undefined'){
+		exports.MessageHandler = MessageHandler; 
+	} else {
+		// export for web browser
+		this.MessageHandler = MessageHandler;
+	}
 
 }());

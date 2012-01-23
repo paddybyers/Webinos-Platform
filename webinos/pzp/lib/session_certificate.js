@@ -13,7 +13,7 @@ var utils =  require(path.resolve(webinosRoot,dependencies.pzp.location, 'lib/se
  * @param {Object} obj holds key, certificate and crl certificate values and names
  * @returns {Function} callback returns failed or certGenerated. Added to get synchronous behaviour
  */
-certificate.selfSigned = function(self, name, obj, callback) {
+certificate.selfSigned = function(self, name, obj, certType, callback) {
 	"use strict";
 	var certman;
 	try {
@@ -31,8 +31,7 @@ certificate.selfSigned = function(self, name, obj, callback) {
 	}
 
 	var common = name+':'+self.config.common;
-	self.config.cn = common; 
-	
+	self.config.cn = common; 	
 
 	try {
 		obj.csr.value = certman.createCertificateRequest(obj.key.value, 
@@ -47,9 +46,10 @@ certificate.selfSigned = function(self, name, obj, callback) {
 		callback.call(self, "failed", e);
 		return;
 	}
-
+	
+	
 	try {
-		obj.cert.value = certman.selfSignRequest(obj.csr.value, 30, obj.key.value);
+		obj.cert.value = certman.selfSignRequest(obj.csr.value, 30, obj.key.value, certType);
 	} catch (e1) {
 		callback.call(self, "failed", e1);
 		return;
@@ -93,7 +93,7 @@ certificate.revokeClientCert = function(self, master, pzpCert, callback) {
 	try {
 		certman = require(path.resolve(webinosRoot,dependencies.manager.certificate_manager.location));		
 	} catch (err) {
-	    utils.debug(1, "Failed to require the certificate manager");
+	    utils.debug(1, "Failed to find the certificate manager");
 		callback.call(self, "failed");
 		return;
 	}

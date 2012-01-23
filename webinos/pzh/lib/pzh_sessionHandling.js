@@ -25,7 +25,7 @@
 		try {
 
 			var rpc       = require(path.join(webinosRoot, dependencies.rpc.location));
-			var messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
+			var MessageHandler = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js')).MessageHandler;
 			
 			var authcode  = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_authcode.js'));
 			var websocket = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_websocket.js'));	
@@ -34,7 +34,6 @@
 			var utils     = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 
 			var RPCHandler = rpc.RPCHandler;
-
 		} catch (err) {
 			helper.debug(1, "Webinos modules missing, please check webinos installation" + err);
 			return;
@@ -69,7 +68,9 @@
 
 		// Handler for remote method calls.
 		this.rpcHandler = new RPCHandler();
-		messaging.setRPCHandler(this.rpcHandler);
+
+		// handler of all things message
+		this.messageHandler = new MessageHandler(this.rpcHandler);
 		
 		// load specified modules
 		this.rpcHandler.loadModules(modules);
@@ -129,6 +130,15 @@
 		}
 	};
 
+	/**
+	 * 
+	 */
+	Pzh.prototype.sendRegisterMessage = function () {
+		var pzhId = this.conn.getPeerCertificate().subject.CN.split(':')[1];
+		var msg = this.messageHandler.registerSender(this.sessionId, pzhId);
+		this.sendMessage(msg, pzhId);
+	};
+	
 	/** 
 	* @descripton Checks for master certificate, if certificate is not found it calls generating certificate function defined in certificate manager. This function is crypto sensitive. 
 	* @param {function} callback It is callback function that is invoked after checking/creating certificates
@@ -147,7 +157,10 @@
 			
 			fs.readFile(self.config.pzhCertDir+'/'+self.config.master.cert.name, function(err) {
 				if(err !== null && err.code === 'ENOENT') {
-					cert.selfSigned(self, 'Pzh', self.config.conn, function(status, selfSignErr) {
+					// 0 here specifies connection certificate
+					// 1 is for master certificate
+					// 2 is for PZP certificate
+					cert.selfSigned(self, 'Pzh', self.config.conn, 0, function(status, selfSignErr) {
 						if(status === 'certGenerated') {
 							helper.debug(2, 'PZH Generating Certificates');
 							fs.readdir(webinosDemo+'/certificates', function(err) {
@@ -183,7 +196,7 @@
 											}									
 										}
 										
-										cert.selfSigned(self, 'Pzh:Master', self.config.master, function(result) {
+										cert.selfSigned(self, 'Pzh:Master', self.config.master, 1, function(result) {
 											if(result === 'certGenerated') {
 												try {
 													// This is working, waiting for completion of Android and Windows part to commit code.
@@ -289,7 +302,7 @@
 				};
 
 		/** Sets messaging parameter */
-		utils.setMessagingParam(self);
+		utils.setMessagingParam(self, this.messageHandler);
 		/** @param {Object} connectedPzh holds connected Pzh information
 		* @param connectedPzh.address stores information about IP address
 		* @param connectedPzh.port stores port on which external Pzh is running
@@ -341,7 +354,7 @@
 						return;
 					}
 					helper.debug(2, 'PZH ('+self.sessionId+') PZH '+pzhId+' Connected');
-					if(!self.connectedPzh.hasOwnProperty(pzhId)){
+					if(!self.connectedPzh.hasOwnProperty(pzhId)) {
 						self.connectedPzh[pzhId] = {'socket': conn, 
 						'address': conn.socket.remoteAddress, 
 						'port': conn.socket.remotePort};
@@ -351,20 +364,20 @@
 						msg = self.prepMsg(self.sessionId, pzhId, 'pzhUpdate', self.connectedPzhIds);
 						self.sendMessage(msg, pzhId);
 				
-						msg = messaging.registerSender(self.sessionId, pzhId);
+						msg = self.messageHandler.registerSender(self.sessionId, pzhId);
 						self.sendMessage(msg, pzhId);
 					}
 				} else if(data[0] === 'Pzp' ) { 
 					sessionId = self.sessionId+'/'+data[1].split(':')[0];
 					helper.debug(2, 'PZH ('+self.sessionId+') PZP '+sessionId+' Connected');
-						if(!self.connectedPzp.hasOwnProperty(sessionId)){
+					if(!self.connectedPzp.hasOwnProperty(sessionId)) {
 						self.connectedPzpIds.push(sessionId);
 						self.connectedPzp[sessionId] = {'socket': conn, 
-						'address': conn.socket.remoteAddress, 
-						'port': ''};
-									
+								'address': conn.socket.remoteAddress, 
+								'port': ''};
+
 					}
-					msg = messaging.registerSender(self.sessionId, sessionId);
+					msg = self.messageHandler.registerSender(self.sessionId, sessionId);
 					self.sendMessage(msg, sessionId);//
 				}
 			} 
@@ -390,7 +403,7 @@
 				try {
 					helper.debug(2, 'PZH ('+self.sessionId+') Pzh/Pzp  closed');
 					var removed = utils.removeClient(self, conn);
-					messaging.removeRoute(removed, self.sessionId);
+					self.messageHandler.removeRoute(removed, self.sessionId);
 				} catch (err) {
 					helper.debug(1, 'PZH ('+self.sessionId+') Remove client from connectedPzp/connectedPzh failed' + err);
 				}
@@ -506,7 +519,7 @@
 			} else { // Message is forwarded to Message handler function, onMessageReceived
 				try {			
 					rpc.setSessionId(self.sessionId);
-					utils.sendMessageMessaging(self, parse);
+					utils.sendMessageMessaging(self, this.messageHandler, parse);
 				} catch (err2) {
 					helper.debug(1, 'PZH ('+self.sessionId+') Error Setting RPC Session Id/Message Sending to Messaging ' + err2);
 					return;

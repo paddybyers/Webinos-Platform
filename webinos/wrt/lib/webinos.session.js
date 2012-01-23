@@ -104,9 +104,9 @@
 			
 			callListenerForMsg(data);
 			
-			webinos.message.setGetOwnId(sessionid);
+			webinos.messageHandler.setGetOwnId(sessionid);
 	
-			var msg = webinos.message.registerSender(sessionid , pzpId);
+			var msg = webinos.messageHandler.registerSender(sessionid, pzpId);
 			webinos.session.message_send(msg, pzpId);
 		
 			break;

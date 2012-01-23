@@ -14,7 +14,7 @@
 	if (typeof exports !== "undefined") {
 		var rpc = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js'));
 		var RPCHandler = rpc.RPCHandler;
-		var messaging = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js'));
+		var MessageHandler = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js')).MessageHandler;
 		var pzp_server = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/pzp_server.js'));
 		var utils = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 		var websocket = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/pzp_websocket.js'));
@@ -62,7 +62,9 @@
 		
 		// Handler for remote method calls.
 		this.rpcHandler = new RPCHandler(this);
-		messaging.setRPCHandler(this.rpcHandler);
+		
+		// handler for all things message
+		this.messageHandler = new MessageHandler(this.rpcHandler);
 		
 		// load specified modules
 		this.rpcHandler.loadModules(modules);
@@ -158,7 +160,7 @@
 		
 		if (!path.existsSync(pzpCertDir+'/'+self.config.master.cert.name)) {
 		    //We have no certificates - create some which are self-signed.
-		    cert.selfSigned(self, 'Pzp', self.config.conn, function (status, selfSignErr) {
+		    cert.selfSigned(self, 'Pzp', self.config.conn, 2, function (status, selfSignErr) {
 				if (status === 'certGenerated') {
 		            fs.writeFileSync(pzpKeyDir+'/'+self.config.conn.key.name, self.config.conn.key.value);
 					options = {key: self.config.conn.key.value, cert: self.config.conn.cert.value};
@@ -204,7 +206,15 @@
 			return "virgin_pzp";
 		}
 	}
-	
+	//Added in order to be able to get the rpc handler from the current pzp
+	sessionPzp.getPzp = function() {
+    if (typeof instance !== "undefined") {
+      return instance;
+    } else { 
+      return null;
+    }
+  }
+
 	sessionPzp.getPzhId = function() {
 		if (typeof instance !== "undefined") {
 			return instance.pzhId;
@@ -243,7 +253,7 @@
 			self.pzpAddress = client.socket.address().address;
 			self.tlsId[self.sessionId] = client.getSession();
 			client.socket.setKeepAlive(true, 100);
-			var msg = messaging.registerSender(self.sessionId, self.pzhId);		
+			var msg = this.messageHandler.registerSender(self.sessionId, self.pzhId);
 			self.sendMessage(msg, self.pzhId);
 			pzp_server.startServer(self, function() {
 				self.prepMsg(self.sessionId, self.pzhId, 'pzpDetails', self.pzpServerPort);
@@ -302,7 +312,7 @@
 					client.resume();// unlocks socket. 
 				});			
 			} catch (err) {
-				utils.debug(1, 'PZP: Exception' + err);
+				utils.debug(1, 'PZP: Exception ' + err);
 			
 			}			
 		});
@@ -310,7 +320,7 @@
 		client.on('end', function () {
 			var webApp;			
 			utils.debug(2, 'PZP ('+self.sessionId+') Connection terminated');
-			messaging.removeRoute(self.pzhId, self.sessionId);
+			self.messageHandler.removeRoute(self.pzhId, self.sessionId);
 			delete self.connectedPzh[self.pzhId];
 			delete self.connectedPzp[self.sessionId];
 			self.pzhId = '';
@@ -389,7 +399,7 @@
 			// Forward message to message handler
 			else {
 				rpc.setSessionId(self.sessionId);
-				utils.sendMessageMessaging(self, data2);
+				utils.sendMessageMessaging(self, this.messageHandler, data2);
 			}
 		});
 	};	
@@ -462,6 +472,7 @@
 
 	if (typeof exports !== 'undefined') {
 		exports.startPzp = sessionPzp.startPzp;
+		exports.getPzp = sessionPzp.getPzp;
 		exports.getPzpId = sessionPzp.getPzpId;
 		exports.getPzhId = sessionPzp.getPzhId;
 		exports.getConnectedPzhId = sessionPzp.getConnectedPzpId;

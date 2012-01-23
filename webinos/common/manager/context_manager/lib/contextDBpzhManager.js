@@ -32,37 +32,46 @@
   var db =  new sqlite3.Database(dbpath);
   var databasehelper = require('JSORMDB');
   bufferDB = new databasehelper.JSONDatabase({path : bufferpath, transactional : false});
-
-  webinos.ServiceDiscovery = new _RPCHandler;
-  webinos.ServiceDiscovery.loadModules([{name: "context", param: {}}]);
-
+  
   sessionPzp = require(webinosRoot + '/pzp/lib/pzp_sessionHandling.js');
+  var sessionInstance =null;
+  
 
   ////////////////////////////////////////////////////////////////////////////////////////
   //Running on the PZP
   //////////////////////////////////////////////////////////////////////////////////////
   exports.handleContextData = function(contextData){
+  
+    
     var connectedPzh = sessionPzp.getPzhId();
     if (connectedPzh == "null" || connectedPzh == "undefined"){
       bufferDB.insert(contextData)
       console.log("Successfully commited Context Object to the context buffer");
     }else{
+      if (sessionInstance === null){
+        //console.log(sessionPzp.getPzhId(), 'white+red_bg');
+        sessionInstance = sessionPzp.getPzp();
+        webinos.ServiceDiscovery = sessionInstance.rpcHandler;
+      }
       bufferDB.db.load();
       bufferDB.insert(contextData);
       var data = bufferDB.query();
 
       var contextService = [];
-      var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'));
-      service[0].serviceAddress = connectedPzh
-
-      var query = {};
-      query.type = "DB-insert";
-      query.data = data;
-      if (service.length == 1){
-        service[0].executeQuery(query);
-        bufferDB.db.clear();
-        bufferDB.commit();
-      }
+      var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), function(services){
+        //util= require('util');
+        //console.log(util.inspect(services, false, null), 'white+red_bg');
+        services[0].serviceAddress = connectedPzh
+  
+          var query = {};
+          query.type = "DB-insert";
+          query.data = data;
+          if (services.length == 1){
+            services[0].executeQuery(query);
+            bufferDB.db.clear();
+            bufferDB.commit();
+          }
+      });
     }
     //success(true);
   }

@@ -43,8 +43,7 @@ describe("delete cert", function() {
 });
 describe("PZH Web Socket Server", function() {
 	it("start pzh websocket server", function() {
-
-		WebSocket.startServer(ipAddr, serverPort, webServerPort, pzhModules, function(result) {
+		WebSocket.startServer(ipAddr, serverPort, webServerPort, function(result) {
 			expect(result).not.toBeNull();
 			expect(result).not.toEqual(false);
 			expect(result).toEqual(true);
@@ -52,19 +51,10 @@ describe("PZH Web Socket Server", function() {
 	});
 });
 
-describe("PZP Web Socket Server", function() {
-	it("start pzp websocket server", function() {
-		PzpWebsocket.startPzpWebSocketServer(ipAddr, PzpServerPort, PzpWebServerPort, function(result) {
-			expect(result).not.toBeNull();
-			expect(result).toEqual("startedWebSocketServer");
-		});
-	});
-});
-
 describe("PZH functionalities", function() {	
 	it("start PZH & list connected devices & list crash log", function() {
 		runs( function () {
-			Pzh.startPzh(contents, ipAddr, port, function(result, pzh1) {
+			Pzh.startPzh(contents, ipAddr, port, pzhModules, function(result, pzh1) {
 				expect(result).not.toBeNull();
 				expect(result).toEqual("startedPzh");
 				pzh = pzh1;
