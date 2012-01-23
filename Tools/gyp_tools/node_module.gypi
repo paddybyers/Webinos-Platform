@@ -38,9 +38,14 @@
 				},
 			}],
 			[ 'OS=="mac"', {
-				'libraries': [ # This specifies this library on both the compiler and the linker 
+				'libraries': [ # This specifies this library on both the compiler and the linker for make
 					'-undefined dynamic_lookup',
 				],
+				'xcode_settings': { # This is the way to specify it for xcode
+					'OTHER_LDFLAGS': [
+						'-undefined dynamic_lookup'
+					]
+				},
 				# Based on gyp's documentation, the following should be enough but it seems 
 				# it doesn't work.
 				# 'link_settings': {
