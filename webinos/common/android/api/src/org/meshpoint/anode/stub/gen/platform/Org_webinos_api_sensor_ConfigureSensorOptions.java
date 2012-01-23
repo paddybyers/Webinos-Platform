@@ -30,7 +30,7 @@ public class Org_webinos_api_sensor_ConfigureSensorOptions {
 			result = org.meshpoint.anode.js.JSValue.asJSBoolean(inst.interrupt);
 			break;
 		case 6: /* rate */
-			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.rate);
+			result = org.meshpoint.anode.js.JSValue.asJSNumber(inst.rate);
 			break;
 		case 7: /* timeout */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber(inst.timeout);
@@ -46,7 +46,7 @@ public class Org_webinos_api_sensor_ConfigureSensorOptions {
 			inst.interrupt = ((org.meshpoint.anode.js.JSValue)val).getBooleanValue();
 			break;
 		case 6: /* rate */
-			inst.rate = (int)((org.meshpoint.anode.js.JSValue)val).longValue;
+			inst.rate = ((org.meshpoint.anode.js.JSValue)val).longValue;
 			break;
 		case 7: /* timeout */
 			inst.timeout = ((org.meshpoint.anode.js.JSValue)val).longValue;
