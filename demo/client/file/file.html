@@ -8,7 +8,7 @@
 <script type="text/javascript"
 	src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
 <script type="text/javascript" src="/client/webinos.js"></script>
-<script type="text/javascript" src="/client/webinos.file.demo.js"></script>
+<script type="text/javascript" src="/client/file/webinos.file.demo.js"></script>
 <script>
 	var init = function () {
 		$("button#init").attr("disabled", "disabled");
@@ -17,7 +17,7 @@
 		
 		var left = new webinos.file.demo.Explorer("table#left");
 		var right = new webinos.file.demo.Explorer("table#right");
-
+ 
 		webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/file"), {
 			onFound: function (service) {
 				service.bindService({
@@ -36,7 +36,7 @@
 			}
 		});
 	}
-
+ 
 	$(document).ready(function () {
 		$("button#init").click(init);
 		
@@ -118,35 +118,35 @@ body {
 	font: 13px/1.4 "Trebuchet MS", Arial, Helvetica, sans-serif;
 	color: #595959;
 }
-
+ 
 table#left {
 	width: 50%;
 	float: left;
 	visibility: hidden;
 }
-
+ 
 table#right {
 	width: 50%;
 	float: right;
 	visibility: hidden;
 }
-
+ 
 a, a:link, a:visited,
 .link, .link:link, .link:visited {
 	color: #006D9A;
 	cursor: pointer;
 }
-
+ 
 a:hover, a:active,
 .link:hover, .link:active {
 	color: #DC5246;
 	cursor: pointer;
 }
-
+ 
 .ui-dialog-titlebar-no-close .ui-dialog-titlebar-close {
 	display: none
 }
-
+ 
 div#dialog-name, div#dialog-editor {
 	display: none;
 }
