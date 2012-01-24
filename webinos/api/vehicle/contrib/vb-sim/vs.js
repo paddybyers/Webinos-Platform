@@ -80,10 +80,12 @@ ParkSensorEvent.parent = WDomEvent.prototype; // our "super" property
 
 ParkSensorEvent.prototype.initParkSensorEvent = function(position, psData){
     this.position = position;
+    this.outLeft = psData.ol;
     this.left = psData.l;
     this.midLeft = psData.ml;
     this.midRight = psData.mr;
     this.right = psData.r;
+    this.outRight = psData.or;
     
     var d = new Date();
     var stamp = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());

@@ -123,6 +123,7 @@
 						$('#info').append("<p>Time: "+ data.timestamp +"</p>");
 						$('#info').append("<p>Latitude: "+ data.coords.latitude +"</p>");
 						$('#info').append("<p>Longitude: "+ data.coords.longitude +"</p>");
+						$('#info').append("<p>Altitude: "+ data.coords.altitude +"</p>");
 						$('#info').append("<p>Accuracy: "+ data.coords.accuracy +"</p>");
 						$('#info').append("<p>Speed: "+ data.coords.speed +"</p>");
 						$('#info').append("<p>Heading: "+ data.coords.heading +"</p>");
@@ -150,10 +151,12 @@
 						postMessage("info","new ParkSensorsData received for position: " + data.position);
 						$('#info').empty();
 						$('#info').append("<p>Position: "+ data.position +"</p>");
+						$('#info').append("<p>OutLeft: "+ data.outLeft +"</p>");
 						$('#info').append("<p>Left: "+ data.left +"</p>");
 						$('#info').append("<p>Middle Left: "+ data.midLeft +"</p>");
 						$('#info').append("<p>Middle Right: "+ data.midRight +"</p>");
 						$('#info').append("<p>Right: "+ data.right +"</p>");
+						$('#info').append("<p>OutRight: "+ data.outRight +"</p>");
 						
 					}
 					
@@ -234,9 +237,13 @@
 					$('#pzh_pzp_list').change(function(){
 					
 						if($('#pzh_pzp_list').val() != ''){
-							$('#init').removeAttr('disabled');
+							$('#initVehicle').removeAttr('disabled');
+							$('#initOrientation').removeAttr('disabled');
+							$('#initGeolocation').removeAttr('disabled');
 						}else{
-							$('#init').attr('disabled','true');
+							$('#initVehicle').attr('disabled','true');
+							$('#initOrientation').attr('disabled','true');
+							$('#initGeolocation').attr('disabled','true');
 						}
 					});
 					
@@ -258,7 +265,7 @@
 						});
 						
 						
-					$('#init').click(function(e) {
+					$('#initVehicle').click(function(e) {
                         webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/vehicle'), {onFound: function (service) {
                 	    		vehicle = service;
                 	    		vehicle.bindService({onBind: function (service) {}});
@@ -271,23 +278,21 @@
 							
 								$('#info').html("<img src='ajaxloader.gif'>");
 							
-								$('#findService').attr('disabled', 'true');
-								$('#findService').val('Vehicle found');
-						
-						
-								disableInit();
+								disableInit('Vehicle API',$('#initVehicle'), $('#pzh_pzp_list').val());
 						}});
-                        webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/deviceorientation'), {onFound: function (service) {
+                       });
+                       $('#initOrientation').click(function(e) {
+                       webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/deviceorientation'), {onFound: function (service) {
 								orientation = service;
 								orientation.bindService({onBind: function (service) {}});
 								
 								postMessage("info","Deviceorientation available. Please select a listener");
 								$('#deviceorientationType').removeAttr('disabled');
 								$('#addListenerOrientation').removeAttr('disabled');
-								disableInit();
+								disableInit('Device Orientation API',$('#initOrientation'), $('#pzh_pzp_list').val());
 						}});
-						
-
+						});
+						$('#initGeolocation').click(function(e) {
 						webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
 								console.log("geolocation service found...");
 								geolocation = service;
@@ -295,19 +300,14 @@
 								$('#getLocation').removeAttr('disabled');
 								$('#watchPosition').removeAttr('disabled');
 								$('#info').html("<img src='ajaxloader.gif'>");
-								$('#findService').attr('disabled', 'true');
-								$('#findService').val('Geolocation found');
-								disableInit();
+								disableInit('Geolocation API',$('#initGeolocation'), $('#pzh_pzp_list').val());
 						}});
                     });
 					
-					var disableInit = function(){
-						$('#init').val('Connected');
-						$('#init').addClass('running');
-						
-						$('#pzh_pzp_list').attr('disabled','true');
-						
-					
+					var disableInit = function(name,btnId, pzx){
+						btnId.val(name + ' connected to ' + pzx);
+						btnId.addClass('running');
+						btnId.attr('disabled', 'true');						
 					}	
 					var pdcActivated = false;
 					
@@ -934,7 +934,9 @@
      <div id="functions">
 		<h2>Testfunctions:</h2>
         <select id="pzh_pzp_list"> <option> </option> </select><br />
-            <input type="button" id="init" value="initialize System" class="button" disabled/><br />
+            <input type="button" id="initVehicle" value="Use Vehicle API" class="button" disabled/><br />
+            <input type="button" id="initOrientation" value="Use Device Orientation" class="button" disabled/><br />
+            <input type="button" id="initGeolocation" value="Use Geolocation" class="button" disabled/><br />
 		<h3>Vehicle Data (Vehicle API)</h3>
         <p>
         	
