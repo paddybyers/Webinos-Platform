@@ -44,12 +44,14 @@ function Address(contry, region, county, city, street, streetNumber, premises, a
 	this.postalCode = postalCode;
 }
 
-function ParkSensorEvent(position, left, midLeft, midRight, right){
+function ParkSensorEvent(position, outLeft, left, midLeft, midRight, right, outRight){
 	this.position = position;
 	this.left = left;
 	this.midLeft = midLeft;
 	this.midRight = midRight;
 	this.right = right;
+	this.outRight = outRight;
+	this.outLeft = outLeft;
 }
 
 function ClimateControlEvent(zone, desiredTemperature, acstatus, ventLevel, ventMode){

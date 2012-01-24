@@ -39,19 +39,23 @@
 
 			$('#setPsFront').click(function(){
 				var psData = new Object();
+				psData.ol = $('#pf-ol').val();
 				psData.l = $('#pf-l').val();
 				psData.ml = $('#pf-ml').val();
 				psData.mr = $('#pf-mr').val();
 				psData.r = $('#pf-r').val();
+				psData.or = $('#pf-or').val();
 				now.setPsFront(psData);	
 			});
 
 			$('#setPsRear').click(function(){
 				var psData = new Object();
+				psData.ol = $('#pr-ol').val();
 				psData.l = $('#pr-l').val();
 				psData.ml = $('#pr-ml').val();
 				psData.mr = $('#pr-mr').val();
 				psData.r = $('#pr-r').val();
+				psData.or = $('#pr-or').val();
 				now.setPsRear(psData);	
 			});
 			$('#locateOnMap').click(function(){
@@ -253,17 +257,20 @@
 	<input type='button' id='setTripComputer' value="Set Tripcomputer"/>
 	
 	<h3>Parksensors Front</h3>
+	<p><label>OutLeft:</label><input type='text' value='255' id='pf-ol'></p>
 	<p><label>Left:</label><input type='text' value='255' id='pf-l'></p>
 	<p><label>MidLeft:</label><input type='text' value='255' id='pf-ml'></p>
 	<p><label>MidRight:</label><input type='text' value='255' id='pf-mr'></p>
 	<p><label>Right:</label><input type='text' value='255' id='pf-r'></p>
+	<p><label>OutRight:</label><input type='text' value='255' id='pf-or'></p>
 	<input type='button' id='setPsFront' value="Set Parksensors Front"/>
 
 	<h3>Parksensors Rear</h3>
-	<p><label>Left:</label><input type='text' value='255' id='pr-l'></p>
+	<p><label>OutLeft:</label><input type='text' value='255' id='pr-ol'></p>
 	<p><label>MidLeft:</label><input type='text' value='255' id='pr-ml'></p>
 	<p><label>MidRight:</label><input type='text' value='255' id='pr-mr'></p>
 	<p><label>Right:</label><input type='text' value='255' id='pr-r'></p>
+	<p><label>OutRight:</label><input type='text' value='255' id='pr-or'></p>
 	<input type='button' id='setPsRear' value="Set Parksensors Rear"/>
 
 	<h3>Lights (in progress) </h3>
