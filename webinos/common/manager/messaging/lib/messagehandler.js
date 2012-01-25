@@ -43,7 +43,7 @@
 		this.sendMessage = null;
 		this.objectRef = null;
 		
-		this.getOwnId = null;
+		this.ownId = null;
 		this.separator = null;
 		
 		this.rpcHandler = rpcHandler;
@@ -91,9 +91,17 @@
 	 * Function to get own identity.  
 	 */
 	MessageHandler.prototype.setGetOwnId = function (OwnIdGetter) {
-		this.getOwnId = OwnIdGetter;
+		this.ownId = OwnIdGetter;
 	};
 
+	/**
+	 * Function to get own identity.  
+	 */
+	MessageHandler.prototype.getOwnId = function () {
+		return this.ownId;
+	};
+
+	
 	/**
 	 *  Set separator used to in Addressing to separator different part of the address. 
 	 *  e.g. PZH/PZP/APPID, "/" is the separator here 	
@@ -233,7 +241,7 @@
 		}
 		// check message destination 
 		else if(message.hasOwnProperty("to") && (message.to)) {
-			this.self = this.getOwnId;
+			this.self = this.ownId;
 			
 			//check if a session with destination has been stored 
 			if(message.to !== this.self) {
