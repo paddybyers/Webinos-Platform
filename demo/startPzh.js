@@ -1,5 +1,6 @@
-Pzh            = require('../webinos/pzh/lib/pzh_sessionHandling.js');
-WebSocket      = require('../webinos/pzh/lib/pzh_websocket.js');
+var path                = require('path');
+var Pzh                 = require('../webinos/pzh/lib/pzh_sessionHandling.js');
+var PzhWebInterface     = require('../webinos/pzh/web/pzh_web_interface.js');
 
 var ipAddr = 'localhost', port = 8000, serverPort = 8083, webServerPort = 8082;
 
@@ -22,12 +23,28 @@ if (ipAddr === '' || port <= 0) {
 	console.log("Error starting server.\n\t Start with: node startPzh.js <host> <port> <webserverPort> <serverPort>) \n\t E.g.: node startPzh.js localhost 8000 8082 8083");
 } else {
 	var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh\nemail=internal@webinos.org\ndays=180\n" ;
-	WebSocket.startServer(ipAddr, serverPort, webServerPort, function() {
-		Pzh.startPzh(contents, ipAddr, port, pzhModules, function() {
+    
+	Pzh.startPzh(contents, ipAddr, port, pzhModules, function(callbackname,instance) {
+		console.log('=== PZH STARTED ===');
+		
+		
+        
+        var requestClientCert = true;   // Are we requesting a client certificate?
+        var domainName = "localhost";   // Used for the callback for OpenID/OAuth
+        var httpOnly = false;           // Are we running HTTP or HTTPS?
+        var certDir = path.resolve("./certificates/pzh/WebinosPzh");
+        
+        
+	    PzhWebInterface.startServer(webServerPort, requestClientCert, domainName, httpOnly, certDir, instance, function(status) {
+	        if (status) {
+	            console.log('=== PZH WEB INTERFACE STARTED ===');
+            } else {
+                console.log('*** PZH WEB INTERFACE FAILED TO START ***');
+            }   
+	    });
 
-			console.log('=== PZH STARTED ===');
-		});
 	});
+
 	
 }
 

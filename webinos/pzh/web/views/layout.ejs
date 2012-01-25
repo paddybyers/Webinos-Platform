@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>PZH Administration Console</title>
+		<link rel="stylesheet" type="text/css" href="stylesheets/pzh.css" />
+        <script type="text/javascript" src="javascripts/jquery-1.7.1.min.js"></script>
+        <script type="text/javascript">
+        $(document).ready(function() {
+                
+                
+                
+                
+                
+                function listAllPzps(data) {
+                    document.getElementById("pzpList").innerHTML = "";
+                    var list = "";
+                    var pzps = data.payload.message;
+                    if (pzps !== null) {
+                         list += "<tr style=\"border-bottom: thin solid black;\" ><th>Device name</th><th>Actions</th></tr>\n"
+                        var i=0;
+                        for (i=0;i<pzps.length;i++) {
+                            list += "\t<tr><td>" + pzps[i] + "</td><td><button id=\"revoke" + pzps[i] + "\" class=\"button\" style=\"width:100px\" onclick=\"revoke('" + pzps[i] + "')\" >revoke</a></td></tr>\n";
+                        }                
+                    }
+                    $("#pzpList").append(list);
+                }
+                webinos.session.addListener('listAllPzps', listAllPzps);
+                
+                function logCrash(data) {
+                    var log  = ' <tr> <td> '+ data.payload.message.name + '</td>  <td>'+ data.payload.message.log + '</td> </tr>';
+                    $('#crashLogs').append(log);
+                }
+                webinos.session.addListener('crashLog', logCrash);
+                
+
+            	
+	            $('#startPZH').bind('click', function() {
+		            var config = 'country='+ document.getElementById('country').value + '\n' +
+			            'state='+ document.getElementById('state').value + '\n' +
+			            'city='+ document.getElementById('city').value + '\n' +
+			            'organization='+ document.getElementById('org').value + '\n' +
+			            'organizationUnit='+ document.getElementById('orgunit').value + '\n' +
+			            'common='+ document.getElementById('common').value + '\n' +
+			            'email='+ document.getElementById('email').value + '\n' +
+			            'days='+ document.getElementById('days').value + '\n';
+		            var payload = {status: 'startPzh', 
+			            servername: document.getElementById('servername').value, 
+			            serverport: document.getElementById('serverport').value, 
+			            value: config}; 
+		            var options = {type: 'prop', payload: payload};
+		            webinos.session.message_send(options);                	   
+                });
+                    
+                $('#connectPZH').bind('click', function() {
+	                var payload = {status: 'connectPzh', 
+		                servername: document.getElementById('pzh_ip_addr').value,
+		                serverport: document.getElementById('pzh_port').value}; 
+	                var options = {type: 'prop', payload: payload};
+    	            webinos.session.message_send(options);
+                });
+                 
+                $('#downloadCert').bind('click', function() {
+	                var payload = {status: 'downloadCert', 
+		                servername: document.getElementById('pzh_ip_addr').value,
+		                serverport: document.getElementById('pzh_http_port').value}; 
+	                var options = {type: 'prop', payload: payload};
+	                webinos.session.message_send(options);
+                 });
+                     
+                 $('#listPzhPzp').bind('click', function() {
+                 	webinos.session.message_send({type: 'prop', payload: {status: 'listPzh'}});
+                 });
+                     
+                $('#crashLogPzh').bind('click', function() {
+                     	webinos.session.message_send({type: 'prop', payload: {status: 'crashLog'}});
+                });
+
+                $('#listAllPzpsButton').bind('click', function() {
+                 	webinos.session.message_send({type: 'prop', payload: {status: 'listAllPzps'}});
+                });
+                        
+        });
+        
+        function revoke(pzpid) {        	
+         	webinos.session.message_send({
+         	    type: 'prop', 
+         	    payload: {
+         	        status: 'revokePzp',
+         	        pzpid: pzpid
+     	        }
+            });   
+        }
+            
+        </script>
+	</head>
+	<body>
+	<div id="main">
+	    <h1>PZH Administration Console</h1>
+		<% if (!user) { %>
+			<p id="tablist" > |
+			<a href="/">Home</a> | 
+			<a class="account" href="/login">Log In</a> |
+			</p>
+		<% } else { %>
+			<p id="tablist" > |
+			<a href="/">Home</a> | 
+			<a href="/startpzh">Start PZH</a> |
+			<a href="/connectotherpzh">Connect other PZH</a> |
+			<a href="/listpzh">List PZHs</a> |
+			<a href="/crashlog">View Crashlog</a> |
+			<a href="/listallpzps">List all PZPs</a> |
+			<a href="/addpzp">Add a new PZP</a> |
+			<a class="account" href="/account">Who am I?</a> | 
+			<a class="account" href="/logout">Log Out</a> |
+			</p>
+		<% } %>
+		<%- body %>
+    
+	<div id="status">STATUS: <span id="message"></span></div>
+	</div>
+	</body>
+</html>

@@ -62,6 +62,7 @@
 		this.tlsId = [];		
 		var self = this;
 		
+		/* This is used for authenticating new PZPs */
 		authcode.createAuthCounter(function(res) {
 		    self.expecting = res;
 		});

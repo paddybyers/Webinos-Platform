@@ -11,40 +11,27 @@ var webinosDemo  = path.resolve(__dirname, '../../../demo');
 var qr           = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_qrcode.js'));
 var crashMsg;
 
-helper.addPzpQR = function (instance, connection) {
+helper.addPzpQR = function (pzh, callback) {
 	"use strict";
-	qr.addPzpQR(instance[0], connection);
+	qrcode.addPzpQRAgain(pzh, callback);
 }
 
-helper.connectedPzhPzp = function(instance, callback) {
+helper.connectedPzhPzp = function(pzh, callback) {
 	"use strict";
-	var i;
-	for( i = 0; i < instance.length; i += 1) {
-		var message = {name: instance[i].sessionId, pzpId: instance[i].connectedPzpIds, pzhId: instance[i].connectedPzhIds};
-		var payload = { status: 'listPzh', message: message};
-		try {
-			var msg = {type: 'prop', payload: payload};
-			callback(msg);
-		} catch (err) {
-			helper.debug(1, 'PZH ('+pzh.sessionId+') Error sending connectedPzp/Pzh to WebClient ' + err);			
-			return;
-		}
-	}
+	
+	callback({ pzpList : pzh.connectedPzhIds , pzhList : pzp.connectedPzpIds });
 }
 	
-helper.crashLog = function(instance, callback) {
+helper.crashLog = function(pzh, callback) {
 	"use strict";
-	var i;
-	for( i = 0; i < instance.length; i += 1) {
-		try {
-			var message = {name: instance[i].sessionId, log: fs.readFileSync(webinosDemo + '/'+instance[i].sessionId + '_crash.txt').toString()};
-			var payload = {status : 'crashLog', message : message};
-			var msg = {type: 'prop', payload: payload};
-			callback(msg);
-		} catch (err) {
-			helper.debug(1, 'PZH ('+instance[i].sessionId+') Error sending crashLog to WebClient ' + err);
-			return;
-		}
+	
+	try {
+	    var logFile = webinosDemo + '/'+pzh.sessionId + '_crash.txt';
+		var clog = fs.readFileSync(logFile, 'utf8');
+		callback(null,clog);
+	} catch (err) {
+		helper.debug(1, 'PZH ('+pzh.sessionId+') Error creating crashlog ' + err);
+		callback(err);
 	}
 }
 
