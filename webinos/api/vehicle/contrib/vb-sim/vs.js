@@ -113,6 +113,27 @@ NavigationEvent.prototype.initNavigationEvent = function(type, data){
     var stamp = stamp + d.getUTCMilliseconds();
 	NavigationEvent.parent.initEvent.call(this, type, null, null, null, false, false, stamp);
 }
+
+
+ControlEvent = function(controlId, active){
+	this.initControlEvent(controlId, active);
+}
+
+ControlEvent.prototype = new WDomEvent();
+ControlEvent.prototype.constructor = ControlEvent;
+ControlEvent.parent = WDomEvent.prototype; // our "super" property
+
+ControlEvent.prototype.initControlEvent = function(controlId, active){
+    this.controlId = controlId;
+	this.active = active;
+   
+    var d = new Date();
+    var stamp = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
+    var stamp = stamp + d.getUTCMilliseconds();
+
+	ControlEvent.parent.initEvent.call(this, 'control-event', null, null, null, false, false, stamp);
+}
+
 var fs = require('fs'), url = require('url'), path = require('path');
 
 		function getContentType(uri) {
@@ -187,6 +208,16 @@ var tcData = new Object();
 var psrData = new Object();
 var psfData = new Object();
 
+//LIGHTS
+var lfrData = false;
+var lffData = false;
+var lhData = false;
+var lpData = false;
+var lslData = false;
+var lsrData = false;
+var lswData = false;
+var lheadData = false;
+
     everyone.now.setGear = function(val){
         gear = val;
         console.log(gear);
@@ -226,6 +257,7 @@ var psfData = new Object();
         }
     }
     
+    
      everyone.now.setdestinationCancelled = function(data){
         dData = data;
         console.log(data);
@@ -236,11 +268,74 @@ var psfData = new Object();
     
      everyone.now.setDestinationChanged = function(data){
         dData = data;
-        console.log(data);
         if(typeof _listeners.destinationChanged != 'undefined'){
             _listeners.destinationChanged(new NavigationEvent('destination-changed',dData));
         }
-    } 
+    }
+     
+    everyone.now.setLightsFogRear = function(data){
+        lfrData = data;
+    	if(typeof _listeners.lightsFogRear != 'undefined'){
+             _listeners.lightsFogRear(new ControlEvent('lights-fog-rear', data));
+         }
+    }     
+    
+    everyone.now.setLightsFogFront = function(data){
+    	lffData = data;
+    	
+    	if(typeof _listeners.lightsFogFront != 'undefined'){
+            _listeners.lightsFogFront(new ControlEvent('lights-fog-front', data));
+        }
+    }     
+    
+    everyone.now.setLightsParking = function(data){
+    	lpData = data;
+    	
+    	if(typeof _listeners.lightsParking != 'undefined'){
+            _listeners.lightsParking(new ControlEvent('lights-parking', data));
+        }
+    }     
+
+    everyone.now.setLightsHibeam = function(data){
+    	lhData = data;
+    	if(typeof _listeners.lightsHibeam != 'undefined'){
+            _listeners.lightsHibeam(new ControlEvent('lights-hibeam', data));
+        }
+    }     
+
+    everyone.now.setLightsHead = function(data){
+    	lheadData = data;
+    	console.log('set head');
+    	
+    	if(typeof _listeners.lightsHead != 'undefined'){
+            _listeners.lightsHead(new ControlEvent('lights-head', data));
+        }
+    }  
+
+    everyone.now.setLightsSignalLeft = function(data){
+    	lslData = data;
+    	if(typeof _listeners.lightsSignalLeft != 'undefined'){
+            _listeners.lightsSignalLeft(new ControlEvent('lights-signal-left', data));
+        }
+    }
+    
+    everyone.now.setLightsSignalRight = function(data){
+    	lsrData = data;
+    	if(typeof _listeners.lightsSignalRight != 'undefined'){
+            _listeners.lightsSignalRight(new ControlEvent('lights-signal-right', data));
+        }
+    }
+
+    everyone.now.setLightsSignalWarn = function(data){
+    	lswData = data;
+    	if(typeof _listeners.lightsSignalWarn != 'undefined'){
+            _listeners.lightsSignalWarn(new ControlEvent('lights-signal-warn', data));
+        }
+    }
+    
+    
+    
+    
     function get(type){
         switch(type){
             case 'gear': 
@@ -255,13 +350,40 @@ var psfData = new Object();
             case 'parksensors-rear':
                 return new ParkSensorEvent(type, psrData);
                 break;
+            case 'parksensors-rear':
+                return new ParkSensorEvent(type, psrData);
+                break;
+            case 'lights-fog-rear':
+            	return new ControlEvent(type, lfrData);
+            	break;
+            case 'lights-fog-front':
+            	return new ControlEvent(type, lffData);
+            	break;
+            case 'lights-parking':
+            	return new ControlEvent(type, lpData);
+            	break;            
+            case 'lights-hibeam':
+            	return new ControlEvent(type, lhData);
+            	break;            
+            case 'lights-head':
+            	return new ControlEvent(type, lheadData);
+            	break;
+            case 'lights-signal-left':
+            	return new ControlEvent(type, lslData);
+            	break;
+            case 'lights-signal-right':
+            	return new ControlEvent(type, lsrData);
+            	break;
+            case 'lights-signal-warn':
+            	return new ControlEvent(type, lswData);
+            	break;
             default:
                 console.log('nothing found...');
             
         }
     }   
     function addListener(type, listener){
-       //console.log('registering listener ' + type);
+       console.log('registering listener ' + type);
         switch(type){
             case 'gear':
                 _listeners.gear = listener;
@@ -287,6 +409,30 @@ var psfData = new Object();
             case 'destination-cancelled':
                 _listeners.destinationCancelled = listener;
                 break;
+            case 'lights-fog-rear':
+            	_listeners.lightsFogRear = listener;
+                break;
+            case 'lights-fog-front':
+            	_listeners.lightsFogFront = listener;
+            	break;
+            case 'lights-hibeam':
+            	_listeners.lightsHibeam = listener;
+            	break;
+            case 'lights-parking':
+            	_listeners.lightsParking = listener;
+            	break;
+            case 'lights-head':
+            	_listeners.lightsHead = listener;
+            	break;
+            case 'lights-signal-left':
+            	_listeners.lightsSignalLeft = listener;
+            	break;
+            case 'lights-signal-right':
+            	_listeners.lightsSignalRight = listener;
+            	break;
+            case 'lights-signal-warn':
+            	_listeners.lightsSignalWarn = listener;
+            	break;
             default:
                 console.log('type ' + type + ' undefined.');
         }

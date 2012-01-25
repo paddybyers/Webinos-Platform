@@ -82,7 +82,7 @@
 					listeners = new Array(); //FOR VEHICLE EVENTS
 					listenersDeviceOrientation = new Array(); 
 					
-					_vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passenger-front', 'climate-passenger-rear-left','climate-passenger-rear-right','lights-fog-front','lights-fog-rear','lights-signal-right','lights-signal-warn','lights-parking','lights-hibeam','lights-head','wiper-front-wash','wiper-rear-wash','wiper-automatic','wiper-front-once','wiper-rear-once','wiper-front-level1','wiper-front-level2','destination-reached','destination-changed','destination-cancelled','parksensors-front','parksensors-rear','tripcomputer','shift'); 
+					_vehicleDataIds = new Array('climate-all', 'climate-driver', 'climate-passenger-front', 'climate-passenger-rear-left','climate-passenger-rear-right','lights-fog-front','lights-fog-rear','lights-signal-left','lights-signal-right','lights-signal-warn','lights-parking','lights-hibeam','lights-head','wiper-front-wash','wiper-rear-wash','wiper-automatic','wiper-front-once','wiper-rear-once','wiper-front-level1','wiper-front-level2','destination-reached','destination-changed','destination-cancelled','parksensors-front','parksensors-rear','tripcomputer','shift', 'wipers', 'oillevel'); 
 					_deviceOrientationTypes = new Array('deviceorientation','devicemotion', 'compassneedscalibration');
 					
 					
@@ -173,6 +173,8 @@
 					
 					var handleLightWiperControlData = function(data){
 						postMessage("info","new ControlData received : " + data.controlId);
+						console.log(data);
+						
 						$('#info').empty();
 						$('#info').append("<p>ControlID: "+ data.controlId +"</p>");
 						$('#info').append("<p>Active: "+ data.active +"</p>");
@@ -191,6 +193,12 @@
 					var handleDeviceMotion = function(e){
 						$('#info').empty();
 						$('#info').append("<p>DeviceOrientation API Event: "+ e.type +"</p>");
+					}
+					
+					var handleStatus = function(e){
+						$('#info').empty();
+						$('#info').html(e.controlId + ": <br />" + e.status + "<br />Timestamp: " + e.timestamp);
+					
 					}
 						
 					var errorCB = function(error){
@@ -246,6 +254,21 @@
 							$('#initGeolocation').attr('disabled','true');
 						}
 					});
+
+					$('#pzh_pzp_list').bind('mouseenter mouseleave',function(){
+					
+						if($('#pzh_pzp_list').val() != ''){
+							$('#initVehicle').removeAttr('disabled');
+							$('#initOrientation').removeAttr('disabled');
+							$('#initGeolocation').removeAttr('disabled');
+						}else{
+							$('#initVehicle').attr('disabled','true');
+							$('#initOrientation').attr('disabled','true');
+							$('#initGeolocation').attr('disabled','true');
+						}
+					});
+					
+
 					
 					$('#vehicleDataId').change(function(){
 					
@@ -515,6 +538,12 @@
 								break;
 							case "compassneedscalibration":
 								return handleCompassNeedsCalibration;
+								break;
+							case "wipers":
+								return handleStatus;
+								break;
+							case "oillevel":
+								return handleStatus;
 								break
 							default:
 								return handleShiftData;
