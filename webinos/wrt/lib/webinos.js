@@ -12,7 +12,7 @@
         try{
             var port = parseInt(location.port) + 1;
             if (isNaN(port)) {
-                port = 8081;
+                port = 81;
             }
             channel  = new WebSocket('ws://'+window.location.hostname+':'+port);                    
         } catch(e) {
