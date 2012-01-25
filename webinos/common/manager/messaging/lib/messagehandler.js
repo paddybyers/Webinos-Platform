@@ -163,6 +163,8 @@
 	    options.to = respto;
 	    options.resp_to = respto;
 	    
+	    options.from = this.ownId;
+	    
 	    if (typeof msgid !== undefined && msgid != null){
 	    	options.id = msgid;
 	    }
