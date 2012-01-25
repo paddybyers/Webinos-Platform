@@ -40,7 +40,7 @@
 	 */
 
 	var MessageHandler = function (rpcHandler) {
-		this.sendMessage = null;
+		this.sendMsg = null;
 		this.objectRef = null;
 		
 		this.ownId = null;
@@ -72,11 +72,11 @@
 	 * sendMessageFunction could be: io.sockets.send(sessionid); 
 	 */
 	MessageHandler.prototype.setSendMessage = function (sendMessageFunction) {
-		this.sendMessage = sendMessageFunction;
+		this.sendMsg = sendMessageFunction;
 	};
 	
 	MessageHandler.prototype.sendMessage = function (message, sessionid, objectRef) {
-		this.sendMessage (message, sessionid, objectRef);
+		this.sendMsg (message, sessionid, objectRef);
 	};
 	
 	/**
@@ -202,15 +202,15 @@
 						console.log("MSGHANDLER:  forwardto", forwardto);
 					}
 				}
-				this.sendMessage(message, forwardto, this.objectRef);
+				this.sendMsg(message, forwardto, this.objectRef);
 			}
 		    else if(this.clients[session2]){
 		    	console.log("MSGHANDLER:  clients[session2]:" + this.clients[session2]);
-		    	this.sendMessage(message, this.clients[session2], this.objectRef);
+		    	this.sendMsg(message, this.clients[session2], this.objectRef);
 		    }
 		    else if(this.clients[session1]){
 		    	console.log("MSGHANDLER:  clients[session1]:" + this.clients[session1]);
-		    	this.sendMessage(message, this.clients[session1], this.objectRef);
+		    	this.sendMsg(message, this.clients[session1], this.objectRef);
 		    }
 		}
 	};
@@ -276,13 +276,13 @@
 				    		forwardto = id;
 				    	}
 				    }
-			        this.sendMessage(message, forwardto, this.objectRef);
+			        this.sendMsg(message, forwardto, this.objectRef);
 				}
 				else if(this.clients[session2]) {
-					this.sendMessage(message, this.clients[session2], this.objectRef);
+					this.sendMsg(message, this.clients[session2], this.objectRef);
 				}
 				else if(this.clients[session1]) {
-					this.sendMessage(message, this.clients[session1], this.objectRef);
+					this.sendMsg(message, this.clients[session1], this.objectRef);
 				}	
 				return;
 			}
