@@ -12,8 +12,7 @@
 		this.base(obj);
 		eventService = this;
 		
-		
-		this.temporaryRandomAppID = "MyRandomApplicationID" +  Math.floor(Math.random()*1001);
+		this.temporaryRandomAppID = "TestApp" + webinos.messageHandler.getOwnId();
 	};
 	
 	EventsModule.prototype = new WebinosService;
