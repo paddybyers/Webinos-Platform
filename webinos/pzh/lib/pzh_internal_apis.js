@@ -8,8 +8,8 @@ var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.locat
 var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
 var webinosDemo  = path.resolve(__dirname, '../../../demo');
 
-var qr           = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_qrcode.js'));
-var helper       = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_pzhapis.js'));
+var qrcode       = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_qrcode.js'));
+var helper       = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_helper.js'));
 var revoker      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_revoke.js'));	
 
 
@@ -51,8 +51,8 @@ pzhapis.restartPzh = function(pzh, callback) {
 	
 pzhapis.getPzhCertificate = function(pzh, callback) {
     "use strict";
-    var msg = {name: app.Pzh.config.master.cert.name , 
-		       cert: app.Pzh.config.master.cert.value};
+    var msg = {name: pzh.config.master.cert.name , 
+		       cert: pzh.config.master.cert.value};
     var payload = pzh.prepMsg(null, null, 'receiveMasterCert', msg);
     callback(payload);
 }
