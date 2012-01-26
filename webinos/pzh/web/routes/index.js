@@ -48,7 +48,7 @@ module.exports = function(app){
     
       pzhapis.connectedPzhPzp(app.Pzh, function(list) {
       
-        console.log(util.inspect(list.sessions));
+        console.log("PZP Sessions: " + util.inspect(list.sessions));
       
         res.render('listpzh', { user: req.user, pzh: app.Pzh, isMutualAuth: false, pzhList : list.pzhList, pzpList : list.pzpList, pzpSessions: list.sessions});
       

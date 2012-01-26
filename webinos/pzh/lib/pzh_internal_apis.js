@@ -21,9 +21,10 @@ pzhapis.addPzpQR = function (pzh, callback) {
 pzhapis.connectedPzhPzp = function(pzh, callback) {
 	"use strict";	
 	callback({ 
-	    pzpList : pzh.connectedPzpIds , 
-	    pzhList : pzh.connectedPzhIds , 
-	    sessions: pzh.connectedPzp 
+	    allPzps         : revoker.listAllPzps(pzh, callback);
+	    connectedPzpIds : pzh.connectedPzpIds , 
+	    connectedPzhIds : pzh.connectedPzhIds , 
+	    sessions        : pzh.connectedPzp 
 	});
 }
 	
