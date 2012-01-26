@@ -20,6 +20,8 @@
 	/** Global variables used in Pzh */
 	var Pzh = null;
 	var helper     = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_helper.js'));
+	var pzhapis    = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_internal_apis.js'));
+	
 	
 	if (typeof exports !== 'undefined') {
 		try {
@@ -75,6 +77,7 @@
 		
 		// load specified modules
 		this.rpcHandler.loadModules(modules);
+		
 	};
 	/**
 	 * @description A generic function used to set message parameter

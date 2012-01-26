@@ -7,14 +7,16 @@ module.exports = function(app){
     var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
     var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
     var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
-    var helper       = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_helper.js'));
-
+    var pzhapis      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_internal_apis.js'));
+    var utils        = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
+    
     var express         = require('express'),
         util            = require('util'),
         crypto          = require('crypto'),
         fs              = require('fs'),
         passport        = require('passport'), 
         GoogleStrategy  = require('passport-google').Strategy;
+        YahooStrategy   = require('passport-yahoo').Strategy;
   
     app.get('/', function(req, res){
       res.render('index', { user: req.user, isMutualAuth: false });
@@ -31,7 +33,7 @@ module.exports = function(app){
 
     app.get('/addpzp', ensureAuthenticated, function(req, res){
 
-      qrcode.addPzpQR(app.Pzh, function(err, qr, text) {
+      pzhapis.addPzpQR(app.Pzh, function(err, qr, text) {
           res.render('addpzp', { user: req.user, pzh: app.Pzh, isMutualAuth: false, qrcode: {img: qr, code: text} });
       });
       
@@ -44,7 +46,7 @@ module.exports = function(app){
     });
     app.get('/listpzh', ensureAuthenticated, function(req, res){
     
-      helper.connectedPzhPzp(app.Pzh, function(list) {
+      pzhapis.connectedPzhPzp(app.Pzh, function(list) {
       
         console.log(util.inspect(list.sessions));
       
@@ -55,7 +57,7 @@ module.exports = function(app){
     });
 
     app.get('/crashlog', ensureAuthenticated,  function(req, res){
-        helper.crashLog(app.Pzh, function(err, msg) {
+        pzhapis.crashLog(app.Pzh, function(err, msg) {
             if (err !== null) {
                 msg = "Ironically, the crashlog crashed - " + err;  
             }
@@ -63,8 +65,31 @@ module.exports = function(app){
             
         });    
     });
+    
     app.get('/listallpzps', ensureAuthenticated, function(req, res){
       res.render('listallpzps', { user: req.user, pzh: app.Pzh, isMutualAuth: false});
+    });
+    
+    app.post('/certificate', function(req, res){
+        // add incoming certificate	    
+        var certname = req.body.message.name;
+        var certvalue = req.body.message.cert;
+        pzhapis.addPzhCertificate(app.Pzh, certname, certvalue, function(err) {
+            //Handle error;
+        });
+        
+        //send outgoing certificate
+        pzhapis.getPzhCertificate(app.Pzh, function(payload) {
+            res.json(payload);
+        });
+         
+    });
+
+    app.get('/certificate', function(req, res){
+        //send outgoing certificate
+        pzhapis.getPzhCertificate(app.Pzh, function(payload) {
+            res.json(payload);
+        }); 
     });
 
 
