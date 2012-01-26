@@ -47,9 +47,8 @@ certificate.selfSigned = function(self, name, obj, certType, callback) {
 		return;
 	}
 	
-	
 	try {
-		obj.cert.value = certman.selfSignRequest(obj.csr.value, 30, obj.key.value, certType);
+		obj.cert.value = certman.selfSignRequest(obj.csr.value, 30, obj.key.value, certType, "pzh.webinos.org");
 	} catch (e1) {
 		callback.call(self, "failed", e1);
 		return;

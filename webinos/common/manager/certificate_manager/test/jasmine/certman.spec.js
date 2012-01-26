@@ -52,7 +52,7 @@ describe("generate certificate requests", function() {
 
 describe("sign certificate requests", function() {
     it("can self-sign a certificate request", function() {
-        ssCert = certman.selfSignRequest(certReq, 30, rsakey);
+        ssCert = certman.selfSignRequest(certReq, 30, rsakey, 1, "pzh.webinos.org");
         expect(ssCert).not.toBeNull();
         expect(ssCert).toContain(CERT_START);
         expect(ssCert).toContain(CERT_END);

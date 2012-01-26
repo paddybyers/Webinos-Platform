@@ -101,19 +101,20 @@ v8::Handle<Value> _createCertificateRequest(const Arguments& args)
 v8::Handle<Value> _selfSignRequest(const Arguments& args)
 {
 	HandleScope scope;
-	if (args.Length() == 4 && args[0]->IsString() && args[1]->IsNumber()
-		&& args[2]->IsString()  && args[3]->IsNumber()) {
+	if (args.Length() == 5 && args[0]->IsString() && args[1]->IsNumber()
+		&& args[2]->IsString() && args[3]->IsNumber()  && args[4]->IsString()) {
 	  //extract the strings and ints
 
 	  String::Utf8Value pemRequest(args[0]->ToString());
 	  int days = args[1]->Int32Value();
 	  String::Utf8Value pemCAKey(args[2]->ToString());
-      int certType = args[3]->Int32Value();
+      String::Utf8Value url(args[3]->ToString());
+      int certType = args[4]->Int32Value();
       
 	  //call the wrapper & check for errors
       char *pem=(char *)calloc(BUFFER_SIZE+1, sizeof(char)); /* Null-terminate */
       int res = 0;
-      res = ::selfSignRequest(pemRequest.operator*(),days,pemCAKey.operator*(),certType,pem);
+      res = ::selfSignRequest(pemRequest.operator*(),days,pemCAKey.operator*(),certType,url.operator*(),pem);
 	  if (res != 0) {
 
           return ThrowException(Exception::TypeError(String::New("Error creating self-signed certificate")));
@@ -125,7 +126,7 @@ v8::Handle<Value> _selfSignRequest(const Arguments& args)
       return scope.Close(result);
     }
     else {
-      return ThrowException(Exception::TypeError(String::New("3 arguments expected: string int string")));
+      return ThrowException(Exception::TypeError(String::New("5 arguments expected: string int string")));
     }
 }
 
@@ -180,7 +181,6 @@ v8::Handle<Value> _createEmptyCRL(const Arguments& args)
       int res = 0;
       res = ::createEmptyCRL(pemKey.operator*(), pemCert.operator*(), days,hours,pem);
 	  if (res != 0) {
-
           return ThrowException(Exception::TypeError(String::New("Failed to create empty CRL")));
       }
 			
