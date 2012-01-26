@@ -6,7 +6,7 @@
 #include <openssl/err.h>
 #include <openssl/x509v3.h>
 #include <openssl/x509.h>
-#include <iostream>
+//#include <iostream>
 
 int genRsaKey(const int bits, char * privkey)
 { 
