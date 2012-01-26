@@ -1,6 +1,10 @@
 
 
-var certman = require("../src/build/Release/certificate_manager");
+var certman = null;
+if (process.platform != 'android')
+  certman = require("../src/build/Release/certificate_manager");
+else
+  certman = require('certificate_manager');
 
 var debug = true;
 var caKey = null;
