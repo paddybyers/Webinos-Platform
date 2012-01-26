@@ -18,8 +18,20 @@ module.exports = function(app){
         GoogleStrategy  = require('passport-google').Strategy;
         YahooStrategy   = require('passport-yahoo').Strategy;
   
+    function fakeUser() {
+        return {
+            from: "google",
+            identifier: "Fake ID",
+            displayName: "Fake user",
+            emails : ["fake@example.com"]
+        }
+    }
+  
     app.get('/', function(req, res){
-      res.render('index', { user: req.user, isMutualAuth: false });
+      //res.render('index', { user: req.user, isMutualAuth: false });
+      //TODO change to the above
+      var fake = fakeUser();
+      res.render('index', { user: fake, isMutualAuth: false });
       //console.log(util.inspect(req.user));
       
       //console.log("index, app: \n" + util.inspect(app));
@@ -30,33 +42,25 @@ module.exports = function(app){
       res.render('account', { user: req.user, isMutualAuth: false });
     });
 
-
-    app.get('/addpzp', ensureAuthenticated, function(req, res){
+    //TODO: ensureAuthenticated
+    app.get('/addpzp', function(req, res){
 
       pzhapis.addPzpQR(app.Pzh, function(err, qr, text) {
           res.render('addpzp', { user: req.user, pzh: app.Pzh, isMutualAuth: false, qrcode: {img: qr, code: text} });
       });
       
     });
-    app.get('/startpzh', ensureAuthenticated, function(req, res){
-      res.render('startpzh', { user: req.user, pzh: app.Pzh, isMutualAuth: false});
-    });
-    app.get('/connectotherpzh', ensureAuthenticated, function(req, res){
-      res.render('connectotherpzh', { user: req.user, pzh: app.Pzh, isMutualAuth: false});
-    });
-    app.get('/listpzh', ensureAuthenticated, function(req, res){
-    
-      pzhapis.connectedPzhPzp(app.Pzh, function(list) {
-      
-        console.log("PZP Sessions: " + util.inspect(list.sessions));
-      
-        res.render('listpzh', { user: req.user, pzh: app.Pzh, isMutualAuth: false, pzhList : list.pzhList, pzpList : list.pzpList, pzpSessions: list.sessions});
-      
+    //TODO: ensureAuthenticated    
+    app.get('/zone', function(req, res){    
+      pzhapis.listZoneDevices(app.Pzh, function(err, list) {
+        console.log("Zone Devices List: " + util.inspect(list));
+        res.render('zone', { user: req.user, pzh: app.Pzh, isMutualAuth: false, devices: list});
       });
       
     });
 
-    app.get('/crashlog', ensureAuthenticated,  function(req, res){
+    //TODO: ensureAuthenticated
+    app.get('/crashlog',  function(req, res){
         pzhapis.crashLog(app.Pzh, function(err, msg) {
             if (err !== null) {
                 msg = "Ironically, the crashlog crashed - " + err;  
@@ -66,10 +70,7 @@ module.exports = function(app){
         });    
     });
     
-    app.get('/listallpzps', ensureAuthenticated, function(req, res){
-      res.render('listallpzps', { user: req.user, pzh: app.Pzh, isMutualAuth: false});
-    });
-    
+    //This is an unauthenticated action.  Anyone may obtain my certificate this way.    
     app.post('/certificate', function(req, res){
         // add incoming certificate	    
         var certname = req.body.message.name;
@@ -145,6 +146,7 @@ module.exports = function(app){
     //   the request will proceed.  Otherwise, the user will be redirected to the
     //   login page.
     function ensureAuthenticated(req, res, next) {
+              
       if (req.isAuthenticated()) { return next(); }
       res.redirect('/login');
     }

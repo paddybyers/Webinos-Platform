@@ -55,6 +55,12 @@ revoker.listAllPzps = function(pzh, callback) {
     });
 }
 
+revoker.listAllPzhs = function(pzh, callback) {
+    callback(null, []);
+    //TODO
+}
+
+
 function revoke(pzh, pzhKeyDir, pzhCertDir, pzpCert, callback) {
 	"use strict";
 	if (pzh.config.master.key.value === 'null') {

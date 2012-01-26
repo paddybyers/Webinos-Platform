@@ -1,7 +1,6 @@
 /**
 * @author <a href="mailto:habib.virji@samsung.com">Habib Virji</a>
 * @description session_pzh.js starts Pzh and handle communication with a messaging manager. It is also responsible for loading rpc modules. 
-* It has a websocket server embedded to allow starting Pzh via web browser
 */
 (function() {
 	"use strict";
@@ -30,7 +29,6 @@
 			var MessageHandler = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js')).MessageHandler;
 			
 			var authcode  = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_authcode.js'));
-			var websocket = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_websocket.js'));	
 			
 			var cert      = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
 			var utils     = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
@@ -556,7 +554,6 @@
 				pzh.sessionId = pzh.config.common.split(':')[0];
 				var crashMsg = fs.createWriteStream(webinosDemo + '/'+ pzh.sessionId + '_crash.txt', {'flags': 'a'});
 				helper.setDebugStream(crashMsg);
-				websocket.instance.push(pzh);
 			} catch (err) {
 				helper.debug(1, 'PZH ('+pzh.sessionId+') Pzh information is not in correct format ' + err);
 				return;

@@ -18,31 +18,64 @@ pzhapis.addPzpQR = function (pzh, callback) {
 	qrcode.addPzpQRAgain(pzh, callback);
 }
 
-pzhapis.connectedPzhPzp = function(pzh, callback) {
-	"use strict";	
+pzhapis.listZoneDevices = function(pzh, callback) {
+	"use strict";
+	
+	console.log("certDir: ", pzh.config.pzhCertDir);
+	
+	revoker.listAllPzps(pzh, function(err1, pzpList) {
+	    var result = {pzps: [], pzhs: []};
+	    //PZPs
+	    if (err1 === null) {
+	        for (var i=0; i<pzpList.length; i++) {
+                result.pzps.push(getPzpInfoSync(pzh, pzpList[i]));
+	        } 
+	    }
+	    //Connected PZHs
+	    revoker.listAllPzhs(pzh, function(err2, pzhList) {
+	        if (err2 === null) {
+                for (var j=0; j<pzhList.length; j++) {
+                    result.pzhs.push(getPzhInfoSync(pzh, pzhList[j]));
+                }
+	        }
+	        var err3 = { pzpError : err1, pzhError : err2 }; 
+	        callback(err3, result);
+	        
+	    });
+	});
+	/*	
 	callback({ 
 	    allPzps         : revoker.listAllPzps(pzh, callback);
 	    connectedPzpIds : pzh.connectedPzpIds , 
 	    connectedPzhIds : pzh.connectedPzhIds , 
 	    sessions        : pzh.connectedPzp 
 	});
+	*/
 }
 	
-	
+function getPzpInfoSync(pzh, pzpId) {
+    "use strict";    
+    return {
+        id          : pzpId,
+        cname       : "unknown PZP CNAME",
+        isConnected : true
+    };
+}
+
+function getPzhInfoSync(pzh, pzhId) {
+    "use strict";    
+    return {
+        id          : pzhId,
+        cname       : "unknown PZH CNAME",
+        isConnected : true
+    };
+}
+
+
 pzhapis.revoke = function(pzh, pzpid, callback) {
     "use strict";        
     revoker.revokePzp(pzh, pzpid, callback);
 }	
-
-pzhapis.getPzpInfo = function(pzh, pzpId, callback) {
-    "use strict";
-    
-}
-
-pzhapis.getAllPzps = function(pzh, callback) {
-    "use strict";
-    revoker.listAllPzps(pzh, callback);
-}
 
 
 pzhapis.restartPzh = function(pzh, callback) {

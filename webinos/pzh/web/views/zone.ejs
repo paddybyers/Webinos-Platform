@@ -1,0 +1,64 @@
+    <div id = "zoneList">
+		<center> <p> List all your PZPs and PZHs </p> </center>
+		<center> 
+			<table id="pzps">
+			<th>ID</th><th>Name</th><th>Status</th><th>Remove</th>
+			<%
+			
+			var i =0;
+			
+			if (devices.pzhs !== null) {
+    			for (i=0; i<devices.pzhs.length; i++) {
+        			%> 
+        			<tr>
+        			<td> <%= devices.pzhs[i].id %> </td>
+        			<td><%= devices.pzhs[i].cname %></td>
+        			<td><% 
+        			if (devices.pzhs[i].isConnected) { 
+        			    %> Connected <%           			
+        			} else {
+        			    %> Not connected <%
+        			}
+        			%>
+        			</td> 
+        			<td><input type="button" value="Revoke" /></td>
+        			</tr>
+        			<%
+        			
+    			}
+			}
+			
+			%>
+			</table> 
+			
+            <table id="pzhs">
+            <th>ID</th><th>Name</th><th>Status</th><th>Remove</th>
+			<%
+			
+			if (devices.pzps !== null) {
+    			for (i=0; i<devices.pzps.length; i++) {
+        			%> 
+        			<tr>
+        			<td> <%= devices.pzps[i].id %> </td>
+        			<td><%= devices.pzps[i].cname %></td>
+        			<td><% 
+        			if (devices.pzps[i].isConnected) { 
+        			    %> Connected <%           			
+        			} else {
+        			    %> Not connected <%
+        			}
+        			%>
+        			</td> 
+        			<td><input type="button" value="Revoke" /></td>
+        			</tr>
+        			<%
+        			
+    			}
+			}
+			
+			%>			
+			</table> 
+
+		</center>
+		
+	</div>
