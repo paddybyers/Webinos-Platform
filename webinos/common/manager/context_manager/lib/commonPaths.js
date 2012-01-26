@@ -14,6 +14,15 @@ function getUserFolder(){
 		return path.resolve(process.env.appdata + '/webinos/');
 		break;
 	case 'linux':
+	  switch(os.platform().toLowerCase()){
+	    case 'android':
+	      return path.resolve(process.env.EXTERNAL_STORAGE + '/.webinos/');
+	      break;
+	    case 'linux':
+	      return path.resolve(process.env.HOME + '/.webinos/');
+	      break;
+	  }
+	  break;
 	case 'darwin':
 		return path.resolve(process.env.HOME + '/.webinos/');
 		break;
