@@ -377,9 +377,10 @@
 						if(!self.connectedPzp.hasOwnProperty(msg[i].name)) {
 							self.connectedPzp[msg[i].name] = {'address': msg[i].address, 'port': msg[i].port};
 							self.connectedPzpIds.push(msg[i].name);
-							if(msg[i].newPzp) {
-								self.connectOtherPZP(msg[i]);
-							}
+							// FIXME errors related to connectOtherPZP
+//							if(msg[i].newPzp) {
+//								self.connectOtherPZP(msg[i]);
+//							}
 							self.wsServerMsg("Pzp Joined " + msg[i].name);
 							self.prepMsg(self.sessionId, self.sessionWebAppId, 'update', {pzp: msg[i].name });		
 						}
