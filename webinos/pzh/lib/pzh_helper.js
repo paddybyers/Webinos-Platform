@@ -19,7 +19,7 @@ helper.addPzpQR = function (pzh, callback) {
 helper.connectedPzhPzp = function(pzh, callback) {
 	"use strict";
 	
-	callback({ pzpList : pzh.connectedPzhIds , pzhList : pzp.connectedPzpIds });
+	callback({ pzpList : pzh.connectedPzhIds , pzhList : pzh.connectedPzpIds, sessions: pzh.connectedPzp });
 }
 	
 helper.crashLog = function(pzh, callback) {

@@ -46,7 +46,9 @@ module.exports = function(app){
     
       helper.connectedPzhPzp(app.Pzh, function(list) {
       
-        res.render('listpzh', { user: req.user, pzh: app.Pzh, isMutualAuth: false, pzhList : list.pzhList, pzpList : list.pzpList});
+        console.log(util.inspect(list.sessions));
+      
+        res.render('listpzh', { user: req.user, pzh: app.Pzh, isMutualAuth: false, pzhList : list.pzhList, pzpList : list.pzpList, pzpSessions: list.sessions});
       
       });
       
