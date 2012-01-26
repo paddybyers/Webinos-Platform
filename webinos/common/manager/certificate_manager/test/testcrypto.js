@@ -13,7 +13,7 @@ caCertReq = certman.createCertificateRequest(caKey,
 if (debug) console.log("CA Certificate Request: \n[" + caCertReq + "]\n");
 
 var caCert = null;
-caCert = certman.selfSignRequest(caCertReq, 30, caKey);
+caCert = certman.selfSignRequest(caCertReq, 30, caKey,1);
 if (debug) console.log("CA Certificate: \n[" + caCert + "]\n");
 
 
