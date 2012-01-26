@@ -46,12 +46,12 @@
             </execution>
             -->
             <!-- Runs jasmine node tests specified in .spec.js files in the jasmine test folder -->
-            <execution>
+            <!--<execution>
               <id>jasmine-node-testing</id>
               <goals>
                 <goal>exec</goal>
               </goals>
-            </execution>
+            </execution>-->
           </executions>
       </plugin>
     </plugins>
