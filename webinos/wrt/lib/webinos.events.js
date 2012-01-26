@@ -197,7 +197,12 @@
 		
 		webinos.rpcHandler.executeRPC(rpc);
 		
-    	//returns void
+		
+		rpc.serviceAddress = webinos.session.getPZHId();
+		webinos.rpcHandler.executeRPC(rpc);
+    	
+		
+		//returns void
     	//raises(WebinosEventException);
          
     }
