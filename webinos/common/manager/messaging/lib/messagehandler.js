@@ -141,6 +141,9 @@
 		options.register = true;
 		options.to = to;
 		options.from = from;
+		options.type = "JSONRPC";
+		options.payload = null;
+
 		var message = this.createMessage(options);
 		return message;
 	};
@@ -158,10 +161,12 @@
 	 */
 	MessageHandler.prototype.write = function(rpc, respto, msgid) {
 
-		//create response message
-		var options = {};
+	    //create response message
+	    var options = {};
 	    options.to = respto;
 	    options.resp_to = respto;
+	    
+	    options.from = this.ownId;
 	    
 	    if (typeof msgid !== undefined && msgid != null){
 	    	options.id = msgid;
@@ -170,7 +175,9 @@
 	    	//TODO calling write function from RPC does not allow to register call-backs yet
 	    	msgid = 1 + Math.floor(Math.random() * 1024);
 	    }
-	    
+	    	
+		if(typeof rpc.jsonrpc !== "undefined")
+		  options.type = "JSONRPC";
 		options.payload = rpc;
 		var message = this.createMessage(options);
 		
