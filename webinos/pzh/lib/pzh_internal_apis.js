@@ -10,6 +10,7 @@ var webinosDemo  = path.resolve(__dirname, '../../../demo');
 
 var qr           = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_qrcode.js'));
 var helper       = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_pzhapis.js'));
+var revoker      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_revoke.js'));	
 
 
 pzhapis.addPzpQR = function (pzh, callback) {
@@ -18,28 +19,38 @@ pzhapis.addPzpQR = function (pzh, callback) {
 }
 
 pzhapis.connectedPzhPzp = function(pzh, callback) {
-	"use strict";
-	
-	callback({ pzpList : pzh.connectedPzhIds , pzhList : pzh.connectedPzpIds, sessions: pzh.connectedPzp });
+	"use strict";	
+	callback({ 
+	    pzpList : pzh.connectedPzpIds , 
+	    pzhList : pzh.connectedPzhIds , 
+	    sessions: pzh.connectedPzp 
+	});
 }
 	
 	
-pzhapis.revoke = function(pzh, callback) {
+pzhapis.revoke = function(pzh, pzpid, callback) {
     "use strict";        
-    
+    revoker.revokePzp(pzh, pzpid, callback);
 }	
 
-pzhapis.listAllPzp = function(pzh, callback) {
+pzhapis.getPzpInfo = function(pzh, pzpId, callback) {
     "use strict";
-        
+    
 }
+
+pzhapis.getAllPzps = function(pzh, callback) {
+    "use strict";
+    revoker.listAllPzps(pzh, callback);
+}
+
 
 pzhapis.restartPzh = function(pzh, callback) {
     "use strict";
-        
+    //TODO
 }
 	
 pzhapis.getPzhCertificate = function(pzh, callback) {
+    "use strict";
     var msg = {name: app.Pzh.config.master.cert.name , 
 		       cert: app.Pzh.config.master.cert.value};
     var payload = pzh.prepMsg(null, null, 'receiveMasterCert', msg);
@@ -47,6 +58,7 @@ pzhapis.getPzhCertificate = function(pzh, callback) {
 }
 
 pzhapis.addPzhCertificate = function(pzh, name, certificate, callback) {
+    "use strict";
     try { 
         fs.writeFile(pzh.config.pzhOtherCertDir+'/'+certname, certvalue, function() {
             pzh.conn.pair.credentials.context.addCACert(certvalue);
