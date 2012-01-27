@@ -20,6 +20,10 @@ import org.webinos.api.sensor.ConfigureSensorCB;
 import org.webinos.api.sensor.ConfigureSensorOptions;
 import org.webinos.api.sensor.SensorError;
 import org.webinos.api.sensor.SensorErrorCB;
+import org.webinos.api.sensor.FindSensorsManager;
+import org.webinos.api.sensor.SensorFindCB;
+import org.webinos.api.sensor.SensorFindErrorCB;
+import org.webinos.api.sensor.SensorFindError;
 
 import org.meshpoint.anode.AndroidContext;
 import org.meshpoint.anode.module.IModule;
@@ -82,19 +86,28 @@ public class SensorImpl extends org.webinos.api.sensor.SensorManager implements 
  	  else if ("http://webinos.org/api/sensors.rotationvector".equals(api))
 	    sensorType = Sensor.TYPE_ROTATION_VECTOR;	 	    
  	  else if ("http://webinos.org/api/sensors.temperature".equals(api))
-	    sensorType = Sensor.TYPE_TEMPERATURE; 	  
+	    sensorType = Sensor.TYPE_TEMPERATURE; 
+ 	  else if ("http://webinos.org/api/sensors".equals(api))
+	    sensorType = Sensor.TYPE_ALL; 	    	  
  	  else
 	    Log.e(TAG, "Ilegal sensor type selected");  
 	  
-	  if (sensorType != -100) {  
-  		(webinosSensorListener = new WebinosSensorListener(sensorCb)).start();
-  		for (Sensor androidSensor : androidSensorList) {
-	  	   if (androidSensor.getType() == sensorType) {
-		       androidSensorManager.registerListener(webinosSensorListener, androidSensor, android.hardware.SensorManager.SENSOR_DELAY_UI);
-	  	     return;
-	  	   }	
-	  	}		
-		
+	  if ((sensorType != -100)&&(sensorType != Sensor.TYPE_ALL)){  
+
+  		  for (Sensor androidSensor : androidSensorList) {
+	  	     if (androidSensor.getType() == sensorType) {
+	  	       (webinosSensorListener = new WebinosSensorListener(sensorCb)).start();
+		         androidSensorManager.registerListener(webinosSensorListener, androidSensor, android.hardware.SensorManager.SENSOR_DELAY_UI);
+	  	       return;
+	  	     }	
+	  	  }	
+	  }	
+		else if ((sensorType != -100) && (sensorType == Sensor.TYPE_ALL)) {
+		   
+		    for (Sensor androidSensor : androidSensorList) {
+		  	  (webinosSensorListener = new WebinosSensorListener(sensorCb)).start();
+		      androidSensorManager.registerListener(webinosSensorListener, androidSensor, android.hardware.SensorManager.SENSOR_DELAY_UI);
+	  	  }			   		   
 		}
 	}
 	
