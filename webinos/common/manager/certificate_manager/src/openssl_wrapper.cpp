@@ -250,13 +250,13 @@ int selfSignRequest(char* pemRequest, int days, char* pemCAKey, int certType, ch
 
 	if( certType == 0) {
 
-		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_basic_constraints, (char*)"critical, CA:TRUE, pathlen:0"))) {
+		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_basic_constraints, (char*)"critical, CA:TRUE"))) {
 			return 0;
 		} else {
 			X509_add_ext(cert, ex, -1);
 		}
 		
-		if(!(ex = X509V3_EXT_conf_nid(NULL,  &ctx, NID_key_usage, (char*)"critical, digitalSignature, nonRepudiation, keyCertSign, cRLSign"))) {
+		if(!(ex = X509V3_EXT_conf_nid(NULL,  &ctx, NID_key_usage, (char*)"critical,  keyCertSign, digitalSignature, cRLSign"))) { /* nonRepudiation,*/
 			return 0;
 		} else {
 			X509_add_ext(cert, ex, -1);
@@ -273,6 +273,16 @@ int selfSignRequest(char* pemRequest, int days, char* pemCAKey, int certType, ch
 		} else {
 			X509_add_ext(cert, ex, -1);
 		}
+		char *str = (char*)malloc(strlen("URI:") + strlen(url));
+		strcpy(str, "URI:");
+		strcpy(str + strlen("URI:"), url);
+		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_crl_distribution_points, (char*)str))) {
+			free(str);
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
+		free(str);
 	}
 	
 
@@ -377,12 +387,6 @@ int signRequest(char* pemRequest, int days, char* pemCAKey, char* pemCaCert,  in
 			X509_add_ext(cert, ex, -1);
 		}
 
-		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_authority_key_identifier, (char*)"keyid"))) {
-			return 0;
-		} else {
-			X509_add_ext(cert, ex, -1);
-		}
-
 		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_issuer_alt_name, (char*)"issuer:copy"))) {
 			return 0;
 		} else {
@@ -407,13 +411,7 @@ int signRequest(char* pemRequest, int days, char* pemCAKey, char* pemCaCert,  in
 			X509_add_ext(cert, ex, -1);
 		}			
 
-		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_ext_key_usage, (char*)"critical, clientAuth"))) {
-			return 0;
-		} else {
-			X509_add_ext(cert, ex, -1);
-		}
-
-		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_authority_key_identifier, (char*)"keyid"))) {
+		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_ext_key_usage, (char*)"critical, clientAuth, serverAuth"))) {
 			return 0;
 		} else {
 			X509_add_ext(cert, ex, -1);
@@ -454,7 +452,7 @@ int signRequest(char* pemRequest, int days, char* pemCAKey, char* pemCaCert,  in
     BIO_get_mem_ptr(mem, &bptr);
     BIO_read(mem, result, bptr->length);
     
-    BIO_free(mem);
+    BIO_free(mem); 
     BIO_free(bioReq);
     BIO_free(bioCert);
     BIO_free(bioCAKey);
@@ -503,7 +501,7 @@ int createEmptyCRL(char* pemSigningKey, char* pemCaCert, int crldays, int crlhou
 	//set update times (probably not essential, but why not.
 	ASN1_TIME* tmptm = ASN1_TIME_new();
 	X509_gmtime_adj(tmptm,0);
-	X509_CRL_set_lastUpdate(crl, tmptm);	
+	X509_CRL_set_lastUpdate(crl, tmptm);
 	X509_gmtime_adj(tmptm,(crldays*24+crlhours)*60*60);
 	X509_CRL_set_nextUpdate(crl, tmptm);	
 	ASN1_TIME_free(tmptm);
@@ -512,7 +510,6 @@ int createEmptyCRL(char* pemSigningKey, char* pemCaCert, int crldays, int crlhou
 	X509_CRL_sort(crl);
 	
 	//extensions would go here.
-	
 
 	//Sign with out caKey
 	if (!(err = X509_CRL_sign(crl,caKey,EVP_sha1())))
