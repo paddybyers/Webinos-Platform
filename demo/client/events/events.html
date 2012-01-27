@@ -146,9 +146,9 @@
 			//params.event, params.recipient
 				$('#messages').append('<li> onTimeout()</li>');
 			};
-			callback.onError = function (params) {
+			callback.onError = function (event, recipient, error) {
 			//params.event, params.recipient, params.error
-				$('#messages').append('<li> onError()</li>');
+				$('#messages').append('<li> onError() ' + error + '</li>');
 			};
                     		
                     		ev.dispatchWebinosEvent(callback);

@@ -98,7 +98,15 @@
 
             var serviceConstructor = typeMap[baseServiceObj.api];
             if (typeof serviceConstructor !== 'undefined') {
-                // elevate baseServiceObj to usable local WebinosService object
+
+
+            	//TODO this is a bad hack to ensure that only one (the connected pzp one) Event API is found => EVENT API should
+            	//be statically accessible ==> internally should be done using findService with filter for own PZP and for PZH
+                if (baseServiceObj.api === 'http://webinos.org/api/events' && baseServiceObj.serviceAddress !== webinos.session.getPZPId()){
+                	return;
+                }
+            	
+            	// elevate baseServiceObj to usable local WebinosService object
                 var service = new serviceConstructor(baseServiceObj);
                 webinos.ServiceDiscovery.registeredServices++;
                 callback.onFound(service);
