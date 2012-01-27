@@ -1,23 +1,30 @@
 package org.webinos.impl;
 
 import android.telephony.SmsManager;
-//import android.telephony.SmsMessage;
+import android.telephony.SmsMessage;
 import android.util.Log;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ContentValues;
 import android.content.BroadcastReceiver;
 import android.os.Bundle;
 import android.database.Cursor;
 import android.net.Uri;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.List;
 
 import org.meshpoint.anode.AndroidContext;
 import org.meshpoint.anode.bridge.Env;
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
+import org.w3c.dom.ObjectArray;
 import org.webinos.api.DeviceAPIError;
 import org.webinos.api.ErrorCallback;
 import org.webinos.api.PendingOperation;
@@ -29,10 +36,13 @@ import org.webinos.api.messaging.MessagingManager;
 import org.webinos.api.messaging.OnIncomingMessage;
 
 import android.content.Context;
+
 public class MessagingImpl extends MessagingManager implements IModule {
 
 	private Context androidContext;
 	private	SmsManager	smsManager;
+	private Map<Integer, SmsReceiver> smsReceiverList;
+	private int counter;
 
 	private static final String LABEL = "org.webinos.impl.MessagingImpl";
 	
@@ -46,8 +56,10 @@ public class MessagingImpl extends MessagingManager implements IModule {
 			throw new DeviceAPIError(DeviceAPIError.TYPE_MISMATCH_ERR);
 		}
 		if (type == TYPE_SMS) {
-			Message msg = new MessageImpl();
+			MessageImpl msg = new MessageImpl();
+			msg.setContext(androidContext);
 			msg.type = type;
+			msg.folder = FOLDER_DRAFTS;
 			return msg;
 		}
 		else if (type==TYPE_MMS || type==TYPE_EMAIL || type==TYPE_IM) {
@@ -62,7 +74,6 @@ public class MessagingImpl extends MessagingManager implements IModule {
 	@Override
 	public PendingOperation sendMessage(MessageSendCallback successCallback,
 			ErrorCallback errorCallback, Message message) throws DeviceAPIError {
-		// TODO Two sendMessage are defined in specs (difference is the callback); how to handle this?
 		Log.v(LABEL, "sendMessage");
 		if(successCallback == null || message == null) {
 			Log.v(LABEL, "sendMessage error (successCallback or message null)");
@@ -78,9 +89,10 @@ public class MessagingImpl extends MessagingManager implements IModule {
 				Thread t = new Thread(smsSender);
 				t.start();
 				Log.v(LABEL, "sendMessage - thread started with id "+(int)t.getId());
-				MessagingPendingOperation pOp = new MessagingPendingOperation();
-				pOp.setData(t, smsSender);
-				return pOp;
+				//MessagingPendingOperation pOp = new MessagingPendingOperation(t, smsSender);
+				//pOp.setData(t, smsSender);
+				//return pOp;
+				return new MessagingPendingOperation(t, smsSender);
 			}
 			else {
 				//TODO what if the message has 0 recipients?
@@ -107,16 +119,20 @@ public class MessagingImpl extends MessagingManager implements IModule {
 		Thread t = new Thread(smsFinder);
 		t.start();
 
-		MessagingPendingOperation pOp = new MessagingPendingOperation();
-		pOp.setData(t, smsFinder);
-		return pOp;
-
+		//MessagingPendingOperation pOp = new MessagingPendingOperation(t, smsFinder);
+		//pOp.setData(t, smsFinder);
+		//return pOp;
+		return new MessagingPendingOperation(t, smsFinder);
 	}
 
 	@Override
 	public int onSMS(OnIncomingMessage messageHandler) throws DeviceAPIError {
-		// TODO Auto-generated method stub
-		return 0;
+		counter++;
+		Log.v(LABEL, "onSMS - "+counter);
+		SmsReceiver smsReceiver = new SmsReceiver(messageHandler);
+		androidContext.registerReceiver(smsReceiver, new IntentFilter("android.provider.Telephony.SMS_RECEIVED"));
+		smsReceiverList.put(counter, smsReceiver);
+		return counter;
 	}
 
 	@Override
@@ -133,8 +149,12 @@ public class MessagingImpl extends MessagingManager implements IModule {
 
 	@Override
 	public void unsubscribe(int subscriptionHandler) throws DeviceAPIError {
-		// TODO Auto-generated method stub
-		
+		Log.v(LABEL, "unsubscribe - "+subscriptionHandler);
+		SmsReceiver smsReceiver = smsReceiverList.get(subscriptionHandler);
+		if(smsReceiver != null) {
+			androidContext.unregisterReceiver(smsReceiver);
+			smsReceiverList.remove(subscriptionHandler);
+		}
 	}
 
 	/*****************************
@@ -145,20 +165,23 @@ public class MessagingImpl extends MessagingManager implements IModule {
 		Log.v(LABEL, "startModule");
 		androidContext = ((AndroidContext)ctx).getAndroidContext();
 		smsManager = SmsManager.getDefault();
+		smsReceiverList = new HashMap<Integer, SmsReceiver>();
+		counter = 0;
 		return this;
 	}
 
 	@Override
 	public void stopModule() {
+		//TODO stop all findMessages and sendMessages
 		Log.v(LABEL, "stopModule");
+		if(!smsReceiverList.isEmpty()) {
+			Set<Integer> listenersId = smsReceiverList.keySet();
+			for(Integer i: listenersId) {
+				androidContext.unregisterReceiver(smsReceiverList.get(i));
+			}
+		}
 	}
 
-	abstract interface MessagingRunnable extends Runnable {
-		public abstract void stop();
-		public abstract boolean isStopped();
-	}
-	
-	//sms sender
 	class SmsSender implements MessagingRunnable {
 		
 		private MessageSendCallback successCallback;
@@ -205,7 +228,6 @@ public class MessagingImpl extends MessagingManager implements IModule {
 					Intent intent=new Intent(SMS_SENT);
 					intent.putExtra("rec", message.to.getElement(i));
 					PendingIntent pnd = PendingIntent.getBroadcast(androidContext, 0, intent, 0);
-					//TODO add support for longer messages
 					if(bodyParts.size() == 1) {
 						smsManager.sendTextMessage(message.to.getElement(i), null, message.body, pnd, null);
 					}
@@ -234,17 +256,19 @@ public class MessagingImpl extends MessagingManager implements IModule {
 		
 		public void sendNextMessage() {
 			Log.v(LABEL, "SmsSender - sendNextMessage");
-			if(stopped) {
+			if(isStopped()) {
 				Log.v(LABEL, "SmsSender - sendNextMessage - stopped");
+				sendFinished();
 				return;
 			}
 			if(smsCounter<message.to.getLength()) {
 				try {
+					//TODO Investigate why in case of multiple recipients the Extra of the intent is not correct...
 					Intent intent=new Intent(SMS_SENT);
 					intent.putExtra("rec", message.to.getElement(smsCounter));
+					intent.putExtra("body", message.body);
 					Log.v(LABEL, "intent created with rec = "+intent.getExtras().getString("rec"));
 					PendingIntent pnd = PendingIntent.getBroadcast(androidContext, 0, intent, 0);
-					//TODO add support for longer messages
 					if(bodyParts.size() == 1) {
 						smsManager.sendTextMessage(message.to.getElement(smsCounter), null, message.body, pnd, null);
 					}
@@ -283,22 +307,38 @@ public class MessagingImpl extends MessagingManager implements IModule {
 		public void onReceive(Context ctx, Intent intent) {
 			if(smsSender.isStopped()) {
 				Log.v(LABEL, "SmsResponseReceiver onReceive - stopped");
+				smsSender.sendNextMessage();
 				return;
 			}
-			String rec=null;
-			Bundle extras = intent.getExtras();
-			if(extras!=null){
-				rec=extras.getString("rec");
+			try {
+				String rec=null;
+				String body=null;
+				Bundle extras = intent.getExtras();
+				if(extras!=null){
+					rec=extras.getString("rec");
+					body=extras.getString("body");
+				}
+				switch(getResultCode()) {
+				case Activity.RESULT_OK:
+					Log.v(LABEL, "SmsResponseReceiver - Received intent OK ("+getResultCode()+") for rec "+rec);
+					//Insert the message in the db
+					ContentValues msgData = new ContentValues();
+					msgData.put("address", rec);
+					msgData.put("body", body);
+					msgData.put("read", 1);
+					Log.v(LABEL, "SmsResponseReceiver - 05");
+					androidContext.getContentResolver().insert(Uri.parse("content://sms/sent"), msgData);
+					Log.v(LABEL, "SmsResponseReceiver - 06");
+					sendFinished(0, rec);
+					break;
+				default:
+					Log.v(LABEL, "SmsResponseReceiver - Received intent error ("+getResultCode()+") for rec "+rec);
+					sendFinished(1, rec);
+					break;
+				}
 			}
-			switch(getResultCode()) {
-			case Activity.RESULT_OK:
-				Log.v(LABEL, "SmsResponseReceiver - Received intent OK ("+getResultCode()+") for rec "+rec);
-				sendFinished(0, rec);
-				break;
-			default:
-				Log.v(LABEL, "SmsResponseReceiver - Received intent error ("+getResultCode()+") for rec "+rec);
-				sendFinished(1, rec);
-				break;
+			catch(Exception e){
+				Log.v(LABEL, "SmsResponseReceiver - onReceive exception "+e.getMessage());
 			}
 		}
 		
@@ -319,6 +359,7 @@ public class MessagingImpl extends MessagingManager implements IModule {
 		private void sendFinished(int res, String recipient) {
 			smsCounter++;
 			errorCounter+=res;
+			//TODO save the message in sent folder
 			Log.v(LABEL, "SmsResponseReceiver sendFinished - sms n "+smsCounter+" - err n "+errorCounter);
 			if(smsCounter == smsNumber) {
 				smsSender.sendFinished();
@@ -368,57 +409,304 @@ public class MessagingImpl extends MessagingManager implements IModule {
 			stopped = true;
 		}
 
+		private boolean searchSms() {
+			Log.v(LABEL, "searchSms - 01");
+			try {
+				if(filter==null) {
+					return true;
+				}
+				else if(filter.type==null) {
+					Log.v(LABEL, "searchSms - 02");
+					return true;
+				}
+				else for(int i=0; i<filter.type.length; i++) {
+					Log.v(LABEL, "searchSms - 03");
+					if(filter.type[i]==TYPE_SMS)
+						return true;
+				}
+			}
+			catch(Exception e) {
+				Log.v(LABEL, "searchSms exception: "+e.getMessage());
+			}
+			Log.v(LABEL, "searchSms - 09");
+			return false;
+		}
+
+		private boolean searchMms() {
+			Log.v(LABEL, "searchMms - 01");
+			try {
+				if(filter==null) {
+					return true;
+				}
+				else if(filter.type==null) {
+					Log.v(LABEL, "searchMms - 02");
+					return true;
+				}
+				else for(int i=0; i<filter.type.length; i++) {
+					Log.v(LABEL, "searchMms - 03");
+					if(filter.type[i]==TYPE_MMS)
+						return true;
+				}
+			}
+			catch(Exception e) {
+				Log.v(LABEL, "searchMms exception: "+e.getMessage());
+			}
+			Log.v(LABEL, "searchMms - 09");
+			return false;
+		}
+		
+		private boolean searchDir(int dir) {
+			if(filter==null)
+				return true;
+			else if(filter.folder==null)
+				return true;
+			else for(int i=0; i<filter.folder.length; i++) {
+				if(filter.folder[i]==dir)
+					return true;
+			}
+			return false;
+		}
+
+		private String getFilterString(int folder) {
+			Log.v(LABEL, "getFilterString");
+			if(filter==null)
+				return null;
+			String res=new String();
+			boolean initialized=false;
+			if(filter.id!=null){
+				Log.v(LABEL, "getFilterString - id");
+				if(initialized)
+					res+=" AND ";
+				res+="_id="+filter.id;
+				initialized=true;
+			}
+			if(filter.from!=null){
+				Log.v(LABEL, "getFilterString - from");
+				if(initialized)
+					res+=" AND ";
+				if(folder==FOLDER_INBOX) {
+					res+="address=\'"+filter.from+"\'";
+				}
+				else {
+					res+="address=\'00000000\'";
+				}
+				initialized=true;
+			}
+			if(filter.to!=null) {
+				Log.v(LABEL, "getFilterString - to");
+				if(initialized)
+					res+=" AND ";
+				if(folder==FOLDER_INBOX) {
+					Log.v(LABEL, "getFilterString - to - inbox");
+					res+="address=\'00000000\'";
+				}
+				else {
+					if(filter.to.length == 1) {
+						Log.v(LABEL, "getFilterString - to - 1");
+						res+="address=\'"+filter.to[0]+"\'";
+					}
+					else {
+						Log.v(LABEL, "getFilterString - to - >1");
+						res+="(address=\'"+filter.to[0]+"\'";
+						for(int i=1;i<filter.to.length;i++) {
+							res+=" OR address=\'"+filter.to[i]+"\'";
+						}
+						res+=")";
+					}
+				}
+				initialized=true;
+			}
+			if(filter.body!=null){
+				Log.v(LABEL, "getFilterString - body");
+				if(initialized)
+					res+=" AND ";
+				res+="body=\'"+filter.body+"\'";
+				initialized=true;
+			}
+			if(filter.isRead!=null){
+				Log.v(LABEL, "getFilterString - isRead");
+				if(initialized)
+					res+=" AND ";
+				res+="read=";
+				if(filter.isRead){
+					res+="1";
+				}
+				else {
+					res+="0";
+				}
+				initialized=true;
+			}
+			if(initialized)
+				return res;
+			else
+				return null;
+		}
+		
+		private Uri getUri(int type, int folder) {
+			Uri res=null;
+			if (type==TYPE_SMS) {
+				switch(folder) {
+				case FOLDER_INBOX:
+					res=Uri.parse("content://sms/inbox");
+					break;
+				case FOLDER_OUTBOX:
+					res=Uri.parse("content://sms/outbox");
+					break;
+				case FOLDER_SENTBOX:
+					res=Uri.parse("content://sms/sent");
+					break;
+				case FOLDER_DRAFTS:
+					res=Uri.parse("content://sms/draft");
+					break;
+				}
+			}
+			else if(type==TYPE_MMS) {
+				res=Uri.parse("content://mms/part");
+			}
+			return res;
+		}
+		
+		private boolean checkTimestamp(Date timestamp) {
+			if(filter==null)
+				return true;
+			Log.v(LABEL, "checkTimestamp - timestamp is "+timestamp+", start is "+filter.startTimestamp+", end is "+filter.endTimestamp);
+			if(filter.startTimestamp!=null) {
+				if(timestamp.before(filter.startTimestamp))
+					return false;
+			}
+			if(filter.endTimestamp!=null) {
+				if(timestamp.after(filter.endTimestamp))
+					return false;
+			}
+			return true;
+		}
+		
+		private List<Message> getSms(List<Message> list, int folder) {
+			String filterString=getFilterString(folder);
+			Log.v(LABEL, "smsFinder getSms - filter string is "+filterString);
+//			Uri searchUri=getUri(TYPE_SMS, folder);
+			Cursor cursor = androidContext.getContentResolver().query(getUri(TYPE_SMS, folder), new String[] { "_id", "thread_id", "address", "date", "read", "status", "type", "body" }, filterString, null,null);
+			MessageImpl msg;
+			Log.v(LABEL, "smsFinder getSms - 03 - messages found "+cursor.getCount());
+			cursor.moveToFirst();
+			for(int i=0; i<cursor.getCount(); i++) {
+				Log.v(LABEL, "smsFinder getSms - iteration n "+i);
+				msg = new MessageImpl();
+				msg.setContext(androidContext);
+				msg.timestamp = new Date(cursor.getLong(cursor.getColumnIndex("date")));
+				if(checkTimestamp(msg.timestamp)) {
+					msg.type = TYPE_SMS;
+					msg.id = cursor.getString(cursor.getColumnIndex("_id"));
+					msg.body = cursor.getString(cursor.getColumnIndex("body"));
+					msg.isRead = (cursor.getInt(cursor.getColumnIndex("read"))==0) ? false : true;
+					ObjectArray<String> toTmp;
+					Log.v(LABEL, "smsFinder getSms - 04");
+					switch(cursor.getInt(cursor.getColumnIndex("type"))) {
+					case 1:
+						Log.v(LABEL, "smsFinder getSms - 041");
+						msg.folder = FOLDER_INBOX;
+						msg.from = cursor.getString(cursor.getColumnIndex("address"));
+						toTmp = new org.meshpoint.anode.java.ObjectArray<String>(new String[]{"me"});
+						msg.to = toTmp;
+						list.add(msg);
+						break;
+					case 2:
+						Log.v(LABEL, "smsFinder getSms - 042");
+						msg.folder = FOLDER_SENTBOX;
+						msg.from = "me";
+						toTmp = new org.meshpoint.anode.java.ObjectArray<String>(new String[]{cursor.getString(cursor.getColumnIndex("address"))});
+						msg.to = toTmp;
+						list.add(msg);
+						break;
+					case 3:
+						Log.v(LABEL, "smsFinder getSms - 043");
+						msg.folder = FOLDER_DRAFTS;
+						msg.from = "me";
+						toTmp = new org.meshpoint.anode.java.ObjectArray<String>(new String[]{cursor.getString(cursor.getColumnIndex("address"))});
+						msg.to = toTmp;
+						list.add(msg);
+						break;
+					case 4:
+						//TODO verify if outbox is type 4... 
+						Log.v(LABEL, "smsFinder getSms - 044");
+						msg.folder = FOLDER_OUTBOX;
+						msg.from = "me";
+						toTmp = new org.meshpoint.anode.java.ObjectArray<String>(new String[]{cursor.getString(cursor.getColumnIndex("address"))});
+						msg.to = toTmp;
+						list.add(msg);
+						break;
+					default:
+						//unknown type: skip the message
+						Log.v(LABEL, "smsFinder getSms - error - unexpected type of dir "+cursor.getInt(cursor.getColumnIndex("type")));
+						break;
+					}
+				}
+				cursor.moveToNext();
+			}
+			Log.v(LABEL, "smsFinder getSms - 05");
+			return list;
+		}
+
+		private List<Message> getMms(List<Message> list, int folder) {
+			Cursor cursor = androidContext.getContentResolver().query(Uri.parse("content://mms"), null, null, null,null);
+			Log.v(LABEL, "smsFinder getMms - 03 - messages found "+cursor.getCount());
+			cursor.moveToFirst();
+			for(int i=0; i<cursor.getCount(); i++) {
+				String id = cursor.getString(cursor.getColumnIndex("_id"));
+				Log.v(LABEL, "Messaggio "+i);
+				Log.v(LABEL, "id: "+id);
+				Log.v(LABEL, "date: "+cursor.getString(cursor.getColumnIndex("date")));
+				Log.v(LABEL, "read: "+cursor.getString(cursor.getColumnIndex("read")));
+				Log.v(LABEL, "seen: "+cursor.getString(cursor.getColumnIndex("seen")));
+				Cursor cursor2 = androidContext.getContentResolver().query(Uri.parse("content://mms/"+id+"/addr"), null, null, null,null);
+				Log.v(LABEL, "campi addr; righe "+cursor2.getCount()+" - colonne "+cursor2.getColumnCount());
+				cursor2.moveToFirst();
+				for (int k=0; k<cursor2.getCount(); k++) {
+					for(int j=0; j<cursor2.getColumnCount(); j++) {
+						Log.v(LABEL, cursor2.getColumnName(j)+": "+cursor2.getString(j));
+					}
+					cursor2.moveToNext();
+				}
+				cursor.moveToNext();
+			}
+			return list;
+		}
+		
 		public void run() {
 			Log.v(LABEL, "smsFinder run");
 			Env.setEnv(env);
 			try {
-//				Uri uriSMSURI = Uri.parse("content://sms/inbox");
-				Uri uriSMSURI = Uri.parse("content://sms/sent");
-//				Uri uriSMSURI = Uri.parse("content://sms");
-				Cursor cursor = androidContext.getContentResolver().query(uriSMSURI, new String[] { "_id", "thread_id", "address", "date", "read", "status", "type", "body" }, null, null,null);
-//				Cursor cursor = androidContext.getContentResolver().query(uriSMSURI, null, null, null,null);
-				for(int i=0; i<cursor.getColumnCount(); i++) {
-					Log.v(LABEL, "Column "+i+" name: "+cursor.getColumnName(i));
-				}
-				Log.v(LABEL, "smsFinder run - 02");
-				Message[] result;
-				Message msg;
-				result = new Message[cursor.getCount()];
-				Log.v(LABEL, "smsFinder run - 03");
-				for(int i=0; i<cursor.getCount(); i++) {
-					Log.v(LABEL, "smsFinder run - 051");
-					msg = new MessageImpl();
-					Log.v(LABEL, "smsFinder run - 052");
-					msg.id = cursor.getString(cursor.getColumnIndex("_id"));
-					msg.body = cursor.getString(cursor.getColumnIndex("body"));
-					Log.v(LABEL, "smsFinder run - 054");
-					result[i] = msg;
-					Log.v(LABEL, "smsFinder run - 055");
-
-					/*
-					result[i] = new MessageImpl();
-					result[i].id = cursor.getString(cursor.getColumnIndex("_id"));
-					result[i].type = TYPE_SMS;
-					//result[i].folder = ???;
-					//result[i].timestamp = ;
-					//result[i].from = ;
-					//result[i].to = ;
-					result[i].body = cursor.getString(cursor.getColumnIndex("body"));
-					//result[i].isRead = cursor.getString(cursor.getColumnIndex("read"));
-					*/
-				}
-				successCallback.onSuccess(result);
-
-				/*
-				while (cursor.moveToNext()) {
-					
-					String dbgstr = new String("Msg:");
-					for(int i=0; i<cursor.getColumnCount(); i++) {
-						dbgstr+=cursor.getString(i)+" - ";
+				Log.v(LABEL, "smsFinder run - 01");
+				List<Message> res = new ArrayList<Message>();
+				if(searchSms()) {
+					Log.v(LABEL, "smsFinder run - 02");
+					if(searchDir(FOLDER_INBOX)) {
+						Log.v(LABEL, "smsFinder run - search inbox");
+						res = getSms(res, FOLDER_INBOX);
 					}
-					Log.v(LABEL, dbgstr);
+					if(searchDir(FOLDER_SENTBOX)) {
+						Log.v(LABEL, "smsFinder run - search sentbox");
+						res = getSms(res, FOLDER_SENTBOX);
+					}
+					if(searchDir(FOLDER_OUTBOX)) {
+						Log.v(LABEL, "smsFinder run - search outbox");
+						res = getSms(res, FOLDER_OUTBOX);
+					}
+					if(searchDir(FOLDER_DRAFTS)) {
+						Log.v(LABEL, "smsFinder run - search drafts");
+						res = getSms(res, FOLDER_DRAFTS);
+					}
 				}
-				*/
+				if(searchMms()) {
+					Log.v(LABEL, "smsFinder run - 03");
+					//Uri uriSMSURI;
+					//uriSMSURI = Uri.parse("content://mms");
+					res = getMms(res, FOLDER_INBOX);
+				}
+				//TODO what if no results found? Return a null?
+				Log.v(LABEL, "smsFinder run - sending callback");
+				successCallback.onSuccess(res.toArray(new MessageImpl[res.size()]));
+				Log.v(LABEL, "smsFinder run - callback sent");
 			}
 			catch(Exception e) {
 				Log.v(LABEL, "smsFinder run, error: "+e);
@@ -430,27 +718,72 @@ public class MessagingImpl extends MessagingManager implements IModule {
 		}
 	}
 	
-	class MessagingPendingOperation extends PendingOperation {
+	public class SmsReceiver extends BroadcastReceiver {
 
-		private Thread t=null;
-		private MessagingRunnable r=null;
-		
-		public void setData(Thread t, MessagingRunnable r) {
-			this.t = t;
-			this.r = r;
+		private OnIncomingMessage messageHandler;
+
+		private SmsReceiver(OnIncomingMessage messageHandler) {
+			this.messageHandler = messageHandler;
 		}
 		
-		public void cancel() {
-			Log.v(LABEL, "MessagingPendingOperation cancel");
-			if(t!=null) {
-				Log.v(LABEL, "MessagingPendingOperation cancel - send interrupt...");
-				//TODO is this interrupt needed???
-				t.interrupt();
-				if(r!=null)
-					r.stop();
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			Log.v(LABEL, "SMSReceiver - onreceive");
+			Env.setEnv(env);
+			Bundle bundle = intent.getExtras();
+
+			Object messages[] = (Object[]) bundle.get("pdus");
+			for (int i = 0; i < messages.length; i++) {
+				SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) messages[i]);
+				MessageImpl msg = new MessageImpl();
+				msg.setContext(androidContext);
+				msg.type = TYPE_SMS;
+//				msg.id = ;
+				msg.body = smsMessage.getMessageBody();
+				msg.isRead = false;
+				msg.timestamp = new Date(smsMessage.getTimestampMillis());
+				ObjectArray<String> toTmp;
+				msg.folder = FOLDER_INBOX;
+				msg.from = smsMessage.getOriginatingAddress();
+				toTmp = new org.meshpoint.anode.java.ObjectArray<String>(new String[]{"me"});
+				msg.to = toTmp;
+				messageHandler.onEvent(msg);
 			}
 		}
-
 	}
 	
 }
+
+abstract interface MessagingRunnable extends Runnable {
+	public abstract void stop();
+	public abstract boolean isStopped();
+}
+
+class MessagingPendingOperation extends PendingOperation {
+
+	private Thread t=null;
+	private MessagingRunnable r=null;
+	
+	public MessagingPendingOperation(Thread t, MessagingRunnable r) {
+		this.t = t;
+		this.r = r;
+	}
+
+//	public void setData(Thread t, MessagingRunnable r) {
+//		this.t = t;
+//		this.r = r;
+//	}
+	
+	public void cancel() {
+//		Log.v(LABEL, "MessagingPendingOperation cancel");
+		if(t!=null) {
+//			Log.v(LABEL, "MessagingPendingOperation cancel - send interrupt...");
+			//TODO is this interrupt needed???
+			t.interrupt();
+			if(r!=null)
+				r.stop();
+		}
+	}
+
+}
+
