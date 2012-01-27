@@ -162,7 +162,7 @@
 					// 0 here specifies connection certificate
 					// 1 is for master certificate
 					// 2 is for PZP certificate
-					cert.selfSigned(self, 'Pzh', self.config.conn, 0, function(status, selfSignErr) {
+					cert.selfSigned(self, 'Pzh', self.config.conn, 1, function(status, selfSignErr) {
 						if(status === 'certGenerated') {
 							helper.debug(2, 'PZH Generating Certificates');
 							fs.readdir(webinosDemo+'/certificates', function(err) {
@@ -198,7 +198,7 @@
 											}									
 										}
 										
-										cert.selfSigned(self, 'Pzh:Master', self.config.master, 1, function(result) {
+										cert.selfSigned(self, 'Pzh:Master', self.config.master, 0, function(result) {
 											if(result === 'certGenerated') {
 												try {
 													// This is working, waiting for completion of Android and Windows part to commit code.
@@ -220,7 +220,7 @@
 													helper.debug(1,'PZH ('+self.sessionId+') Error writing master certificates file');
 													return;
 												}
-												cert.signRequest(self, self.config.conn.csr.value, self.config.master, function(result, cert) {
+												cert.signRequest(self, self.config.conn.csr.value, self.config.master, 1, function(result, cert) {
 													if(result === 'certSigned'){ 
 														self.config.conn.cert.value = cert;
 														try {
@@ -431,7 +431,7 @@
 	    try {
 	        self.expecting.isExpectedCode(parse.payload.message.code, function(expected) {
 	            if (expected) {
-		            cert.signRequest(self, parse.payload.message.csr, self.config.master, function(result, cert) {
+		            cert.signRequest(self, parse.payload.message.csr, self.config.master, 2, function(result, cert) {
 			            if(result === "certSigned") {
                             self.expecting.unsetExpected(function() {
 				                //Save this certificate locally on the PZH.
@@ -487,7 +487,7 @@
 							if(myKey1 === parse.from) {
 								newPzp = true;
 							}
-						
+						 
 							otherPzp.push({'port': self.connectedPzp[myKey1].port,
 								'name': myKey1,
 								'address': self.connectedPzp[myKey1].address,

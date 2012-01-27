@@ -31,6 +31,10 @@ var WebinosEventsModule = function(rpcHandler) {
 		
 		var i;
 		var j;
+		
+		
+		var foundDestination = false
+		
 		for (i = 0; i < registeredListener.length; i++){
 			
 			console.log("Listener@" + registeredListener[i].source);
@@ -38,9 +42,16 @@ var WebinosEventsModule = function(rpcHandler) {
 			for (j = 0; j < connectedApps.length; j++){
 				console.log("Listener@" + registeredListener[i].source + " vs. connected app " + connectedApps[j].params);
 				
+				//Receiver is connected to same PZP case
+				
+				
 				if (registeredListener[i].source == connectedApps[j].params){
 	            	params.listenerID = registeredListener[i].listenerID;
 
+	            	
+	            	foundDestination = true;
+	            	
+	            	
 	            	if (useCB){
 	            		var current = connectedApps[j];
 	            		outCBParams.event = params.webinosevent;
@@ -70,8 +81,50 @@ var WebinosEventsModule = function(rpcHandler) {
 	             		}
 	             	});
 				}
+				
+				
+				
+				/*
+				else { // Forwarding to PZH CASE
+					
+					//TODO how to forward to PZH => should RPC have forward function? Directly using messaging?
+					
+					
+					rpcHandler.executeRPC(json, function () {
+	             		//delivered
+						console.log("Event was Delivered using PZH");
+						if (useCB){
+							var cbjson = rpcHandler.createRPC(objectRef, "onDelivery", outCBParams);
+	             			rpcHandler.executeRPC(cbjson);
+	             		}
+	             	},
+	             	function () {
+	             		//error
+	             		console.log("DELIVERING EVENT via PZH not successful");
+	             		if (useCB){
+	             			outCBParams.error = "Some ERROR";
+	             			var cbjson = rpcHandler.createRPC(objectRef, "onError", outCBParams);
+	             			rpcHandler.executeRPC(cbjson);
+	             		}
+	             	},
+	             	);
+				}*/
 			}
 		}
+		
+		
+		
+		if (!foundDestination){
+			
+			outCBParams.error = "Some ERROR: Destination Not Found";
+ 			var cbjson = rpcHandler.createRPC(objectRef, "onError", outCBParams);
+ 			rpcHandler.executeRPC(cbjson);
+			
+		}
+		
+		
+		
+		
 	};
 
 };
