@@ -47,9 +47,8 @@ certificate.selfSigned = function(self, name, obj, certType, callback) {
 		return;
 	}
 	
-	
 	try {
-		obj.cert.value = certman.selfSignRequest(obj.csr.value, 30, obj.key.value, certType);
+		obj.cert.value = certman.selfSignRequest(obj.csr.value, 30, obj.key.value, certType, "pzh.webinos.org");
 	} catch (e1) {
 		callback.call(self, "failed", e1);
 		return;
@@ -66,7 +65,7 @@ certificate.selfSigned = function(self, name, obj, certType, callback) {
 
 /* @description Crypto sensitive 
 */
-certificate.signRequest = function(self, csr, master, callback) {
+certificate.signRequest = function(self, csr, master, certType, callback) {
 	"use strict";
 	var certman;
 	
@@ -77,7 +76,7 @@ certificate.signRequest = function(self, csr, master, callback) {
 		return;
 	}
 	try {
-		var clientCert = certman.signRequest(csr, 30, master.key.value, master.cert.value);
+		var clientCert = certman.signRequest(csr, 30, master.key.value, master.cert.value, certType, "pzh.webinos.org");
 		callback.call(self, "certSigned", clientCert);
 	} catch(err1) {
 	    utils.debug(1, "Failed to sign certificate: " + err1.code + ", " + err1.stack);
