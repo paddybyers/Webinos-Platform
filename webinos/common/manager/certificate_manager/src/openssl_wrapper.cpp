@@ -6,7 +6,8 @@
 #include <openssl/err.h>
 #include <openssl/x509v3.h>
 #include <openssl/x509.h>
-//#include <iostream>
+#include <stdlib.h>
+#include <string.h>
 
 int genRsaKey(const int bits, char * privkey)
 { 
@@ -149,7 +150,7 @@ ASN1_INTEGER* getRandomSN()
 /**
 * This is used to sign request
 */
-int selfSignRequest(char* pemRequest, int days, char* pemCAKey, int master, char* result)  {
+int selfSignRequest(char* pemRequest, int days, char* pemCAKey, int certType, char *url, char* result)  {
 
     BIO* bioReq = BIO_new_mem_buf(pemRequest, -1);
     BIO* bioCAKey = BIO_new_mem_buf(pemCAKey, -1);
@@ -229,77 +230,53 @@ int selfSignRequest(char* pemRequest, int days, char* pemCAKey, int master, char
 	X509V3_CTX ctx;
 	X509V3_set_ctx_nodb(&ctx);
 	X509V3_set_ctx(&ctx, cert, cert, NULL, NULL, 0);
-	
-	if( master == 1) {
-		if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_basic_constraints, (char*)"critical, CA:TRUE, pathlen:0"))) {
+
+	char *str = (char*)malloc(strlen("URI:") + strlen(url));
+	strcpy(str, "URI:");
+	strcpy(str + strlen("URI:"), url);
+	if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_subject_alt_name, (char*)str))) {
+		free(str);
+		return 0;
+	} else {
+		X509_add_ext(cert, ex, -1);
+	}
+	free(str);
+
+	if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_subject_key_identifier, (char*)"hash"))) {
+		return 0;
+	} else {
+		X509_add_ext(cert, ex, -1);
+	}
+
+	if( certType == 0) {
+
+		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_basic_constraints, (char*)"critical, CA:TRUE, pathlen:0"))) {
 			return 0;
 		} else {
 			X509_add_ext(cert, ex, -1);
 		}
 		
-		if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_key_usage, (char*)"critical, digitalSignature, nonRepudiation, keyCertSign, cRLSign"))) {
+		if(!(ex = X509V3_EXT_conf_nid(NULL,  &ctx, NID_key_usage, (char*)"critical, digitalSignature, nonRepudiation, keyCertSign, cRLSign"))) {
 			return 0;
 		} else {
 			X509_add_ext(cert, ex, -1);
 		}
 
-		/*if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_subject_key_identifier, (char*)"hash"))) {
+		if(!(ex = X509V3_EXT_conf_nid(NULL,  &ctx, NID_ext_key_usage, (char*)"critical, serverAuth"))) {
 			return 0;
 		} else {
 			X509_add_ext(cert, ex, -1);
-		}*/
+		}	 	
 		
-		if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_ext_key_usage, (char*)"critical, serverAuth"))) {
+		if(!(ex = X509V3_EXT_conf_nid(NULL,  &ctx, NID_inhibit_any_policy, (char*)"0"))) {
 			return 0;
 		} else {
 			X509_add_ext(cert, ex, -1);
 		}
-				
-		if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_netscape_cert_type, (char*)"sslCA"))) {
-			return 0;
-		} else {
-			X509_add_ext(cert, ex, -1);
-		}
-		
-		if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_netscape_comment, (char*)"Webinos PZH certificate"))) {
-			return 0;
-		} else {
-			X509_add_ext(cert, ex, -1);
-		}
-	
-	} else {
-		if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_basic_constraints, (char*)"critical, CA:FALSE"))) {
-			return 0;
-		} else {
-			X509_add_ext(cert, ex, -1);
-		}
-		if( master == 0) { // conn cert
-			if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_netscape_cert_type, (char*)"server"))) {
-				return 0;
-			} else {
-				X509_add_ext(cert, ex, -1);
-			}
-			if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_netscape_comment, (char*)"Webinos Connection Certificate"))) {
-				return 0;
-			} else {
-				X509_add_ext(cert, ex, -1);
-			}
-		} else { // pzp
-			if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_netscape_cert_type, (char*)"client"))) {
-				return 0;
-			} else {
-				X509_add_ext(cert, ex, -1);
-			}
-			if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_netscape_comment, (char*)"Webinos PZP Certificate"))) {
-				return 0;
-			} else {
-				X509_add_ext(cert, ex, -1);
-			}
-		}
-		
 	}
 	
 
+	/**/
     //sign!
 	if (!(err = X509_sign(cert,caKey,EVP_sha1())))
 	{
@@ -322,7 +299,7 @@ int selfSignRequest(char* pemRequest, int days, char* pemCAKey, int master, char
 
 }
 
-int signRequest(char* pemRequest, int days, char* pemCAKey, char* pemCaCert,  char* result)  {
+int signRequest(char* pemRequest, int days, char* pemCAKey, char* pemCaCert,  int certType, char *url, char* result)  {
     
     BIO* bioReq = BIO_new_mem_buf(pemRequest, -1);
     BIO* bioCAKey = BIO_new_mem_buf(pemCAKey, -1);
@@ -368,20 +345,99 @@ int signRequest(char* pemRequest, int days, char* pemCAKey, char* pemCaCert,  ch
 	X509V3_CTX ctx;
 	X509V3_set_ctx_nodb(&ctx);
 	X509V3_set_ctx(&ctx, cert, cert, NULL, NULL, 0);
-	
-	
-	if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_basic_constraints, (char*)"critical,CA:FALSE"))) {
+
+	char *str = (char*)malloc(strlen("URI:") + strlen(url));
+	strcpy(str, "URI:");
+	strcpy(str + strlen("URI:"), url);
+	if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_subject_alt_name, (char*)str))) {
+		free(str);
+		return 0;
+	} else {
+		X509_add_ext(cert, ex, -1);
+	}
+	free(str);
+
+	if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_subject_key_identifier, (char*)"hash"))) {
 		return 0;
 	} else {
 		X509_add_ext(cert, ex, -1);
 	}
 
+	 if( certType == 1) {
+		if(!(ex = X509V3_EXT_conf_nid(NULL,  &ctx, NID_basic_constraints, (char*)"critical, CA:FALSE"))) {
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
 
-	if(!(ex = X509V3_EXT_conf_nid(NULL, NULL, NID_netscape_comment, (char*)"Signed by PZH"))) {
-		return 0;
-	} else {
-		X509_add_ext(cert, ex, -1);
-	}
+
+		if(!(ex = X509V3_EXT_conf_nid(NULL,  &ctx, NID_ext_key_usage, (char*)"critical, serverAuth"))) {
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
+
+		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_authority_key_identifier, (char*)"keyid"))) {
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
+
+		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_issuer_alt_name, (char*)"issuer:copy"))) {
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
+		char *str = (char*)malloc(strlen("caIssuers;URI:") + strlen(url));
+		strcpy(str, "caIssuers;URI:");
+		strcpy(str + strlen("caIssuers;URI:"), url);
+
+		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_info_access, (char*)str))) {
+			return 0;
+			free(str);
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
+		free(str);
+		
+	} else if( certType == 2) {
+		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_basic_constraints, (char*)"critical, CA:FALSE"))) {
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}			
+
+		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_ext_key_usage, (char*)"critical, clientAuth"))) {
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
+
+		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_authority_key_identifier, (char*)"keyid"))) {
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
+
+		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_issuer_alt_name, (char*)"issuer:copy"))) {
+			return 0;
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
+
+		char *str = (char*)malloc(strlen("caIssuers;URI:") + strlen(url));
+		strcpy(str, "caIssuers;URI:");
+		strcpy(str + strlen("caIssuers;URI:"), url);
+
+		if(!(ex = X509V3_EXT_conf_nid(NULL, &ctx, NID_info_access, (char*)str))) {
+			return 0;
+			free(str);
+		} else {
+			X509_add_ext(cert, ex, -1);
+		}
+		free(str);
+	}	
+	
     //sign!
 	if (!(err = X509_sign(cert,caKey,EVP_sha1())))
 	{

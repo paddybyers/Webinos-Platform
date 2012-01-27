@@ -75,7 +75,7 @@ if (options.host === '' || options.port <= 0) {
 		if (!config.pzhWebsocketPort) {
 			config.pzhWebsocketPort = 8083;
 		}
-		if (options.pzhHost) {
+		if (options.host) {
 			config.host = options.host;
 		}
 		if (options.port) {

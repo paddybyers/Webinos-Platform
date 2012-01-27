@@ -17,7 +17,7 @@ caCertReq = certman.createCertificateRequest(caKey,
 if (debug) console.log("CA Certificate Request: \n[" + caCertReq + "]\n");
 
 var caCert = null;
-caCert = certman.selfSignRequest(caCertReq, 30, caKey,0);
+caCert = certman.selfSignRequest(caCertReq, 30, caKey,0,"http://test.url");
 if (debug) console.log("CA Certificate: \n[" + caCert + "]\n");
 
 
@@ -39,7 +39,7 @@ pzpCertReq = certman.createCertificateRequest(pzpKey,
 if (debug) console.log("PZP Certificate Request: \n[" + pzpCertReq + "]\n");
 
 var pzpCert = null;
-pzpCert = certman.signRequest(pzpCertReq, 30, caKey, caCert);
+pzpCert = certman.signRequest(pzpCertReq, 30, caKey, caCert,0,"http://test.url");
 if (debug) console.log("PZP Certificate, signed by PZH CA: \n[" + pzpCert + "]\n");
 
 
