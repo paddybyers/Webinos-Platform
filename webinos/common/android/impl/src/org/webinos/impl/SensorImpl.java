@@ -15,9 +15,7 @@ package org.webinos.impl;
 import java.util.List;
 
 import org.webinos.api.PendingOperation;
-/* import org.webinos.api.sensor.SensorManager; */
 import org.webinos.api.sensor.SensorCB;
-/* import org.webinos.api.sensor.SensorEvent; */
 import org.webinos.api.sensor.ConfigureSensorCB;
 import org.webinos.api.sensor.ConfigureSensorOptions;
 import org.webinos.api.sensor.SensorError;
@@ -29,9 +27,7 @@ import org.meshpoint.anode.module.IModuleContext;
 
 import android.content.Context;
 import android.hardware.Sensor;
-/* import android.hardware.SensorEvent; */
 import android.hardware.SensorEventListener;
-/* import android.hardware.SensorManager; */
 import android.util.Log;
 
 public class SensorImpl extends org.webinos.api.sensor.SensorManager implements IModule {
@@ -40,7 +36,7 @@ public class SensorImpl extends org.webinos.api.sensor.SensorManager implements 
 	private android.hardware.SensorManager androidSensorManager;
 	
 	private WebinosSensorListener webinosSensorListener;
-	private List<Sensor> sensorList;
+	private List<Sensor> androidSensorList;
 	
 	private static final String TAG = "org.webinos.impl.SensorImpl";
 	
@@ -65,36 +61,36 @@ public class SensorImpl extends org.webinos.api.sensor.SensorManager implements 
 		  
 	  int sensorType = -100;
 	  
-	  if (api == "http://webinos.org/api/sensors.accelerometer")
+	  if ("http://webinos.org/api/sensors.accelerometer".equals(api))
 	    sensorType = Sensor.TYPE_ACCELEROMETER;
- 	  else if (api == "http://webinos.org/api/sensors.gravity")
+ 	  else if ("http://webinos.org/api/sensors.gravity".equals(api))
 	    sensorType = Sensor.TYPE_GRAVITY;
- 	  else if (api == "http://webinos.org/api/sensors.orientation")
+ 	  else if ("http://webinos.org/api/sensors.orientation".equals(api))
 	    sensorType = Sensor.TYPE_ORIENTATION;	    
- 	  else if (api == "http://webinos.org/api/sensors.gyro")
+ 	  else if ("http://webinos.org/api/sensors.gyro".equals(api))
 	    sensorType = Sensor.TYPE_GYROSCOPE;	  
- 	  else if (api == "http://webinos.org/api/sensors.light")
+ 	  else if ("http://webinos.org/api/sensors.light".equals(api))
 	    sensorType = Sensor.TYPE_LIGHT;
- 	  else if (api == "http://webinos.org/api/sensors.linearacceleration")
+ 	  else if ("http://webinos.org/api/sensors.linearacceleration".equals(api))
 	    sensorType = Sensor.TYPE_LINEAR_ACCELERATION;	    
- 	  else if (api == "http://webinos.org/api/sensors.magneticfield")
+ 	  else if ("http://webinos.org/api/sensors.magneticfield".equals(api))
 	    sensorType = Sensor.TYPE_MAGNETIC_FIELD;
- 	  else if (api == "http://webinos.org/api/sensors.pressure")
+ 	  else if ("http://webinos.org/api/sensors.pressure".equals(api))
 	    sensorType = Sensor.TYPE_PRESSURE;	    	    
- 	  else if (api == "http://webinos.org/api/sensors.proximity")
+ 	  else if ("http://webinos.org/api/sensors.proximity".equals(api))
 	    sensorType = Sensor.TYPE_PROXIMITY;	 	    
- 	  else if (api == "http://webinos.org/api/sensors.rotationvector")
+ 	  else if ("http://webinos.org/api/sensors.rotationvector".equals(api))
 	    sensorType = Sensor.TYPE_ROTATION_VECTOR;	 	    
- 	  else if (api == "http://webinos.org/api/sensors.temperature")
+ 	  else if ("http://webinos.org/api/sensors.temperature".equals(api))
 	    sensorType = Sensor.TYPE_TEMPERATURE; 	  
  	  else
 	    Log.e(TAG, "Ilegal sensor type selected");  
 	  
 	  if (sensorType != -100) {  
   		(webinosSensorListener = new WebinosSensorListener(sensorCb)).start();
-  		for (Sensor sensor : sensorList) {
-	  	   if (sensor.getType() == sensorType) {
-		       androidSensorManager.registerListener(webinosSensorListener, sensor, android.hardware.SensorManager.SENSOR_DELAY_UI);
+  		for (Sensor androidSensor : androidSensorList) {
+	  	   if (androidSensor.getType() == sensorType) {
+		       androidSensorManager.registerListener(webinosSensorListener, androidSensor, android.hardware.SensorManager.SENSOR_DELAY_UI);
 	  	     return;
 	  	   }	
 	  	}		
@@ -117,14 +113,15 @@ public class SensorImpl extends org.webinos.api.sensor.SensorManager implements 
 	 *****************************/
 	@Override
 	public Object startModule(IModuleContext ctx) {
+		Log.e(TAG, "Sensor module started");
 		androidContext = ((AndroidContext)ctx).getAndroidContext();
 		androidSensorManager = (android.hardware.SensorManager)androidContext.getSystemService(Context.SENSOR_SERVICE);
 		
 		/* Get sensor list for all sensors in device 
 		 * TODO Need to be connected with Webinos service discovery
 		 */
-		sensorList = androidSensorManager.getSensorList(Sensor.TYPE_ALL);
-		if(sensorList.isEmpty())
+		androidSensorList = androidSensorManager.getSensorList(Sensor.TYPE_ALL);
+		if(androidSensorList.isEmpty())
 			Log.e(TAG, "No sensor found");
 					
 		return this;
@@ -132,6 +129,7 @@ public class SensorImpl extends org.webinos.api.sensor.SensorManager implements 
 
 	@Override
 	public void stopModule() {
+		Log.e(TAG, "Sensor module stopped");
 		unwatchSensor();
 		
 	}
@@ -146,7 +144,7 @@ public class SensorImpl extends org.webinos.api.sensor.SensorManager implements 
 	 	private SensorCB sensorCb;
 		private org.webinos.api.sensor.SensorEvent webinosPendingEvent;
 		private boolean isKilled;
-		private Sensor sensor;
+		private Sensor androidSensor;
 		private int sensorType;
 		
 		
@@ -192,8 +190,9 @@ public class SensorImpl extends org.webinos.api.sensor.SensorManager implements 
 		@Override
 		public void onSensorChanged(android.hardware.SensorEvent androidSensorEvent) {
 			org.webinos.api.sensor.SensorEvent webinosSensorEvent = new org.webinos.api.sensor.SensorEvent();
-			Sensor sensor = androidSensorEvent.sensor;
-			sensorType = sensor.getType();
+			webinosSensorEvent.sensorValues = new double[3];
+			Sensor androidSensor = androidSensorEvent.sensor;
+			sensorType = androidSensor.getType();
 			
 			/* Match Android sensor type to Webinos sensor type */			
 			if (sensorType == Sensor.TYPE_ACCELEROMETER)
@@ -239,10 +238,11 @@ public class SensorImpl extends org.webinos.api.sensor.SensorManager implements 
 			webinosSensorEvent.interrupt = true;						  
 			  			   
 			/* Set sensor values. Specification also defined normalized values between 0 and 1 but 
-			   consider skipping this in the specification */  			   
-			webinosSensorEvent.sensorValues[0]= androidSensorEvent.values[0];
-			webinosSensorEvent.sensorValues[1]= androidSensorEvent.values[1];
-			webinosSensorEvent.sensorValues[2]= androidSensorEvent.values[2];
+			   consider skipping this in the specification */  
+	
+			webinosSensorEvent.sensorValues[0] = androidSensorEvent.values[0];
+			webinosSensorEvent.sensorValues[1] = androidSensorEvent.values[1];
+			webinosSensorEvent.sensorValues[2] = androidSensorEvent.values[2];
 
 			postSensor(webinosSensorEvent);
 		}
