@@ -72,21 +72,21 @@
 	};
 
 	exports.EventTarget = function () {
-		this.__eventEmitter = new nEvents.EventEmitter();
+		this._eventEmitter = new nEvents.EventEmitter();
 	};
 
 	exports.EventTarget.prototype.addEventListener = function (type, listener, capture /* ignored */) {
 		if (listener === null)
 			return;
 
-		this.__eventEmitter.addListener(type, webinos.utils.bind(listener, this) /* bind to event's currentTarget */);
+		this._eventEmitter.addListener(type, webinos.utils.bind(listener, this) /* bind to event's currentTarget */);
 	};
 
 	exports.EventTarget.prototype.removeEventListener = function (type, listener, capture /* ignored */) {
 		if (listener === null)
 			return;
 
-		this.__eventEmitter.removeListener(type, webinos.utils.bind(listener, this) /* bind to event's currentTarget */);
+		this._eventEmitter.removeListener(type, webinos.utils.bind(listener, this) /* bind to event's currentTarget */);
 	};
 
 	exports.EventTarget.prototype.dispatchEvent = function (event) {
@@ -101,7 +101,7 @@
 		event.target = this;
 		event.currentTarget = this;
 
-		this.__eventEmitter.emit(event.type, event);
+		this._eventEmitter.emit(event.type, event);
 
 		event.dispatch = false;
 

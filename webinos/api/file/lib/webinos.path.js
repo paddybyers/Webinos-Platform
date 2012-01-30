@@ -14,7 +14,7 @@ if (typeof module === "undefined") {
 (function (exports) {
 	"use strict";
 
-	exports.utils = {};
+	var mUtils = {};
 
 	/**
 	 * Splits a Unix-style path into root, directory, basename and extension.
@@ -22,7 +22,7 @@ if (typeof module === "undefined") {
 	 * @param {String} path The path.
 	 * @returns {String[]} [root, directory, basename, extension]
 	 */
-	exports.utils.split = function (path) {
+	mUtils.split = function (path) {
 		var result = /^(\/?)([\s\S]+\/(?!$)|\/)?((?:[\s\S]+?)?(\.[^.]*)?)$/.exec(path);
 
 		return [result[1] || "", result[2] || "", result[3] || "", result[4] || ""];
@@ -36,7 +36,7 @@ if (typeof module === "undefined") {
 	 * @param {Boolean} [allowAboveRoot=false] Whether the path is allowed to go above the root.
 	 * @returns {String[]} A normalized path array.
 	 */
-	exports.utils.normalizeArray = function (parts, allowAboveRoot) {
+	mUtils.normalizeArray = function (parts, allowAboveRoot) {
 		var up = 0;
 
 		for ( var i = parts.length - 1; i >= 0; i--) {
@@ -69,7 +69,7 @@ if (typeof module === "undefined") {
 	 * @returns {String} The directory components.
 	 */
 	exports.dirname = function (path) {
-		var result = exports.utils.split(path),
+		var result = mUtils.split(path),
 			root = result[0],
 			dir = result[1];
 
@@ -89,7 +89,7 @@ if (typeof module === "undefined") {
 	 * @returns {String} The basename component.
 	 */
 	exports.basename = function (path, ext) {
-		var base = exports.utils.split(path)[2];
+		var base = mUtils.split(path)[2];
 
 		if (ext && base.substr(-1 * ext.length) === ext)
 			base = base.substr(0, base.length - ext.length);
@@ -104,7 +104,7 @@ if (typeof module === "undefined") {
 	 * @returns {String} The basename component's extension.
 	 */
 	exports.extname = function (path) {
-		return exports.utils.split(path)[3];
+		return mUtils.split(path)[3];
 	};
 
 	/**
@@ -114,13 +114,13 @@ if (typeof module === "undefined") {
 	 * @param {Boolean} [preserveTrailingSlash=false] Whether a single trailing slash should be preserved.
 	 * @returns {String} A normalized path.
 	 * 
-	 * @see exports.utils.normalizeArray
+	 * @see mUtils.normalizeArray
 	 */
 	exports.normalize = function (path, preserveTrailingSlash) {
 		var isAbsolute = path.charAt(0) == "/", 
 			trailingSlash = path.charAt(path.length - 1) == "/";
 
-		path = exports.utils.normalizeArray(path.split("/").filter(function (p) {
+		path = mUtils.normalizeArray(path.split("/").filter(function (p) {
 			return !!p;
 		}), !isAbsolute).join("/");
 
@@ -212,7 +212,7 @@ if (typeof module === "undefined") {
 			resolvedAbsolute = path.charAt(0) == "/";
 		}
 
-		resolvedPath = exports.utils.normalizeArray(resolvedPath.split("/").filter(function (p) {
+		resolvedPath = mUtils.normalizeArray(resolvedPath.split("/").filter(function (p) {
 			return !!p;
 		}), !resolvedAbsolute).join("/");
 

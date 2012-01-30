@@ -10,8 +10,7 @@ function help() {
     console.log('Options:');
     console.log('--host=[host]            host of the pzh (default localhost)');
     console.log('--port=[port]            port to host the pzh (default 8000)');
-    console.log('--pzh-http-port=[port]   port to pzp web server (default 8080)');
-    console.log('--pzh-ws-port=[port]     port to pzp websocket server (default 8081)');
+    console.log('--pzh-ws-port=[port]     port to pzp web server (default 8083)');
     process.exit();
 }
 
@@ -28,10 +27,7 @@ process.argv.forEach(function (arg) {
 	    	  options.port = parseInt(parts[1], 10);
 	    	  break;
 	      case '--pzh-ws-port':
-	    	  options.pzhHttpPort = parseInt(parts[1], 10);
-	    	  break;
-	      case '--pzh-http-port':
-	    	  options.pzhWebsocketPort = parseInt(parts[1], 10);
+	    	  options.pzhWSPort = parseInt(parts[1], 10);
 	    	  break;
 	      default:
 	        console.log('unknown option: ' + parts[0]);
@@ -69,11 +65,8 @@ if (options.host === '' || options.port <= 0) {
 		if (!config.port) {
 			config.port = 8000;
 		}
-		if (!config.pzhHttpPort) {
-			config.pzhHttpPort = 8082;
-		}
-		if (!config.pzhWebsocketPort) {
-			config.pzhWebsocketPort = 8083;
+		if (!config.pzhWSPort) {
+			config.pzhWSPort = 8083;
 		}
 		if (options.host) {
 			config.host = options.host;
@@ -81,11 +74,8 @@ if (options.host === '' || options.port <= 0) {
 		if (options.port) {
 			config.port = options.port;
 		}
-		if (options.pzhHttpPort) {
-			config.pzhHttpPort = options.pzhHttpPort;
-		}
-		if (options.pzhWebsocketPort) {
-			config.pzhWebsocketPort = options.pzhWebsocketPort;
+		if (options.pzhWSPort) {
+			config.pzhWSPort = options.pzhWSPort;
 		}
 
 		var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh\nemail=internal@webinos.org\ndays=180\n" ;
@@ -99,7 +89,7 @@ if (options.host === '' || options.port <= 0) {
 			var certDir = path.resolve("./certificates/pzh/WebinosPzh");
 			
 			
-			PzhWebInterface.startServer(config.pzhHttpPort, requestClientCert, domainName, httpOnly, certDir, instance, function(status) {
+			PzhWebInterface.startServer(config.pzhWSPort, requestClientCert, domainName, httpOnly, certDir, instance, function(status) {
 				if (status) {
 				    console.log('=== PZH WEB INTERFACE STARTED ===');
 			    } else {
