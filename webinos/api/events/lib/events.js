@@ -21,7 +21,7 @@ var WebinosEventsModule = function(rpcHandler) {
 		var useCB = false;
 		if (typeof objectRef !== "undefined"){
 			useCB = true;
-			console.log("Delivery callback defined");
+			console.log("Delivery callback was defined.");
 		}
 		else{
 			console.log("No delivery callback defined");
@@ -42,7 +42,7 @@ var WebinosEventsModule = function(rpcHandler) {
 			for (j = 0; j < connectedApps.length; j++){
 				console.log("Listener@" + registeredListener[i].source + " vs. connected app " + connectedApps[j].params);
 				
-				//Receiver is connected to same PZP case
+				//Receiver is connected
 				
 				
 				if (registeredListener[i].source == connectedApps[j].params){
@@ -114,19 +114,12 @@ var WebinosEventsModule = function(rpcHandler) {
 		
 		
 		
-		if (!foundDestination){
-			
-			outCBParams.error = "Some ERROR: Destination Not Found";
+		if (!foundDestination && useCB){
+			outCBParams.error = "An ERROR occured: Destination Not Registered";
  			var cbjson = rpcHandler.createRPC(objectRef, "onError", outCBParams);
  			rpcHandler.executeRPC(cbjson);
-			
 		}
-		
-		
-		
-		
 	};
-
 };
 
 WebinosEventsModule.prototype = new RPCWebinosService;

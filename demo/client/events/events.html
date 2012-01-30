@@ -13,6 +13,32 @@
 		}
 	}
 	
+	
+	var callback = {};
+	
+	callback.onSending = function (params) {
+	//params.event, params.recipient
+
+		$('#messages').append('<li> onSending()</li>');
+	};
+	callback.onCaching = function (params) {
+		//params.event
+		$('#messages').append('<li> onCaching()</li>');
+	};
+	callback.onDelivery = function (params) {
+	//params.event, params.recipient
+		$('#messages').append('<li> onDelivery()</li>');
+	};
+	callback.onTimeout = function (params) {
+	//params.event, params.recipient
+		$('#messages').append('<li> onTimeout()</li>');
+	};
+	callback.onError = function (event, recipient, error) {
+	//params.event, params.recipient, params.error
+		$('#messages').append('<li> onError() ' + error + '</li>');
+	};
+	
+	
             $(document).ready(function() {
                 function fillPZAddrs(data) {
                     var pzhId, connectedPzp, connectedPzh;
@@ -61,12 +87,12 @@
                 webinos.session.addListener('info', printInfo);
                 
                 
-            	    foundEventAPIs = [];
+            	    var eventAPIToUse;
                     $('#findService').bind('click', function() {
                 	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/events'), 
 						{onFound: function (service) {
-                	    	foundEventAPIs.push(service);
-                	    	$('#messages').append('<li> EventAPI found: ' + service.api + '</li>');
+							eventAPIToUse = service;
+                	    	$('#messages').append('<li> EventAPI found: ' + service.api + ' @ ' + service.serviceAddress + '</li>');
 
                 	    	logObj(service, "Service");
                 	    }});
@@ -77,84 +103,35 @@
                     }); 
                     
                     $('#bind').bind('click', function() {
-                        for (var i = 0; i < foundEventAPIs.length; i++){
-                        	var act = i;
-                        	foundEventAPIs[act].bind(function(){
-                        		
-                        		logObj(foundEventAPIs,"foundEventAPIs");
-                        		$('#messages').append('<li> Events API ' + foundEventAPIs[act].api + ' bound.</li>');
-                        		$('#messages').append('<li> My APP ID ' + foundEventAPIs[act].temporaryRandomAppID + ' </li>');
-                           	});
-                        }
-            	    	
+                        eventAPIToUse.bind(function(){
+                        	$('#messages').append('<li> Events API ' + eventAPIToUse.api + ' bound.</li>');
+                        	$('#messages').append('<li> My APP ID ' + eventAPIToUse.temporaryRandomAppID + ' </li>');
+                        });
                     }); 
                     
                     
                     $('#create').bind('click', function() {
-                    	for (var i = 0; i < foundEventAPIs.length; i++){
-                    		var act = i;
-                    		foundEventAPIs[act].createWebinosEvent();
-                        }
-            	    	
+                    	eventAPIToUse.createWebinosEvent();
                     });
                     
                     $('#register').bind('click', function() {
-                    	for (var i = 0; i < foundEventAPIs.length; i++){
-                    		var act = i;
-                    		foundEventAPIs[act].addWebinosEventListener(function (event) {
-                    			console.log("New event received");
-                    			
-                    			$("#textIn").val(event.payload);
-                    			
-                    			logObj(event,"event");
-                    		});
-                        }
+                    	eventAPIToUse.addWebinosEventListener(function (event) {
+                    		console.log("New event received");
+                    		$("#textIn").val(event.payload);
+                    		logObj(event,"event");
+                    	});
                      }); 
                      
                      $('#remove').bind('click', function() {
-                    	for (var i = 0; i < foundEventAPIs.length; i++){
-                    		var act = i;
-                    		foundEventAPIs[act].removeWebinosEventListener();
-                        }
+                    	 eventAPIToUse.removeWebinosEventListener();
                      });
                      
                      $('#send').bind('click', function() {
-                    	for (var i = 0; i < foundEventAPIs.length; i++){
-                    		var act = i;
-                    		var ev = foundEventAPIs[act].createWebinosEvent();
-                    		
-                    		ev.payload = $("#textOut").val();
-                    		console.log(ev.payLoad);
-                    		
-                    		
-                    		var callback = {};
-		
-			callback.onSending = function (params) {
-			//params.event, params.recipient
-				
-				$('#messages').append('<li> onSending()</li>');
-			};
-			callback.onCaching = function (params) {
-				//params.event
-				$('#messages').append('<li> onCaching()</li>');
-			};
-			callback.onDelivery = function (params) {
-			//params.event, params.recipient
-				$('#messages').append('<li> onDelivery()</li>');
-			};
-			callback.onTimeout = function (params) {
-			//params.event, params.recipient
-				$('#messages').append('<li> onTimeout()</li>');
-			};
-			callback.onError = function (event, recipient, error) {
-			//params.event, params.recipient, params.error
-				$('#messages').append('<li> onError() ' + error + '</li>');
-			};
-                    		
-                    		ev.dispatchWebinosEvent(callback);
-                        }
-                     });  
-
+                    	var ev = eventAPIToUse.createWebinosEvent();
+                    	ev.payload = $("#textOut").val();
+                    	//console.log(ev.payLoad);
+                    	ev.dispatchWebinosEvent(callback);
+                    });  
             });
         </script>
      
