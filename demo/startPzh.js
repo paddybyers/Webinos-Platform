@@ -90,7 +90,7 @@ if (options.host === '' || options.port <= 0) {
 
 		var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh\nemail=internal@webinos.org\ndays=180\n" ;
 
-		Pzh.startPzh(contents, config.host, config.port, pzhModules, function() {
+		Pzh.startPzh(contents, config.host, config.port, pzhModules, function(res,instance) {
 			console.log('=== PZH STARTED ===');
 
 			var requestClientCert = true;   // Are we requesting a client certificate?

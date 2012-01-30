@@ -18,6 +18,7 @@ module.exports = function(app){
         GoogleStrategy  = require('passport-google').Strategy;
         YahooStrategy   = require('passport-yahoo').Strategy;
   
+    //for testing.  May be removed.
     function fakeUser() {
         return {
             from: "google",
@@ -28,10 +29,10 @@ module.exports = function(app){
     }
   
     app.get('/', function(req, res){
-      //res.render('index', { user: req.user, isMutualAuth: false });
-      //TODO change to the above
-      var fake = fakeUser();
-      res.render('index', { user: fake, isMutualAuth: false });
+      res.render('index', { user: req.user, isMutualAuth: false });
+
+      //var fake = fakeUser();
+      //res.render('index', { user: fake, isMutualAuth: false });
       //console.log(util.inspect(req.user));
       
       //console.log("index, app: \n" + util.inspect(app));
@@ -42,16 +43,15 @@ module.exports = function(app){
       res.render('account', { user: req.user, isMutualAuth: false });
     });
 
-    //TODO: ensureAuthenticated
-    app.get('/addpzp', function(req, res){
+    app.get('/addpzp', ensureAuthenticated, function(req, res){
 
       pzhapis.addPzpQR(app.Pzh, function(err, qr, text) {
           res.render('addpzp', { user: req.user, pzh: app.Pzh, isMutualAuth: false, qrcode: {img: qr, code: text} });
       });
       
     });
-    //TODO: ensureAuthenticated    
-    app.get('/zone', function(req, res){    
+        
+    app.get('/zone', ensureAuthenticated, function(req, res){    
       pzhapis.listZoneDevices(app.Pzh, function(err, list) {
         console.log("Zone Devices List: " + util.inspect(list));
         res.render('zone', { user: req.user, pzh: app.Pzh, isMutualAuth: false, devices: list});
@@ -59,8 +59,7 @@ module.exports = function(app){
       
     });
 
-    //TODO: ensureAuthenticated
-    app.get('/crashlog',  function(req, res){
+    app.get('/crashlog', ensureAuthenticated,  function(req, res){
         pzhapis.crashLog(app.Pzh, function(err, msg) {
             if (err !== null) {
                 msg = "Ironically, the crashlog crashed - " + err;  
