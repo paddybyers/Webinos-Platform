@@ -17,7 +17,10 @@ certificate.selfSigned = function(self, name, obj, certType, callback) {
 	"use strict";
 	var certman;
 	try {
-		certman = require(path.resolve(webinosRoot,dependencies.manager.certificate_manager.location));		
+	  if(process.platform !== 'android')
+		certman = require(path.resolve(webinosRoot,dependencies.manager.certificate_manager.location));
+	  else
+		certman = require('certificate_manager');
 	} catch (err) {
 		callback.call(self, "failed", err);
 		return;

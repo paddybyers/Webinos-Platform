@@ -8,193 +8,208 @@
  * 
  * @author Felix-Johannes Jendrusch <felix-johannes.jendrusch@fokus.fraunhofer.de>
  * 
- * TODO Validate arguments.
- * TODO Invalidate entries (and related blobs), e.g., after being (re)moved.
- * TODO Use error/exception types/codes according to specification, e.g., at exports.utils.wrap(fun, map).
- * TODO Respect encoding (parameters), e.g., at exports.FileReader.reasAsText(blob, encoding).
+ * TODO Use error/exception types/codes according to specification (check everywhere!).
+ * TODO Destroy/end readable/writable streams.
  */
 (function (exports) {
 	"use strict";
 
-	var __fs = require("fs");
-	var __path = require("path");
-	
+	var nFs = require("fs"),
+		nPath = require("path"),
+		nStream = require("stream"),
+		nUtil = require("util");
+
 	var webinos = require("webinos")(__dirname);
-	var dom = webinos.local.require("lib/webinos.dom.js");
-	var path = webinos.local.require("lib/webinos.path.js");
-	var utils = webinos.global.require(webinos.global.rpc.location, "lib/webinos.utils.js");
+		webinos.dom = require("./webinos.dom.js"),
+		webinos.path = require("./webinos.path.js"),
+		webinos.utils = webinos.global.require(webinos.global.rpc.location, "lib/webinos.utils.js");
 
-	// TODO Extract utilities to webinos.file.utils.js?
-	exports.utils = {}
+	var mUtils = {};
 
-	exports.utils.wrap = function (fun, map) {
+	mUtils.wrap = function (fun, map) {
 		return function () {
 			try {
 				return fun.apply(this, arguments);
 			} catch (exception) {
-				if (typeof map === "object" && typeof map[exception.code] !== "undefined")
-					var code = map[exception.code];
-				else
-					var code = exports.FileException.SECURITY_ERR;
+				var code = exports.FileException.SECURITY_ERR;
+
+				if (typeof map === "object" && typeof map[exception.code] === "number")
+					code = map[exception.code];
 
 				throw new exports.FileException(code);
 			}
-		}
-	}
+		};
+	};
 
-	exports.utils.schedule = function (fun, successCallback, errorCallback) {
+	mUtils.schedule = function (fun, successCallback, errorCallback) {
 		return function () {
 			var argsArray = arguments;
 
-			process.nextTick(utils.bind(function () {
+			process.nextTick(webinos.utils.bind(function () {
+				var result;
+
 				try {
-					utils.callback(successCallback, this)(fun.apply(this, argsArray));
+					result = fun.apply(this, argsArray);
 				} catch (exception) {
+					var code = exports.FileError.SECURITY_ERR;
+
 					if (exception instanceof exports.FileException)
-						var code = exception.code;
-					else
-						var code = exports.FileError.SECURITY_ERR;
+						code = exception.code;
 
-					utils.callback(errorCallback, this)(new exports.FileError(code));
+					webinos.utils.callback(errorCallback, this)(new exports.FileError(code));
+
+					return;
 				}
-			}, this));
-		}
-	}
 
-	exports.utils.sync = function (object) {
+				webinos.utils.callback(successCallback, this)(result);
+			}, this));
+		};
+	};
+
+	mUtils.sync = function (object) {
 		if (object instanceof exports.LocalFileSystem)
 			return new exports.LocalFileSystemSync();
 		else if (object instanceof exports.FileSystem)
 			return new exports.FileSystemSync(object.name, object.__realPath);
 		else if (object instanceof exports.DirectoryEntry)
-			return new exports.DirectoryEntrySync(exports.utils.sync(object.filesystem), object.fullPath);
+			return new exports.DirectoryEntrySync(mUtils.sync(object.filesystem), object.fullPath);
 		else if (object instanceof exports.DirectoryReader) {
-			var reader = new exports.DirectoryReaderSync(exports.utils.sync(object.__entry));
+			var reader = new exports.DirectoryReaderSync(mUtils.sync(object.__entry));
 			reader.__start = object.__start;
 			reader.__length = object.__length;
 
 			return reader;
 		} else if (object instanceof exports.FileEntry)
-			return new exports.FileEntrySync(exports.utils.sync(object.filesystem), object.fullPath);
+			return new exports.FileEntrySync(mUtils.sync(object.filesystem), object.fullPath);
 		else
 			return object;
-	}
+	};
 
-	exports.utils.async = function (object) {
+	mUtils.async = function (object) {
 		if (object instanceof exports.LocalFileSystemSync)
 			return new exports.LocalFileSystem();
 		else if (object instanceof exports.FileSystemSync)
 			return new exports.FileSystem(object.name, object.__realPath);
 		else if (object instanceof exports.DirectoryEntrySync)
-			return new exports.DirectoryEntry(exports.utils.async(object.filesystem), object.fullPath);
+			return new exports.DirectoryEntry(mUtils.async(object.filesystem), object.fullPath);
 		else if (object instanceof exports.DirectoryReaderSync) {
-			var reader = new exports.DirectoryReader(exports.utils.async(object.__entry));
+			var reader = new exports.DirectoryReader(mUtils.async(object.__entry));
 			reader.__start = object.__start;
 			reader.__length = object.__length;
 
 			return reader;
 		} else if (object instanceof exports.FileEntrySync)
-			return new exports.FileEntry(exports.utils.async(object.filesystem), object.fullPath);
+			return new exports.FileEntry(mUtils.async(object.filesystem), object.fullPath);
 		else
 			return object;
-	}
+	};
 
 	exports.Blob = function () {
-	}
+	};
 
 	exports.Blob.prototype.size = 0;
 	exports.Blob.prototype.type = "";
 
 	exports.BlobBuilder = function () {
-	}
+	};
 
-	// TODO Contents should be stored in an array and read on demand, i.e., when getBlob(contentType) is called.
-	exports.BlobBuilder.prototype.__contents = "";
+	exports.BlobBuilder.prototype.__contents = [];
+	exports.BlobBuilder.prototype.__contentsLength = 0;
 
-	// TODO Add support for Blob and ArrayBuffer(?).
 	exports.BlobBuilder.prototype.append = function (data, endings /* ignored */) {
-		if (typeof data === "string")
-			// TODO Write as UTF-8, converting newlines as specified in endings.
-			this.__contents += data;
-		else
-			throw new TypeError("first argument must be a string" /* ..., a Blob, or an ArrayBuffer */);
+		var buffer;
 
-	}
+		if (typeof data === "string")
+			buffer = new Buffer(data, "utf8");
+		else if (data instanceof exports.Blob) {
+			// TODO Lazy read appended blobs on 'composite' blob construction (i.e., getBlob)?
+			var reader = new exports.FileReaderSync();
+
+			buffer = reader.readAsBuffer(data);
+		} else if (Buffer.isBuffer(data))
+			buffer = data;
+		else
+			throw new TypeError("first argument must be a string, blob, or buffer");
+
+		this.__contents.push(buffer);
+		this.__contentsLength += buffer.length;
+	};
 
 	exports.BlobBuilder.prototype.getBlob = function (contentType) {
-		return new exports.Text(this.__contents, contentType);
-	}
+		var targetBuffer = new Buffer(this.__contentsLength),
+			targetStart = 0;
 
-	exports.Text = function (text, contentType) {
+		this.__contents.forEach(function (buffer) {
+			buffer.copy(targetBuffer, targetStart);
+
+			targetStart += buffer.length;
+		});
+
+		this.__contents = [];
+		this.__contentsLength = 0;
+
+		return new exports.Buffer(targetBuffer, contentType);
+	};
+
+	exports.Buffer = function (buffer, contentType) {
 		exports.Blob.call(this);
 
-		if (typeof text !== "string")
-			throw new TypeError("first argument must be a string");
+		var relativeContentType = "";
 
-		if (typeof contentType !== "string")
-			var relativeContentType = "";
-		// else if (/* undefined(contentType) */)
-		// 	var relativeContentType = "";
-		else
-			var relativeContentType = contentType;
+		if (typeof contentType === "string" /* && defined(contentType) */)
+			relativeContentType = contentType;
 
-		this.size = text.length;
+		this.size = buffer.length;
 		this.type = relativeContentType;
 
-		this.__text = text;
+		this.__buffer = buffer;
 	}
 
-	exports.Text.prototype = new exports.Blob();
-	exports.Text.prototype.constructor = exports.Text;
+	nUtil.inherits(exports.Buffer, exports.Blob);
 
-	exports.Text.prototype.slice = function (start, end, contentType) {
-		if (typeof start !== "number")
-			var relativeStart = 0;
-		else if (start < 0)
-			var relativeStart = Math.max(this.size + start, 0);
-		else
-			var relativeStart = Math.min(start, this.size);
+	exports.Buffer.prototype.slice = function (start, end, contentType) {
+		var relativeStart = 0,
+			relativeEnd = this.size;
 
-		if (typeof end !== "number")
-			var relativeEnd = this.size;
-		else if (end < 0)
-			var relativeEnd = Math.max(this.size + end, 0);
-		else
-			var relativeEnd = Math.min(end, this.size);
+		if (typeof start === "number")
+			if (start < 0)
+				relativeStart = Math.max(this.size + start, 0);
+			else
+				relativeStart = Math.min(start, this.size);
 
-		var span = Math.max(relativeEnd - relativeStart, 0);
+		if (typeof end === "number")
+			if (end < 0)
+				relativeEnd = Math.max(this.size + end, 0);
+			else
+				relativeEnd = Math.min(end, this.size);
 
-		return new exports.Text(this.__text.substr(relativeStart, span), contentType);
-	}
+		// Normalize contentType during blob construction...
+		return new exports.Buffer(this.__buffer.slice(relativeStart, relativeEnd), contentType);
+	};
 
 	exports.File = function (entry, start, end, contentType) {
 		exports.Blob.call(this);
 
-		if (!(entry instanceof exports.FileEntrySync) && !(entry instanceof exports.FileEntry))
-			throw new TypeError("first argument must be a FileEntrySync, or FileEntry")
+		var stats = mUtils.wrap(nFs.statSync)(entry.realize());
 
-		var stats = exports.utils.wrap(__fs.statSync)(entry.realize());
+		var relativeStart = 0,
+			relativeEnd = stats.size,
+			relativeContentType = "";
 
-		if (typeof start !== "number")
-			var relativeStart = 0;
-		else if (start < 0)
-			var relativeStart = Math.max(stats.size + start, 0);
-		else
-			var relativeStart = Math.min(start, stats.size);
+		if (typeof start === "number")
+			if (start < 0)
+				relativeStart = Math.max(stats.size + start, 0);
+			else
+				relativeStart = Math.min(start, stats.size);
 
-		if (typeof end !== "number")
-			var relativeEnd = stats.size;
-		else if (end < 0)
-			var relativeEnd = Math.max(stats.size + end, 0);
-		else
-			var relativeEnd = Math.min(end, stats.size);
+		if (typeof end === "number")
+			if (end < 0)
+				relativeEnd = Math.max(stats.size + end, 0);
+			else
+				relativeEnd = Math.min(end, stats.size);
 
-		if (typeof contentType !== "string")
-			var relativeContentType = "";
-		// else if (/* undefined(contentType) */)
-		// 	var relativeContentType = "";
-		else
-			var relativeContentType = contentType;
+		if (typeof contentType === "string" /* && defined(contentType) */)
+			relativeContentType = contentType;
 
 		var span = Math.max(relativeEnd - relativeStart, 0);
 
@@ -207,209 +222,364 @@
 		this.__size = stats.size;
 		this.__start = relativeStart;
 		this.__end = relativeEnd;
-	}
+	};
 
-	exports.File.prototype = new exports.Blob();
-	exports.File.prototype.constructor = exports.File;
+	nUtil.inherits(exports.File, exports.Blob);
 
 	exports.File.prototype.slice = function (start, end, contentType) {
-		if (typeof start !== "number")
-			var relativeStart = 0;
-		else if (start < 0)
-			var relativeStart = Math.max(this.size + start, 0);
-		else
-			var relativeStart = Math.min(start, this.size);
+		var relativeStart = 0,
+			relativeEnd = this.size;
 
-		if (typeof end !== "number")
-			var relativeEnd = this.size;
-		else if (end < 0)
-			var relativeEnd = Math.max(this.size + end, 0);
-		else
-			var relativeEnd = Math.min(end, this.size);
+		if (typeof start === "number")
+			if (start < 0)
+				relativeStart = Math.max(this.size + start, 0);
+			else
+				relativeStart = Math.min(start, this.size);
 
+		if (typeof end === "number")
+			if (end < 0)
+				relativeEnd = Math.max(this.size + end, 0);
+			else
+				relativeEnd = Math.min(end, this.size);
+
+		// Normalize contentType during blob construction...
 		return new exports.File(this.__entry, this.__start + relativeStart, this.__start + relativeEnd, contentType);
-	}
+	};
+
+	exports.FileReaderSync = function () {
+	};
+
+	exports.FileReaderSync.prototype.__read = function (blob, format, encoding) {
+		var buffer;
+
+		if (blob instanceof exports.File)
+			buffer = mUtils.wrap(nFs.readFileSync)(blob.__entry.realize());
+		else if (blob instanceof exports.Buffer)
+			buffer = blob.__buffer;
+		else
+			throw new TypeError("first argument must be a (recognized) blob");
+
+		switch (format) {
+			case "buffer":
+				return buffer;
+			case "text":
+				var relativeEncoding /* charset */ = "utf8";
+
+				if (typeof encoding === "string" /* && defined(encoding) */)
+					relativeEncoding = encoding /* ... nodify(encoding) */;
+
+				// TODO If the blob's type attribute is present, and its charset parameter is the name or alias of a
+				// character set used on the Internet, let relativeEncoding be set to its charset parameter. Otherwise,
+				// check the first bytes of blob (see specification for more details).
+
+				return buffer.toString(relativeEncoding);
+			case "dataURL":
+				// TODO If the blob's type attribute is present and characterizes text (i.e., it equals "text/?"),
+				// and, if set, its charset parameter equals "UTF-8", then (1) let the media type's charset parameter
+				// be "UTF-8", and (2) encode the buffers's contents with UTF-8 instead of Base64.
+
+				return "data:" + blob.type + ";base64," + buffer.toString("base64");
+			default:
+				throw new Error("second argument must be 'buffer', 'text', or 'dataURL'");
+		}
+	};
+
+	exports.FileReaderSync.prototype.readAsBuffer = function (blob) {
+		return this.__read(blob, "buffer");
+	};
+
+	exports.FileReaderSync.prototype.readAsText = function (blob, encoding) {
+		return this.__read(blob, "text", encoding);
+	};
+
+	exports.FileReaderSync.prototype.readAsDataURL = function (blob) {
+		return this.__read(blob, "dataURL");
+	};
 
 	exports.FileReader = function () {
-		dom.EventTarget.call(this);
+		webinos.dom.EventTarget.call(this);
 
 		this.addEventListener("loadstart", function (event) {
-			utils.callback(this.onloadstart, this)(event);
+			webinos.utils.callback(this.onloadstart, this)(event);
 		});
 
 		this.addEventListener("progress", function (event) {
-			utils.callback(this.onprogress, this)(event);
+			webinos.utils.callback(this.onprogress, this)(event);
 		});
 
 		this.addEventListener("error", function (event) {
-			utils.callback(this.onerror, this)(event);
+			webinos.utils.callback(this.onerror, this)(event);
 		});
 
 		this.addEventListener("abort", function (event) {
-			utils.callback(this.onabort, this)(event);
+			webinos.utils.callback(this.onabort, this)(event);
 		});
 
 		this.addEventListener("load", function (event) {
-			utils.callback(this.onload, this)(event);
+			webinos.utils.callback(this.onload, this)(event);
 		});
 
 		this.addEventListener("loadend", function (event) {
-			utils.callback(this.onloadend, this)(event);
+			webinos.utils.callback(this.onloadend, this)(event);
 		});
-	}
+	};
 
 	exports.FileReader.EMPTY = 0;
 	exports.FileReader.LOADING = 1;
 	exports.FileReader.DONE = 2;
 
-	exports.FileReader.prototype = new dom.EventTarget();
-	exports.FileReader.prototype.constructor = exports.FileReader;
+	exports.FileReader.BUFFER_SIZE = 1024;
+
+	nUtil.inherits(exports.FileReader, webinos.dom.EventTarget);
 
 	exports.FileReader.prototype.readyState = exports.FileReader.EMPTY;
 	exports.FileReader.prototype.result = null;
 	exports.FileReader.prototype.error = undefined;
 
-	exports.FileReader.prototype.readAsArrayBuffer = function (blob) {
-		throw new dom.DOMException("NotSupportedError", "reading as ArrayBuffer is not supported");
-	}
-
-	exports.FileReader.prototype.readAsBinaryString = function (blob) {
-		throw new dom.DOMException("NotSupportedError", "reading as binary string is not supported");
-	}
-
-	exports.FileReader.prototype.readAsText = function (blob, encoding) {
+	exports.FileReader.prototype.__read = function (blob, format, encoding) {
 		if (this.readyState == exports.FileReader.LOADING)
-			throw new dom.DOMException("InvalidStateError", "read in progress");
+			throw new webinos.dom.DOMException("InvalidStateError", "read in progress");
 
-		// TODO Validate blob, e.g., check existence, readability, safeness and size of file blobs.
+		var isFile = blob instanceof exports.File,
+			isBuffer = blob instanceof exports.Buffer;
+
+		if (!isFile && !isBuffer)
+			throw new TypeError("first argument must be a (recognized) blob");
+
+		var toBuffer = false,
+			toText = false,
+			toDataURL = false;
+
+		var relativeEncoding /* charset */,
+			relativeMediaType;
+
+		switch (format) {
+			case "buffer":
+				toBuffer = true;
+
+				this.result = new Buffer(0);
+				break;
+			case "text":
+				toText = true;
+
+				 relativeEncoding = "utf8";
+
+				if (typeof encoding === "string" /* && defined(encoding) */)
+					relativeEncoding = encoding /* ... nodify(encoding) */;
+
+				// TODO If the blob's type attribute is present, and its charset parameter is the name or alias of a
+				// character set used on the Internet, let relativeEncoding be set to its charset parameter. Otherwise,
+				// check the first bytes of blob (see specification for more details).
+
+				this.result = "";
+				break;
+			case "dataURL":
+				toDataURL = true;
+
+				relativeEncoding = "base64";
+				relativeMediaType = blob.type;
+
+				// TODO If the blob's type attribute is present and characterizes text (i.e., it equals "text/?"),
+				// and, if set, its charset parameter equals "UTF-8", then (1) let the media type's charset parameter
+				// be "UTF-8", and (2) encode the buffers's contents with UTF-8 instead of Base64.
+
+				this.result = null;
+				break;
+			default:
+				throw new Error("second argument must be 'buffer', 'text', or 'dataURL'");
+		}
 
 		this.readyState = exports.FileReader.LOADING;
-		this.result = ""; // TODO Check algorithm compliance.
 
-		var createEventInitDict = utils.bind(function (withProgress) {
+		var loaded = 0,
+			total = blob.size;
+
+		var createEventInitDict = webinos.utils.bind(function (withProgress) {
 			var eventInitDict = {
 				bubbles: false,
 				cancelable: false
-			}
+			};
 
 			if (withProgress) {
 				eventInitDict.lengthComputable = true;
-				eventInitDict.loaded = this.result.length;
-				eventInitDict.total = blob.size;
+				eventInitDict.loaded = loaded;
+				eventInitDict.total = total;
 			}
 
 			return eventInitDict;
 		}, this);
 
-		this.dispatchEvent(new dom.ProgressEvent("loadstart", createEventInitDict(true)));
+		this.dispatchEvent(new webinos.dom.ProgressEvent("loadstart", createEventInitDict(true)));
 
-		utils.bind(exports.utils.schedule(function () {
-			if (blob instanceof exports.Text) {
-				this.result = blob.__text;
+		webinos.utils.bind(mUtils.schedule(function () {
+			if (toBuffer || toDataURL)
+				var targetBuffer = new Buffer(blob.size),
+					targetStart = 0;
 
+			var stream;
+
+			if (isFile)
+				stream = nFs.createReadStream(blob.__entry.realize(), {
+					bufferSize: exports.FileReader.BUFFER_SIZE,
+					start: blob.__start,
+					end: Math.max(blob.__end - 1, 0)
+				});
+			else if (isBuffer)
+				stream = new nStream.Stream();
+
+			stream.on("data", webinos.utils.bind(function (data) {
+				if (toBuffer || toDataURL) {
+					data.copy(targetBuffer, targetStart);
+
+					targetStart += data.length;
+				}
+
+				if (toBuffer)
+					this.result = targetBuffer.slice(0, targetStart);
+				else if (toText)
+					this.result += data.toString(relativeEncoding);
+
+				loaded += data.length;
+
+				if (toBuffer || toText)
+					this.dispatchEvent(new webinos.dom.ProgressEvent("progress", createEventInitDict(true)));
+			}, this));
+
+			stream.on("error", webinos.utils.bind(function (error) {
+				this.readyState = exports.FileReader.DONE;
+				this.result = null;
+
+				this.error = new webinos.dom.DOMError("SecurityError");
+
+				var eventInitDict = createEventInitDict(false);
+
+				this.dispatchEvent(new webinos.dom.ProgressEvent("error", eventInitDict));
+				this.dispatchEvent(new webinos.dom.ProgressEvent("loadend", eventInitDict));
+			}, this));
+
+			stream.on("end", webinos.utils.bind(function () {
 				var eventInitDict = createEventInitDict(true);
 
-				this.dispatchEvent(new dom.ProgressEvent("progress", eventInitDict));
+				if (((toBuffer || toText) && loaded == 0) || toDataURL)
+					this.dispatchEvent(new webinos.dom.ProgressEvent("progress", eventInitDict));
+
+				if (toDataURL) {
+					this.result = "data:" + relativeMediaType;
+
+					if (relativeEncoding == "base64")
+						this.result += ";base64";
+
+					this.result += "," + targetBuffer.toString(relativeEncoding);
+				}
 
 				this.readyState = exports.FileReader.DONE;
 
-				this.dispatchEvent(new dom.ProgressEvent("load", eventInitDict));
-				this.dispatchEvent(new dom.ProgressEvent("loadend", eventInitDict));
-			} else if (blob instanceof exports.File) {
-				var stream = __fs.createReadStream(blob.__entry.realize(), {
-					encoding: "utf8" /* encoding */,
-					bufferSize: 1024,
-					start: blob.__start,
-					end: blob.__start + Math.max(0, blob.size - 1)
-				});
+				this.dispatchEvent(new webinos.dom.ProgressEvent("load", eventInitDict));
+				this.dispatchEvent(new webinos.dom.ProgressEvent("loadend", eventInitDict));
+			}, this));
 
-				// stream.on("open", utils.bind(function () {
-				// ...
-				// }, this));
-
-				stream.on("data", utils.bind(function (data) {
-					this.result += data;
-
-					this.dispatchEvent(new dom.ProgressEvent("progress", createEventInitDict(true)));
-				}, this));
-
-				stream.on("error", utils.bind(function (error) {
-					this.readyState = exports.FileReader.DONE;
-					this.result = null;
-
-					// TODO Use error codes according to specification.
-					this.error = new dom.DOMError("SecurityError");
-
-					var eventInitDict = createEventInitDict(false);
-
-					this.dispatchEvent(new dom.ProgressEvent("error", eventInitDict));
-					this.dispatchEvent(new dom.ProgressEvent("loadend", eventInitDict));
-				}, this));
-
-				stream.on("end", utils.bind(function () {
-					var eventInitDict = createEventInitDict(true);
-
-					// Fire at least one event called progress, even if the read file is empty.
-					if (this.result.length == 0)
-						this.dispatchEvent(new dom.ProgressEvent("progress", eventInitDict));
-
-					this.readyState = exports.FileReader.DONE;
-
-					this.dispatchEvent(new dom.ProgressEvent("load", eventInitDict));
-					this.dispatchEvent(new dom.ProgressEvent("loadend", eventInitDict));
-				}, this));
+			if (isBuffer) {
+				stream.emit("data", blob.__buffer);
+				stream.emit("end");
 			}
 		}), this)();
-	}
+	};
+
+	exports.FileReader.prototype.readAsBuffer = function (blob) {
+		return this.__read(blob, "buffer");
+	};
+
+	exports.FileReader.prototype.readAsText = function (blob, encoding) {
+		return this.__read(blob, "text", encoding);
+	};
 
 	exports.FileReader.prototype.readAsDataURL = function (blob) {
-		throw new dom.DOMException("NotSupportedError", "reading as data url is not supported");
-	}
+		return this.__read(blob, "dataURL");
+	};
 
 	exports.FileReader.prototype.abort = function () {
-		throw new dom.DOMException("NotSupportedError", "aborting is not supported");
-	}
+		throw new webinos.dom.DOMException("NotSupportedError", "aborting is not supported");
+	};
+
+	exports.FileWriterSync = function (entry) {
+		var stats = mUtils.wrap(nFs.statSync)(entry.realize());
+
+		this.length = stats.size;
+
+		this.__entry = entry;
+	};
+
+	exports.FileWriterSync.prototype.position = 0;
+	exports.FileWriterSync.prototype.length = 0;
+
+	exports.FileWriterSync.prototype.write = function (data) {
+		var reader = new exports.FileReaderSync();
+		var buffer = reader.readAsBuffer(data);
+
+		var fd = mUtils.wrap(nFs.openSync)(this.__entry.realize(), "a");
+
+		var written = mUtils.wrap(nFs.writeSync)(fd, buffer, 0, buffer.length, this.position);
+
+		this.position += written;
+		this.length = Math.max(this.position, this.length);
+	};
+
+	exports.FileWriterSync.prototype.seek = function (offset) {
+		if (offset >= 0)
+			this.position = Math.min(offset, this.length);
+		else
+			this.position = Math.max(this.length + offset, 0);
+	};
+
+	exports.FileWriterSync.prototype.truncate = function (size) {
+		var fd = mUtils.wrap(nFs.openSync)(this.__entry.realize(), "r+");
+
+		mUtils.wrap(nFs.truncateSync)(fd, size);
+		mUtils.wrap(nFs.closeSync)(fd);
+
+		this.position = Math.min(size, this.position);
+		this.length = size;
+	};
 
 	exports.FileWriter = function (entry) {
-		dom.EventTarget.call(this);
+		webinos.dom.EventTarget.call(this);
 
-		var stats = exports.utils.wrap(__fs.statSync)(entry.realize());
+		var stats = mUtils.wrap(nFs.statSync)(entry.realize());
 
 		this.length = stats.size;
 
 		this.__entry = entry;
 
 		this.addEventListener("writestart", function (event) {
-			utils.callback(this.onwritestart, this)(event);
+			webinos.utils.callback(this.onwritestart, this)(event);
 		});
 
 		this.addEventListener("progress", function (event) {
-			utils.callback(this.onprogress, this)(event);
+			webinos.utils.callback(this.onprogress, this)(event);
 		});
 
 		this.addEventListener("error", function (event) {
-			utils.callback(this.onerror, this)(event);
+			webinos.utils.callback(this.onerror, this)(event);
 		});
 
 		this.addEventListener("abort", function (event) {
-			utils.callback(this.onabort, this)(event);
+			webinos.utils.callback(this.onabort, this)(event);
 		});
 
 		this.addEventListener("write", function (event) {
-			utils.callback(this.onwrite, this)(event);
+			webinos.utils.callback(this.onwrite, this)(event);
 		});
 
 		this.addEventListener("writeend", function (event) {
-			utils.callback(this.onwriteend, this)(event);
+			webinos.utils.callback(this.onwriteend, this)(event);
 		});
-	}
+	};
 
 	exports.FileWriter.INIT = 0;
 	exports.FileWriter.WRITING = 1;
 	exports.FileWriter.DONE = 2;
 
-	exports.FileWriter.prototype = new dom.EventTarget();
-	exports.FileWriter.prototype.constructor = exports.FileWriter;
+	nUtil.inherits(exports.FileWriter, webinos.dom.EventTarget);
 
 	exports.FileWriter.prototype.readyState = exports.FileWriter.INIT;
 	exports.FileWriter.prototype.error = undefined;
@@ -421,6 +591,12 @@
 		if (this.readyState == exports.FileWriter.WRITING)
 			throw new exports.FileException(exports.FileException.INVALID_STATE_ERR);
 
+		var isFile = data instanceof exports.File,
+			isBuffer = data instanceof exports.Buffer;
+
+		if (!isFile && !isBuffer)
+			throw new TypeError("first argument must be a (recognized) blob");
+
 		this.readyState = exports.FileWriter.WRITING;
 
 		var eventInitDict = {
@@ -429,70 +605,104 @@
 			lengthComputable: false,
 			loaded: 0,
 			total: 0
-		}
+		};
 
-		this.dispatchEvent(new dom.ProgressEvent("writestart", eventInitDict));
+		this.dispatchEvent(new webinos.dom.ProgressEvent("writestart", eventInitDict));
 
-		utils.bind(
-				exports.utils.schedule(
-						function () {
-							// TODO Use a writable stream, i.e., fs.WriteStream?
-							var output = exports.utils.wrap(__fs.openSync)(this.__entry.realize(), "a");
+		webinos.utils.bind(mUtils.schedule(function () {
+			// TODO Reuse readable stream creation from FileReader (somehow?!).
+			var readStream;
 
-							if (data instanceof exports.Text) {
-								// TODO Write in chunks?
-								var written = exports.utils.wrap(__fs.writeSync)(output, data.__text, this.position,
-										"utf8" /* blob.type */);
+			if (isFile)
+				readStream = nFs.createReadStream(data.__entry.realize(), {
+					bufferSize: exports.FileReader.BUFFER_SIZE,
+					start: data.__start,
+					end: Math.max(data.__end - 1, 0)
+				});
+			else if (isBuffer)
+				readStream = new nStream.Stream();
 
-								this.position += written;
-								this.length = Math.max(this.length, this.position);
+			var writeStream = nFs.createWriteStream(this.__entry.realize(), {
+				flags: "r+",
+				start: this.position
+			});
 
-								this.dispatchEvent(new dom.ProgressEvent("progress", eventInitDict));
-							} else if (data instanceof exports.File) {
-								// TODO Use exports.FileReader?
-								var input = exports.utils.wrap(__fs.openSync)(data.__entry.realize(), "r");
+			readStream.on("data", webinos.utils.bind(function (data) {
+				if (writeStream.write(data) === false && isFile)
+					readStream.pause();
 
-								var read;
-								while ((read = exports.utils.wrap(__fs.readSync)
-										(input, 1024, null, "utf8" /* blob.type */))[1] > 0) {
-									var written = exports.utils.wrap(__fs.writeSync)(output, read[0], this.position,
-											"utf8" /* blob.type */);
+				this.position += data.length;
+				this.length = Math.max(this.position, this.length);
 
-									this.position += written;
-									this.length = Math.max(this.length, this.position);
+				this.dispatchEvent(new webinos.dom.ProgressEvent("progress", eventInitDict));
+			}, this));
 
-									this.dispatchEvent(new dom.ProgressEvent("progress", eventInitDict));
-								}
+			writeStream.on("drain", webinos.utils.bind(function () {
+				if (isFile)
+					readStream.resume();
+			}, this));
 
-								exports.utils.wrap(__fs.closeSync)(input);
-							}
+			if (isBuffer) {
+				readStream.emit("data", data.__buffer);
+				readStream.emit("end");
+			}
 
-							exports.utils.wrap(__fs.closeSync)(output);
-						}, function () {
-							this.readyState = exports.FileWriter.DONE;
+//			// TODO Use a writable stream, i.e., fs.WriteStream?
+//			var output = mUtils.wrap(nFs.openSync)(this.__entry.realize(), "a");
+//
+//			if (data instanceof exports.Text) {
+//				// TODO Write in chunks?
+//				var written = mUtils.wrap(nFs.writeSync)(output, data.__text, this.position,
+//						"utf8" /* blob.type */);
+//
+//				this.position += written;
+//				this.length = Math.max(this.length, this.position);
+//
+//				this.dispatchEvent(new webinos.dom.ProgressEvent("progress", eventInitDict));
+//			} else if (data instanceof exports.File) {
+//				// TODO Use exports.FileReader?
+//				var input = mUtils.wrap(nFs.openSync)(data.__entry.realize(), "r");
+//
+//				var read;
+//				while ((read = mUtils.wrap(nFs.readSync)
+//						(input, 1024, null, "utf8" /* blob.type */))[1] > 0) {
+//					var written = mUtils.wrap(nFs.writeSync)(output, read[0], this.position,
+//							"utf8" /* blob.type */);
+//
+//					this.position += written;
+//					this.length = Math.max(this.length, this.position);
+//
+//					this.dispatchEvent(new webinos.dom.ProgressEvent("progress", eventInitDict));
+//				}
+//
+//				mUtils.wrap(nFs.closeSync)(input);
+//			}
+//
+//			mUtils.wrap(nFs.closeSync)(output);
+		}, function () {
+			this.readyState = exports.FileWriter.DONE;
 
-							this.dispatchEvent(new dom.ProgressEvent("write", eventInitDict));
-							this.dispatchEvent(new dom.ProgressEvent("writeend", eventInitDict));
-						}, function (error) {
-							// TODO Use error codes according to specification.
-							this.error = new exports.FileError(exports.FileError.SECURITY_ERR);
+			this.dispatchEvent(new webinos.dom.ProgressEvent("write", eventInitDict));
+			this.dispatchEvent(new webinos.dom.ProgressEvent("writeend", eventInitDict));
+		}, function (error) {
+			this.error = new exports.FileError(exports.FileError.SECURITY_ERR);
 
-							this.readyState = exports.FileWriter.DONE;
+			this.readyState = exports.FileWriter.DONE;
 
-							this.dispatchEvent(new dom.ProgressEvent("error", eventInitDict));
-							this.dispatchEvent(new dom.ProgressEvent("writeend", eventInitDict));
-						}), this)();
-	}
+			this.dispatchEvent(new webinos.dom.ProgressEvent("error", eventInitDict));
+			this.dispatchEvent(new webinos.dom.ProgressEvent("writeend", eventInitDict));
+		}), this)();
+	};
 
 	exports.FileWriter.prototype.seek = function (offset) {
 		if (this.readyState == exports.FileWriter.WRITING)
 			throw new exports.FileException(exports.FileException.INVALID_STATE_ERR);
 
 		if (offset >= 0)
-			this.position = Math.min(this.length, offset);
+			this.position = Math.min(offset, this.length);
 		else
-			this.position = Math.max(0, this.length + offset);
-	}
+			this.position = Math.max(this.length + offset, 0);
+	};
 
 	exports.FileWriter.prototype.truncate = function (size) {
 		if (this.readyState == exports.FileWriter.WRITING)
@@ -506,37 +716,36 @@
 			lengthComputable: false,
 			loaded: 0,
 			total: 0
-		}
+		};
 
-		this.dispatchEvent(new dom.ProgressEvent("writestart", eventInitDict));
+		this.dispatchEvent(new webinos.dom.ProgressEvent("writestart", eventInitDict));
 
-		utils.bind(exports.utils.schedule(function () {
-			var fd = exports.utils.wrap(__fs.openSync)(this.__entry.realize(), "r+");
+		webinos.utils.bind(mUtils.schedule(function () {
+			var fd = mUtils.wrap(nFs.openSync)(this.__entry.realize(), "r+");
 
-			exports.utils.wrap(__fs.truncateSync)(fd, size);
-			exports.utils.wrap(__fs.closeSync)(fd);
-
-			this.position = Math.min(this.position, size);
-			this.length = size;
+			mUtils.wrap(nFs.truncateSync)(fd, size);
+			mUtils.wrap(nFs.closeSync)(fd);
 		}, function () {
+			this.position = Math.min(size, this.position);
+			this.length = size;
+
 			this.readyState = exports.FileWriter.DONE;
 
-			this.dispatchEvent(new dom.ProgressEvent("write", eventInitDict));
-			this.dispatchEvent(new dom.ProgressEvent("writeend", eventInitDict));
+			this.dispatchEvent(new webinos.dom.ProgressEvent("write", eventInitDict));
+			this.dispatchEvent(new webinos.dom.ProgressEvent("writeend", eventInitDict));
 		}, function (error) {
-			// TODO Use error codes according to specification.
 			this.error = new exports.FileError(exports.FileError.SECURITY_ERR);
 
 			this.readyState = exports.FileWriter.DONE;
 
-			this.dispatchEvent(new dom.ProgressEvent("error", eventInitDict));
-			this.dispatchEvent(new dom.ProgressEvent("writeend", eventInitDict));
+			this.dispatchEvent(new webinos.dom.ProgressEvent("error", eventInitDict));
+			this.dispatchEvent(new webinos.dom.ProgressEvent("writeend", eventInitDict));
 		}), this)();
-	}
+	};
 
 	exports.FileWriter.prototype.abort = function () {
 		throw new exports.FileException(exports.FileException.SECURITY_ERR);
-	}
+	};
 
 	exports.LocalFileSystemSync = function () {
 	}
@@ -545,11 +754,11 @@
 	exports.LocalFileSystemSync.PERSISTENT = 1;
 
 	// TODO Choose filesystem according to specification.
-	exports.LocalFileSystemSync.prototype.requestFileSystem = function (type, size) {
-		return new exports.FileSystemSync("default", __path.join(process.cwd(), "default"));
+	exports.LocalFileSystemSync.prototype.requestFileSystemSync = function (type, size) {
+		return new exports.FileSystemSync("default", nPath.join(process.cwd(), "default"));
 	}
 
-	exports.LocalFileSystemSync.prototype.resolveLocalFileSystemURL = function (url) {
+	exports.LocalFileSystemSync.prototype.resolveLocalFileSystemSyncURL = function (url) {
 		throw new exports.FileException(exports.FileException.SECURITY_ERR);
 	}
 
@@ -561,18 +770,18 @@
 	}
 
 	exports.FileSystemSync.prototype.realize = function (fullPath) {
-		return __path.join(this.__realPath, fullPath);
+		return nPath.join(this.__realPath, fullPath);
 	}
 
 	exports.EntrySync = function (filesystem, fullPath) {
 		this.filesystem = filesystem;
 
-		this.name = path.basename(fullPath);
+		this.name = webinos.path.basename(fullPath);
 		this.fullPath = fullPath;
 	}
 
 	exports.EntrySync.create = function (filesystem, fullPath) {
-		var stats = exports.utils.wrap(__fs.statSync)(filesystem.realize(fullPath));
+		var stats = mUtils.wrap(nFs.statSync)(filesystem.realize(fullPath));
 
 		if (stats.isDirectory())
 			var entry = exports.DirectoryEntrySync;
@@ -596,20 +805,20 @@
 
 		argsArray.unshift(this.fullPath);
 
-		return path.resolve.apply(path, argsArray);
+		return webinos.path.resolve.apply(webinos.path, argsArray);
 	}
 
 	exports.EntrySync.prototype.relative = function (to) {
-		return path.relative(this.fullPath, this.resolve(to));
+		return webinos.path.relative(this.fullPath, this.resolve(to));
 	}
 
 	exports.EntrySync.prototype.copyTo = function (parent, newName) {
 		newName = newName || this.name;
 
-		if (path.equals(parent.fullPath, this.getParent().fullPath) && newName == this.name)
+		if (webinos.path.equals(parent.fullPath, this.getParent().fullPath) && newName == this.name)
 			throw new exports.FileException(exports.FileException.INVALID_MODIFICATION_ERR);
 
-		var newFullPath = path.join(parent.fullPath, newName);
+		var newFullPath = webinos.path.join(parent.fullPath, newName);
 
 		if (this.isDirectory) {
 			if (this.isPrefixOf(parent.fullPath))
@@ -634,17 +843,17 @@
 			});
 
 			// TODO Use exports.FileReaderSync?
-			var data = exports.utils.wrap(__fs.readFileSync)(this.realize());
+			var data = mUtils.wrap(nFs.readFileSync)(this.realize());
 
 			// TODO Use exports.FileWriterSync?
-			exports.utils.wrap(__fs.writeFileSync)(parent.filesystem.realize(newFullPath), data);
+			mUtils.wrap(nFs.writeFileSync)(parent.filesystem.realize(newFullPath), data);
 		}
 
 		return newEntry;
 	}
 
 	exports.EntrySync.prototype.getMetadata = function () {
-		var stats = exports.utils.wrap(__fs.statSync)(this.realize());
+		var stats = mUtils.wrap(nFs.statSync)(this.realize());
 
 		return {
 			modificationTime: stats.mtime
@@ -652,40 +861,40 @@
 	}
 
 	exports.EntrySync.prototype.getParent = function () {
-		if (path.equals(this.fullPath, this.filesystem.root.fullPath))
+		if (webinos.path.equals(this.fullPath, this.filesystem.root.fullPath))
 			return this;
 
-		return new exports.DirectoryEntrySync(this.filesystem, path.dirname(this.fullPath));
+		return new exports.DirectoryEntrySync(this.filesystem, webinos.path.dirname(this.fullPath));
 	}
 
 	exports.EntrySync.prototype.moveTo = function (parent, newName) {
 		newName = newName || this.name;
 
-		if (path.equals(parent.fullPath, this.getParent().fullPath) && newName == this.name)
+		if (webinos.path.equals(parent.fullPath, this.getParent().fullPath) && newName == this.name)
 			throw new exports.FileException(exports.FileException.INVALID_MODIFICATION_ERR);
 
 		// TODO Is this really necessary? (I don't like it.)
 		if (this.isDirectory && this.isPrefixOf(parent.fullPath))
 			throw new exports.FileException(exports.FileException.INVALID_MODIFICATION_ERR);
 
-		var newFullPath = path.join(parent.fullPath, newName);
+		var newFullPath = webinos.path.join(parent.fullPath, newName);
 
-		exports.utils.wrap(__fs.renameSync)(this.realize(), parent.filesystem.realize(newFullPath));
+		mUtils.wrap(nFs.renameSync)(this.realize(), parent.filesystem.realize(newFullPath));
 
 		// TODO We already know whether this is a directory or a file...
 		return exports.EntrySync.create(parent.filesystem, newFullPath);
 	}
 
 	exports.EntrySync.prototype.remove = function () {
-		if (path.equals(this.fullPath, this.filesystem.root.fullPath))
+		if (webinos.path.equals(this.fullPath, this.filesystem.root.fullPath))
 			throw new exports.FileException(exports.FileException.SECURITY_ERR);
 
 		if (this.isDirectory)
-			var remove = __fs.rmdirSync;
+			var remove = nFs.rmdirSync;
 		else if (this.isFile)
-			var remove = __fs.unlinkSync;
+			var remove = nFs.unlinkSync;
 
-		exports.utils.wrap(remove)(this.realize());
+		mUtils.wrap(remove)(this.realize());
 	}
 
 	// TODO Choose filesystem url scheme, e.g.,
@@ -708,13 +917,13 @@
 	}
 
 	exports.DirectoryEntrySync.prototype.isPrefixOf = function (fullPath) {
-		return path.isPrefixOf(this.fullPath, fullPath);
+		return webinos.path.isPrefixOf(this.fullPath, fullPath);
 	}
 
 	exports.DirectoryEntrySync.prototype.getDirectory = function (path, options) {
 		var fullPath = this.resolve(path);
 
-		if (__path.existsSync(this.filesystem.realize(fullPath))) {
+		if (nPath.existsSync(this.filesystem.realize(fullPath))) {
 			if (options && options.create && options.exclusive)
 				throw new exports.FileException(exports.FileException.PATH_EXISTS_ERR);
 
@@ -727,9 +936,9 @@
 				throw new exports.FileException(exports.FileException.NOT_FOUND_ERR);
 
 			// TODO Use fullPath's parent instead of "this".
-			var stats = exports.utils.wrap(__fs.statSync)(this.realize());
+			var stats = mUtils.wrap(nFs.statSync)(this.realize());
 
-			exports.utils.wrap(__fs.mkdirSync)(this.filesystem.realize(fullPath), stats.mode);
+			mUtils.wrap(nFs.mkdirSync)(this.filesystem.realize(fullPath), stats.mode);
 
 			var entry = new exports.DirectoryEntrySync(this.filesystem, fullPath)
 		}
@@ -740,7 +949,7 @@
 	exports.DirectoryEntrySync.prototype.getFile = function (path, options) {
 		var fullPath = this.resolve(path);
 
-		if (__path.existsSync(this.filesystem.realize(fullPath))) {
+		if (nPath.existsSync(this.filesystem.realize(fullPath))) {
 			if (options && options.create && options.exclusive)
 				throw new exports.FileException(exports.FileException.PATH_EXISTS_ERR);
 
@@ -752,9 +961,9 @@
 			if (!options || !options.create)
 				throw new exports.FileException(exports.FileException.NOT_FOUND_ERR);
 
-			var fd = exports.utils.wrap(__fs.openSync)(this.filesystem.realize(fullPath), "w");
+			var fd = mUtils.wrap(nFs.openSync)(this.filesystem.realize(fullPath), "w");
 
-			exports.utils.wrap(__fs.closeSync)(fd);
+			mUtils.wrap(nFs.closeSync)(fd);
 
 			var entry = new exports.FileEntrySync(this.filesystem, fullPath)
 		}
@@ -787,12 +996,12 @@
 
 	exports.DirectoryReaderSync.prototype.readEntries = function () {
 		if (typeof this.__children === "undefined")
-			this.__children = exports.utils.wrap(__fs.readdirSync)(this.__entry.realize());
+			this.__children = mUtils.wrap(nFs.readdirSync)(this.__entry.realize());
 
 		var entries = [];
 
 		for ( var i = this.__start; i < Math.min(this.__start + this.__length, this.__children.length); i++)
-			entries.push(exports.EntrySync.create(this.__entry.filesystem, path.join(this.__entry.fullPath,
+			entries.push(exports.EntrySync.create(this.__entry.filesystem, webinos.path.join(this.__entry.fullPath,
 					this.__children[i])));
 
 		this.__start += entries.length;
@@ -824,18 +1033,18 @@
 	exports.LocalFileSystem.PERSISTENT = 1;
 
 	exports.LocalFileSystem.prototype.requestFileSystem = function (type, size, successCallback, errorCallback) {
-		utils.bind(
-				exports.utils.schedule(utils.bind(exports.LocalFileSystemSync.prototype.requestFileSystem,
-						exports.utils.sync(this)), function (filesystem) {
-					utils.callback(successCallback, this)(exports.utils.async(filesystem));
+		webinos.utils.bind(
+				mUtils.schedule(webinos.utils.bind(exports.LocalFileSystemSync.prototype.requestFileSystemSync,
+						mUtils.sync(this)), function (filesystem) {
+					webinos.utils.callback(successCallback, this)(mUtils.async(filesystem));
 				}, errorCallback), this)(type, size);
 	}
 
 	exports.LocalFileSystem.prototype.resolveLocalFileSystemURL = function (url, successCallback, errorCallback) {
-		utils.bind(
-				exports.utils.schedule(utils.bind(exports.LocalFileSystemSync.prototype.resolveLocalFileSystemURL,
-						exports.utils.sync(this)), function (entry) {
-					utils.callback(successCallback, this)(exports.utils.async(entry));
+		webinos.utils.bind(
+				mUtils.schedule(webinos.utils.bind(exports.LocalFileSystemSync.prototype.resolveLocalFileSystemSyncURL,
+						mUtils.sync(this)), function (entry) {
+					webinos.utils.callback(successCallback, this)(mUtils.async(entry));
 				}, errorCallback), this)(url);
 	}
 
@@ -847,75 +1056,75 @@
 	}
 
 	exports.FileSystem.prototype.realize = function (fullPath) {
-		return exports.FileSystemSync.prototype.realize.call(exports.utils.sync(this), fullPath);
+		return exports.FileSystemSync.prototype.realize.call(mUtils.sync(this), fullPath);
 	}
 
 	exports.Entry = function (filesystem, fullPath) {
 		this.filesystem = filesystem;
 
-		this.name = path.basename(fullPath);
+		this.name = webinos.path.basename(fullPath);
 		this.fullPath = fullPath;
 	}
 
 	exports.Entry.create = function (filesystem, fullPath, successCallback, errorCallback) {
-		exports.utils.schedule(exports.EntrySync.create, function (entry) {
-			successCallback(exports.utils.async(entry));
-		}, errorCallback)(exports.utils.sync(filesystem), fullPath);
+		mUtils.schedule(exports.EntrySync.create, function (entry) {
+			successCallback(mUtils.async(entry));
+		}, errorCallback)(mUtils.sync(filesystem), fullPath);
 	}
 
 	exports.Entry.prototype.isFile = false;
 	exports.Entry.prototype.isDirectory = false;
 
 	exports.Entry.prototype.realize = function () {
-		return exports.EntrySync.prototype.realize.call(exports.utils.sync(this));
+		return exports.EntrySync.prototype.realize.call(mUtils.sync(this));
 	}
 
 	exports.Entry.prototype.resolve = function () {
-		return exports.EntrySync.prototype.resolve.apply(exports.utils.sync(this), arguments);
+		return exports.EntrySync.prototype.resolve.apply(mUtils.sync(this), arguments);
 	}
 
 	exports.Entry.prototype.relative = function (to) {
-		return exports.EntrySync.prototype.relative.call(exports.utils.sync(this), to);
+		return exports.EntrySync.prototype.relative.call(mUtils.sync(this), to);
 	}
 
 	exports.Entry.prototype.copyTo = function (parent, newName, successCallback, errorCallback) {
-		utils.bind(
-				exports.utils.schedule(utils.bind(exports.EntrySync.prototype.copyTo, exports.utils.sync(this)),
+		webinos.utils.bind(
+				mUtils.schedule(webinos.utils.bind(exports.EntrySync.prototype.copyTo, mUtils.sync(this)),
 						function (entry) {
-							utils.callback(successCallback, this)(exports.utils.async(entry));
-						}, errorCallback), this)(exports.utils.sync(parent), newName);
+							webinos.utils.callback(successCallback, this)(mUtils.async(entry));
+						}, errorCallback), this)(mUtils.sync(parent), newName);
 	}
 
 	exports.Entry.prototype.getMetadata = function (successCallback, errorCallback) {
-		utils.bind(
-				exports.utils.schedule(utils.bind(exports.EntrySync.prototype.getMetadata, exports.utils.sync(this)),
+		webinos.utils.bind(
+				mUtils.schedule(webinos.utils.bind(exports.EntrySync.prototype.getMetadata, mUtils.sync(this)),
 						successCallback, errorCallback), this)();
 	}
 
 	exports.Entry.prototype.getParent = function (successCallback, errorCallback) {
-		utils.bind(
-				exports.utils.schedule(utils.bind(exports.EntrySync.prototype.getParent, exports.utils.sync(this)),
+		webinos.utils.bind(
+				mUtils.schedule(webinos.utils.bind(exports.EntrySync.prototype.getParent, mUtils.sync(this)),
 						function (entry) {
-							utils.callback(successCallback, this)(exports.utils.async(entry));
+							webinos.utils.callback(successCallback, this)(mUtils.async(entry));
 						}, errorCallback), this)();
 	}
 
 	exports.Entry.prototype.moveTo = function (parent, newName, successCallback, errorCallback) {
-		utils.bind(
-				exports.utils.schedule(utils.bind(exports.EntrySync.prototype.moveTo, exports.utils.sync(this)),
+		webinos.utils.bind(
+				mUtils.schedule(webinos.utils.bind(exports.EntrySync.prototype.moveTo, mUtils.sync(this)),
 						function (entry) {
-							utils.callback(successCallback, this)(exports.utils.async(entry));
-						}, errorCallback), this)(exports.utils.sync(parent), newName);
+							webinos.utils.callback(successCallback, this)(mUtils.async(entry));
+						}, errorCallback), this)(mUtils.sync(parent), newName);
 	}
 
 	exports.Entry.prototype.remove = function (successCallback, errorCallback) {
-		utils.bind(
-				exports.utils.schedule(utils.bind(exports.EntrySync.prototype.remove, exports.utils.sync(this)),
+		webinos.utils.bind(
+				mUtils.schedule(webinos.utils.bind(exports.EntrySync.prototype.remove, mUtils.sync(this)),
 						successCallback, errorCallback), this)();
 	}
 
 	exports.Entry.prototype.toURL = function (mimeType) {
-		return exports.EntrySync.prototype.toURL.call(exports.utils.sync(this), mimeType);
+		return exports.EntrySync.prototype.toURL.call(mUtils.sync(this), mimeType);
 	}
 
 	exports.DirectoryEntry = function (filesystem, fullPath) {
@@ -932,28 +1141,28 @@
 	}
 
 	exports.DirectoryEntry.prototype.isPrefixOf = function (fullPath) {
-		return exports.DirectoryEntrySync.prototype.isPrefixOf.call(exports.utils.sync(this), fullPath);
+		return exports.DirectoryEntrySync.prototype.isPrefixOf.call(mUtils.sync(this), fullPath);
 	}
 
 	exports.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {
-		utils.bind(
-				exports.utils.schedule(utils.bind(exports.DirectoryEntrySync.prototype.getDirectory, exports.utils
+		webinos.utils.bind(
+				mUtils.schedule(webinos.utils.bind(exports.DirectoryEntrySync.prototype.getDirectory, exports.utils
 						.sync(this)), function (entry) {
-					utils.callback(successCallback, this)(exports.utils.async(entry));
+					webinos.utils.callback(successCallback, this)(mUtils.async(entry));
 				}, errorCallback), this)(path, options);
 	}
 
 	exports.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
-		utils.bind(
-				exports.utils.schedule(utils.bind(exports.DirectoryEntrySync.prototype.getFile, exports.utils
+		webinos.utils.bind(
+				mUtils.schedule(webinos.utils.bind(exports.DirectoryEntrySync.prototype.getFile, exports.utils
 						.sync(this)), function (entry) {
-					utils.callback(successCallback, this)(exports.utils.async(entry));
+					webinos.utils.callback(successCallback, this)(mUtils.async(entry));
 				}, errorCallback), this)(path, options);
 	}
 
 	exports.DirectoryEntry.prototype.removeRecursively = function (successCallback, errorCallback) {
-		utils.bind(
-				exports.utils.schedule(utils.bind(exports.DirectoryEntrySync.prototype.removeRecursively, exports.utils
+		webinos.utils.bind(
+				mUtils.schedule(webinos.utils.bind(exports.DirectoryEntrySync.prototype.removeRecursively, exports.utils
 						.sync(this)), successCallback, errorCallback), this)();
 	}
 
@@ -965,15 +1174,15 @@
 	exports.DirectoryReader.prototype.__length = 10;
 
 	exports.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
-		var sync = exports.utils.sync(this);
+		var sync = mUtils.sync(this);
 
-		utils.bind(
-				exports.utils.schedule(utils.bind(exports.DirectoryReaderSync.prototype.readEntries, sync), function (
+		webinos.utils.bind(
+				mUtils.schedule(webinos.utils.bind(exports.DirectoryReaderSync.prototype.readEntries, sync), function (
 						entries) {
 					this.__start = sync.__start;
 					this.__length = sync.__length;
 
-					utils.callback(successCallback, this)(entries.map(exports.utils.async));
+					webinos.utils.callback(successCallback, this)(entries.map(mUtils.async));
 				}, errorCallback), this)();
 	}
 
@@ -987,13 +1196,13 @@
 	exports.FileEntry.prototype.isFile = true;
 
 	exports.FileEntry.prototype.createWriter = function (successCallback, errorCallback) {
-		utils.bind(exports.utils.schedule(function () {
+		webinos.utils.bind(mUtils.schedule(function () {
 			return new exports.FileWriter(this);
 		}, successCallback, errorCallback), this)();
 	}
 
 	exports.FileEntry.prototype.file = function (successCallback, errorCallback) {
-		utils.bind(exports.utils.schedule(function () {
+		webinos.utils.bind(mUtils.schedule(function () {
 			return new exports.File(this);
 		}, successCallback, errorCallback), this)();
 	}

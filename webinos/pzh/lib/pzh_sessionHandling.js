@@ -316,7 +316,7 @@
 		server = tls.createServer (options, function (conn) {
 			var data = {}, cn, msg = {}, sessionId;
 			self.conn = conn;
-
+			console.log(conn);
 			if(conn.authorized === false) {
 				helper.debug(2, "Connection NOT authorised at PZH");
 				//Sometimes, if this is a new PZP, we have to allow it.

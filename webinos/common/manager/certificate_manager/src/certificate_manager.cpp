@@ -126,7 +126,7 @@ v8::Handle<Value> _selfSignRequest(const Arguments& args)
       return scope.Close(result);
     }
     else {
-      return ThrowException(Exception::TypeError(String::New("5 arguments expected: string int string")));
+      return ThrowException(Exception::TypeError(String::New("5 arguments expected: string int string int string")));
     }
 }
 
@@ -159,7 +159,7 @@ v8::Handle<Value> _signRequest(const Arguments& args)
       return scope.Close(result);
     }
 	else {
-	  return ThrowException(Exception::TypeError(String::New("4 arguments expected: string int string string")));
+	  return ThrowException(Exception::TypeError(String::New("6 arguments expected: string int string string int string")));
 	}
 }
 
