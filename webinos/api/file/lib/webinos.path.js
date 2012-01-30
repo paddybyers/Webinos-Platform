@@ -14,7 +14,7 @@ if (typeof module === "undefined") {
 (function (exports) {
 	"use strict";
 
-	mUtils = {};
+	var mUtils = {};
 
 	/**
 	 * Splits a Unix-style path into root, directory, basename and extension.

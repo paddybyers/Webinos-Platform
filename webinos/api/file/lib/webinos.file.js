@@ -9,7 +9,7 @@
  * @author Felix-Johannes Jendrusch <felix-johannes.jendrusch@fokus.fraunhofer.de>
  * 
  * TODO Use error/exception types/codes according to specification (check everywhere!).
- * TODO Destroy/end readable/writable streams.
+ * TODO Check various "inline" TODOs.
  */
 (function (exports) {
 	"use strict";
@@ -614,7 +614,9 @@
 		this.dispatchEvent(new webinos.dom.ProgressEvent("writestart", eventInitDict));
 
 		webinos.utils.bind(mUtils.schedule(function () {
-			var source;
+			// TODO Reuse FileReader stream creation?!
+			var source,
+				sourcedEnded = false;
 
 			if (isFile)
 				source = nFs.createReadStream(data._entry.realize(), {
@@ -641,10 +643,20 @@
 			}, this));
 
 			source.on("end", webinos.utils.bind(function () {
+				if (sourcedEnded)
+					return;
+
+				sourcedEnded = true;
+
 				destination.end();
 			}, this));
 
 			source.on("close", webinos.utils.bind(function () {
+				if (sourcedEnded)
+					return;
+
+				sourcedEnded = true;
+
 				destination.destroy();
 			}, this));
 
