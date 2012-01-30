@@ -10,9 +10,22 @@ h1 {
 }
 
 table {
-    background-color:darkgray; 
-    border:3px solid #0879a9;
-    text-align= center;
+   /* background-color:darkgray;  */
+   /* border:1px solid white; */
+    text-align: center;
+}
+
+td {
+    border-top:1px solid white;   
+    border-bottom:1px solid white; 
+    text-align:left;
+    padding: 4px 8px 4px 8px;
+}
+
+th {
+    text-align:center;
+    border-bottom:1px solid white;
+    padding: 2px 2px 2px 2px;
 }
 
 #tablist {
@@ -41,4 +54,19 @@ table {
 #message {
     color: gray;
 }
+
+.connected {
+    color: red;
+}
+
+.notconnected {
+    color: gray;
+}
+
+.revokemessage {
+    border: 1px solid white;
+    color: red;
+    font-weight: bold;
+}
+
 

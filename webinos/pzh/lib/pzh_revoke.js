@@ -3,6 +3,8 @@ var revoker = exports;
 var fs      = require('fs');
 var path    = require('path');
 var	crypto  = require('crypto');
+var	util    = require('util');
+
 
 var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
 var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
@@ -12,7 +14,6 @@ var utils        = require(path.join(webinosRoot, dependencies.pzp.location, 'li
 
 revoker.revokePzp = function (pzpid, pzh, callback ) {
     "use strict";
-    
     getPZPCertificate(pzpid, pzh.config.pzhSignedCertDir, function(status, pzpcert) {
         if (!status) {
     	    callback("Failed to find pzp certificate");
@@ -41,7 +42,7 @@ revoker.revokePzp = function (pzpid, pzh, callback ) {
 revoker.listAllPzps = function(pzh, callback) {
     "use strict";
     var pzpList = [];
-    getAllPZPIds(pzh.config.pzhCertDir, function(pzps, error) {
+    getAllPZPIds(pzh.config.pzhSignedCertDir, function(pzps, error) {
         if (error === null) {
             for (var i=0;i<pzps.length;i++) {
                 if (pzps[i] !== null) {
@@ -56,8 +57,29 @@ revoker.listAllPzps = function(pzh, callback) {
 }
 
 revoker.listAllPzhs = function(pzh, callback) {
-    callback(null, []);
-    //TODO
+    var list = [];
+    var me = "Your PZH";
+    if (pzh.config.common.split(':')[0] !== null) {
+        me = pzh.config.common.split(':')[0];
+    } 
+    
+    list.push(me);  
+    var id;
+    for (id in pzh.connectedPzh) {
+          list.push(id);
+    }
+
+//    self.connectedPzh[connPzhId]
+
+/*    
+    pzh.getMyUrl(function(url)) {
+        callback(null, [url]);
+        //TODO
+    }
+*/
+
+    callback(null, list);
+  
 }
 
 
@@ -70,11 +92,13 @@ function revoke(pzh, pzhKeyDir, pzhCertDir, pzpCert, callback) {
 	
 	cert.revokeClientCert(pzh, pzh.config.master, pzpCert, function(result, crl) {
 	    if (result === "certRevoked") {
+/*
 	    	try {	
 	    		pzh.conn.pair.credentials.context.addCRL(crl);
 	    	} catch (err) {
 	    		console.log(err);
 	    	}
+*/
 		    pzh.config.master.crl.value = crl;
 		    fs.writeFileSync(pzhCertDir+'/'+pzh.config.master.crl.name, crl);
 		    //TODO : trigger the PZH to reconnect all clients
@@ -111,10 +135,8 @@ function getPZPCertificate(pzpid, pzhSignedCertDir, callback) {
     "use strict";
     try { 
         var file = pzhSignedCertDir+'/'+ pzpid + ".pem"
-        var cert = fs.readFile(file, function(err, cert) {
-			callback(true, cert);	    
-        });  
-
+        var cert = fs.readFileSync(file) 		        
+		callback(true, cert);	    
     } catch (err) {
         utils.debug(2,"Did not find certificate ");
         console.log(err.stack); 

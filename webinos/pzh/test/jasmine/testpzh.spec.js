@@ -112,7 +112,8 @@ describe("PZH functionalities", function() {
 		
 		waits(500);
 		runs ( function() {
-			Pzh.restartPzh(pzh, function(result, pzh1) {
+			Pzh.restartPzh(pzh, function(err, result, pzh1) {
+				expected(err).toBeNull();
 				expect(result).not.toBeNull();
 				expect(result).toEqual("startedPzh");
 				pzh = pzh1;				

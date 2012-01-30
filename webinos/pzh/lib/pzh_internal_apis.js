@@ -2,6 +2,7 @@ var pzhapis     = exports;
 
 var path        = require('path');
 var fs          = require('fs');
+var util        = require('util');
 
 var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
 var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
@@ -11,7 +12,7 @@ var webinosDemo  = path.resolve(__dirname, '../../../demo');
 var qrcode       = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_qrcode.js'));
 var helper       = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_helper.js'));
 var revoker      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_revoke.js'));	
-
+var session      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_sessionHandling.js'));
 
 pzhapis.addPzpQR = function (pzh, callback) {
 	"use strict";
@@ -20,8 +21,6 @@ pzhapis.addPzpQR = function (pzh, callback) {
 
 pzhapis.listZoneDevices = function(pzh, callback) {
 	"use strict";
-	
-	console.log("certDir: ", pzh.config.pzhCertDir);
 	
 	revoker.listAllPzps(pzh, function(err1, pzpList) {
 	    var result = {pzps: [], pzhs: []};
@@ -43,44 +42,66 @@ pzhapis.listZoneDevices = function(pzh, callback) {
 	        
 	    });
 	});
-	/*	
-	callback({ 
-	    allPzps         : revoker.listAllPzps(pzh, callback);
-	    connectedPzpIds : pzh.connectedPzpIds , 
-	    connectedPzhIds : pzh.connectedPzhIds , 
-	    sessions        : pzh.connectedPzp 
-	});
-	*/
+
 }
 	
 function getPzpInfoSync(pzh, pzpId) {
     "use strict";    
+    
+    //find out whether we have this PZP in a session somewhere.
+    var pzpConnected = false;
+    var pzpName = pzpId;  
+    for (var i=0; i< pzh.connectedPzpIds.length; i++) {
+        //session IDs append the PZH to the front of the PZP ID.
+        var splitId = pzh.connectedPzpIds[i].split("/");
+        if (splitId.length > 1 && splitId[1] !== null) {
+            if (splitId[1] === pzpId) {
+                pzpConnected = true;
+                pzpName = pzh.connectedPzpIds[i];
+            }
+        }
+    }
+    
     return {
         id          : pzpId,
-        cname       : "unknown PZP CNAME",
-        isConnected : true
+        cname       : pzpName,
+        isConnected : pzpConnected
     };
 }
 
 function getPzhInfoSync(pzh, pzhId) {
     "use strict";    
-    return {
-        id          : pzhId,
-        cname       : "unknown PZH CNAME",
-        isConnected : true
-    };
+    if (pzhId === pzh.config.common.split(':')[0]) {
+        //we know that this PZH is alive
+        return {
+            id : pzhId,
+            url: "",
+            cname: pzhId + " (Your PZH)",
+            isConnected: true
+        };
+        
+        
+    } else {
+ 
+        return {
+            id          : pzhId,
+            url         : null,
+            cname       : "unknown",
+            isConnected : true
+        };
+    }
 }
 
 
 pzhapis.revoke = function(pzh, pzpid, callback) {
     "use strict";        
-    revoker.revokePzp(pzh, pzpid, callback);
+    revoker.revokePzp(pzpid, pzh, callback);
 }	
 
 
 pzhapis.restartPzh = function(pzh, callback) {
     "use strict";
-    //TODO
+    session.restartPzh(pzh, callback);
 }
 	
 pzhapis.getPzhCertificate = function(pzh, callback) {

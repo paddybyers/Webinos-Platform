@@ -9,6 +9,7 @@ module.exports = function(app){
     var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
     var pzhapis      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_internal_apis.js'));
     var utils        = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
+       
     
     var express         = require('express'),
         util            = require('util'),
@@ -52,11 +53,46 @@ module.exports = function(app){
     });
         
     app.get('/zone', ensureAuthenticated, function(req, res){    
+
+
       pzhapis.listZoneDevices(app.Pzh, function(err, list) {
-        console.log("Zone Devices List: " + util.inspect(list));
-        res.render('zone', { user: req.user, pzh: app.Pzh, isMutualAuth: false, devices: list});
+        
+        res.render('zone', { user: req.user, pzh: app.Pzh, isMutualAuth: false, devices: list });
+                
       });
       
+    });
+    
+    app.get('/revoke/pzp/:id', ensureAuthenticated, function(req, res){    
+      var result = null;
+      pzhapis.revoke(app.Pzh, req.params.id, function(err) {
+        if (typeof err === 'undefined') {
+            //todo force a restart.
+            result = { success: true };            
+            res.render('revoke', {user: req.user, isMututalAuth: false, revoke: result});
+
+        } else {
+            result = { success: false, reason: err };
+            res.render('revoke', {user: req.user, isMututalAuth: false, revoke: result});
+        }
+      });
+    });
+    
+    app.get('/revoke/pzh/:id', ensureAuthenticated, function(req, res) {
+      var result = null;
+      result = { success: false, reason: "not supported" };        
+      res.render('revoke', {user: req.user, isMututalAuth: false, revoke: result});      
+    });
+    
+    app.get('/restart', ensureAuthenticated, function(req,res) {
+        pzhapis.restartPzh(app.Pzh, function(err, result, newpzh) {
+            if (err) {
+                res.render('restart', {user: req.user, isMututalAuth: false, restart : { success: false, reason: err}});      
+            } else {               
+                app.Pzh = newpzh;
+                res.render('restart', {user: req.user, isMututalAuth: false, restart : { success: true, reason: "We're awesome"}});                  
+            }
+        });   
     });
 
     app.get('/crashlog', ensureAuthenticated,  function(req, res){

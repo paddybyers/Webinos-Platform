@@ -9,7 +9,9 @@
 	var tls = require('tls'),
 		fs = require('fs'),
 		path = require('path'),
-		crypto = require('crypto');		
+		crypto = require('crypto'),	
+		util = require('util');		
+		
 
 	var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
 	var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
@@ -316,7 +318,7 @@
 		server = tls.createServer (options, function (conn) {
 			var data = {}, cn, msg = {}, sessionId;
 			self.conn = conn;
-			console.log(conn);
+			//console.log(conn);
 			if(conn.authorized === false) {
 				helper.debug(2, "Connection NOT authorised at PZH");
 				//Sometimes, if this is a new PZP, we have to allow it.
@@ -600,13 +602,19 @@
 	
 	function restartPzh(instance, callback) {
 		try	{
-			instance.conn.end();
-			instance.sock.close();
-			startPzh(instance.contents, instance.server, instance.port, function(result){
-				callback(result);
-			});
+		    helper.debug(2,util.inspect(instance));
+		    if ((typeof instance.conn.end) === 'undefined' ) {
+			    callback("Failed - no open connections to close");
+		    } else {
+    			instance.conn.end();
+    			instance.sock.close();
+			    startPzh(instance.contents, instance.server, instance.port, function(result){
+				    callback(null, result);
+			    });
+			} 
 		} catch(err) {
 			helper.debug(1, 'Pzh restart failed ' + err);
+			callback(err, instance);
 		}
 	}
 	

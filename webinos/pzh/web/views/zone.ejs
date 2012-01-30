@@ -1,7 +1,42 @@
     <div id = "zoneList">
-		<center> <p> List all your PZPs and PZHs </p> </center>
+        
+        <h3>Your Personal Zone Devices (PZPs)</h3>
+        
+		<center>
+            <table id="pzps">
+            <th>ID</th><th>Name</th><th>Status</th><th>Remove</th>
+			<%
+			
+			if (devices.pzps !== null) {
+    			for (i=0; i<devices.pzps.length; i++) {
+        			%> 
+        			<tr>
+        			<td> <%= devices.pzps[i].id %> </td>
+        			<td><%= devices.pzps[i].cname %></td>
+        			<% 
+        			if (devices.pzps[i].isConnected) { 
+        			    %><td class="connected">Connected <%           			
+        			} else {
+        			    %><td class="notconnected">Not connected <%
+        			}
+        			%>
+        			</td> 
+        			<td><a href="revoke/pzp/<%=devices.pzps[i].id%>">Revoke</a></td>
+        			</tr>
+        			<%
+        			
+    			}
+			}
+			
+			%>			
+			</table> 
+
+		</center>
+		
+		<h3>Personal Zone Hubs</h3>
 		<center> 
-			<table id="pzps">
+		    
+			<table id="pzhs">
 			<th>ID</th><th>Name</th><th>Status</th><th>Remove</th>
 			<%
 			
@@ -13,15 +48,15 @@
         			<tr>
         			<td> <%= devices.pzhs[i].id %> </td>
         			<td><%= devices.pzhs[i].cname %></td>
-        			<td><% 
+        			<% 
         			if (devices.pzhs[i].isConnected) { 
-        			    %> Connected <%           			
+        			    %><td class="connected">Connected <%           			
         			} else {
-        			    %> Not connected <%
+        			    %><td class="notconnected">Not connected <%
         			}
         			%>
         			</td> 
-        			<td><input type="button" value="Revoke" /></td>
+        			<td><a href="revoke/pzh/<%=devices.pzhs[i].id%>" >Revoke</a></td>
         			</tr>
         			<%
         			
@@ -30,35 +65,6 @@
 			
 			%>
 			</table> 
-			
-            <table id="pzhs">
-            <th>ID</th><th>Name</th><th>Status</th><th>Remove</th>
-			<%
-			
-			if (devices.pzps !== null) {
-    			for (i=0; i<devices.pzps.length; i++) {
-        			%> 
-        			<tr>
-        			<td> <%= devices.pzps[i].id %> </td>
-        			<td><%= devices.pzps[i].cname %></td>
-        			<td><% 
-        			if (devices.pzps[i].isConnected) { 
-        			    %> Connected <%           			
-        			} else {
-        			    %> Not connected <%
-        			}
-        			%>
-        			</td> 
-        			<td><input type="button" value="Revoke" /></td>
-        			</tr>
-        			<%
-        			
-    			}
-			}
-			
-			%>			
-			</table> 
-
 		</center>
 		
 	</div>
