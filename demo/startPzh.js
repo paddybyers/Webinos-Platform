@@ -10,8 +10,8 @@ function help() {
     console.log('Options:');
     console.log('--host=[host]            host of the pzh (default localhost)');
     console.log('--port=[port]            port to host the pzh (default 8000)');
-    console.log('--pzh-http-port=[port]   port to pzp web server (default 8080)');
-    console.log('--pzh-ws-port=[port]     port to pzp websocket server (default 8081)');
+    console.log('--pzh-ws-port=[port]     port to pzp websocket server (default 8082)');
+    console.log('--pzh-http-port=[port]   port to pzp web server (default 8083)');
     process.exit();
 }
 
@@ -27,10 +27,10 @@ process.argv.forEach(function (arg) {
 	      case '--port':
 	    	  options.port = parseInt(parts[1], 10);
 	    	  break;
-	      case '--pzh-ws-port':
+	      case '--pzh-http-port':
 	    	  options.pzhHttpPort = parseInt(parts[1], 10);
 	    	  break;
-	      case '--pzh-http-port':
+	      case '--pzh-ws-port':
 	    	  options.pzhWebsocketPort = parseInt(parts[1], 10);
 	    	  break;
 	      default:
@@ -69,11 +69,11 @@ if (options.host === '' || options.port <= 0) {
 		if (!config.port) {
 			config.port = 8000;
 		}
-		if (!config.pzhHttpPort) {
-			config.pzhHttpPort = 8082;
-		}
 		if (!config.pzhWebsocketPort) {
-			config.pzhWebsocketPort = 8083;
+			config.pzhWebsocketPort = 8082;
+		}
+		if (!config.pzhHttpPort) {
+			config.pzhHttpPort = 8083;
 		}
 		if (options.host) {
 			config.host = options.host;
@@ -81,15 +81,15 @@ if (options.host === '' || options.port <= 0) {
 		if (options.port) {
 			config.port = options.port;
 		}
-		if (options.pzhHttpPort) {
-			config.pzhHttpPort = options.pzhHttpPort;
-		}
 		if (options.pzhWebsocketPort) {
 			config.pzhWebsocketPort = options.pzhWebsocketPort;
 		}
+		if (options.pzhHttpPort) {
+			config.pzhHttpPort = options.pzhHttpPort;
+		}
 
 		var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh\nemail=internal@webinos.org\ndays=180\n" ;
-		WebSocket.startServer(config.host, config.pzhHttpPort, config.pzhWebsocketPort, function() {
+		WebSocket.startServer(config.host, config.pzhWebsocketPort, config.pzhHttpPort, function() {
 			Pzh.startPzh(contents, config.host, config.port, pzhModules, function() {
 				console.log('=== PZH STARTED ===');
 			});
