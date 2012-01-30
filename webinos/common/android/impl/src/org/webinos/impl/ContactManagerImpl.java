@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -28,10 +29,15 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.net.Uri;
+import android.net.Uri.Builder;
 import android.os.Looper;
 
+import android.provider.Contacts.People;
 import android.provider.ContactsContract;
-import android.provider.ContactsContract.PhoneLookup;
+import android.provider.ContactsContract.*;
+//import android.provider.ContactsContract.PhoneLookup;
+//import android.provider.ContactsContract.RawContacts;
 import android.text.format.DateFormat;
 import android.util.Base64;
 import android.util.Log;
@@ -58,170 +64,300 @@ public class ContactManagerImpl extends ContactManager implements IModule {
         if(!fields.isEmpty()) { 
         	
         	ArrayList<String[]> parameters = inspectFields(fields);
-        	
-        	for(String projection: parameters.get(0)) Log.v("DBG:projection", projection);
-        	for(String selection: parameters.get(1)) Log.v("DBG:selection", selection);
-        	for(String arguments: parameters.get(2)) Log.v("DBG:arguments", arguments);
-    	
-        	getFilteredContacts(parameters.get(0), parameters.get(1)[0],  parameters.get(2));
-
+        	Contact[] contacts = this.getFilteredContacts(parameters.get(0)[0],  parameters.get(1));
+        	successCB.onSuccess(contacts);
         }
-        else {
+       else {
     		Contact[] contacts = this.getAllContacts();	
     		successCB.onSuccess(contacts);
         }
 		
-        //Log.v("DBG", "---------->#contact SEARCHED: " + Integer.toString(getContactsNumber()));
+//        Log.v("DBG", "---------->#contact SEARCHED: " + Integer.toString(test()));
 	
 		return null;
 	}
 	
+	private int test() {
+		
+//		Cursor cursor = androidContext.getContentResolver().query(	ContactsContract.Data.CONTENT_URI, null,
+//																	"(" + ContactsContract.Data.MIMETYPE + " = ?" + " OR " + ContactsContract.Data.MIMETYPE + " = ?" + ") AND " + ContactsContract.Data.CONTACT_ID + " = ?",
+//																	new String[]{ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE , ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE, "2"}, 
+//																	null);
+		
+//		Cursor cursor = androidContext.getContentResolver().query(	ContactsContract.Data.CONTENT_URI, 
+//																	null,
+//																	"(" + ContactsContract.CommonDataKinds.Organization.COMPANY + " LIKE ? AND " + ContactsContract.Data.MIMETYPE + " = ?" + ") OR (" + ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME + " LIKE ?"  + " AND " + ContactsContract.Data.MIMETYPE + " = ?)",
+//																	new String[]{"Empire ORG.", ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE, "Darth", ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE}, 
+//																	null);
+		
+		String where = 
+//						ContactsContract.Data.CONTACT_ID + " = ? AND (" +
+//						"(" + ContactsContract.CommonDataKinds.Nickname.NAME + " LIKE ? AND " +
+//						ContactsContract.Data.MIMETYPE + " = ?" + ")"
+//						+ " OR " + 
+						"((" + ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME + " LIKE ? OR " +
+						ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME + " LIKE ?) AND " +
+						ContactsContract.Data.MIMETYPE + " = ?)"
+						+ " AND " + 
+						"(" + ContactsContract.CommonDataKinds.Nickname.NAME + " LIKE ? AND " + 
+						ContactsContract.Data.MIMETYPE + " = ?"
+						+ ")";
+		
+		Log.v("WHERE", where);
+
+		Cursor cursor = androidContext.getContentResolver().query(	ContactsContract.Data.CONTENT_URI, 
+				null,
+				where,
+				new String[]{	
+								"Vergori", "Paolo Vergori"
+								, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE,
+								"Nickname"
+								, ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE
+//								, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE
+//								,"Vader", ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE
+//								,"Empire ORG.", ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE
+							}, 
+				null);
+		
+		while(cursor.moveToNext()) Log.v("TEST", cursor.getString(cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID)));
+		cursor.close();
+		return printDB(cursor);
+	}
+	
+	private int printDB(Cursor cursor){
+		Log.v("DBG:DB", "columns: " + cursor.getColumnCount() + " rows: " + cursor.getCount());
+		int i;	
+		for(i = 0; cursor.moveToNext(); i++) {
+						
+				for(int j=0; j<cursor.getColumnCount();j++){
+					Log.v("DBG", cursor.getColumnName(j)+"---> " + cursor.getString(j));
+				}		
+		}		
+		cursor.close();
+		return i;
+	}
+	
 	private ArrayList<String[]> inspectFields(HashMap<String, String> fields) {
 		
-		ArrayList<String> projection = new ArrayList<String>();
-		String[] selection = new String[1];
-		selection[0]="";
+		StringBuffer selection = new StringBuffer();
 		ArrayList<String> arguments = new ArrayList<String>();
 		Boolean firstElement = true;
-    	
-    	if(fields.get("id") != null) {
-    		projection.add(ContactsContract.Contacts._ID);
-    		
-    		selection[0] += ContactsContract.Contacts._ID + " = ?";
-    		arguments.add(fields.get("id"));  		
-    		firstElement = false;
-    	}
+  
     	
     	if(fields.get("name") != null) {
-    		projection.add(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME);
-    		projection.add(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME);
-    		projection.add(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
-    		projection.add(ContactsContract.CommonDataKinds.StructuredName.MIDDLE_NAME);
-    		projection.add(ContactsContract.CommonDataKinds.StructuredName.PREFIX);
-    		projection.add(ContactsContract.CommonDataKinds.StructuredName.SUFFIX);
     		
 			if(!firstElement)
-				selection[0] += " AND ";
+				selection.append(" OR ");
 			else
 				firstElement = false;
     		
-    		selection[0] += "(" +	ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME + " = ? OR " +
-			    					ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME + " = ? OR " +
-									ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME + " = ? OR " +
-									ContactsContract.CommonDataKinds.StructuredName.MIDDLE_NAME + " = ? OR " +
-									ContactsContract.CommonDataKinds.StructuredName.PREFIX + " = ? OR " +
-									ContactsContract.CommonDataKinds.StructuredName.SUFFIX  + " = ?)";
+    		selection.append("((" +	ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME + " LIKE ? OR " +
+			    					ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME + " LIKE ? OR " +
+									ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME + " LIKE ? OR " +
+									ContactsContract.CommonDataKinds.StructuredName.MIDDLE_NAME + " LIKE ? OR " +
+									ContactsContract.CommonDataKinds.StructuredName.PREFIX + " LIKE ? OR " +
+									ContactsContract.CommonDataKinds.StructuredName.SUFFIX  + " LIKE ? OR " +
+									ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME + " LIKE ?)");
     		
-    		for(int i=0;i<6;i++)
+    		selection.append(" AND "+ ContactsContract.Data.MIMETYPE + " = ? )");
+    		
+    		for(int i=0;i<7;i++)
     			arguments.add(fields.get("name"));
+			arguments.add(ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
+    	}
+    	
+    	if(fields.get("nickname") != null) {
+    		
+			if(!firstElement)
+				selection.append(" OR ");
+			else
+				firstElement = false;
+    		
+    		selection.append("(" + ContactsContract.CommonDataKinds.Nickname.NAME + " LIKE ?");
+    		selection.append(" AND "+ ContactsContract.Data.MIMETYPE + " = ?)");
+    		
+    		arguments.add(fields.get("nickname"));
+			arguments.add(ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE);
+    	}
+    	
+    	if(fields.get("phoneNumber") != null) {
+		
+			if(!firstElement)
+				selection.append(" OR ");
+			else
+				firstElement = false;
+		
+			selection.append("(" + 	ContactsContract.CommonDataKinds.Phone.NUMBER + " LIKE ?");
+			selection.append(" AND "+ ContactsContract.Data.MIMETYPE + " = ?)");
 			
+			arguments.add(fields.get("phoneNumber"));
+			arguments.add(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
+    	}
+    	
+    	if(fields.get("organization") != null) {
+    		
+			if(!firstElement)
+				selection.append(" OR ");
+			else
+				firstElement = false;
+		
+			selection.append("((" +	ContactsContract.CommonDataKinds.Organization.COMPANY + " LIKE ? OR " +
+									ContactsContract.CommonDataKinds.Organization.DEPARTMENT + " LIKE ? OR " +
+									ContactsContract.CommonDataKinds.Organization.TITLE + " LIKE ?)");
+			selection.append(" AND "+ ContactsContract.Data.MIMETYPE + " = ?)");
+			
+			for(int i=0;i<3;i++)
+				arguments.add(fields.get("organization"));
+			arguments.add(ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE);
     	}
     	
     	if(fields.get("email") != null) {
-
-    		projection.add(ContactsContract.CommonDataKinds.Email.IS_PRIMARY);
-    		projection.add(ContactsContract.CommonDataKinds.Email.DATA1);
-    		projection.add(ContactsContract.CommonDataKinds.Email.TYPE);
     		
 			if(!firstElement)
-				selection[0] += " AND ";
+				selection.append(" OR ");
 			else
 				firstElement = false;
-    		
-    		selection[0] += "(" +	ContactsContract.CommonDataKinds.Email.IS_PRIMARY + " = ? OR " +
-			    					ContactsContract.CommonDataKinds.Email.DATA1 + " = ? OR " +
-									ContactsContract.CommonDataKinds.Email.TYPE + " = ?)";
-    		
-				
-			for(int i=0;i<3;i++)
-    			arguments.add(fields.get("email"));
-    	}
 		
-    	selection[0] += " AND (";
-    	firstElement = true;
-    	Iterator<String> it = fields.keySet().iterator();
-        while(it.hasNext()) {
-        	String field = it.next();
-        	
-        	if(field.equals("id")) {
-        		if(!firstElement)
-        			selection[0] += " OR ";
-        		else
-        			firstElement = false;
-        		selection[0] += ContactsContract.Data.MIMETYPE + " = ?";
-            	arguments.add(ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
-			}
-        	else if(field.equals("name")) {
-        		if(!firstElement)
-        			selection[0] += " OR ";
-        		else
-        			firstElement = false;
-        		selection[0] += ContactsContract.Data.MIMETYPE + " = ?";
-            	arguments.add(ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
-        	}
-    		else if(field.equals("email")) {
-        		if(!firstElement)
-        			selection[0] += " OR ";
-        		else
-        			firstElement = false;
-        		selection[0] += ContactsContract.Data.MIMETYPE + " = ?";
-            	arguments.add(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE);
-    		}
-        }
-		selection[0] += ")";
+			selection.append("(" + ContactsContract.CommonDataKinds.Email.DATA1 + " LIKE ?");
+			selection.append(" AND "+ ContactsContract.Data.MIMETYPE + " = ?)");
+			
+			arguments.add(fields.get("email"));
+			arguments.add(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE);
+    	}
     	
+    	if(fields.get("address") != null) {
+    		
+			if(!firstElement)
+				selection.append(" OR ");
+			else
+				firstElement = false;
+		
+			selection.append("((" +	ContactsContract.CommonDataKinds.StructuredPostal.COUNTRY + " LIKE ? OR " +
+									ContactsContract.CommonDataKinds.StructuredPostal.CITY + " LIKE ? OR " +
+									ContactsContract.CommonDataKinds.StructuredPostal.REGION + " LIKE ? OR " +
+									ContactsContract.CommonDataKinds.StructuredPostal.STREET + " LIKE ? OR " +
+									ContactsContract.CommonDataKinds.StructuredPostal.POSTCODE + " LIKE ?)");
+			selection.append(" AND "+ ContactsContract.Data.MIMETYPE + " = ?)");
+			
+			for(int i=0;i<5;i++)
+				arguments.add(fields.get("address"));
+			arguments.add(ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE);
+    	}
+    	
+    	if(fields.get("im") != null) {
+    		
+			if(!firstElement)
+				selection.append(" OR ");
+			else
+				firstElement = false;
+		
+			selection.append("(" +	ContactsContract.CommonDataKinds.Im.DATA + " LIKE ?");
+			selection.append(" AND "+ ContactsContract.Data.MIMETYPE + " = ?)");
+			
+
+			arguments.add(fields.get("im"));
+			arguments.add(ContactsContract.CommonDataKinds.Im.CONTENT_ITEM_TYPE);
+    	}
+    	
+    	if(fields.get("url") != null) {
+    		
+			if(!firstElement)
+				selection.append(" OR ");
+			else
+				firstElement = false;
+		
+			selection.append("(" +	ContactsContract.CommonDataKinds.Website.URL + " LIKE ?");
+			selection.append(" AND "+ ContactsContract.Data.MIMETYPE + " = ?)");
+			
+
+			arguments.add(fields.get("url"));
+			arguments.add(ContactsContract.CommonDataKinds.Website.CONTENT_ITEM_TYPE);
+    	}
+    	
+
     	ArrayList<String[]> parameters = new ArrayList<String[]>();
-    	parameters.add(projection.toArray(new String[0]));
-    	parameters.add(selection);
+    	
+    	ArrayList<String> tmp = new ArrayList<String>();
+    	tmp.add(selection.toString());
+    	
+    	parameters.add(tmp.toArray(new String[0]));
     	parameters.add(arguments.toArray(new String[0]));
 
 		return parameters;
 	}
 	
-	private void getFilteredContacts(String[] projection, String selection, String[] arguments) {
+	private Contact[] getFilteredContacts(String selection, String[] arguments) {
 		
-//		for(String a: projection) Log.v("DBG:projection", a);
 //		Log.v("selction", selection);
 //		for(String b: arguments) Log.v("DBG:arguments", b);
 		
-		Cursor cursor = androidContext.getContentResolver().query( ContactsContract.Data.CONTENT_URI, projection, selection, arguments, null);
+		Cursor cursor = androidContext.getContentResolver().query(	ContactsContract.Data.CONTENT_URI,
+																	new String[] {ContactsContract.Data.CONTACT_ID}, 
+																	selection, arguments, null);
 		
+//		Log.v("DBG:ID#", String.valueOf(printDB(cursor)));
 		
+		ArrayList<String> IDs = new ArrayList<String>();
+//		while(cursor.moveToNext())
+//			IDs.add(cursor.getString(cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID)));	
+
 		while(cursor.moveToNext()) {
-			Log.v("DBG", "FAMILYNAME---> " + cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME)));
-			Log.v("DBG", "ID---> " + cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID)));
+			String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID));
+			Iterator<String> it = IDs.iterator();
+			boolean found = false;
+			while(it.hasNext()) {
+				String tmp = it.next();
+				if(tmp.equals(id)) {
+					found = true;
+					break;
+				}
+			}
+			if(!found)
+				IDs.add(id);
+		}
+		cursor.close();
+		Collections.sort(IDs);
+		
+//		for(String s: IDs)
+//			Log.v("DBG:IDs", s);
+	
+		
+		ArrayList<Contact> contacts = new ArrayList<Contact>();
+		
+		for(String contactID: IDs) {
+			ContactImpl contact =  new ContactImpl(this);
+			
+			contact.id = contactID;
+//    		contact.displayName = getContactDisplayName(null);
+    		contact.name = getContactName(null, contactID);
+    		contact.revision = getContactRevision(null, contactID);		//not working
+    		contact.nickname = getContactNickname(null, contactID);
+//    		contact.phoneNumbers = getConcactPhoneNumbers(null, contactID);
+    		contact.emails = getContactEmails(null, contactID);
+    		contact.addresses = getContactAddresses(null, contactID);
+    		contact.ims = getContactIms(null, contactID);
+    		contact.organizations = getContactOrganizations(null, contactID);
+    		contact.birthday = getContactBirthday(null, contactID);		//to be tested
+    		contact.note = getContactNote(null, contactID);
+    		contact.photos = getContactPhotos(contactID);					//to be tested
+    		contact.categories = getContactCategories(null, contactID);	//to be tested
+    		contact.urls = getContactUrls(null, contactID);
+    		contact.gender = null;											//not implemented on android
+    		contact.timezone = null;										//not implemented on android
+    		contacts.add(contact);  
+			
 		}
 		
+		return contacts.toArray(new Contact[0]);
+		
 	}
-	
-	private int getContactsNumber() {
-		
-		Cursor cursor = androidContext.getContentResolver().query(	ContactsContract.Data.CONTENT_URI, 
-																	new String[] {  ContactsContract.Contacts._ID,
-																					ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
-																					ContactsContract.CommonDataKinds.Email.DATA1
-																				 }, 
-																	ContactsContract.Contacts._ID + " = ? AND " + ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME + " = ? AND " + ContactsContract.CommonDataKinds.Email.DATA1 + " = ?" + " AND " + "(" + ContactsContract.Data.MIMETYPE + " = ?" + " OR " + ContactsContract.Data.MIMETYPE + " = ?)",
-																	new String[]{"1", "Paolo", "Paolo Vergori", ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE}, 
-																	null);
-		
-		int i;
-		
-		for(i = 0; cursor.moveToNext(); i++) { //;
-			Log.v("DBG", "ID---> " + cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID)));
-			Log.v("DBG", "GIVENNAME---> " + cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME)));
-			Log.v("DBG", "EMAIL---> " + cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA1)));
-		}		
-		cursor.close();
-		
-		return i;
-	}
-	
 	
 	private Contact[] getAllContacts(){
 				
 		ArrayList<Contact> contacts = new ArrayList<Contact>();
 		Cursor cursor = androidContext.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+		
+//		Log.v("DBG:allCursor", String.valueOf(cursor.getColumnCount()));
 		
     	while(cursor.moveToNext()) {
     		
