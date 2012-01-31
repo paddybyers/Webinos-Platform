@@ -1,6 +1,6 @@
 /*
  * This is an Express web server designed to provide an interface to the
- * PZH.  
+ * PZH. This file configures the web server.
  * 
  * Author: John Lyle
  *
@@ -22,13 +22,15 @@ var pzhweb          = exports;
 
 /*
  * This is how you start the server programmatically.
- * Arguments: port to use, whether to request client certificates, domain name, http or https server, and then the root path to certificates.
+ * Arguments: port to use, whether to request client certificates, 
+ *            domain name, http or https server, and then the 
+ *            root path to certificates.
  * 
  */
 pzhweb.startServer = function(port, checkLocalCert, domainName, isHTTP, certPath, Pzh, next) {
+    "use strict";
 
-
-    /* No clever user handling here */
+    /* No clever user handling here yet */
     passport.serializeUser(function(user, done) {
       done(null, user);
     });
@@ -52,6 +54,7 @@ pzhweb.startServer = function(port, checkLocalCert, domainName, isHTTP, certPath
         realm: prefix + '://' + domainName + ':' + port + '/'
       },
       function(identifier, profile, done) {
+        "use strict";
         // asynchronous verification, for effect...
         process.nextTick(function () {
           
@@ -71,6 +74,7 @@ pzhweb.startServer = function(port, checkLocalCert, domainName, isHTTP, certPath
         realm: prefix + '://' + domainName + ':' + port + '/'
       },
       function(identifier, profile, done) {
+        "use strict";
         process.nextTick(function () {
           profile.from = "yahoo";
           profile.identifier = identifier;
@@ -99,9 +103,10 @@ pzhweb.startServer = function(port, checkLocalCert, domainName, isHTTP, certPath
 
 
     app.configure(function(){
+      "use strict";
       app.set('views', __dirname + '/views');
       app.set('view engine', 'ejs');
-//      app.use(express.logger());
+//      app.use(express.logger()); // turn on express logging for every page
       app.use(express.bodyParser());
       app.use(express.methodOverride());
       app.use(express.cookieParser());
@@ -114,24 +119,40 @@ pzhweb.startServer = function(port, checkLocalCert, domainName, isHTTP, certPath
     });
 
     
-
+    // An environment variable will switch between these two, but we don't yet.
     app.configure('development', function(){
       app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
-      //app.use(express.errorHandler()); 
     });
 
     app.configure('production', function(){
       app.use(express.errorHandler()); 
     });
 
-    // Routes
-
+    // Give the web application a copy of the PZH instance, so it can
+    // do useful things with it.   
     app.Pzh = Pzh;
     app.checkLocalCert = checkLocalCert;
-    var routes = require('./routes')(app);
-
+   
+    // Set up the routes (./routes/index.js) depending on whether we have a PZH.
+    var routes = setRoutes(app);
+    
     app.listen(port);
 
+    handleAppStart(app,next,isHTTP,checkLocalCert);
+}
+
+
+function setRoutes(app) {
+    "use strict";
+    if (typeof app.Pzh === 'undefined') {
+        return null;
+    } else {
+        return require('./routes')(app);
+    }
+}
+
+function handleAppStart(app, next, isHTTP, checkLocalCert) {
+    "use strict";   
     if (app.address() === null) {
         //failed.  Probably the wrong port.
         console.log("ERROR! Failed to start web interface - are you running on the right port?");
@@ -148,7 +169,6 @@ pzhweb.startServer = function(port, checkLocalCert, domainName, isHTTP, certPath
         }
         next(true);
     }
-    
-    
-    
 }
+
+
