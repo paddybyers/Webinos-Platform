@@ -218,6 +218,9 @@ var lsrData = false;
 var lswData = false;
 var lheadData = false;
 
+//GEOLOCATION
+var gData = false;
+
     everyone.now.setGear = function(val){
         gear = val;
         console.log(gear);
@@ -333,6 +336,22 @@ var lheadData = false;
         }
     }
     
+    everyone.now.setGeolocation = function(data){
+    	
+    	console.log('setting geolocation');
+    	gData = data;
+   		var d = new Date();
+		var stamp = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
+		var stamp = stamp + d.getUTCMilliseconds();
+		gData.timestamp = stamp;
+		if(typeof _listeners.lightsSignalWarn != 'undefined'){
+            _listeners.geolocation(gData);
+        }
+        
+        
+    	
+    }
+    
     
     
     
@@ -377,7 +396,11 @@ var lheadData = false;
             case 'lights-signal-warn':
             	return new ControlEvent(type, lswData);
             	break;
-            default:
+ 			case 'geolocation':
+            	return gData;
+            	break;
+ 
+ 			default:
                 console.log('nothing found...');
             
         }
@@ -432,6 +455,9 @@ var lheadData = false;
             	break;
             case 'lights-signal-warn':
             	_listeners.lightsSignalWarn = listener;
+            	break;
+            case 'geolocation':
+            	_listeners.geolocation = listener;
             	break;
             default:
                 console.log('type ' + type + ' undefined.');

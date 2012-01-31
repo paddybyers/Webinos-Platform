@@ -7,7 +7,7 @@
 	<script type="text/javascript" src="jquery-1.6.4.min.js"></script>
 	<!-- <script src="iphone-style-checkboxes.js" type="text/javascript" charset="utf-8"></script> -->
   	<!-- <link rel="stylesheet" href="switch.css" type="text/css" media="screen" charset="utf-8" /> -->
-	<script type="text/javascript" src="http://localhost:9898/nowjs/now.js"></script>
+	<script type="text/javascript" src="/nowjs/now.js"></script>
 	<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
 	<script type="text/javascript">
 		now.ready(function(){ 
@@ -230,6 +230,18 @@
    	 function handleReversedGeocoder(results, status){
    	 	if (status == google.maps.GeocoderStatus.OK) {
           if (results[0]) {
+          
+          	var position = new Object();
+         	position.coords = new Object();
+			position.coords.latitude = results[0].geometry.location.lat()
+			position.coords.longitude = results[0].geometry.location.lng();
+		    position.coords.altitude = $('#c-alt').val();
+    		position.coords.accuracy = 99;
+ 			position.coords.heading = $('#c-heading').val();
+			position.coords.speed = $('#c-speed').val();
+         	now.setGeolocation(position);
+          
+          	
          	updateAddress(results[0]);
           }
         } else {
@@ -247,7 +259,17 @@
          	marker.setPosition(centerPoint);
          	$('#c-lat').val(centerPoint.lat());
          	$('#c-lng').val(centerPoint.lng());
-         	//updateMarker();
+         	
+         	var position = new Object();
+         	position.coords = new Object();
+			position.coords.latitude = results[0].geometry.location.lat()
+			position.coords.longitude = results[0].geometry.location.lng();
+		    position.coords.altitude = $('#c-alt').val();
+    		position.coords.accuracy = 99;
+ 			position.coords.heading = $('#c-heading').val();
+			position.coords.speed = $('#c-speed').val();
+         	now.setGeolocation(position);
+         	
           }
         } else {
           alert("Geocoder failed due to: " + status);
@@ -260,7 +282,7 @@
 <body>
 <div id="content" class='content cf'>
 	<div id="header">
-		<h1><img src="testbed_logo.png"></h1>
+		<h1><img src="simulator_logo.png"></h1>
      </div>
      <div id="functions">
 	<h3>Gear</h3>
