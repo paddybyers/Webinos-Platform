@@ -12,11 +12,19 @@
  */
 var express         = require('express'),
     util            = require('util'),
+    path            = require('path'),
     crypto          = require('crypto'),
     fs              = require('fs'),
     passport        = require('passport'), 
-    YahooStrategy   = require('passport-yahoo').Strategy;
+    YahooStrategy   = require('passport-yahoo').Strategy,
     GoogleStrategy  = require('passport-google').Strategy;
+
+var moduleRoot      = require(path.resolve(__dirname, '../dependencies.json')),
+    dependencies    = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json')),
+    webinosRoot     = path.resolve(__dirname, '../' + moduleRoot.root.location),
+    utils           = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')),
+    webCert         = require(path.join(webinosRoot, dependencies.pzh.location, 'web/pzh_web_certs.js'));
+
 
 var pzhweb          = exports; 
 
@@ -27,9 +35,20 @@ var pzhweb          = exports;
  *            root path to certificates.
  * 
  */
-pzhweb.startServer = function(port, checkLocalCert, domainName, isHTTP, certPath, Pzh, next) {
+pzhweb.startServer = function(port, checkLocalCert, isHTTP, Pzh, next) {
     "use strict";
+    getSSLOptions(Pzh, isHTTP, checkLocalCert, function(err, options) {
+        if (err === null) {
+            createServer(port, checkLocalCert, isHTTP, Pzh, options, next);
+        } else {
+            utils.debug(2, err);       
+            utils.debug(2, "Failed to read certificates for web server");                   
+        }
+    });
+}
 
+function createServer(port, checkLocalCert, isHTTP, Pzh, options, next) {
+    "use strict";
     /* No clever user handling here yet */
     passport.serializeUser(function(user, done) {
       done(null, user);
@@ -44,6 +63,8 @@ pzhweb.startServer = function(port, checkLocalCert, domainName, isHTTP, certPath
     } else {
         var prefix = "https";
     }
+    
+    var domainName = Pzh.server;
 
     // Use the GoogleStrategy within Passport.
     //   Strategies in passport require a `validate` function, which accept
@@ -84,23 +105,11 @@ pzhweb.startServer = function(port, checkLocalCert, domainName, isHTTP, certPath
     ));
 
 
-    var app = express.createServer();
+    var app;
 
-
-    if (!isHTTP) {
-        var options = { 
-            cert        : fs.readFileSync(certPath + "/cert/pzh_WebinosPzh_conn_cert.pem"),
-            key         : fs.readFileSync(certPath + "/keys/pzh_WebinosPzh_conn_key.pem"),
-            ca          : fs.readFileSync(certPath + "/cert/pzh_WebinosPzh_master_cert.pem"),
-		    crl         : fs.readFileSync(certPath + "/cert/pzh_WebinosPzh_master_cert.crl"),
-		    requestCert : false, // always allow connection without local certificate 
-		    rejectUnauthorized : checkLocalCert
-        };
-        var app = express.createServer(options);
-    } else {
-        var app = express.createServer();
-    }
-
+    
+    app = express.createServer(options);
+    
 
     app.configure(function(){
       "use strict";
@@ -170,5 +179,47 @@ function handleAppStart(app, next, isHTTP, checkLocalCert) {
         next(true);
     }
 }
+
+
+function getSSLOptions(Pzh, isHTTP, checkLocalCert, callback) {
+    "use strict";
+    if (isHTTP) callback(null, {});
+    
+    var wsCertPath = path.join(Pzh.config.pzhCertDir, Pzh.config.webserver.cert.name);
+    var wsKeyPath = path.join(Pzh.config.pzhKeyDir, Pzh.config.webserver.key.name);    
+    var options = { 
+        ca          : Pzh.config.master.cert.value,
+	    crl         : Pzh.config.master.crl.value,
+	    requestCert : true,
+	    rejectUnauthorised : checkLocalCert
+    };
+
+    if (!path.existsSync(wsCertPath)) {
+        //assume this means that we need to generate both.
+        webCert.createWSCert(Pzh, function(err, wscert, wskey) {
+            if (err === null) {
+                options.cert =  wscert;
+                options.key  = wskey;
+                callback(null,options);
+            } else {
+                utils.debug(1, "Error! WSCert: " + err);
+                callback(err);
+            }
+        });
+    } else {
+        utils.debug(2, "WS Cert Paths exist, reading and returning");
+        try {
+            options.cert = fs.readFileSync(wsCertPath).toString();
+            options.key  = fs.readFileSync(wsKeyPath).toString();
+            callback(null,options);
+        } catch (err) {
+            utils.debug(1, "Error reading WS Certificates: " + err);
+            callback(err);
+        }
+    }
+
+}
+
+
 
 

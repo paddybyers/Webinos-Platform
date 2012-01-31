@@ -83,13 +83,10 @@ if (options.host === '' || options.port <= 0) {
 		Pzh.startPzh(contents, config.host, config.port, pzhModules, function(res,instance) {
 			console.log('=== PZH STARTED ===');
 
-			var requestClientCert = true;   // Are we requesting a client certificate?
-			var domainName = "localhost";   // Used for the callback for OpenID/OAuth
-			var httpOnly = false;           // Are we running HTTP or HTTPS?
-			var certDir = path.resolve("./certificates/pzh/WebinosPzh");
+			var requestClientCert = false;   // Are we requesting a client certificate?
+			var httpOnly = false;           // Are we running HTTP or HTTPS?		
 			
-			
-			PzhWebInterface.startServer(config.pzhWSPort, requestClientCert, domainName, httpOnly, certDir, instance, function(status) {
+			PzhWebInterface.startServer(config.pzhWSPort, requestClientCert, httpOnly, instance, function(status) {
 				if (status) {
 				    console.log('=== PZH WEB INTERFACE STARTED ===');
 			    } else {
