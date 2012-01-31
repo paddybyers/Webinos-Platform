@@ -59,21 +59,17 @@
       var data = bufferDB.query();
 
       var contextService = [];
-      
-      var message = sessionPzp.getMessageHandler();
-      console.log(message);
+      var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), function(services){
+      //var message = sessionPzp.getMessageHandler();
+      //console.log(message);
+      //util= require('util');
+        //console.log(util.inspect(services, false, null), 'white+red_bg');
+        services[0].serviceAddress = connectedPzh
+        
       var query = {};
       query.type = "DB-insert";
       query.data = data;
-
-      message.write(query, connectedPzh, 0);
-      bufferDB.db.clear();
-      bufferDB.commit();
-/*      var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), function(services){
-        //util= require('util');
-        //console.log(util.inspect(services, false, null), 'white+red_bg');
-        services[0].serviceAddress = connectedPzh
-  
+      //message.write(query, connectedPzh, 0);
           var query = {};
           query.type = "DB-insert";
           query.data = data;
@@ -82,7 +78,7 @@
             bufferDB.db.clear();
             bufferDB.commit();
           }
-      });*/
+      });
     }
     //success(true);
   }
