@@ -16,20 +16,20 @@
 	
 	var callback = {};
 	
-	callback.onSending = function (params) {
+	callback.onSending = function (event, recipient) {
 	//params.event, params.recipient
 
-		$('#messages').append('<li> onSending()</li>');
+		$('#messages').append('<li> onSending() to ' + recipient + '</li>');
 	};
-	callback.onCaching = function (params) {
+	callback.onCaching = function (event) {
 		//params.event
 		$('#messages').append('<li> onCaching()</li>');
 	};
-	callback.onDelivery = function (params) {
+	callback.onDelivery = function (event, recipient) {
 	//params.event, params.recipient
-		$('#messages').append('<li> onDelivery()</li>');
+		$('#messages').append('<li> onDelivery() at ' + recipient + '</li>');
 	};
-	callback.onTimeout = function (params) {
+	callback.onTimeout = function (event, recipient) {
 	//params.event, params.recipient
 		$('#messages').append('<li> onTimeout()</li>');
 	};
@@ -118,6 +118,7 @@
                     	eventAPIToUse.addWebinosEventListener(function (event) {
                     		console.log("New event received");
                     		$("#textIn").val(event.payload);
+                    		$('#messages').append('<li> Received event from ' + event.addressing.source + ': ' + event.payload + ' </li>');
                     		logObj(event,"event");
                     	});
                      }); 
