@@ -207,7 +207,6 @@ function getSSLOptions(Pzh, isHTTP, checkLocalCert, callback) {
             }
         });
     } else {
-        utils.debug(2, "WS Cert Paths exist, reading and returning");
         try {
             options.cert = fs.readFileSync(wsCertPath).toString();
             options.key  = fs.readFileSync(wsKeyPath).toString();
