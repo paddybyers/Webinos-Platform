@@ -354,7 +354,6 @@ var gData = false;
     
     
     
-    
     function get(type){
         switch(type){
             case 'gear': 
@@ -399,7 +398,6 @@ var gData = false;
  			case 'geolocation':
             	return gData;
             	break;
- 
  			default:
                 console.log('nothing found...');
             
