@@ -206,6 +206,14 @@
 			return "virgin_pzp";
 		}
 	}
+	
+	sessionPzp.getMessageHandler = function() {
+		if (typeof instance !== "undefined") {
+			return instance.messageHandler;
+		} else {
+			return null;
+		}
+	}
 	//Added in order to be able to get the rpc handler from the current pzp
 	sessionPzp.getPzp = function() {
     if (typeof instance !== "undefined") {
@@ -244,24 +252,29 @@
 		if(!self.connectedPzp.hasOwnProperty(self.sessionId)) {
 			utils.debug(2, 'PZP Connected to PZH & Authenticated');
 			self.pzhId = cn;				
+			
 			self.sessionId = self.pzhId + "/" + self.config.common.split(':')[0];
 			rpc.setSessionId(self.sessionId);
 		
 			self.connectedPzh[self.pzhId] = {socket: client};
 			self.connectedPzhIds.push(self.pzhId);
+			
 			self.connectedPzp[self.sessionId] = {socket: client};
+			
 			self.pzpAddress = client.socket.address().address;
 			self.tlsId[self.sessionId] = client.getSession();
+			
 			client.socket.setKeepAlive(true, 100);
+			
 			var msg = this.messageHandler.registerSender(self.sessionId, self.pzhId);
 			self.sendMessage(msg, self.pzhId);
+			
 			pzp_server.startServer(self, function() {
-				self.prepMsg(self.sessionId, self.pzhId, 'pzpDetails', self.pzpServerPort);
-				
+				self.prepMsg(self.sessionId, self.pzhId, 'pzpDetails', self.pzpServerPort);				
 				var localServices = self.rpcHandler.getRegisteredServices();
 				self.prepMsg(self.sessionId, self.pzhId, 'registerServices', localServices);
-				utils.debug(2, 'Sent msg to register local services with pzh');
 				
+				utils.debug(2, 'Sent msg to register local services with pzh');
 				callback.call(self, 'startedPZP');
 			});
 		}
@@ -420,14 +433,16 @@
 	 * @param port: port on which PZH is running
 	 */
 	sessionPzp.startPzp = function(contents, servername, port, code, modules, callback) {
-		var client = new Pzp(modules);
-		client.code = code;		
-		client.pzhPort = port;
-		client.modules = modules;
+		var client      = new Pzp(modules);
+		client.code     = code;		
+		client.pzhPort  = port;
+		client.modules  = modules;
 		client.contents = contents;
+		
 		utils.resolveIP(servername, function(resolvedAddress) {
-			client.pzhName = resolvedAddress;
+			client.pzhName = resolvedAddress;			
 			utils.debug(3, 'connecting address: ' + client.pzhName);
+			
 			var dir = webinosDemo+'/certificates/pzp/';
 			utils.configure(client, dir, 'Pzp', contents, function(result) {
 				utils.debug(2, 'PZP (Not Connected) '+result);
@@ -477,7 +492,8 @@
 		exports.getPzpId = sessionPzp.getPzpId;
 		exports.getPzhId = sessionPzp.getPzhId;
 		exports.getConnectedPzhId = sessionPzp.getConnectedPzpId;
-		exports.getConnectedPzpId = sessionPzp.getConnectedPzpId;		
+		exports.getConnectedPzpId = sessionPzp.getConnectedPzpId;	
+		exports.getMessageHandler = sessionPzp.getMessageHandler;	
 	}
 
 }());

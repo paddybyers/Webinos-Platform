@@ -42,6 +42,7 @@
   //////////////////////////////////////////////////////////////////////////////////////
   exports.handleContextData = function(contextData){
   
+  	
     
     var connectedPzh = sessionPzp.getPzhId();
     if (connectedPzh == "null" || connectedPzh == "undefined"){
@@ -58,7 +59,17 @@
       var data = bufferDB.query();
 
       var contextService = [];
-      var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), function(services){
+      
+      var message = sessionPzp.getMessageHandler();
+      console.log(message);
+      var query = {};
+      query.type = "DB-insert";
+      query.data = data;
+
+      message.write(query, connectedPzh, 0);
+      bufferDB.db.clear();
+      bufferDB.commit();
+/*      var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), function(services){
         //util= require('util');
         //console.log(util.inspect(services, false, null), 'white+red_bg');
         services[0].serviceAddress = connectedPzh
@@ -71,7 +82,7 @@
             bufferDB.db.clear();
             bufferDB.commit();
           }
-      });
+      });*/
     }
     //success(true);
   }
