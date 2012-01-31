@@ -16,9 +16,20 @@ function getCurrentPosition (params, successCB, errorCB, objectRef){
 	position.coords = new Object();
 	position.coords.latitude = Math.floor((car.position.latitude.get() / Math.pow(2,32) * 360) * 10000)/10000; 
 	position.coords.longitude = Math.floor((car.position.longitude.get() / Math.pow(2,32) * 360) * 10000)/10000;
-	position.coords.accuracy = 99;
+	
+	//USING INFO FROM GPS RECEIVER
+	extension = car.position.extensions.get();
+    position.coords.altitude = extension.altitude;
+    position.coords.accuracy = extension.quality;
+    //position.coords.heading = extension.heading;
+    //position.coords.speed = extension.speed;
+    
+    //speed from GPS DATA
+    //position.coords.speed = extension.speed;
+	
 	position.coords.heading = car.heading.get();
 	position.coords.speed = Math.floor(((car.speed.get() / 10) / 3600) * 1000 *1000) / 1000 ; // meters per second 
+
 	returnPosition(position, successCB, errorCB, objectRef);
 	return;
 }
@@ -57,6 +68,11 @@ function vehicleBusHandler(data){
 	position.coords.accuracy = 99;
 	position.coords.heading = car.heading.get();
 	position.coords.speed = Math.floor(((car.speed.get() / 10) / 3600) * 1000 *1000) / 1000 ; // meters per second
+	
+	extension = car.position.extensions.get();
+    position.coords.altitude = extension.altitude;
+    position.coords.accuracy = extension.quality;
+
 	
 	
 	for(var i = 0; i < listeners.length; i++){

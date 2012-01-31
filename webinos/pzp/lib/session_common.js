@@ -11,6 +11,7 @@ var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
 var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
 var webinosDemo  = path.resolve(__dirname, '../../../demo');
+var	validation = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_schema.js')); // ADDED BY POLITO
 
 		
 if (typeof exports !== "undefined") {
@@ -94,6 +95,29 @@ exports.processedMsg = function(self, data, dataLen, callback) {
 		msg = msg.split('#');
 		/*if(checkSchema(msg[1]) === false) */{
 			var parse = JSON.parse(msg[1]);
+
+			// BEGIN OF POLITO MODIFICATIONS
+			var valError = validation.checkSchema(parse);
+			if(valError === false) { // validation error is false, so validation is ok
+				console.log('Received recognized packet ' + JSON.stringify(msg));
+			}
+			else if (valError === true) {
+				// for debug purposes, we only print a message about unrecognized packet
+				// in the final version we should throw an error
+				// Currently there is no a formal list of allowed packages and throw errors
+				// would prevent the PZH from working
+				console.log('Received unrecognized packet ' + JSON.stringify(msg));
+				console.log(msg);
+			}
+			else if (valError === 'failed') {
+				console.log('Validation failed');
+			}
+			else {
+				console.log('Invalid validation response ' + valError);
+			}
+
+			//utils.debug(2, 'PZH WSServer: Received packet' + JSON.stringify(msg));
+
 			callback.call(self, parse);
 		}
 	}	

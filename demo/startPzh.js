@@ -41,8 +41,8 @@ process.argv.forEach(function (arg) {
 });
 
 var pzhModules = [
-    {name: "get42", params: [99]},
-    {name: "events", param: {}}
+    {name: "get42", params: [99]}//,
+ //   {name: "events", param: {}}
 ];
 
 if (options.host === '' || options.port <= 0) {

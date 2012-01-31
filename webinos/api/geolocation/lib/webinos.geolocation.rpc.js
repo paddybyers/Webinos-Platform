@@ -11,9 +11,33 @@ function GeolocationModule(rpcHandler) {
 		var car = null;
 	}
 	
-	var implFile = vehicleBusAvailable ? 'vehicle' : 'geoip';
+	if(!vehicleBusAvailable){
+    	try{
+            //try to getSimulator
+            car = require('../../vehicle/contrib/vb-sim/vs.js');
+            vehicleSimulatorAvailable = true;
+        }catch(e){
+            vehicleSimulatorAvailable = false;
+            console.log(e);
+        }
+    }
+
+	
+	if(vehicleBusAvailable){
+        implFile = 'vehicle';
+        console.log('connecting to vehicle');
+    }else if(vehicleSimulatorAvailable){
+        implFile = 'sim';
+        console.log('connecting to simulator');
+        console.log('simulator available at http://localhost:9898/simulator/vehicle.html');
+    }else{
+        implFile = 'geoip';
+		console.log('using geo ip');
+    }
+    
 	var implModule = require('./webinos.geolocation.' + implFile + '.js');
 
+    
 	implModule.setRPCHandler(rpcHandler);
 	implModule.setRequired(car);
 	

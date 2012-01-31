@@ -21,6 +21,7 @@ var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
 	webinosDemo = path.resolve(__dirname, '../../../demo'),
 	utils = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')),
 	rpc = require(path.join(webinosRoot, dependencies.rpc.location)),
+	validation = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_schema.js')), // ADDED BY POLITO
 	pzp_session = require(path.join(webinosRoot, dependencies.pzp.location));
 		
 websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort, callback) {		
@@ -147,7 +148,30 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 				//}else {
 				//	throw new Error('Unrecognized packet');	
 				//}
-				utils.debug(2, 'PZP WSServer: Received packet ' + JSON.stringify(msg));
+				
+				// BEGIN OF POLITO MODIFICATIONS
+				var valError = validation.checkSchema(msg);
+				if(valError === false) { // validation error is false, so validation is ok
+					utils.debug(2, 'PZP WSServer: Received recognized packet ' + JSON.stringify(msg));
+				}
+				else if (valError === true) {
+					// For debug purposes, we only print a message about unrecognized packet, 
+					// in the final version we should throw an error.
+					// Currently there is no a formal list of allowed packages and throw errors
+					// would prevent the PZP from working
+					utils.debug(2, 'PZP WSServer: Received unrecognized packet ' + JSON.stringify(msg));
+					console.log(msg);
+				}
+				else if (valError === 'failed') {
+					utils.debug(2, 'PZP WSServer: Validation failed');
+				}
+				else {
+					utils.debug(2, 'PZP WSServer: Invalid validation response ' + valError);
+				}
+
+				//utils.debug(2, 'PZP WSServer: Received packet ' + JSON.stringify(msg));
+
+				// END OF POLITO MODIFICATIONS
 
 				// Each message is forwarded back to Message Handler to forward rpc message
 				if(msg.type === 'prop' ) {
