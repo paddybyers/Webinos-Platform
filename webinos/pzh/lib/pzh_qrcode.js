@@ -13,7 +13,7 @@ function create(url, code, cb) {
     try { 
         var QRCode = require('qrcode');
         QRCode.toDataURL("" + url + ' ' + code, function(err,url) {
-            cb(err,"<img src=\"" + url + "\" />");
+            cb(err, url);
         });
     } catch (err) {
         cb(err, "<img src=\"http://www.yooter.com/images/pagenotfound.jpg\" />");
@@ -62,4 +62,24 @@ webinosqr.addPzpQR = function(pzh, connection) {
         });	    
     }); 
 }
+
+webinosqr.addPzpQRAgain = function(pzh, next) {
+    "use strict";
+    
+    var code = generateRandomCode();
+
+    pzh.expecting.setExpectedCode(code,function() {
+        pzh.getMyUrl(function(url) { 
+            create(url, code, function(err, qrimg) {
+                if (err === null) {
+                    next(err, qrimg, code);
+                } else {
+                    next(err);
+                }
+            });
+        });	    
+    }); 
+}
+
+
 

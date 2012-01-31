@@ -1,0 +1,70 @@
+    <div id = "zoneList">
+        
+        <h3>Your Personal Zone Devices (PZPs)</h3>
+        
+		<center>
+            <table id="pzps">
+            <th>ID</th><th>Name</th><th>Status</th><th>Remove</th>
+			<%
+			
+			if (devices.pzps !== null) {
+    			for (i=0; i<devices.pzps.length; i++) {
+        			%> 
+        			<tr>
+        			<td> <%= devices.pzps[i].id %> </td>
+        			<td><%= devices.pzps[i].cname %></td>
+        			<% 
+        			if (devices.pzps[i].isConnected) { 
+        			    %><td class="connected">Connected <%           			
+        			} else {
+        			    %><td class="notconnected">Not connected <%
+        			}
+        			%>
+        			</td> 
+        			<td><a href="revoke/pzp/<%=devices.pzps[i].id%>">Revoke</a></td>
+        			</tr>
+        			<%
+        			
+    			}
+			}
+			
+			%>			
+			</table> 
+
+		</center>
+		
+		<h3>Personal Zone Hubs</h3>
+		<center> 
+		    
+			<table id="pzhs">
+			<th>ID</th><th>Name</th><th>Status</th><th>Remove</th>
+			<%
+			
+			var i =0;
+			
+			if (devices.pzhs !== null) {
+    			for (i=0; i<devices.pzhs.length; i++) {
+        			%> 
+        			<tr>
+        			<td> <%= devices.pzhs[i].id %> </td>
+        			<td><%= devices.pzhs[i].cname %></td>
+        			<% 
+        			if (devices.pzhs[i].isConnected) { 
+        			    %><td class="connected">Connected <%           			
+        			} else {
+        			    %><td class="notconnected">Not connected <%
+        			}
+        			%>
+        			</td> 
+        			<td><a href="revoke/pzh/<%=devices.pzhs[i].id%>" >Revoke</a></td>
+        			</tr>
+        			<%
+        			
+    			}
+			}
+			
+			%>
+			</table> 
+		</center>
+		
+	</div>

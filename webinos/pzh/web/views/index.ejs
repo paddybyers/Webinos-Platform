@@ -1,0 +1,27 @@
+<% if (!user) { %>
+	<p>Welcome! Please <a href="/login">log in</a>.</p>
+<% } else { %>
+
+    <% if (user.from == 'yahoo' ) { %>
+	    <p>Hello, <%= user.emails[0].value %>.</p>
+    <% } else if (user.from == 'google' ) { %>
+	    <p>Hello, <%= user.displayName %> ( <%= user.emails[0].value %> ).</p>    
+    <% } %>
+
+	<p>From this page you can control the Personal Zone Hub.  Please use the links at the top of the page. </p>
+
+<% } %>
+	
+<% if (isMutualAuth && user) { %>
+
+    <p>You have been authenticated by your webinos PZP device certificate AND your login identity</p>
+
+<% } else if ((!isMutualAuth) && user) { %>
+
+    <p>You have been authenticated by your login identity only.</p>
+
+<% } else if (isMutualAuth && (!user)) { %>
+
+    <p> You have been authenticated by your webinos PZP device certificate, but still need to log in </p>
+
+<% } %>

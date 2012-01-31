@@ -1,0 +1,72 @@
+body {
+    color: white;
+    font-family: "Palatino Linotype";
+    background-color: #0879A9;
+}
+
+h1 {
+    color: black;
+    text-align: center;
+}
+
+table {
+   /* background-color:darkgray;  */
+   /* border:1px solid white; */
+    text-align: center;
+}
+
+td {
+    border-top:1px solid white;   
+    border-bottom:1px solid white; 
+    text-align:left;
+    padding: 4px 8px 4px 8px;
+}
+
+th {
+    text-align:center;
+    border-bottom:1px solid white;
+    padding: 2px 2px 2px 2px;
+}
+
+#tablist {
+    border-top:     1px solid white;
+    border-bottom:  1px solid white;
+    margin-top:     5px;
+    margin-bottom:  5px;
+    padding-top:    3px;
+    padding-bottom: 3px;
+    text-align:     center;
+}
+
+#tablist a {
+    padding-right: 5px;
+    padding-left: 5px; 
+    color: white;
+    text-decoration: none;
+}
+
+#status {
+    margin-top: 200px; 
+    border-top:solid 1px white;
+    color: white;
+}
+
+#message {
+    color: gray;
+}
+
+.connected {
+    color: red;
+}
+
+.notconnected {
+    color: gray;
+}
+
+.revokemessage {
+    border: 1px solid white;
+    color: red;
+    font-weight: bold;
+}
+
+

@@ -1,0 +1,28 @@
+<% if (locals.revoke) { 
+
+%>
+
+<center>
+
+    <% if (revoke.success) { %>
+<p>
+        Device successfully removed from the personal zone.
+    <% } else { %>   
+<p class="revokemessage">
+        Device not removed from the personal zone.  Reason: <%=revoke.reason%>
+    <% } %>
+</p>
+</center>
+<% 
+} else {
+    
+%>
+
+No device to be revoked.
+
+<%
+
+}
+
+
+%>

@@ -1,0 +1,13 @@
+<p>ID: <%= user.identifier %></p>
+<p>Name: <%= user.displayName %></p>
+<p>Email: <%= user.emails[0].value %></p>
+
+<% if (isMutualAuth && user) { %>
+
+    <p>You have been authenticated by your webinos PZP device certificate AND your login identity</p>
+
+<% } else if ((!isMutualAuth) && user) { %>
+
+    <p>You have been authenticated by your login identity only.</p>
+
+<% } %>

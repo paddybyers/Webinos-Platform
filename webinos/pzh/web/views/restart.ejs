@@ -1,0 +1,31 @@
+
+<% if (locals.restart) { 
+
+%>
+
+<center>
+<p class="revokemessage">
+    <% if (restart.success) { %>
+        
+        PZH Restarted
+
+    <% } else { %>   
+        PZH not restarted  Reason: <%=restart.reason%>
+    <% } %>
+</p>
+</center>
+<% 
+} else {
+    
+%>
+
+Restarting not invoked properly
+
+<%
+
+}
+
+
+%>
+
+

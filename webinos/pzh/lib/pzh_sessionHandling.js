@@ -1,7 +1,6 @@
 /**
 * @author <a href="mailto:habib.virji@samsung.com">Habib Virji</a>
 * @description session_pzh.js starts Pzh and handle communication with a messaging manager. It is also responsible for loading rpc modules. 
-* It has a websocket server embedded to allow starting Pzh via web browser
 */
 (function() {
 	"use strict";
@@ -10,7 +9,9 @@
 	var tls = require('tls'),
 		fs = require('fs'),
 		path = require('path'),
-		crypto = require('crypto');		
+		crypto = require('crypto'),	
+		util = require('util');		
+		
 
 	var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
 	var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
@@ -20,6 +21,8 @@
 	/** Global variables used in Pzh */
 	var Pzh = null;
 	var helper     = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_helper.js'));
+	var pzhapis    = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_internal_apis.js'));
+	
 	
 	if (typeof exports !== 'undefined') {
 		try {
@@ -28,7 +31,6 @@
 			var MessageHandler = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js')).MessageHandler;
 			
 			var authcode  = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_authcode.js'));
-			var websocket = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_websocket.js'));	
 			
 			var cert      = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
 			var utils     = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
@@ -62,6 +64,7 @@
 		this.tlsId = [];		
 		var self = this;
 		
+		/* This is used for authenticating new PZPs */
 		authcode.createAuthCounter(function(res) {
 		    self.expecting = res;
 		});
@@ -74,6 +77,7 @@
 		
 		// load specified modules
 		this.rpcHandler.loadModules(modules);
+		
 	};
 	/**
 	 * @description A generic function used to set message parameter
@@ -314,7 +318,7 @@
 		server = tls.createServer (options, function (conn) {
 			var data = {}, cn, msg = {}, sessionId;
 			self.conn = conn;
-			console.log(conn);
+			//console.log(conn);
 			if(conn.authorized === false) {
 				helper.debug(2, "Connection NOT authorised at PZH");
 				//Sometimes, if this is a new PZP, we have to allow it.
@@ -552,7 +556,6 @@
 				pzh.sessionId = pzh.config.common.split(':')[0];
 				var crashMsg = fs.createWriteStream(webinosDemo + '/'+ pzh.sessionId + '_crash.txt', {'flags': 'a'});
 				helper.setDebugStream(crashMsg);
-				websocket.instance.push(pzh);
 			} catch (err) {
 				helper.debug(1, 'PZH ('+pzh.sessionId+') Pzh information is not in correct format ' + err);
 				return;
@@ -599,13 +602,19 @@
 	
 	function restartPzh(instance, callback) {
 		try	{
-			instance.conn.end();
-			instance.sock.close();
-			startPzh(instance.contents, instance.server, instance.port, function(result){
-				callback(result);
-			});
+		    helper.debug(2,util.inspect(instance));
+		    if ((typeof instance.conn.end) === 'undefined' ) {
+			    callback("Failed - no open connections to close");
+		    } else {
+    			instance.conn.end();
+    			instance.sock.close();
+			    startPzh(instance.contents, instance.server, instance.port, function(result){
+				    callback(null, result);
+			    });
+			} 
 		} catch(err) {
 			helper.debug(1, 'Pzh restart failed ' + err);
+			callback(err, instance);
 		}
 	}
 	
