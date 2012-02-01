@@ -7,9 +7,6 @@
  */
 
 
-/**
- * Module dependencies.
- */
 var express         = require('express'),
     util            = require('util'),
     path            = require('path'),
@@ -30,10 +27,11 @@ var pzhweb          = exports;
 
 /*
  * This is how you start the server programmatically.
- * Arguments: port to use, whether to request client certificates, 
- *            domain name, http or https server, and then the 
- *            root path to certificates.
- * 
+ * Arguments: port to use, 
+ *            whether to request client certificates, 
+ *            http or https server, 
+ *            the Pzh (which ought to be instantiated)
+ *          
  */
 pzhweb.startServer = function(port, checkLocalCert, isHTTP, Pzh, next) {
     "use strict";
@@ -48,6 +46,62 @@ pzhweb.startServer = function(port, checkLocalCert, isHTTP, Pzh, next) {
 }
 
 function createServer(port, checkLocalCert, isHTTP, Pzh, options, next) {
+    "use strict";
+    var domainName = Pzh.server;
+
+    //configure the authentication engine and user binding
+    passport = createPassport(domainName, port, isHTTP);
+
+    //configure the express app middleware
+    var app = createApp(options, passport);
+
+    // Give the web application a copy of the PZH instance, so it can
+    // do useful things with it.   
+    app.Pzh = Pzh;
+    app.checkLocalCert = checkLocalCert;
+   
+    // Set up the routes (./routes/index.js) depending on whether we have a PZH.
+    var routes = setRoutes(app);
+    
+    app.listen(port);
+    
+    //some very basic console output and calling the callback.
+    handleAppStart(app,next,isHTTP,checkLocalCert);
+}
+
+function createApp(options, passport) {
+    "use strict";
+    var app = express.createServer(options);
+
+    app.configure(function(){
+      "use strict";
+      app.set('views', __dirname + '/views');
+      app.set('view engine', 'ejs');
+//      app.use(express.logger()); // turn on express logging for every page
+      app.use(express.bodyParser());
+      app.use(express.methodOverride());
+      app.use(express.cookieParser());
+      var sessionSecret = crypto.randomBytes(40).toString("base64");
+      app.use(express.session({ secret: sessionSecret }));
+      app.use(passport.initialize());
+      app.use(passport.session());    
+      app.use(app.router);
+      app.use(express.static(__dirname + '/public'));
+    });
+
+    // An environment variable will switch between these two, but we don't yet.
+    app.configure('development', function(){
+      app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
+    });
+
+    app.configure('production', function(){
+      app.use(express.errorHandler()); 
+    });
+    
+    return app;
+}
+
+function createPassport(domainName, port, isHTTP) {
     "use strict";
     /* No clever user handling here yet */
     passport.serializeUser(function(user, done) {
@@ -64,8 +118,6 @@ function createServer(port, checkLocalCert, isHTTP, Pzh, options, next) {
         var prefix = "https";
     }
     
-    var domainName = Pzh.server;
-
     // Use the GoogleStrategy within Passport.
     //   Strategies in passport require a `validate` function, which accept
     //   credentials (in this case, an OpenID identifier and profile), and invoke a
@@ -103,51 +155,7 @@ function createServer(port, checkLocalCert, isHTTP, Pzh, options, next) {
         });
       }
     ));
-
-
-    var app;
-
-    
-    app = express.createServer(options);
-    
-
-    app.configure(function(){
-      "use strict";
-      app.set('views', __dirname + '/views');
-      app.set('view engine', 'ejs');
-//      app.use(express.logger()); // turn on express logging for every page
-      app.use(express.bodyParser());
-      app.use(express.methodOverride());
-      app.use(express.cookieParser());
-      var sessionSecret = crypto.randomBytes(40).toString("base64");
-      app.use(express.session({ secret: sessionSecret }));
-      app.use(passport.initialize());
-      app.use(passport.session());    
-      app.use(app.router);
-      app.use(express.static(__dirname + '/public'));
-    });
-
-    
-    // An environment variable will switch between these two, but we don't yet.
-    app.configure('development', function(){
-      app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
-    });
-
-    app.configure('production', function(){
-      app.use(express.errorHandler()); 
-    });
-
-    // Give the web application a copy of the PZH instance, so it can
-    // do useful things with it.   
-    app.Pzh = Pzh;
-    app.checkLocalCert = checkLocalCert;
-   
-    // Set up the routes (./routes/index.js) depending on whether we have a PZH.
-    var routes = setRoutes(app);
-    
-    app.listen(port);
-
-    handleAppStart(app,next,isHTTP,checkLocalCert);
+    return passport;
 }
 
 
@@ -183,7 +191,9 @@ function handleAppStart(app, next, isHTTP, checkLocalCert) {
 
 function getSSLOptions(Pzh, isHTTP, checkLocalCert, callback) {
     "use strict";
-    if (isHTTP) callback(null, {});
+    if (isHTTP) {
+        callback(null, {});
+    }
     
     var wsCertPath = path.join(Pzh.config.pzhCertDir, Pzh.config.webserver.cert.name);
     var wsKeyPath = path.join(Pzh.config.pzhKeyDir, Pzh.config.webserver.key.name);    
@@ -210,11 +220,12 @@ function getSSLOptions(Pzh, isHTTP, checkLocalCert, callback) {
         try {
             options.cert = fs.readFileSync(wsCertPath).toString();
             options.key  = fs.readFileSync(wsKeyPath).toString();
-            callback(null,options);
         } catch (err) {
             utils.debug(1, "Error reading WS Certificates: " + err);
             callback(err);
+            return;
         }
+        callback(null,options);
     }
 
 }

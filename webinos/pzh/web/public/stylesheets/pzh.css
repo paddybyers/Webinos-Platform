@@ -2,20 +2,38 @@ body {
     color: white;
     font-family: "Palatino Linotype";
     background-color: #0879A9;
+    background-image:url('http://webinos.org/wp-content/themes/parallelus-unite/images/webinos_logo.png');
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    background-position:center bottom;
 }
+
 
 h1 {
     color: black;
     text-align: center;
 }
 
-h3 {
+h2, h3 {
     text-align: center;
 }
 
+ul.codelist {
+    background-color:white;
+    color:black;    
+    padding: 15px 5px 15px 5px;
+    list-style-type: none;
+    padding-left: 0px;
+}
+
+li.code {
+    background-color:white;
+    color:black;    
+    font-size: 10pt;
+    font-family: "monospace";
+}
+
 table {
-   /* background-color:darkgray;  */
-   /* border:1px solid white; */
     text-align: center;
 }
 
@@ -53,11 +71,6 @@ th {
     text-decoration: none;
 }
 
-#status {
-    margin-top: 200px; 
-    border-top:solid 1px white;
-    color: white;
-}
 
 #message {
     color: gray;
