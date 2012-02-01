@@ -22,7 +22,6 @@ var moduleRoot      = require(path.resolve(__dirname, '../dependencies.json')),
     utils           = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')),
     webCert         = require(path.join(webinosRoot, dependencies.pzh.location, 'web/pzh_web_certs.js'));
 
-
 var pzhweb          = exports; 
 
 /*

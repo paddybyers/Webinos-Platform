@@ -20,7 +20,6 @@ wscert.createWSCert = function(pzh, callback) {
 
     try { 
         wsKey = certman.genRsaKey(2048);
-               
         wsCSR = certman.createCertificateRequest(
             wsKey, 
             pzh.config.country,
@@ -30,7 +29,7 @@ wscert.createWSCert = function(pzh, callback) {
 			pzh.config.orgunit,
 			pzh.server, 
 			pzh.config.email
-    	);
+    	);         
         wsCert = certman.signRequest(
             wsCSR, 
             30, 
