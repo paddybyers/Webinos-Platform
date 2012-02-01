@@ -9,7 +9,433 @@
    },
    {
       "APIname" : "ContactsAPI",
-      "URI" : "http://webinos.org/api/"
+      "ContextObjects" : [
+         {
+            "methods" : [
+               {
+                  "Errors" : [],
+                  "inputs" : [
+                     {
+                        "logged" : true,
+                        "objectName" : "",
+                        "required" : false,
+                        "type" : "array",
+                        "values" : [
+                           {
+                              "logged" : false,
+                              "objectName" : "pwd",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "type",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "usr",
+                              "type" : "DOMString"
+                           }
+                        ]
+                     }
+                  ],
+                  "objectName" : "authenticate",
+                  "outputs" : [
+                     {
+                        "logged" : true,
+                        "objectName" : "",
+                        "type" : "boolean"
+                     }
+                  ]
+               },
+               {
+                  "Errors" : [],
+                  "inputs" : [
+                     {
+                        "logged" : true,
+                        "objectName" : "",
+                        "required" : false,
+                        "type" : "array",
+                        "values" : [
+                           {
+                              "logged" : true,
+                              "objectName" : "type",
+                              "type" : "DOMString"
+                           }
+                        ]
+                     }
+                  ],
+                  "objectName" : "isAlreadyAuthenticated",
+                  "outputs" : [
+                     {
+                        "logged" : true,
+                        "objectName" : "",
+                        "type" : "boolean"
+                     }
+                  ]
+               }
+            ],
+            "objectName" : "MyContactsLogin"
+         },
+         {
+            "methods" : [
+               {
+                  "Errors" : [],
+                  "inputs" : [
+                     {
+                        "logged" : true,
+                        "objectName" : "",
+                        "required" : false,
+                        "type" : "array",
+                        "values" : [
+                           {
+                              "logged" : true,
+                              "objectName" : "type",
+                              "type" : "DOMString"
+                           }
+                        ]
+                     }
+                  ],
+                  "objectName" : "getAllContacts",
+                  "outputs" : [
+                     {
+                        "logged" : true,
+                        "objectName" : "",
+                        "type" : "array",
+                        "values" : [
+                           {
+                              "logged" : true,
+                              "objectName" : "displayName",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "emails",
+                              "type" : "array",
+                              "values" : [
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "type",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "value",
+                                    "type" : "DOMString"
+                                 }
+                              ]
+                           },
+                           {
+                              "logged" : false,
+                              "objectName" : "photos",
+                              "type" : "array"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "revision",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "urls",
+                              "type" : "array",
+                              "values" : [
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "value",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "type",
+                                    "type" : "DOMString"
+                                 }
+                              ]
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "addresses",
+                              "type" : "array",
+                              "values" : [
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "formatted",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "pref",
+                                    "type" : "boolean"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "streetAddress",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "type",
+                                    "type" : "DOMString"
+                                 }
+                              ]
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "birthday",
+                              "type" : "date"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "id",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "name",
+                              "type" : "object",
+                              "values" : [
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "familyName",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "formatted",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "givenName",
+                                    "type" : "DOMString"
+                                 }
+                              ]
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "phoneNumbers",
+                              "type" : "array",
+                              "values" : [
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "pref",
+                                    "type" : "boolean"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "value",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "type",
+                                    "type" : "DOMString"
+                                 }
+                              ]
+                           }
+                        ]
+                     }
+                  ]
+               }
+            ],
+            "objectName" : "MyContacts"
+         },
+         {
+            "methods" : [
+               {
+                  "Errors" : [],
+                  "inputs" : [
+                     {
+                        "logged" : true,
+                        "objectName" : "",
+                        "required" : false,
+                        "type" : "array",
+                        "values" : [
+                           {
+                              "logged" : true,
+                              "objectName" : "fields",
+                              "type" : "object",
+                              "values" : [
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "addresses",
+                                    "required" : false,
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "emails",
+                                    "required" : false,
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "name",
+                                    "required" : false,
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "phoneNumbers",
+                                    "required" : false,
+                                    "type" : "DOMString"
+                                 }
+                              ]
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "type",
+                              "type" : "DOMString"
+                           }
+                        ]
+                     }
+                  ],
+                  "objectName" : "find",
+                  "outputs" : [
+                     {
+                        "logged" : true,
+                        "objectName" : "",
+                        "type" : "array",
+                        "values" : [
+                           {
+                              "logged" : true,
+                              "objectName" : "displayName",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "emails",
+                              "type" : "array",
+                              "values" : [
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "type",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "value",
+                                    "type" : "DOMString"
+                                 }
+                              ]
+                           },
+                           {
+                              "logged" : false,
+                              "objectName" : "photos",
+                              "type" : "array"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "revision",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "urls",
+                              "type" : "array",
+                              "values" : [
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "value",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "type",
+                                    "type" : "DOMString"
+                                 }
+                              ]
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "addresses",
+                              "type" : "array",
+                              "values" : [
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "formatted",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "pref",
+                                    "type" : "boolean"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "streetAddress",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "type",
+                                    "type" : "DOMString"
+                                 }
+                              ]
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "birthday",
+                              "type" : "date"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "id",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "name",
+                              "type" : "object",
+                              "values" : [
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "familyName",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "formatted",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "givenName",
+                                    "type" : "DOMString"
+                                 }
+                              ]
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "phoneNumbers",
+                              "type" : "array",
+                              "values" : [
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "pref",
+                                    "type" : "boolean"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "value",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "type",
+                                    "type" : "DOMString"
+                                 }
+                              ]
+                           }
+                        ]
+                     }
+                  ]
+               }
+            ],
+            "objectName" : "MySearchedContacts"
+         }
+      ],
+      "URI" : "http://www.w3.org/ns/api-perms/contacts"
    },
    {
       "APIname" : "ContextAPI",
@@ -82,19 +508,42 @@
                   ],
                   "inputs" : [
                      {
-                        "logged" : false,
-                        "objectName" : "enableHighAccuracy",
-                        "type" : "boolean"
+                        "logged" : true,
+                        "objectName" : "0",
+                        "required" : false,
+                        "type" : "array",
+                        "values" : [
+                           {
+                              "logged" : true,
+                              "objectName" : "",
+                              "required" : true,
+                              "type" : "Object",
+                              "values" : [
+                                 {
+                                    "logged" : false,
+                                    "objectName" : "enableHighAccuracy",
+                                    "required" : false,
+                                    "type" : "boolean"
+                                 },
+                                 {
+                                    "logged" : false,
+                                    "objectName" : "maximumAge",
+                                    "type" : "long"
+                                 },
+                                 {
+                                    "logged" : false,
+                                    "objectName" : "timeout",
+                                    "type" : "long"
+                                 }
+                              ]
+                           }
+                        ]
                      },
                      {
                         "logged" : false,
-                        "objectName" : "maximumAge",
-                        "type" : "long"
-                     },
-                     {
-                        "logged" : false,
-                        "objectName" : "timeout",
-                        "type" : "long"
+                        "objectName" : "1",
+                        "required" : true,
+                        "type" : "number"
                      }
                   ],
                   "objectName" : "watchPosition",
@@ -172,6 +621,7 @@
                      {
                         "logged" : false,
                         "objectName" : "enableHighAccuracy",
+                        "required" : false,
                         "type" : "boolean"
                      },
                      {
@@ -253,18 +703,6 @@
             ],
             "objectName" : "clearWatch",
             "outputs" : []
-         },
-         {
-            "Errors" : [],
-            "inputs" : [
-               {
-                  "logged" : false,
-                  "objectName" : "watchId",
-                  "type" : "long"
-               }
-            ],
-            "objectName" : "clearWatch",
-            "outputs" : []
          }
       ]
    },
@@ -293,8 +731,138 @@
       "URI" : "http://webinos.org/api/"
    },
    {
-      "APIname" : "TVandSTBcontrolAPI",
-      "URI" : "http://webinos.org/api/"
+      "APIname" : "TVAPI",
+      "ContextObjects" : [
+         {
+            "methods" : [
+               {
+                  "Errors" : [],
+                  "inputs" : [],
+                  "objectName" : "getTVSources",
+                  "outputs" : [
+                     {
+                        "logged" : true,
+                        "objectName" : "",
+                        "type" : "array",
+                        "values" : [
+                           {
+                              "logged" : true,
+                              "objectName" : "channelList",
+                              "type" : "array",
+                              "values" : [
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "channelType",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "longName",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "name",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : true,
+                                    "objectName" : "stream",
+                                    "type" : "DOMString"
+                                 },
+                                 {
+                                    "logged" : false,
+                                    "objectName" : "tvsource",
+                                    "type" : "object"
+                                 }
+                              ]
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "name",
+                              "type" : "DOMString"
+                           }
+                        ]
+                     }
+                  ]
+               }
+            ],
+            "objectName" : "MyTVChannels"
+         },
+         {
+            "methods" : [
+               {
+                  "Errors" : [],
+                  "inputs" : [
+                     {
+                        "logged" : true,
+                        "objectName" : "0",
+                        "required" : false,
+                        "type" : "object",
+                        "values" : [
+                           {
+                              "logged" : true,
+                              "objectName" : "channelType",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "longName",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "name",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : true,
+                              "objectName" : "stream",
+                              "type" : "DOMString"
+                           },
+                           {
+                              "logged" : false,
+                              "objectName" : "tvsource",
+                              "type" : "object"
+                           }
+                        ]
+                     }
+                  ],
+                  "objectName" : "setChannel",
+                  "outputs" : [
+                     {
+                        "logged" : true,
+                        "objectName" : "channelType",
+                        "type" : "DOMString"
+                     },
+                     {
+                        "logged" : true,
+                        "objectName" : "longName",
+                        "type" : "DOMString"
+                     },
+                     {
+                        "logged" : true,
+                        "objectName" : "name",
+                        "type" : "DOMString"
+                     },
+                     {
+                        "logged" : true,
+                        "objectName" : "stream",
+                        "type" : "DOMString"
+                     },
+                     {
+                        "logged" : false,
+                        "objectName" : "tvsource",
+                        "type" : "object"
+                     }
+                  ]
+               }
+            ],
+            "objectName" : "MyChannelChanged"
+         }
+      ],
+      "URI" : "http://webinos.org/api/tv",
+      "otherMethods" : []
    },
    {
       "APIname" : "UserAuthenticationAPI",

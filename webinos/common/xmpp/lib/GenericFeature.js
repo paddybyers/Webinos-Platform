@@ -10,18 +10,19 @@ var EventEmitter = require('events').EventEmitter;
 var uniqueId = Math.round(Math.random() * 10000);
 var logger = require('nlogger').logger('GenericFeature.js');
 
-var moduleRoot = require('../dependencies.json');
-var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
-var webinosRoot = '../' + moduleRoot.root.location;
+var path = require('path');
+var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
+var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
-var rpc = require(webinosRoot + dependencies.rpc.location + "lib/rpc.js");
+var rpc = require(path.join(webinosRoot, dependencies.rpc.location));
 
 /*
  * 'Class' definition of generic webinos feature
  *
  * inspiration for subclassing methodology comes from http://www.webreference.com/js/column79/4.html
  */
-function GenericFeature() {
+function GenericFeature(rpcHandler) {
 	EventEmitter.call(this);
 	
     this.id = ++uniqueId;                                       // (app level) unique id, e.g. for use in html user interface
@@ -31,7 +32,8 @@ function GenericFeature() {
     this.ns = null;                                             // name space that (globally) uniquely defines the service type
 	this.local = false;
 	this.shared = false; // only used for local features
-
+	this.rpcHandler = rpcHandler;
+	
     this.remove = function() {                                  // call this when this feature is removed.
 		this.emit('remove', this);
 	}

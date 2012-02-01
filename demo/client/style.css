@@ -40,10 +40,10 @@
 			#status{
 				background-color: #fff;
 				opacity: 0.8;
-				width: 650px;
+				/*width: 650px;*/
 				padding: 5px;
 				color: #626262;
-				position: absolute; 
+				position: fixed;/*absolute;*/ 
 				bottom: 10px;
 				font-size: 10px;
 				text-transform:capitalize;

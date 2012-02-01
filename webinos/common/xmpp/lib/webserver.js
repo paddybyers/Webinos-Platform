@@ -12,6 +12,15 @@ var io = require('socket.io').listen(server);
 
 var rpcServer = require("./RpcServer.js");
 
+var path = require('path');
+var documentRoot = path.resolve(__dirname, './www');
+var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
+var dependencyPath = path.join(__dirname, '../', moduleRoot.root.location, '/dependencies.json')
+var dependencies = require(path.normalize(dependencyPath));
+var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
+
+var rpc = require(path.join(webinosRoot, dependencies.rpc.location));
+
 function handler(request, response) {
 	logger.trace("Entering request callback");
     var pathname = url.parse(request.url).pathname;
@@ -21,29 +30,16 @@ function handler(request, response) {
     // simulate a fully configured web server
     if (pathname == "/") pathname = "index.html";
     
-    // return the web socket port number when requested
-    //var m = pathname.match(/^\/wss_bootstrap.json&callback=(.*)/); 
-		//     if (pathname.match(/^\/wss_bootstrap.json/)) {
-		// response.writeHead(200, {"Content-Type": "application/json"});
-		// response.write("{\"wss_port\": \"" + wss_port + "\"}");
-		// logger.info("200 OK generated " + pathname + " using wss_port=" + wss_port);
-		//     	response.end();
-		//     	logger.trace("Leaving request callback");
-		//     	return;
-		//     }
-
     // determine file to serve
-    var filename = path.join("www/" + pathname);
+    var filename = path.join(documentRoot, pathname);
     
-	var moduleRoot = require('../dependencies.json');
-	var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
-	var webinosRoot = '../' + moduleRoot.root.location;
-
-	var rpc = require(webinosRoot + dependencies.rpc.location + "lib/rpc.js");
-
     // the rpc stuff is not in the www tree, so get around that
-    filename = filename.replace(/^www\/rpc\//, webinosRoot + dependencies.rpc.location + "lib/");
+	if (pathname == '/rpc/rpc.js') {
+    	filename = path.join(webinosRoot, dependencies.rpc.location, "lib/rpc.js");
+	}
     
+	filename = path.normalize(filename);
+
     // now serve the file
     fs.readFile(filename, function (err, data) {
     	if (err) {
@@ -64,7 +60,7 @@ function handler(request, response) {
     });
 }
 
-function start(ws_port, rpc_port) {
+function start(ws_port, rpcHandler) {
 	logger.trace("Entering start()");
 	logger.debug("Creating web server on port " + ws_port);
 	
@@ -84,7 +80,7 @@ function start(ws_port, rpc_port) {
 	logger.info("Webserver listening on port " + ws_port);
 	
 	// configure the RPC server
-	rpcServer.configure(io);
+	rpcServer.configure(io, rpcHandler);
 	
 	logger.trace("Leaving start()");
 }

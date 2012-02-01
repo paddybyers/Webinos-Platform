@@ -1,0 +1,18 @@
+
+
+		<p>
+		    <center>
+        		<div  id="qrcode" align="center">
+        		<% 
+        		    if (qrcode !== null) {
+        		 %>
+        		    <h2>PZP URL</h2>
+        		    
+        		    <p><img src="<%=qrcode.img %>" alt="<%= qrcode.code %>" /></p>
+        		 <%   
+        		    }
+        		%>
+        		</div>
+		    </center>
+	    </p>
+

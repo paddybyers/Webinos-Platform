@@ -12,36 +12,48 @@
 		this.base(obj);
 		eventService = this;
 		
+		//this.temporaryRandomAppID = "TestApp" + webinos.messageHandler.getOwnId();
 		
-		this.temporaryRandomAppID = "MyRandomApplicationID" +  Math.floor(Math.random()*1001);
+		//TODO, this is the actuall messaging/session app id but should be replaced with the Apps unique ID (config.xml)
+		this.temporaryRandomAppID = webinos.messageHandler.getOwnId();
 	};
 	
 	EventsModule.prototype = new WebinosService;
 	
+	
+	
+	
+	
+	
 	EventsModule.prototype.bind = function(success) {
-
-		var rpc = webinos.rpc.createRPC(this, "registerApplication", this.temporaryRandomAppID);
+/*
+		var rpc = webinos.rpcHandler.createRPC(this, "registerApplication", this.temporaryRandomAppID);
 		rpc.fromObjectRef =  Math.floor(Math.random()*1001);
 		
 		var callback = new RPCWebinosService({api:rpc.fromObjectRef});
-		callback.handleEvent = function (event) {
+		callback.handleEvent = function (params,scb,ecb) {
 			console.log("Received a new WebinosEvent");
 			
 			//search in registered listeners for interested listeners based on eventType etc
 			
-			if (typeof registeredListeners[event.listenerID] !== undefined){
-				registeredListeners[event.listenerID](event.webinosevent);
+			if (typeof registeredListeners[params.listenerID] !== undefined){
+				registeredListeners[params.listenerID](params.webinosevent);
+				scb();
 			}
-			
-			
-			
-			
+			else{
+				ecb();
+			}
 		};
-		webinos.rpc.registerCallbackObject(callback);
 		
-		webinos.rpc.executeRPC(rpc, function () {
+		webinos.rpcHandler.registerCallbackObject(callback);
+		
+		webinos.rpcHandler.executeRPC(rpc, function () {
 			success();
 		});
+		*/
+		
+		success();
+		
 	}
 	
 	
@@ -61,8 +73,8 @@
 		
 		return anEvent;
 		/*
-		var rpc = webinos.rpc.createRPC(this, "createWebinosEvent",  arguments);
-		webinos.rpc.executeRPC(rpc,
+		var rpc = webinos.rpcHandler.createRPC(this, "createWebinosEvent",  arguments);
+		webinos.rpcHandler.executeRPC(rpc,
 				function (params){
 					successCB(params);
 				},
@@ -75,9 +87,9 @@
      
 	EventsModule.prototype.addWebinosEventListener = function(listener, type, source, destination){
 
-		var listenerID =  new Date().getTime();
+		//var listenerID =  new Date().getTime();
 		
-		registeredListeners[listenerID] = listener;
+		//registeredListeners[listenerID] = listener;
 		
 		var req = {};
 		req.type = type;
@@ -88,10 +100,33 @@
 		
 		
 		req.destination = destination;
-		req.listenerID = listenerID;
+		//req.listenerID = listenerID;
 		
-		var rpc = webinos.rpc.createRPC(this, "addWebinosEventListener",  req);
-		webinos.rpc.executeRPC(rpc,
+		var rpc = webinos.rpcHandler.createRPC(this, "addWebinosEventListener",  req);
+		rpc.fromObjectRef =  Math.floor(Math.random()*1001);
+		
+		var callback = new RPCWebinosService({api:rpc.fromObjectRef});
+		callback.handleEvent = function (params,scb,ecb) {
+			console.log("Received a new WebinosEvent");
+			
+			//search in registered listeners for interested listeners based on eventType etc
+			
+			//if (typeof registeredListeners[params.listenerID] !== undefined){
+			//	registeredListeners[params.listenerID](params.webinosevent);
+				
+				listener(params.webinosevent);
+				scb();
+			//}
+			//else{ //there is currently no else
+			//	ecb();
+			//}
+		};
+		
+		webinos.rpcHandler.registerCallbackObject(callback);
+		
+		
+		
+		webinos.rpcHandler.executeRPC(rpc,
 				function (params){
 					console.log("New WebinosEvent listener registered");
 				},
@@ -103,14 +138,15 @@
 		// returns DOMString id
 		// raises(WebinosEventException);
 		
-		return listenerID;
+		//TODO make proper listener IDs
+		return "listenerID";
 	}
                          
      
 	EventsModule.prototype.removeWebinosEventListener = function(listenerId){
 	 
-		var rpc = webinos.rpc.createRPC(this, "removeWebinosEventListener",  arguments);
-		webinos.rpc.executeRPC(rpc,
+		var rpc = webinos.rpcHandler.createRPC(this, "removeWebinosEventListener",  arguments);
+		webinos.rpcHandler.executeRPC(rpc,
 				function (params){
 					successCB(params);
 				},
@@ -127,7 +163,8 @@
 	WebinosEvent = function() {
 		this.id =  Math.floor(Math.random()*1001);  //DOMString
 		this.type = null;					//DOMString
-		this.addressing = null;  			//WebinosEventAddressing
+		this.addressing = {};  			//WebinosEventAddressing
+		this.addressing.source = eventService.temporaryRandomAppID;
 		this.inResponseTo = null;			//WebinosEvent
 		this.timeStamp = null;				//DOMTimeStamp
 		this.expiryTimeStamp = null;		//DOMTimeStamp
@@ -141,27 +178,76 @@
 
 	WebinosEvent.prototype.dispatchWebinosEvent = function(callbacks, referenceTimeout, sync){
 
+		
+		
 		var params = {};
-		params.webinosevent = this;
+		params.webinosevent = {};
+		params.webinosevent.id = this.id;
+		params.webinosevent.type = this.type;
+		params.webinosevent.addressing = this.addressing;
+		
+		if (params.webinosevent.addressing === 'undefined' || params.webinosevent.addressing == null){
+			params.webinosevent.addressing = {};
+			params.webinosevent.addressing.source = eventService.temporaryRandomAppID;
+		}
+		params.webinosevent.inResponseTo = this.inResponseTo;
+		params.webinosevent.timeStamp = this.timeStamp;
+		params.webinosevent.expiryTimeStamp = this.expiryTimeStamp;
+		params.webinosevent.addressingSensitive = this.addressingSensitive;
+		params.webinosevent.forwarding = this.forwarding;
+		params.webinosevent.forwardingTimeStamp = this.forwardingTimeStamp;
+		params.webinosevent.payload = this.payload;
 		params.referenceTimeout = referenceTimeout;
 		params.sync = sync;
 		
 		
+		
 		registeredDispatchListeners[this.id] = callbacks;
 		
+		var rpc = webinos.rpcHandler.createRPC(eventService, "WebinosEvent.dispatchWebinosEvent",  params);
 		
-		var rpc = webinos.rpc.createRPC(eventService, "WebinosEvent.dispatchWebinosEvent",  params);
-		webinos.rpc.executeRPC(rpc,
-				function (params){
-					console.log("Event dispatched");
-				},
-				function (error){
-					console.log("Error while dispatching");
-				}
-		);
+		if (typeof callbacks !== "undefined"){	
+		
+			console.log("Registering delivery callback");
+			
+			rpc.fromObjectRef =  Math.floor(Math.random()*1001);
+		
+			var callback = new RPCWebinosService({api:rpc.fromObjectRef});
+		
+			callback.onSending = function (params) {
+			//params.event, params.recipient
+				
+				if (typeof callbacks.onSending !== "undefined") {callbacks.onSending(params.event, params.recipient);}
+			};
+			callback.onCaching = function (params) {
+				//params.event
+				if (typeof callbacks.onCaching !== "undefined") {callbacks.onCaching(params.event);}
+			};
+			callback.onDelivery = function (params) {
+			//params.event, params.recipient
+				if (typeof callbacks.onDelivery !== "undefined") {callbacks.onDelivery(params.event, params.recipient);}
+			};
+			callback.onTimeout = function (params) {
+			//params.event, params.recipient
+				if (typeof callbacks.onTimeout !== "undefined") {callbacks.onTimeout(params.event, params.recipient);}
+			};
+			callback.onError = function (params) {
+			//params.event, params.recipient, params.error
+				if (typeof callbacks.onError !== "undefined") {callbacks.onError(params.event, params.recipient, params.error);}
+			};
+	
+		
+			webinos.rpcHandler.registerCallbackObject(callback);
+		}
+		
+		webinos.rpcHandler.executeRPC(rpc);
 		
 		
-    	//returns void
+		//rpc.serviceAddress = webinos.session.getPZHId();
+		//webinos.rpcHandler.executeRPC(rpc);
+    	
+		
+		//returns void
     	//raises(WebinosEventException);
          
     }

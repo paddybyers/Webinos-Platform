@@ -1,0 +1,95 @@
+body {
+    color: white;
+    font-family: "Palatino Linotype";
+    background-color: #0879A9;
+/*  
+    background-image:url('http://webinos.org/wp-content/themes/parallelus-unite/images/webinos_logo.png');
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    background-position:center bottom;
+*/
+}
+
+
+h1 {
+    color: black;
+    text-align: center;
+}
+
+h2, h3 {
+    text-align: center;
+}
+
+ul.codelist {
+    background-color:white;
+    color:black;    
+    padding: 15px 5px 15px 5px;
+    list-style-type: none;
+    padding-left: 0px;
+}
+
+li.code {
+    background-color:white;
+    color:black;    
+    font-size: 10pt;
+    font-family: "monospace";
+}
+
+table {
+    text-align: center;
+}
+
+table#pzps, table#pzhs {
+     width:600px;
+}
+
+td {
+    border-top:1px solid white;   
+    border-bottom:1px solid white; 
+    text-align:left;
+    padding: 4px 8px 4px 8px;
+}
+
+th {
+    text-align:center;
+    border-bottom:1px solid white;
+    padding: 2px 2px 2px 2px;
+}
+
+#tablist {
+    border-top:     1px solid white;
+    border-bottom:  1px solid white;
+    margin-top:     5px;
+    margin-bottom:  5px;
+    padding-top:    3px;
+    padding-bottom: 3px;
+    text-align:     center;
+}
+
+#tablist a {
+    padding-right: 5px;
+    padding-left: 5px; 
+    color: white;
+    text-decoration: none;
+}
+
+
+#message {
+    color: gray;
+}
+
+.connected {
+    color: red;
+}
+
+.notconnected {
+    color: gray;
+}
+
+.revokemessage {
+    border: 1px solid white;
+    color: white;
+    font-weight: bold;
+}
+
+

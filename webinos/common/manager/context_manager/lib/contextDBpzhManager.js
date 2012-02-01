@@ -1,46 +1,152 @@
-if (typeof webinos === 'undefined') {
-  webinos = {};
-  console.log("webinos not found");
-}
-if (typeof webinos.context === 'undefined')
-  webinos.context = {};
-if (typeof webinos.context.DB === 'undefined')
-  webinos.context.DB = {};
+(function() {
+	if (typeof webinos === 'undefined') {
+	  webinos = {};
+	  console.log("webinos not found");
+	}
+	if (typeof webinos.context === 'undefined')
+	  webinos.context = {};
 
-//var sqlite3 = require('sqlite3').verbose
-var sqlite3 = require('../contrib/node-sqlite3/').verbose();
-var pathclass = require('path');
-var moduleRoot = require('../dependencies.json');
-var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
-var webinosRoot = '../' + moduleRoot.root.location;
-var dbpath = pathclass.resolve(__dirname + '/../' + webinosRoot + '/storage/context/pzh/contextDB.db');
-var db =  new sqlite3.Database(dbpath);
+//	console.log("CONTEXT contextDBpzhManager.js LOADED");
+	
+	var path = require('path');
+	var moduleRoot = path.resolve(__dirname, '../') + '/';
 
-webinos.context.DB.insert = function(contextData, success, fail) {
-  var inContextRAW = db.prepare("INSERT INTO tblcontextraw (fldAPI, fldDevice, fldApplication, fldSession, fldContextObject, fldMethod, fldTimestamp) VALUES (?,?,?,?,?,?,?)");
-  var contextItem = {};
-  for (contextItemID=0; contextItemID < contextData.length; contextItemID++) {
+	require(moduleRoot +'/lib/AsciiArt.js')
 
-    var that=this;
-    var contextItem = contextData[contextItemID];
-    inContextRAW.run(contextItem.API, contextItem.device, contextItem.application, contextItem.session, contextItem.contextObject, contextItem.method, contextItem.timestamp,function(err1) {
-      if (err1) throw err1;
+	var commonPaths = require(moduleRoot + '/lib/commonPaths.js');
+	if (commonPaths.storage === null){
+		console.log('[ERROR] User Storage Path not found.\nContext Manager disabled.', 'yellow+black_bg');
+		return;
+	}
+	require(moduleRoot + '/lib/storageCheck.js')(commonPaths, require(moduleRoot + '/data/storage.json'));
+	
+	
+	var moduleDependencies = require(moduleRoot + '/dependencies.json');
+  var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
+  var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
 
-      var fldcontextrawID = this.lastID;
-      var incontextrawvalues = db.prepare("INSERT INTO tblcontextrawvalues (fldContextRAWID, fldValueTypeID, fldValueName, fldValue) VALUES (?,?,?,?)");
+  var sqlite3 = require('node-sqlite3').verbose();
 
-      for (inputID=0; inputID < contextItem.paramstolog.length; inputID++) {
-        var input = contextItem.paramstolog[inputID];
-        incontextrawvalues.run(fldcontextrawID, 1, input.objectName, input.value, function(err) {
-          if (err) throw err;
-        });
+  var dbpath = path.resolve(commonPaths.storage + '/pzh/contextDB.db');
+  var bufferpath = path.resolve(commonPaths.storage + '/pzp/contextDBbuffer.json');
+  var db =  new sqlite3.Database(dbpath);
+  var databasehelper = require('JSORMDB');
+  bufferDB = new databasehelper.JSONDatabase({path : bufferpath, transactional : false});
+  
+  sessionPzp = require(webinosRoot + '/pzp/lib/pzp_sessionHandling.js');
+  var sessionInstance =null;
+  
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+  //Running on the PZP
+  //////////////////////////////////////////////////////////////////////////////////////
+  exports.handleContextData = function(contextData){
+  
+  	
+    
+    var connectedPzh = sessionPzp.getPzhId();
+    if (connectedPzh == "null" || connectedPzh == "undefined"){
+      bufferDB.insert(contextData)
+      console.log("Successfully commited Context Object to the context buffer");
+    }else{
+      if (sessionInstance === null){
+        //console.log(sessionPzp.getPzhId(), 'white+red_bg');
+        sessionInstance = sessionPzp.getPzp();
+        webinos.ServiceDiscovery = sessionInstance.rpcHandler;
       }
-      for (outputID=0; outputID < contextItem.resultstolog.length; outputID++) {
-        var output = contextItem.resultstolog[outputID];
-        incontextrawvalues.run(fldcontextrawID, 2, output.objectName, output.value, function(err) {
-          if (err) throw err;
-        });
-      }
+      bufferDB.db.load();
+      bufferDB.insert(contextData);
+      var data = bufferDB.query();
+
+      var contextService = [];
+      var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), function(services){
+      //var message = sessionPzp.getMessageHandler();
+      //console.log(message);
+      //util= require('util');
+        //console.log(util.inspect(services, false, null), 'white+red_bg');
+        services[0].serviceAddress = connectedPzh
+        
+      var query = {};
+      query.type = "DB-insert";
+      query.data = data;
+      //message.write(query, connectedPzh, 0);
+          var query = {};
+          query.type = "DB-insert";
+          query.data = data;
+          if (services.length == 1){
+            services[0].executeQuery(query);
+            bufferDB.db.clear();
+            bufferDB.commit();
+          }
+      });
+    }
+    //success(true);
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+  //Running on the PZH
+  //////////////////////////////////////////////////////////////////////////////////////
+  exports.insert = function(contextData, success, fail) {
+    saveToDB(contextData, function(){
+      console.log("Successfully commited " + contextData.length + " Context Objects to the context DB on the PZH");
+      //success();
+    },function(){
+      console.log("Error commiting Context Objects to the PZH");
+      //fail();
     });
   }
-}  
+  saveToDB = function(contextData, success, fail) {
+    var inContextRAW = db.prepare("INSERT INTO tblcontextraw (fldAPI, fldDevice, fldApplication, fldSession, fldContextObject, fldMethod, fldTimestamp) VALUES (?,?,?,?,?,?,?)");
+    var contextItem = {};
+    for (contextItemID=0; contextItemID < contextData.length; contextItemID++) {
+      var that=this;
+      var contextItem = contextData[contextItemID];
+      inContextRAW.run(contextItem.API, contextItem.device, contextItem.application, contextItem.session, contextItem.contextObject, contextItem.method, contextItem.timestamp, function(err1) {
+        if (err1){ 
+          throw err1;
+          fail();  
+        }
+
+        var fldcontextrawID = this.lastID;
+        var incontextrawvalues = db.prepare("INSERT INTO tblcontextrawvalues (fldContextRAWID,fldObjectRef,fldIsObject,fldValueTypeID, fldValueName, fldValueType, fldValue) VALUES (?,?,?,?,?,?,?)");
+        for (inputID=0; inputID < contextItem.paramstolog.length; inputID++) {
+          var input = contextItem.paramstolog[inputID];
+          incontextrawvalues.run(fldcontextrawID, input.ObjectRef, input.IsObject, 1, input.objectName, input.type, input.value, function(err) {
+            if (err) {
+              throw err;
+              fail(); 
+            }
+          });
+        }
+        for (outputID=0; outputID < contextItem.resultstolog.length; outputID++) {
+          var output = contextItem.resultstolog[outputID];
+          incontextrawvalues.run(fldcontextrawID, output.ObjectRef, output.IsObject, 2, output.objectName, output.type, output.value, function(err) {
+            if (err) {
+              throw err;
+              fail();
+            }
+          });
+        }
+      });
+    }
+    success();
+  }
+  exports.getrawview = function(success,fail){
+    var result = {msg:null,data:[]};
+    db.each(
+        "SELECT fldcontextrawID AS ContextRawID,  " +
+        "fldcontextrawvalueID AS ContextRawValueID,  fldAPI AS API, fldDevice AS Device, fldApplication AS Application, " +
+        "fldSession AS Session, fldContextObject AS ContextObject, fldMethod AS Method, fldTimestamp AS Timestamp, " +
+        "fldDescription AS ValueType, fldValueName AS ValueName, fldValueType AS ValueType, fldValue AS Value FROM vwcontextraw", 
+        function (err,row){
+          result.data[result.data.length] = row;
+        },
+        function(err){
+          if (err !== null) {
+            result.msg = {code:err.code,msg:err.message};
+          }
+          success(result);
+        }
+    );
+  }
+})();

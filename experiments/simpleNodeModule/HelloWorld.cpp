@@ -1,6 +1,3 @@
-/*#define BUILDING_NODE_EXTENSION 1
-this is passed in the compiler options instead, to avoid adding overhead in linux build
-*/
 #include <node.h>
 #include <v8.h>
 using namespace node;

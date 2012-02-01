@@ -23,9 +23,9 @@
     <module>file</module>
     <module>geolocation</module>
     <module>get42</module>
+    <module>payment</module>
     <module>sensors</module>
     <module>servicedisco</module>
-    <module>test-module</module>
     <module>tv</module>
   </modules>
 </project>

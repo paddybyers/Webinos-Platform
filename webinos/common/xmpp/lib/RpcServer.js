@@ -11,14 +11,8 @@ var fs = require("fs");
 var logger = require('nlogger').logger('RpcServer.js');
 var io;
 
-var moduleRoot = require('../dependencies.json');
-var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
-var webinosRoot = '../' + moduleRoot.root.location;
-
-var rpc = require(webinosRoot + dependencies.rpc.location + "lib/rpc.js");
-
 //RPC server initialization
-function configure(server) {
+function configure(server, rpcHandler) {
 	io = server;
 	
 	io.of('/jsonrpc').on('connection', function(socket) {
@@ -28,7 +22,7 @@ function configure(server) {
 			msg = JSON.parse(message);
 			logger.trace('calling rpc with message(' +  msg + ')');
 			logger.trace('message.method=' + msg.method);
-	        rpc.handleMessage(msg, this, Math.round(Math.random() * 10000));
+	        rpcHandler.handleMessage(msg, this, Math.round(Math.random() * 10000));
 			logger.trace('rpc called.');
 	    });
 		
@@ -43,7 +37,7 @@ function configure(server) {
 			logger.trace('end result();')
 		}
 		
-		rpc.setWriter(writer);
+		rpcHandler.setWriter(writer);
 	});
 }
 

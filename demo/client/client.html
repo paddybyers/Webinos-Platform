@@ -1,190 +1,273 @@
 <html>
 <head>
 <title>PZP Testbed</title>
-	<link rel="icon" href="vehicle/webinos.ico" type="image/x-icon">
-	<script type="text/javascript" src="/client/webinos.js"></script>
-	<script type="text/javascript" src="/client/jsrender.js"></script>
-	<link rel="stylesheet" type="text/css" href="/client/jquery-ui-1.8.16.custom.css"/>
-	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
-	<script type="text/javascript" src="/client/jquery.js"></script>
-	<script type="text/javascript" src="/client/jquery-ui.js"></script>
-	<script type="text/javascript" src="/client/dojo.js"></script>
-	<script type="text/javascript">
-            $(document).ready(function() {	
-		$("#tabs").tabs();
+        <link rel="icon" href="vehicle/webinos.ico" type="image/x-icon">
+        <script type="text/javascript" src="/client/webinos.js"></script>
+        <script type="text/javascript" src="/client/jsrender.js"></script>
+        <link rel="stylesheet" type="text/css" href="/client/jquery-ui-1.8.16.custom.css"/>
+        <link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
+        <script type="text/javascript" src="/client/jquery.js"></script>
+        <script type="text/javascript" src="/client/jquery-ui.js"></script>
+        <script type="text/javascript" src="/client/dojo.js"></script>
+        <script type="text/javascript">
+                $(document).ready(function() {
+                                $("#tabs").tabs();
+                                $('#get42_example button').button();
+                                
+                                function logMessage(msg) {
+                                	if (msg) {
+	                                    $('#message').append('<li>' + msg + '</li>');
+                                	}
+                                }
+
+                                function fillPZAddrs(data) {
+                                    var pzpId = data.from;
+                                    var pzhId, connectedPzh , connectedPzp;
+                                    if (pzpId !== "virgin_pzp") {
+                                      pzhId = data.payload.message.pzhId;                                     
+                                      connectedPzp = data.payload.message.connectedPzp; // all connected pzp
+                                      connectedPzh = data.payload.message.connectedPzh; // all connected pzh
+                                      
+                                      logMessage('registeredBrowser msg from ' + pzpId);
+                                    }
+                                }
+                                webinos.session.addListener('registeredBrowser', fillPZAddrs);
+                                
+                                function updatePZAddrs(data) {
+                                    if(typeof data.payload.message.pzp !== "undefined") {
+                                        logMessage('new pzp ' + data.payload.message.pzp);
+                                    } else {
+                                        logMessage('new pzh ' + data.payload.message.pzh);
+                                    }
+                                }
+                                webinos.session.addListener('update', updatePZAddrs);
+                                
+                                function printInfo(data) {
+                                	logMessage(data.payload.message);
+                                }
+                                webinos.session.addListener('info', printInfo);
+                                
                 $('#startPZP').bind('click', function() {
-			var config ='country='+ document.getElementById('pzpcountry').value + '\n' +
-				'state='+ document.getElementById('pzpstate').value + '\n' +
-				'city='+ document.getElementById('pzpcity').value + '\n' +
-				'organization='+ document.getElementById('pzporg').value + '\n' +
-				'organizationUnit='+ document.getElementById('pzporgunit').value + '\n' +
-				'common='+ document.getElementById('pzpcommon').value + '\n' +
-				'email='+ document.getElementById('pzpemail').value + '\n' +
-				'days='+ document.getElementById('pzpdays').value + '\n';
+                                var config ='country='+ document.getElementById('pzpcountry').value + '\n' +
+                                        'state='+ document.getElementById('pzpstate').value + '\n' +
+                                        'city='+ document.getElementById('pzpcity').value + '\n' +
+                                        'organization='+ document.getElementById('pzporg').value + '\n' +
+                                        'organizationUnit='+ document.getElementById('pzporgunit').value + '\n' +
+                                        'common='+ document.getElementById('pzpcommon').value + '\n' +
+                                        'email='+ document.getElementById('pzpemail').value + '\n' +
+                                        'days='+ document.getElementById('pzpdays').value + '\n';
 
-			var payload = {status: 'startPzp', 
-				servername: document.getElementById('pzpservername').value,
-				serverport: document.getElementById('pzpserverport').value,
-				
-				value: config}; 
-			
-			var options = {type: 'prop', payload: payload};
-			webinos.session.message_send(options);
-		});
+                        var payload = {status: 'startPzp', 
+                                servername: document.getElementById('pzpservername').value,
+                                serverport: document.getElementById('pzpserverport').value,
+                                code:  document.getElementById('pzpcode').value,
+                                modules: [{name:'get42', params: [23]}], // FIXME just for testing, need gui to configure modules
+                                value: config}; 
+                        
+                        var options = {type: 'prop', payload: payload};
+                        webinos.session.message_send(options);
+                });
+                
                 $('#disconnectPZP').bind('click', function() {
-                	var options = {type: 'prop', payload: {status:'disconnectPzp'}};
-			webinos.session.message_send(options);
+                        var options = {type: 'prop', payload: {status:'disconnectPzp'}};
+                        webinos.session.message_send(options);
                 
-		});		
+                });             
                 $('#registerBrowser').bind('click', function() {
-                	var options = {type: 'prop', payload: {status:'registerBrowser'}};
-			webinos.session.message_send(options);
+                        var options = {type: 'prop', payload: {status:'registerBrowser'}};
+                        webinos.session.message_send(options);                
+                });
                 
-		});		 
-		var test = [];
-		         
-		$('#findService').bind('click', function() {
-			webinos.session.setServiceLocation($('#pzh_pzp_list').val());
-			webinos.ServiceDiscovery.findServices( 
-		        new ServiceType('http://webinos.org/api/test'), 			
-		        {onFound: function (service) {
-		            test.push(service);		
-		    }});
-			});
-		
-		$('#bind').bind('click', function() {
-		    for (var i=0; i<test.length; i++) {
-		        test[i].bindService({onBind:function(service) {
-		            $('#message').append('<li> TEST API' + service.api + ' bound.</li>');
-		        }});
-		    }
-		});
-		             
-		$('#get42').bind('click', function() {
-			for (var i=0; i<test.length; i++) {
-				test[i].get42('foo', function(result) {
-					alert(result);
-				},
-				function(error){
-					alert(error.code + " " + error.message);
-				});
-			}
-		});
+                var test = {};
+                var recentService;
+                
+                $('#findService').bind('click', function() {
+                		test = {};
+                		recentService = null;
+                		$('#get42Services').empty();
+                		
+                        webinos.ServiceDiscovery.findServices( 
+                        new ServiceType('http://webinos.org/api/test'),                         
+                        {onFound: function (service) {
+                            test[service.serviceAddress] = service;
+                            $('#get42Services').append($('<option>' + service.serviceAddress + '</option>'));
+                    }});
+                });
+                
+                $("#get42Services option").live('click', function(event) {
+                	$(this).parent().attr("recent", $(this).val());
+                });
+                
+                $('#bind').bind('click', function() {
+                	recentService = test[$('#get42Services').attr('recent')];
+                	recentService.bindService({onBind:function(service) {
+                        logMessage('TEST API ' + service.api + ' bound.');
+                    }});
+                });
+                             
+                $('#get42').bind('click', function() {
+                	recentService.get42('foo', function(result) {
+                        alert(result);
+                    },
+                    function(error){
+                        alert(error.code + " " + error.message);
+                    });
+                });
 
-		$('#listen42').bind('click', function() {
-		    for (var i=0; i<test.length; i++) {
-		        test[i].listenerFor42(function(result) {
-		            alert(result.msg);
-		        }, {opts: "unused"});
-		    }
-		});
+                $('#listen42').bind('click', function() {
+                    for (var i=0; i<test.length; i++) {
+                        test[i].listenerFor42(function(result) {
+                            alert(result.msg);
+                        }, {opts: "unused"});
+                    }
+                });
         
-	});
-	</script>
+        });
+        </script>
 </head>
 <body>
 <center><div id="header"> <h1><img src="testbed_logo.png"></h1> </div></center>
 <div class="pzp">
 <div id = "tabs">
-	<ul>
-		<li> <a href="#get42_example"> Get42 Example </a> </li>
-		<li> <a href="#contact"> Contact </a> </li>
-		<li> <a href="#geolocation"> GeoLocation </a> </li>
-		<li> <a href="#discovery"> Discovery </a> </li>
-		<li> <a href="#sensor"> Sensor </a> </li>
-		<li> <a href="#file-api"> File API </a> </li>
-		<li> <a href="#events"> Event API </a> </li>
-		<li> <a href="#tv"> TV API </a> </li>
-		<li><a href="#context"> Context </a></li>
-		<li> <a href="#authentication"> Authentication </a> </li>
-		<li> <a href="#pzp"> PZP </a> </li>
-	</ul>
-	
-	<div id = "pzp" style="background-color:#0879a9">	
-		<p style="color:white" align="right"> Help Available on Redmine to start PZP <a href="http://dev.webinos.org/redmine/projects/wp4/wiki/Running_PZP"> Running PZP </a>
-		<center> <p style="color:white"> Ideally you should start one Pzp per instance, if you wish to start another Pzp, create another instance </p> </center>
-		<table style="background-color:lightgray; border:3px solid #0879a9" align="center">			
-			<tr><th>Config </th> <th> Value </th> </tr>
-			<tr><td>Country </td><td><input type="text" id="pzpcountry" value="UK"/></td> </tr>
-			<tr><td>State</td><td> <input type="text" id="pzpstate" value="MX"/></td></tr>
-			<tr><td>City </td><td><input type="text" id="pzpcity" value="ST"/></td></tr>
-			<tr><td>Org </td><td><input type="text" id="pzporg" value="Webinos"/></td></tr>
-			<tr><td>OrgUnit </td><td><input type="text" id="pzporgunit" value="WP4"/></td></tr>
-			<tr><td>Common</td><td> <input type="text" id="pzpcommon" value="Desktop"/></td></tr>
-			<tr><td><i> (Info: This name should be different for each PZP)</i></td><td> </td></tr>
-			<tr><td>Email </td><td><input type="text" id="pzpemail" value="internal@webinos.org"/></td></tr>
-			<tr><td>Days</td><td> <input type="text" id="pzpdays" value="180"/></td>	</tr>		
-			<tr><td>PZH Address </td><td><input type="text" id="pzpservername" value="localhost"/></td></tr> <!--  -->
-			<tr><td><i> (Info: This should match with PZH address you want to connect)</i></td><td> </td></tr>
-			<tr><td>PZH Port </td><td><input type="text" id="pzpserverport" value="8000"/></td></tr>
-			<tr><td><i> (Info: This should match with PZH Port)</i></td><td> </td></tr>
-		</table>			
-			<center>
-				<button id="startPZP" class="button">Start PZP </button>
-				<button id="disconnectPZP" class="button">Disconnect PZP </button>
-			</center>
-			
-	</div>
-	
-	<div id = "get42_example" style="background-color:#0879a9"> 
-		<table style="background-color:lightgray; border:3px solid #0879a9">
-					<tr> <td> Use registerBrowser if you do not see anything in drop down </td>
-					<td> <button id="registerBrowser" class="button"> Register Browser </button> </td> </tr>
-					<tr> <td> Select from the list Available PZP & PZH to find Service </td>
-					<td> <select id="pzh_pzp_list"> <option> </option> </select> </td> 
-					<td> <button id="findService" class="button"> Find Service </button> </td></tr>
-					<tr> <td><p><i> Find Service will determine where your code will be executed</i></p> 
-				</td>  </tr>
-				<tr> <td>
-                    <button id="bind" class="button">Bind</button>
-				</td> <td> 
-					<button id="get42" class="button">Get 42</button>
-                </td> <td> 
-                    <button id="listen42" class="button">Listener for 42</button>
-				</td> </tr>				
-		</table>
-	</div>
-	 
-	<div id = "contact" style="background-color:#0879a9">
-		<iframe src="contacts/contactsClient.html" width="100%" height="100%">
-		</iframe>
-	</div>
-	<div id="geolocation" style="background-color:#0879a9">
-		<iframe src="geolocation.html" width="100%" height="100%">
-		</iframe>
-	</div>
-	<div id="sensor" style="background-color:#0879a9">
-		<iframe src="sensor.html" width="100%" height="100%">
-		</iframe>
-	</div>
-	<div id="discovery" style="background-color:#0879a9">
-		<iframe src="discoveryUI.html" width="100%" height="100%">
-		</iframe>		
-	</div>
-	<div id="file-api" style="background-color:#0879a9">
-		<iframe src="file-api-demo.html" width="100%" height="100%">
-		</iframe>	
-	</div>
-	<div id="events" style="background-color:#0879a9">
-		<iframe src="events/events.html" width="100%" height="100%">
-		</iframe>
-	</div>
-	<div id="tv" style="background-color:#0879a9">
-		<iframe src="tv/client.html" width="100%" height="100%">
-		</iframe>
-	</div>
-	<div id="context" style="background-color: #0879a9">
-		<iframe src="context/context.html" width="100%" height="100%">
-		</iframe>
-	</div>
-	<div id = "authentication" style="background-color:#0879a9">
-		<iframe src="authentication/test_auth.html" width="100%" height="100%">
-		</iframe>
-	</div>
-	
+        <ul>
+                <li> <a href="#get42_example"> Get42 Example </a> </li>
+                <li> <a href="#contact"> Contact </a> </li>
+                <li> <a href="#geolocation"> GeoLocation </a> </li>
+                <li> <a href="#discovery"> Discovery </a> </li>
+                <li> <a href="#sensor"> Sensor </a> </li>
+                <li> <a href="#payment"> Payment </a> </li>
+                <li> <a href="#file"> File API </a> </li>
+                <li> <a href="#events"> Event API </a> </li>
+                <li> <a href="#tv"> TV API </a> </li>
+                <li><a href="#context"> Context </a></li>
+                <li> <a href="#authentication"> Authentication </a> </li>
+                <li> <a href="#pzp"> PZP </a> </li>
+                <li> <a href="#pzpConfig"> PZP Config </a> </li>
+        </ul>
+        
+        <div id = "pzp" style="background-color:#0879a9">       
+                <p style="color:white" align="right"> Help Available on Redmine to start PZP <a href="http://dev.webinos.org/redmine/projects/wp4/wiki/Running_PZP"> Running PZP </a>
+                <center> <p style="color:white"> Ideally you should start one Pzp per instance, if you wish to start another Pzp, create another instance </p> </center>
+                <table style="background-color:lightgray; border:3px solid #0879a9" align="center">                     
+                        <tr><th>Config </th> <th> Value </th> </tr>                     
+                        <tr><td>Common</td><td> <input type="text" id="pzpcommon" value="Desktop"/></td></tr>
+                        <tr><td><i> (Info: This name should be different for each PZP)</i></td><td> </td></tr>                  
+                        <tr><td>PZH Address </td><td><input type="text" id="pzpservername" value="localhost"/></td></tr>
+                        <tr><td><i> (Info: This should match with PZH address you want to connect)</i></td><td> </td></tr>
+                        <tr><td>PZH Port </td><td><input type="text" id="pzpserverport" value="8000"/></td></tr>
+                        <tr><td><i> (Info: This should match with PZH Port)</i></td><td> </td></tr>
+                        <tr><td>New PZP Code </td><td><input type="text" id="pzpcode" value="DEBUG"/></td></tr>                 
+                </table>                        
+                        <center>
+                                <button id="startPZP" class="button">Start PZP </button>
+                                <button id="disconnectPZP" class="button">Disconnect PZP </button>
+                        </center>
+                        
+        </div>
+        <div id = "pzpConfig" style="background-color:#0879a9"> 
+                <center> <p style="color:white"> This are standard values and might change less freq.  </p> </center>
+                <table style="background-color:lightgray; border:3px solid #0879a9" align="center">     
+                        <tr><td>Country </td><td><input type="text" id="pzpcountry" value="UK"/></td> </tr>
+                        <tr><td>State</td><td> <input type="text" id="pzpstate" value="MX"/></td></tr>
+                        <tr><td>City </td><td><input type="text" id="pzpcity" value="ST"/></td></tr>
+                        <tr><td>Org </td><td><input type="text" id="pzporg" value="Webinos"/></td></tr>
+                        <tr><td>OrgUnit </td><td><input type="text" id="pzporgunit" value="WP4"/></td></tr>
+                        <tr><td>Email </td><td><input type="text" id="pzpemail" value="internal@webinos.org"/></td></tr>
+                        <tr><td>Days</td><td> <input type="text" id="pzpdays" value="180"/></td> </tr>  
+                </table>        
+        </div>
+        <div id = "get42_example" style="background-color:#0879a9">
+				<table
+					style="background-color: lightgray; border: 3px solid #0879a9">
+					<tr>
+						<td>Use "Register Browser" if you do not see anything in drop
+							down</td>
+						<td>
+							<button id="registerBrowser" class="button">Register
+								Browser</button>
+						</td>
+					</tr>
+					<tr>
+						<td>Use "Find Services" to search for available get42-Services.<br/>
+							Select one, then bind and use. Select another and bind again and use.
+						</td>
+						<td>
+							<button id="findService" class="button">Find Services</button>
+							<br />
+							<select id="get42Services" size="5"></select>
+						</td>
+					</tr>
+					<tr>
+						<td><p>
+								<i> The selected address means the Service at that address
+									will be used.</i>
+							</p></td>
+					</tr>
+					<tr>
+						<td>
+							<button id="bind" class="button">Bind</button>
+						</td>
+						<td>
+							<button id="get42" class="button">Get 42</button>
+						</td>
+						<td>
+							<button id="listen42" class="button">Listener for 42</button>
+						</td>
+					</tr>
+				</table>
+			</div>
+         
+        <div id = "contact" style="background-color:#0879a9">
+                <iframe src="contacts/contactsClient.html" width="100%" height="100%">
+                </iframe>
+        </div>
+        <div id="geolocation" style="background-color:#0879a9">
+                <iframe src="geolocation.html" width="100%" height="100%">
+                </iframe>
+        </div>
+        <div id="sensor" style="background-color:#0879a9">
+                <iframe src="sensor.html" width="100%" height="100%">
+                </iframe>
+        </div>
+        <div id="payment" style="background-color:#0879a9">
+                <iframe src="payment/payment.html" width="100%" height="100%">
+                </iframe>
+        </div>
+        <div id="discovery" style="background-color:#0879a9">
+                <iframe src="discoveryUI.html" width="100%" height="100%">
+                </iframe>               
+        </div>
+        <div id="file" style="background-color:#0879a9">
+                <iframe src="file/file.html" width="100%" height="100%">
+                </iframe>       
+        </div>
+        <div id="events" style="background-color:#0879a9">
+                <iframe src="events/events.html" width="100%" height="100%">
+                </iframe>
+        </div>
+        <div id="tv" style="background-color:#0879a9">
+                <iframe src="tv/client.html" width="100%" height="100%">
+                </iframe>
+        </div>
+        <div id="context" style="background-color: #0879a9">
+                <iframe src="context/context.html" width="100%" height="100%">
+                </iframe>
+        </div>
+        <div id = "authentication" style="background-color:#0879a9">
+                <iframe src="authentication/test_auth.html" width="100%" height="100%">
+                </iframe>
+        </div>
+        
 </div>
 </div>
 
 <div id="status">STATUS: <span id="message"></span></div>
+<script type="text/javascript">
+$('#status').mouseenter(function(){
+	var that = $(this);
+	var right = that.css("right");
+	that.css("right",(right==="0px")?"":"0px");
+});
+</script>
 </body>
 </html>

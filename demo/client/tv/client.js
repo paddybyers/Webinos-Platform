@@ -1,6 +1,53 @@
 //execute when site loads
 $(document).ready(function() {
 	
+    function fillPZAddrs(data) {
+		var pzhId, connectedPzp, connectedPzh;
+		if(data.from !== "virgin_pzp") {
+			pzhId = data.payload.message.pzhId;
+			connectedPzp = data.payload.message.connectedPzp;
+			connectedPzh = data.payload.message.connectedPzh;
+		}
+		var pzpId = data.from;
+
+
+		if(document.getElementById('pzh_pzp_list'))
+			document.getElementById('pzh_pzp_list').innerHTML="";
+
+		$("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
+
+		var i;
+		if(typeof connectedPzp !== "undefined") {
+			for(i =0; i < connectedPzp.length; i++) {
+				$("<option value=" + connectedPzp[i] + " >" +connectedPzp[i] + "</option>").appendTo("#pzh_pzp_list");                  
+			}
+		}
+		$("<option value="+pzpId+" >" + pzpId+ "</option>").appendTo("#pzh_pzp_list");                      
+		$("</optgroup>").appendTo("#pzh_pzp_list");
+		$("<optgroup label = 'PZH' id ='pzh_list' >").appendTo("#pzh_pzp_list");
+		if(typeof connectedPzh !== "undefined") {
+			for(i =0; i < connectedPzh.length; i++) {
+				$("<option value=" + connectedPzh[i] + " >" +connectedPzh[i] + "</option>").appendTo("#pzh_pzp_list");                  
+			}
+		}
+		$("</optgroup>").appendTo("#pzh_pzp_list");
+    }
+    webinos.session.addListener('registeredBrowser', fillPZAddrs);
+    
+    function updatePZAddrs(data) {
+        if(typeof data.payload.message.pzp !== "undefined") {
+            $("<option value=" + data.payload.message.pzp + " >" +data.payload.message.pzp + "</option>").appendTo("#pzp_list");
+        } else {
+            $("<option value=" + data.payload.message.pzh + " >" +data.payload.message.pzh + "</option>").appendTo("#pzh_list");
+        }
+    }
+    webinos.session.addListener('update', updatePZAddrs);
+    
+    function printInfo(data) {
+        $('#message').append('<li>'+data.payload.message+'</li>');
+    }
+    webinos.session.addListener('info', printInfo);
+    
 	var discoveredServices = [];
 	var channelMapByName = {};
 	
@@ -15,13 +62,7 @@ $(document).ready(function() {
 	//find service by name and link it
 	var findServiceByName = function(serviceName){
 		
-		var address = $('#pzh_pzp_list').val();
-    	if (address === "null" || address === "undefined") {
-    		alert("Select from list which you node you want to  connect");
-    		return;
-    	} 
-		
-	    webinos.ServiceDiscovery.findServices(address,new ServiceType('http://webinos.org/api/tv'), {onFound: function (service) {
+	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/tv'), {onFound: function (service) {
 	    	if(!isServiceDiscovered(serviceName)){
     			discoveredServices[serviceName] = service;
     			log('SERVICE FOUND: '+serviceName);

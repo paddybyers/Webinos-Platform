@@ -9,12 +9,20 @@ var GenericFeature = require('./GenericFeature.js');
 var logger = require('nlogger').logger('Get42Feature.js');
 
 var NS = "urn:services-webinos-org:get42";
+
+var moduleRoot = require('../dependencies.json');
+var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
+var webinosRoot = '../' + moduleRoot.root.location;
+
+var get42 = require(webinosRoot + dependencies.api.get42.location);
+
 /*
  * Remote-alert Feature, defines as subclass of GenericFeature
  */
-function Get42Feature() {
-	GenericFeature.GenericFeature.call(this);
+function Get42Feature(rpcHandler) {
+	GenericFeature.GenericFeature.call(this, rpcHandler);
 
+	this.service = new get42.Service(rpcHandler);
 	this.api = NS;
 	this.displayName = 'Get42' + this.id;
 	this.description = 'Test Module with the life answer.';
@@ -37,7 +45,7 @@ function Get42Feature() {
 		var payload = JSON.parse(params);
 		var conn = this.uplink;
 
-		this.get42(payload, function(result) {
+		this.service.get42(payload, function(result) {
 			logger.debug("The answer is: " + JSON.stringify(result));
 			logger.debug("Sending it back via XMPP...");
 			conn.answer(stanza, JSON.stringify(result));
@@ -48,24 +56,19 @@ function Get42Feature() {
 
 	this.on('invoked-from-local', function(featureInvoked, params, successCB, errorCB, objectRef) {
 		logger.trace('on(invoked-from-local)');
-		this.get42(params, successCB, errorCB, objectRef);
+		this.service.get42(params, successCB, errorCB, objectRef);
 		logger.trace('ending on(invoked-from-local)');
 	});
 
-	this.get42 = function (params, successCB, errorCB, objectRef) {
-		logger.debug("get42 function is invoked, returning '42'");
-		successCB({ value: 42 });
-	}
-	
 	//TODO 'this' exposes all functions (and attributes?) to the RPC but only some a selection of features should be exposed.
 	//TODO remote clients use the function 'invoke' to invoke the geolocation feature but it should also be possible to have other functions.
 	//     at this time invoke is handled by the GenericFeature to dispatch the call locally or remotely.
 	
 	// We add the 'id' to the name of the feature to make this feature unique to the client.
-	webinos.rpc.registerObject(this);  // RPC name
+	rpcHandler.registerObject(this);  // RPC name
 }
 
-
+//sys.inherits(Get42Feature, get42.testModule);
 sys.inherits(Get42Feature, GenericFeature.GenericFeature);
 exports.Get42Feature = Get42Feature;
 exports.NS = NS;

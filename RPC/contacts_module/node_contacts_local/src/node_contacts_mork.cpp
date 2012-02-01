@@ -15,7 +15,10 @@
  ******************************************************************************/
 
 #include "node_contacts_mork.h"
-
+#if defined(_WIN32) || defined(_WIN64)
+  //Windows don't have uint defined
+  #define uint unsigned int
+#endif
 CLocalContacts::CLocalContacts() :
         is_open(false)
 {

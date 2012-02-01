@@ -15,8 +15,8 @@ var NS = {
 }
 
 var factory = {
-	'urn:services-webinos-org:geolocation': function () { return new GeolocationFeature.GeolocationFeature },
-	'urn:services-webinos-org:get42': function () { return new Get42Feature.Get42Feature }
+	'urn:services-webinos-org:geolocation': function (rpcHandler) { return new GeolocationFeature.GeolocationFeature(rpcHandler) },
+	'urn:services-webinos-org:get42': function (rpcHandler) { return new Get42Feature.Get42Feature(rpcHandler) }
 }
 
 exports.factory = factory;

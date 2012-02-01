@@ -52,7 +52,7 @@ describe("generate certificate requests", function() {
 
 describe("sign certificate requests", function() {
     it("can self-sign a certificate request", function() {
-        ssCert = certman.selfSignRequest(certReq, 30, rsakey);
+        ssCert = certman.selfSignRequest(certReq, 30, rsakey, 1, "pzh.webinos.org");
         expect(ssCert).not.toBeNull();
         expect(ssCert).toContain(CERT_START);
         expect(ssCert).toContain(CERT_END);
@@ -63,7 +63,7 @@ describe("sign certificate requests", function() {
         childKey = certman.genRsaKey(1024);
         childReq = certReq = certman.createCertificateRequest(rsakey, 
     "UK","OX","Oxford","Univ. Oxford","Computer Science", "Client Key", "john.lyle@cs.ox.ac.uk");
-        childCert = certman.signRequest(childReq, 30, rsakey, ssCert);
+        childCert = certman.signRequest(childReq, 30, rsakey, ssCert, 1, "pzh.webinos.org");
         expect(childCert).not.toBeNull();
         expect(childCert).toContain(CERT_START);
         expect(childCert).toContain(CERT_END);

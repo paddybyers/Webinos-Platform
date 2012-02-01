@@ -1,0 +1,25 @@
+In order to run on a x64 mac you must patch the tools/gyp/pylib/gyp/generator/make.py file located in the node source tree and comment out both .append('-arch i386') lines.
+The patch is the following:
+
+diff --git a/tools/gyp/pylib/gyp/generator/make.py b/tools/gyp/pylib/gyp/generator/make.py
+index 3971360..3f16023 100644
+--- a/tools/gyp/pylib/gyp/generator/make.py
++++ b/tools/gyp/pylib/gyp/generator/make.py
+@@ -905,7 +905,7 @@ class XcodeSettings(object):
+     self._WarnUnimplemented('PRODUCT_TYPE')
+ 
+     # TODO: Do not hardcode arch. Supporting fat binaries will be annoying.
+-    cflags.append('-arch i386')
++    #cflags.append('-arch i386')
+ 
+     cflags += self._Settings().get('OTHER_CFLAGS', [])
+     cflags += self._Settings().get('WARNING_CFLAGS', [])
+@@ -999,7 +999,7 @@ class XcodeSettings(object):
+                      '-Wl,' + target.Absolutify(self._Settings()['ORDER_FILE']))
+ 
+     # TODO: Do not hardcode arch. Supporting fat binaries will be annoying.
+-    ldflags.append('-arch i386')
++    #ldflags.append('-arch i386')
+ 
+     # Xcode adds the product directory by default.
+     ldflags.append('-L' + generator_default_variables['PRODUCT_DIR'])

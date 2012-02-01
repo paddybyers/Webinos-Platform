@@ -9,11 +9,14 @@ var GenericFeature = require('./GenericFeature.js');
 var sys = require('util');
 var logger = require('nlogger').logger('GeolocationFeature.js');
 
-var moduleRoot = require('../dependencies.json');
-var dependencies = require('../' + moduleRoot.root.location + '/dependencies.json');
-var webinosRoot = '../' + moduleRoot.root.location;
+var path = require('path');
+var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
+var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
-var rpc = require(webinosRoot + dependencies.rpc.location + "lib/rpc.js");
+//var rpc = require(path.join(webinosRoot, dependencies.rpc.location, "lib/rpc.js"));
+
+var geolocation = require(path.join(webinosRoot, dependencies.api.geolocation.location));
 
 /*
  * Geolocation feature, defined as subclass of GenericFeature
@@ -26,9 +29,10 @@ var rpc = require(webinosRoot + dependencies.rpc.location + "lib/rpc.js");
 
 var NS = "urn:services-webinos-org:geolocation";
 
-function GeolocationFeature() {
-	GenericFeature.GenericFeature.call(this);
+function GeolocationFeature(rpcHandler) {
+	GenericFeature.GenericFeature.call(this, rpcHandler);
 
+	this.geo = new geolocation.Service(rpcHandler)
 	this.api = NS;
 	this.displayName = "GeolocationFeature" + this.id;
 	this.description = 'Geolocation Feature.';
@@ -51,7 +55,7 @@ function GeolocationFeature() {
 		var payload = JSON.parse(params);
 		var conn = this.uplink;
 
-		this.getCurrentPosition(payload, function(result) {
+		this.geo.getCurrentPosition(payload, function(result) {
 			logger.debug("The answer is: " + JSON.stringify(result));
 			logger.debug("Sending it back via XMPP...");
 			conn.answer(stanza, JSON.stringify(result));
@@ -62,54 +66,16 @@ function GeolocationFeature() {
 
 	this.on('invoked-from-local', function(featureInvoked, params, successCB, errorCB, objectRef) {
 		logger.trace('on(invoked-from-local)');
-		this.getCurrentPosition(params, successCB, errorCB, objectRef);
+		this.geo.getCurrentPosition(params, successCB, errorCB, objectRef);
 		logger.trace('ending on(invoked-from-local)');
 	});
-	
-	this.getCurrentPosition = function(params, successCB, errorCB, objectRef) {
-	  	if (params['method'] == "native") {	
-			var util = require('util');
-		    var exec = require('child_process').exec;
-		    var child;
-			var location = null;
-
-			childCB = function (error, stdout, stderr) {
-			    location = stdout;
-				successCB(location);
-			    if (error !== null) {
-			    	console.log('exec error: ' + error);
-			    }
-			}
-			child = exec('echo this is your location', childCB); 	// see http://nodejs.org/docs/v0.5.4/api/child_processes.html	
-
-		} else { 
-
-			var result={};
-			var http = require('http');
-			var freegeoip = http.createClient(80, 'freegeoip.net');
-			var request = freegeoip.request('GET', '/json/',
-			  {'host': 'freegeoip.net'});
-			request.end();
-			request.on('response', function (response) {
-			  // console.log('STATUS: ' + response.statusCode);
-			  // console.log('HEADERS: ' + JSON.stringify(response.headers));
-			  response.setEncoding('utf8');
-			  response.on('data', function (chunk) {
-			    // console.log('BODY: ' + chunk);
-			    result = JSON.parse(chunk);
-				location = { 'lat': result['latitude'], 'lon': result['longitude'] };
-				successCB(location);
-			  });
-			});		
-		}
-	}
-	
+		
 	//TODO 'this' exposes all functions (and attributes?) to the RPC but only some a selection of features should be exposed.
 	//TODO remote clients use the function 'invoke' to invoke the geolocation feature but it should also be possible to have other functions.
 	//     at this time invoke is handled by the GenericFeature to dispatch the call locally or remotely.
 	
 	// We add the 'id' to the name of the feature to make this feature unique to the client.
-	webinos.rpc.registerObject(this);  // RPC name
+	rpcHandler.registerObject(this);  // RPC name
 }
 
 sys.inherits(GeolocationFeature, GenericFeature.GenericFeature);

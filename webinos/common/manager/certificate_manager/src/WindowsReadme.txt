@@ -1,16 +1,18 @@
-In order to compile in windows you will have to (based on http://www.ski-epic.com/2007_notes_on_openssl/index.html):
 
-* download an install perl from http://www.activestate.com/activeperl/downloads. Don't forget to reboot to have parl in the path.
-* Download source files of openssl from http://www.openssl.org/source/ and extract it. (WARNING: Some zip programs, like 7zip I use, do not restore the links properly. Verify that the include\openssl contains non empty files! I had to do it with python running the following commands:
-** import tarfile
-** o = tarfile.open("openssl-1.0.0e.tar")
-** o.extractall()
-** o.close()
-)
-* Fireup a visual studio command line (or run 'call "%VS100COMNTOOLS%..\..\vc\vcvarsall.bat" ' on an existin one)
-* Read the INSTALL.W32 file in the source dir for commands. On a x64 machine I did the following:
-** perl Configure VC-WIN32 no-asm
-** ms\do_ms
-** nmake -f ms\ntdll.mak  (you will need to have Microsoft Macro Assembler installed)
+In order to build this module you need the .lib to link against and
+the header files from the OpenSSL library.
 
+You should download the full Win32 OpenSSL v1.0.0e package from
+    http://www.slproweb.com/products/Win32OpenSSL.html
+which includes all needed files. Don't use the "Light" installer.
 
+After installing OpenSSL:
+1. Open module.gyp.
+2. Change the "openssl_Root" path variable to point to your OpenSSL installation.
+3. Build the module using VS or MSBuild.
+
+Make sure you're using forward slashes in your path, i.e. "/" instead of the
+usual backslashes for Windows.
+
+For more on how node modules are built on Windows see the WP4 Wiki:
+http://dev.webinos.org/redmine/projects/wp4/wiki/Webinos-gyp

@@ -7,8 +7,6 @@
 
 var ltx = require('ltx');
 var sys = require('util');
-var xmpp = require('node-xmpp');
-//var xmpp = require('./node-xmpp-via-bosh/boshclient.js');
 var crypto = require('crypto');
 var nodeType = 'http://webinos.org/pzp';
 var connection;
@@ -16,13 +14,16 @@ var EventEmitter = require('events').EventEmitter;
 var WebinosFeatures = require('./WebinosFeatures.js');
 var logger = require('nlogger').logger('xmpp.js');
 
+var xmpp;
+
 //TODO make members and functions that should be private private
 
-function Connection() {
+function Connection(rpcHandler) {
 	EventEmitter.call(this);
 	
 	connection = this;
 
+	this.rpcHandler = rpcHandler;
 	this._uniqueId = Math.round(Math.random() * 10000);
 
 	this.basicFeatures = ["http://jabber.org/protocol/caps", 
@@ -38,23 +39,36 @@ function Connection() {
 sys.inherits(Connection, EventEmitter);
 exports.Connection = Connection;
 
+/**
+ * params[jid]: full jid of the user.
+ * params[password]: password of the user.
+ * (optional) params[bosh]: address of the BOSH server, for example: http://xmpp.servicelab.org:80/jabber
+ */
 Connection.prototype.connect = function(params, onOnline) {
+	logger.trace("Entering connect()");
 	this.remoteFeatures = new Array;
 	this.pendingRequests = new Array;
 	
 	var self = this;
-	
-	this.client = new xmpp.Client(params);
-//	this.client = new xmpp.Client(params['jid'], params['password'], "xmpp.servicelab.org", 80);
+
+	if (params['bosh'] === undefined) {
+		xmpp = require('node-xmpp');
+		this.client = new xmpp.Client(params);
+	} else {
+		xmpp = require('node-bosh-xmpp');
+		this.client = new xmpp.Client(params['jid'], params['password'], params['bosh']);
+	}
 
 	this.client.on('online',
 		function() {
+			logger.debug("XMPP client is online.");
 			self.updatePresence();
 			onOnline();
 		}
 	);
 	
 	this.client.on('end', function() {
+		logger.debug("XMPP connection has been terminated.");
 		this.emit('end');
 	});
 
@@ -131,13 +145,17 @@ Connection.prototype.invokeFeature = function(feature, callback, params) {
 Connection.prototype.sendPresence = function(ver) {
     logger.trace("XEP-0115 caps: " + this.featureMap[ver]);
 
-	this.client.send(new xmpp.Element('presence', { }).
+	var presence = new xmpp.Element('presence', { }).
 		c('c', {
 			'xmlns': 'http://jabber.org/protocol/caps',
 		  	'hash': 'sha-1',
 		  	'node': nodeType,
 		  	'ver': ver
-		}));
+	});
+
+	logger.trace('Presence message: ' + presence);
+
+	this.client.send(presence);
 }
 
 Connection.prototype.onStanza = function(stanza) {
@@ -401,7 +419,7 @@ Connection.prototype.createAndAddRemoteFeature = function(name, from) {
 	if (factory != null) {
 		logger.trace('Factory != null');
 		
-		feature = factory();
+		feature = factory(this.rpcHandler);
 	    feature.device = from;
 	    feature.owner = this.getBareJidFromJid(from);
 	    //feature.id = this.jid2Id(from) + '-' + name;

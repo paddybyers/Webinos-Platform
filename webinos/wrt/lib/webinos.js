@@ -1,275 +1,194 @@
 (function() {
-	if (typeof webinos === "undefined") webinos = {};
-	var channel = null;
-	var sessionid = null;
-	var pzpId, pzhId, connectedPzp, connectdPzh;
-	
-	var findServiceBindAddress = null;
-	
-	webinos.message_send = function(to, rpc) {
-		var type, id = 0;	
-		if(rpc.type !== undefined && rpc.type === "prop") {
-			type = "prop";
-			rpc = rpc.payload;	
-		} else {
-			type = "JSONRPC";
-		}
-		if(rpc.fromObjectRef === undefined)
-			rpc.fromObjectRef = Math.floor(Math.random()*1001);
-		if(rpc.id === undefined)
-			rpc.id = Math.floor(Math.random()*1001);
-		
-		if(findServiceBindAddress !== null && (to === "" || to !== findServiceBindAddress)) {
-			to = findServiceBindAddress;
-		}
-		if(typeof rpc.method !== undefined && rpc.method === 'ServiceDiscovery.findServices')
-			id = rpc.params[2];
-			
-		var message = {"type": type, 
-			"id": id, 
-			"from": sessionid, 
-			"to": to, 
-			"resp_to": sessionid, 
-			"payload": rpc
-			};
-		if(rpc.register !== "undefined" && rpc.register === true) {
-			channel.send(JSON.stringify(rpc));
-		} else {
-            console.log('creating callback');
-			console.log('WebSocket Client: Message Sent');
-			console.log(message);
-			channel.send(JSON.stringify(message));
-		}
-	}
-	
-	webinos.getSessionId = function() {
-		return sessionid;
-	}
-	webinos.getPZPId = function() {
-		return pzpid;
-	}
-	webinos.getPZHId = function() {
-		return pzhid;
-	}
-	webinos.getOtherPZP = function() {
-		return otherpzp;
-	}
-	webinos.findServiceBindAddress = function(address) {
-		if(typeof address !== "undefined")
-			findServiceBindAddress = address;
-		return findServiceBindAddress;
-	}
-	
-	/**
-	 * Creates the socket communication channel
-	 * for a locally hosted websocket server at port 8080
-	 * for now this channel is used for sending RPC, later the webinos
-	 * messaging/eventing system will be used
-	 */
-	 function createCommChannel(successCB) {
-		try{
-			var port = parseInt(location.port) + 1;
-			if (isNaN(port)) port = 81;
-			channel  = new WebSocket('ws://'+window.location.hostname+':'+port);
-		} catch(e) {
-			channel  = new MozWebSocket('ws://'+window.location.hostname+':'+port);
-		}
-				
-		channel.onmessage = function(ev) {
-			console.log('WebSocket Client: Message Received');
-			console.log(JSON.parse(ev.data));
-			var data = JSON.parse(ev.data);
-			if(data.type === "prop" && data.payload.status === 'registeredBrowser') {
-				sessionid = data.to;
-				pzpId = data.from;				
-				pzhId = data.payload.message.pzhId;
-				connectedPzp = data.payload.message.connectedPzp;
-				connectedPzh = data.payload.message.connectedPzh;
-				$(".pzh_pzp_list").empty();
-				$("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
-				var i;
-				for(i =0; i < connectedPzp.length; i++) {
-					$("<option value=" + connectedPzp[i] + " >" +connectedPzp[i] + "</option>").appendTo("#pzh_pzp_list");					
-				}
-				$("<option value="+pzpId+" >" + pzpId+ "</option>").appendTo("#pzh_pzp_list");						
-				$("</optgroup>").appendTo("#pzh_pzp_list");
-				$("<optgroup label = 'PZH' id ='pzh_list' >").appendTo("#pzh_pzp_list");
-				for(i =0; i < connectedPzh.length; i++) {
-					$("<option value=" + connectedPzh[i] + " >" + + "</option>").appendTo("#pzh_pzp_list");					
-				}
-				$("<option value="+pzhId+" >" + pzhId+ "</option>").appendTo("#pzh_pzp_list");						
-				$("</optgroup>").appendTo("#pzh_pzp_list");
-				webinos.message.setGetOwnId(sessionid);
-				
-				var msg = webinos.message.registerSender(sessionid , pzpId);
-				webinos.message_send(pzpId, msg);
-			} else if(data.type === "prop" && data.payload.status === "info") {
-				$('#message').append('<li>'+data.payload.message+'</li>');
-			} else if(data.type === "prop" && data.payload.status === "update") {
-				if(typeof data.payload.message.pzp !== "undefined")
-					$("<option value=" + data.payload.message.pzp + " >" +data.payload.message.pzp + "</option>").appendTo("#pzp_list");
-				else
-					$("<option value=" + data.payload.message.pzh + " >" +data.payload.message.pzh + "</option>").appendTo("#pzh_list");
+    if (typeof webinos === "undefined") webinos = {};
+    var channel = null;
 
-			} else {
-				webinos.message.setGetOwnId(sessionid);
-				webinos.message.setObjectRef(this);
-				webinos.message.setSendMessage(webinos.message_send_messaging);
-				webinos.message.onMessageReceived(data, data.to);
-			}
-		};
-	}
-	createCommChannel ();
-	
-	if (typeof webinos === 'undefined') webinos = {}; 
-	
-	///////////////////// WEBINOS INTERNAL COMMUNICATION INTERFACE ///////////////////////////////
+    /**
+     * Creates the socket communication channel
+     * for a locally hosted websocket server at port 8080
+     * for now this channel is used for sending RPC, later the webinos
+     * messaging/eventing system will be used
+     */
+    function createCommChannel(successCB) {
+        try{
+            var port = parseInt(location.port) + 1;
+            if (isNaN(port)) {
+                port = 81;
+            }
+            channel  = new WebSocket('ws://'+window.location.hostname+':'+port);                    
+        } catch(e) {
+            channel  = new MozWebSocket('ws://'+window.location.hostname+':'+port);                         
+        }
+        webinos.session.setChannel(channel);
 
-	
-	function logObj(obj, name){
-		for (var myKey in obj){
-			console.log(name + "["+myKey +"] = "+obj[myKey]);
-			if (typeof obj[myKey] == 'object') logObj(obj[myKey], name + "." + myKey);
-		}
-	}
+        channel.onmessage = function(ev) {
+            console.log('WebSocket Client: Message Received : ' + JSON.stringify(ev.data));
+            var data = JSON.parse(ev.data);
+            if(data.type === "prop") {
+                webinos.session.handleMsg(data);
+            } else {
+                webinos.messageHandler.setGetOwnId(webinos.session.getSessionId());
+                webinos.messageHandler.setObjectRef(this);
+                webinos.messageHandler.setSendMessage(webinos.session.message_send_messaging);
+                webinos.messageHandler.onMessageReceived(data, data.to);
+            }
+        };
+    }
+    createCommChannel ();
 
-	///////////////////// WEBINOS DISCOVERY INTERFACE ///////////////////////////////
-	
-	webinos.ServiceDiscovery = {};
-	webinos.ServiceDiscovery.registeredServices = 0;
-	
-	webinos.ServiceDiscovery.findServices = function (address, serviceType, callback) {
-		findServiceBindAddress = address;
-		// pure local services..
-		if (serviceType == "BlobBuilder"){
-			var tmp = new BlobBuilder();
-			webinos.ServiceDiscovery.registeredServices++;
-			callback.onFound(tmp);
-			return;
-		}
+    if (typeof webinos === 'undefined') webinos = {};
 
-		function success(params) {
-			var baseServiceObj = params;
-			
-			console.log("servicedisco: service found.");
-			$('#message').append('<li> Found Service: '+baseServiceObj.api+'</li>');				
-			
-			var typeMap = {};
-			if (typeof webinos.file !== 'undefined' && typeof webinos.file.LocalFileSystem !== 'undefined')
-				typeMap['http://webinos.org/api/file'] = webinos.file.LocalFileSystem;
-			if (typeof TestModule !== 'undefined') typeMap['http://webinos.org/api/test'] = TestModule;
-			if (typeof WebinosGeolocation !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/geolocation'] = WebinosGeolocation;
+    webinos.rpcHandler = new RPCHandler();
+    webinos.messageHandler = new MessageHandler(webinos.rpcHandler);
+
+
+    ///////////////////// WEBINOS INTERNAL COMMUNICATION INTERFACE ///////////////////////////////
+
+
+    function logObj(obj, name){
+        for (var myKey in obj){
+            console.log(name + "["+myKey +"] = "+obj[myKey]);
+            if (typeof obj[myKey] == 'object') logObj(obj[myKey], name + "." + myKey);
+        }
+    }
+
+    ///////////////////// WEBINOS DISCOVERY INTERFACE ///////////////////////////////
+
+    webinos.ServiceDiscovery = {};
+    webinos.ServiceDiscovery.registeredServices = 0;
+
+    webinos.ServiceDiscovery.findServices = function (serviceType, callback) {
+        // pure local services..
+        if (serviceType == "BlobBuilder"){
+            var tmp = new BlobBuilder();
+            webinos.ServiceDiscovery.registeredServices++;
+            callback.onFound(tmp);
+            return;
+        }
+
+        function success(params) {
+            var baseServiceObj = params;
+
+            console.log("servicedisco: service found.");
+            $('#message').append('<li> Found Service: '+baseServiceObj.api+'</li>');                                
+
+            var typeMap = {};
+            if (typeof webinos.file !== 'undefined' && typeof webinos.file.LocalFileSystem !== 'undefined')
+                typeMap['http://webinos.org/api/file'] = webinos.file.LocalFileSystem;
+            if (typeof TestModule !== 'undefined') typeMap['http://webinos.org/api/test'] = TestModule;
+            if (typeof WebinosGeolocation !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/geolocation'] = WebinosGeolocation;
             if (typeof WebinosDeviceOrientation !== 'undefined') typeMap['http://webinos.org/api/deviceorientation'] = WebinosDeviceOrientation;
-			if (typeof Vehicle !== 'undefined') typeMap['http://webinos.org/api/vehicle'] = Vehicle;
-			if (typeof EventsModule !== 'undefined') typeMap['http://webinos.org/api/events'] = EventsModule;
-			if (typeof Sensor !== 'undefined') typeMap['http://webinos.org/api/sensors'] = Sensor;
-			if (typeof UserProfileIntModule !== 'undefined') typeMap['UserProfileInt'] = UserProfileIntModule;
-			if (typeof TVManager !== 'undefined') typeMap['http://webinos.org/api/tv'] = TVManager;
-			if (typeof DeviceStatusManager !== 'undefined') typeMap['http://wacapps.net/api/devicestatus'] = DeviceStatusManager;
-			if (typeof Contacts !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/contacts'] = Contacts;
-			if (typeof Context !== 'undefined') typeMap['http://webinos.org/api/context'] = Context;
-			if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
-			// elevate baseServiceObj to usable local WebinosService object
-			
-			if (baseServiceObj.api === 'http://webinos.org/api/sensors.temperature'){
-				var tmp = new typeMap['http://webinos.org/api/sensors'](baseServiceObj);
-			}
-			else{
-				var tmp = new typeMap[baseServiceObj.api](baseServiceObj);
-			}
+            if (typeof Vehicle !== 'undefined') typeMap['http://webinos.org/api/vehicle'] = Vehicle;
+            if (typeof EventsModule !== 'undefined') typeMap['http://webinos.org/api/events'] = EventsModule;
+            if (typeof Sensor !== 'undefined') {
+                typeMap['http://webinos.org/api/sensors'] = Sensor;
+                typeMap['http://webinos.org/api/sensors.temperature'] = Sensor;
+            }                       
+            if (typeof PaymentManager !== 'undefined') typeMap['http://webinos.org/api/payment'] = PaymentManager;
+            if (typeof UserProfileIntModule !== 'undefined') typeMap['UserProfileInt'] = UserProfileIntModule;
+            if (typeof TVManager !== 'undefined') typeMap['http://webinos.org/api/tv'] = TVManager;
+            if (typeof DeviceStatusManager !== 'undefined') typeMap['http://wacapps.net/api/devicestatus'] = DeviceStatusManager;
+            if (typeof Contacts !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/contacts'] = Contacts;
+            if (typeof Context !== 'undefined') typeMap['http://webinos.org/api/context'] = Context;
+            if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
+            if (typeof AuthenticationModule !== 'undefined') typeMap['http://webinos.org/api/authentication'] = AuthenticationModule;
 
-			webinos.ServiceDiscovery.registeredServices++;
-			callback.onFound(tmp);
-		}
-		
-		var id = Math.floor(Math.random()*1001);
-		var rpc = webinos.rpc.createRPC("ServiceDiscovery", "findServices", [serviceType, sessionid, id]);
-		rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID
-		
-		var callback2 = new RPCWebinosService({api:rpc.fromObjectRef});
-		callback2.onservicefound = function (params, successCallback, errorCallback, objectRef) {
-			// params
-			success(params);
-		};
-		webinos.rpc.registerCallbackObject(callback2);
-		
-		webinos.message_send(findServiceBindAddress, rpc);
-		
-		return;
-	};
-	
-	///////////////////// WEBINOS SERVICE INTERFACE ///////////////////////////////
-	
-	// TODO decide what to do with this class.
-	WebinosService = function (obj) {
-		this.base = RPCWebinosService;
-		this.base(obj);
-		
-//		this.id = Math.floor(Math.random()*101);
-	};
-	WebinosService.prototype = new RPCWebinosService;
-	
-	WebinosService.prototype.state = "";
-    
+            console.log(typeMap);
+            console.log(baseServiceObj);
 
-//	WebinosService.prototype.api = "";
-    
 
-//	WebinosService.prototype.id = "";
-    
+            var serviceConstructor = typeMap[baseServiceObj.api];
+            if (typeof serviceConstructor !== 'undefined') {
 
-//	WebinosService.prototype.displayName = "";
-    
 
-//	WebinosService.prototype.description = "";
-    
+            	//TODO this is a bad hack to ensure that only one (the connected pzp one) Event API is found => EVENT API should
+            	//be statically accessible ==> internally should be done using findService with filter for own PZP and for PZH
+                //if (baseServiceObj.api === 'http://webinos.org/api/events' && baseServiceObj.serviceAddress !== webinos.session.getPZPId()){
+                //	return;
+                //}
+            	
+            	// elevate baseServiceObj to usable local WebinosService object
+                var service = new serviceConstructor(baseServiceObj);
+                webinos.ServiceDiscovery.registeredServices++;
+                callback.onFound(service);
+            } else {
+                var serviceErrorMsg = 'Cannot instantiate service in the browser.';
+                console.log(serviceErrorMsg);
+                if (typeof callback.onError === 'function') {
+                    callback.onError(new DiscoveryError(102, serviceErrorMsg));
+                }
+            }
+        }
 
-	WebinosService.prototype.icon = "";
+        var id = Math.floor(Math.random()*1001);
+        var rpc = webinos.rpcHandler.createRPC("ServiceDiscovery", "findServices", [serviceType, webinos.session.getSessionId(), id]);
+        rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID
 
-	
-	
-	WebinosService.prototype.bind = function(success) {
-		if (channel == null){ 
-			var x = success;
-			createCommChannel(function () {
-				x();
-			});
-			
-		}
-		else{
-			success();
-		}
-	};
-	
-	WebinosService.prototype.unbind = function() {
-		webinos.ServiceDiscovery.registeredServices--;
-		if (channel != null && webinos.ServiceDiscovery.registeredServices > 0) {
-			channel.close();
-			channel = null;
-		}
-	};
+        var callback2 = new RPCWebinosService({api:rpc.fromObjectRef});
+        callback2.onservicefound = function (params, successCallback, errorCallback, objectRef) {
+            // params
+            success(params);
+        };
+        webinos.rpcHandler.registerCallbackObject(callback2);
 
-///////////////////// CONTEXT INTERFACE ///////////////////////////////
-  var Context;
-  
-  Context = function(obj) {
-    this.base = WebinosService;
-    this.base(obj);
-  };
-  Context.prototype = new WebinosService;
-  
-  Context.prototype.find = function(what, callOnSuccess, callOnError) { 
-    arguments[0] = what;
-    var rpc = webinos.rpc.createRPC(this, "find", arguments);
-    
-    webinos.rpc.executeRPC(rpc,
-      function(result){
-          callOnSuccess(result);
-      },
-      function(error){
-          callOnError(error);
-      }
-    );
-  };
-  
+        rpc.serviceAddress = webinos.session.getServiceLocation();              
+        webinos.rpcHandler.executeRPC(rpc);
+
+        return;
+    };
+
+    var DiscoveryError = function(code, message) {
+        this.code = code;
+        this.message = message;
+    };
+    DiscoveryError.prototype.FIND_SERVICE_CANCELED = 101;
+    DiscoveryError.prototype.FIND_SERVICE_TIMEOUT = 102;
+    DiscoveryError.prototype.PERMISSION_DENIED_ERROR = 103;
+
+    ///////////////////// WEBINOS SERVICE INTERFACE ///////////////////////////////
+
+    // TODO decide what to do with this class.
+    WebinosService = function (obj) {
+        this.base = RPCWebinosService;
+        this.base(obj);
+
+//        this.id = Math.floor(Math.random()*101);
+    };
+    WebinosService.prototype = new RPCWebinosService;
+
+    WebinosService.prototype.state = "";
+
+
+//    WebinosService.prototype.api = "";
+
+
+//    WebinosService.prototype.id = "";
+
+
+//    WebinosService.prototype.displayName = "";
+
+
+//    WebinosService.prototype.description = "";
+
+
+    WebinosService.prototype.icon = "";
+
+
+    // stub implementation in case a service module doesn't provide its own bindService
+    WebinosService.prototype.bindService = function(bindCB) {
+        if (typeof bindCB === 'undefined') return;
+
+        if (typeof bindCB.onBind === 'function') {
+            bindCB.onBind(this);
+        }
+    };
+
+    WebinosService.prototype.unbind = function() {
+        webinos.ServiceDiscovery.registeredServices--;
+        if (channel != null && webinos.ServiceDiscovery.registeredServices > 0) {
+            channel.close();
+            channel = null;
+        }
+    };
+
+
 }());

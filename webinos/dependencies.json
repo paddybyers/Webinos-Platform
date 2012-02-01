@@ -4,7 +4,7 @@
       "name": "Get 42",
       "location": "api/get42/"
     },
-	"events": {
+        "events": {
       "name": "Events API",
       "location": "api/events/"
     },
@@ -20,6 +20,10 @@
       "name": "Authentication",
       "location": "api/authentication/"
      },
+     "contacts": {
+      "name": "contacts",
+      "location": "api/contacts/"
+    },
     "context": {
       "name": "Context",
       "location": "api/context/"
@@ -49,7 +53,7 @@
       "location": "api/vehicle/"
     },
     "deviceorientation": {
-      "name": "Device Orientation",
+      "name": "Deviceorientation",
       "location": "api/deviceorientation/"
     },
     "service_discovery": {
@@ -59,9 +63,17 @@
     "devicestatus": {
       "name": "DeviceStatus",
       "location": "api/devicestatus/"
+    },
+    "payment": {
+      "name": "Payment",
+      "location": "api/payment/"
     }
   },
   "manager": {
+    "certificate_manager": {
+      "name": "Certificate manager",
+      "location": "common/manager/certificate_manager/"
+    },
     "context_manager": {
       "name": "Context manager",
       "location": "common/manager/context_manager/"
@@ -80,8 +92,8 @@
     "location": "common/rpc/"
   },
   "xmpp": {
-	"name": "xmpp",
-	"location": "common/xmpp/"
+        "name": "xmpp",
+        "location": "common/xmpp/"
   },
   "pzp": {
     "name": "PZP",
