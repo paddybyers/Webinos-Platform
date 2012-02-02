@@ -29,6 +29,10 @@ typedef map< int, MorkRowMap > RowScopeMap;		// Row scope
 typedef map< int, RowScopeMap > MorkTableMap;		// Table id
 typedef map< int, MorkTableMap > TableScopeMap;	// Table Scope
 
+#ifdef __APPLE__
+	typedef unsigned int uint;
+#endif
+
 // Mork header of supported format version
 const char MorkMagicHeader[] = "// <!-- <mdb:mork:z v=\"1.4\"/> -->";
 
