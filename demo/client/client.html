@@ -61,7 +61,9 @@
                                 servername: document.getElementById('pzpservername').value,
                                 serverport: document.getElementById('pzpserverport').value,
                                 code:  document.getElementById('pzpcode').value,
-                                modules: [{name:'get42', params: [23]}], // FIXME just for testing, need gui to configure modules
+                                modules: [{name:'get42', params: [23]},
+				      {name:'contacts', params:[0]}
+				], // FIXME just for testing, need gui to configure modules
                                 value: config}; 
                         
                         var options = {type: 'prop', payload: payload};

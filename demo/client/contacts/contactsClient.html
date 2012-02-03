@@ -59,48 +59,7 @@ $(document).ready(function() {
   }
   webinos.session.addListener('update', updatePZAddrs);
 
-//     function fillPZAddrs(data) {
-// 		var pzhId, connectedPzp, connectedPzh;
-// 		if(data.from !== "virgin_pzp") {
-// 			pzhId = data.payload.message.pzhId;
-// 			connectedPzp = data.payload.message.connectedPzp;
-// 			connectedPzh = data.payload.message.connectedPzh;
-// 		}
-// 		var pzpId = data.from;
-// 
-// 
-// 		if(document.getElementById('pzh_pzp_list'))
-// 			document.getElementById('pzh_pzp_list').innerHTML="";
-// 
-// 		$("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
-// 
-// 		var i;
-// 		if(typeof connectedPzp !== "undefined") {
-// 			for(i =0; i < connectedPzp.length; i++) {
-// 				$("<option value=" + connectedPzp[i] + " >" +connectedPzp[i] + "</option>").appendTo("#pzh_pzp_list");                  
-// 			}
-// 		}
-// 		$("<option value="+pzpId+" >" + pzpId+ "</option>").appendTo("#pzh_pzp_list");                      
-// 		$("</optgroup>").appendTo("#pzh_pzp_list");
-// 		$("<optgroup label = 'PZH' id ='pzh_list' >").appendTo("#pzh_pzp_list");
-// 		if(typeof connectedPzh !== "undefined") {
-// 			for(i =0; i < connectedPzh.length; i++) {
-// 				$("<option value=" + connectedPzh[i] + " >" +connectedPzh[i] + "</option>").appendTo("#pzh_pzp_list");                  
-// 			}
-// 		}
-// 		$("</optgroup>").appendTo("#pzh_pzp_list");
-//     }
-//     webinos.session.addListener('registeredBrowser', fillPZAddrs);
-    
-//     function updatePZAddrs(data) {
-//         if(typeof data.payload.message.pzp !== "undefined") {
-//             $("<option value=" + data.payload.message.pzp + " >" +data.payload.message.pzp + "</option>").appendTo("#pzp_list");
-//         } else {
-//             $("<option value=" + data.payload.message.pzh + " >" +data.payload.message.pzh + "</option>").appendTo("#pzh_list");
-//         }
-//     }
-//     webinos.session.addListener('update', updatePZAddrs);
-    
+
   function printInfo(data) {
 	  logMessage(data.payload.message);
   }
@@ -109,23 +68,10 @@ $(document).ready(function() {
   var contactsService = {};
   var recentService;
 
-//   $('#btnFindService').bind('click', function() {
-//     contactsService = {};
-//     recentService = null;
-//     
-//     webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/contacts'), 
-//       {
-//         onFound: function (service) {
-//         contactsService.push(service);
-//         document.getElementById('html_contacts').innerHTML = "<i><b>Contacts</b></i> webinos rpc service found!<br>Please select contacts type, fill the text areas then press <i>Authenticate</i> button above.";
-// 
-//         }
-//       });
-//   });
 
-  
 
   $('#btnFindService').bind('click', function() {
+	console.log('********ContactsClient: find service button clicked');
 		  contactsService = {};
 		  recentService = null;
 		  $('#getContactsServices').empty();
@@ -137,7 +83,6 @@ $(document).ready(function() {
 	      console.log("Service: ",service," found!  YAHOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO!");
 	      contactsService[service.serviceAddress] = service;
 	      $('#getContactsServices').append($('<option>' + service.serviceAddress + '</option>'));
-// 	      $('html_contacts').append($("<i><b>Contacts</b></i> webinos rpc service found!<br>Please select contacts type, fill the text areas then press <i>Authenticate</i> button above."));
       }
     });
   });
@@ -470,6 +415,14 @@ $('#btnAuthenticate').bind('click', function()
       </td>
     </tr>
   </table>
+<!--<div id="status">STATUS: <span id="message2"></span></div>
+<script type="text/javascript">
+$('#status').mouseenter(function(){
+	var that = $(this);
+	var right = that.css("right");
+	that.css("right",(right==="0px")?"":"0px");
+});
+</script>-->
 </body>
 </html>
 

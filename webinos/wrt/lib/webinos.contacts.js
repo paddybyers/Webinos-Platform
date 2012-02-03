@@ -24,17 +24,10 @@
 		this.isAlreadyAuthenticated = isAlreadyAuthenticated;
 		this.getAllContacts = getAllContacts;
 		this.find = find;
-		
-		
-//		this._testAttr = "f@@##!!!!";
-//		this.__defineGetter__("testAttr", function (){
-//			return this._testAttr + " Success";
   };
   
   Contacts.prototype = new WebinosService;
 
-
-  //THIS IS NOT working for some reason
   Contacts.prototype.bindService = function (bindCB, serviceId) {
 	  // actually there should be an auth check here or whatever, but we just always bind
 	  this.authenticate = authenticate;
