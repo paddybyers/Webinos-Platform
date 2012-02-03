@@ -5,8 +5,10 @@
 		<link rel="stylesheet" type="text/css" href="/stylesheets/pzh.css" />
 	</head>
 	<body>
+	<div id="head">
+        <h1>PZH Administration Console</h1>
+    </div>
 	<div id="main">
-	    <h1>PZH Administration Console</h1>
 		<% if (!user) { %>
 			<p id="tablist" > |
 			<a href="/">Home</a> | 
@@ -25,8 +27,6 @@
 			</p>
 		<% } %>
 		<%- body %>
-    
-	<div id="status">STATUS: <span id="message"></span></div>
 	</div>
 	</body>
 </html>

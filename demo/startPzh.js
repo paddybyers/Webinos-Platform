@@ -51,7 +51,7 @@ if (options.host === '' || options.port <= 0) {
 	Pzh.startFarm(function() {
 		fs.readFile(path.join(__dirname, 'config-pzh.json'), function(err, data) {
 			var config;
-
+		
 			if (err) {
 				console.warn("could not load config-pzh.json\n" + err.toString());
 				config = {};
@@ -80,7 +80,7 @@ if (options.host === '' || options.port <= 0) {
 			}
 
 			var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh\nemail=internal@webinos.org\ndays=180\n" ;
-s
+
 			Pzh.startPzh(contents, 'localhost/john', pzhModules, function(res,instance) {
 				console.log('******* PZH STARTED *******');
 				var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh1\nemail=internal@webinos.org\ndays=180\n" ;
@@ -99,8 +99,6 @@ s
 					}
 					
 				});
-
-
 			});
 		});
 	});

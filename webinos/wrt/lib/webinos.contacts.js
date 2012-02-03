@@ -34,15 +34,20 @@
   Contacts.prototype = new WebinosService;
 
 
-	//THIS IS NOT working for some reason
-	Contacts.prototype.bindService = function (bindCB, serviceId) {
-	
-		// actually there should be an auth check here or whatever, but we just always bind
-		if (typeof bindCB.onBind === 'function') {
-			bindCB.onBind(this);
-		};
-	}
+  //THIS IS NOT working for some reason
+  Contacts.prototype.bindService = function (bindCB, serviceId) {
+	  // actually there should be an auth check here or whatever, but we just always bind
+	  this.authenticate = authenticate;
+	  this.isAlreadyAuthenticated = isAlreadyAuthenticated;
+	  this.getAllContacts = getAllContacts;
+	  this.find = find;
 
+	  if (typeof bindCB.onBind === 'function') {
+		  bindCB.onBind(this);
+	  };
+  }
+
+  
 
   /**
    * returns true if contacts service is authenticated with GMail using username and password

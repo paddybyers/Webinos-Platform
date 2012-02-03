@@ -559,7 +559,7 @@
 			this.api = '';
 			this.displayName = '';
 			this.description = '';
-			this.serviceAddresss = '';
+			this.serviceAddress = '';
 		} else {
 			this.id = obj.id || '';
 			this.api = obj.api || '';

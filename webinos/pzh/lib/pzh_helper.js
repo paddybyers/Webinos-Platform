@@ -17,7 +17,7 @@ helper.debug = function(num, msg) {
 		console.log('ERROR:' + msg);
 		if(crashMsg != null) {
 			crashMsg.write(msg);
-			crashMsg.write('\n<br>');
+			crashMsg.write('\n');
 		}
 	} else if(num === 2 && info) {
 		console.log('INFO:' + msg);		

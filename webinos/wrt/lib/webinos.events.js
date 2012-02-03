@@ -12,13 +12,21 @@
 		this.base(obj);
 		eventService = this;
 		
-		this.temporaryRandomAppID = "TestApp" + webinos.messageHandler.getOwnId();
+		//this.temporaryRandomAppID = "TestApp" + webinos.messageHandler.getOwnId();
+		
+		//TODO, this is the actuall messaging/session app id but should be replaced with the Apps unique ID (config.xml)
+		this.temporaryRandomAppID = webinos.messageHandler.getOwnId();
 	};
 	
 	EventsModule.prototype = new WebinosService;
 	
+	
+	
+	
+	
+	
 	EventsModule.prototype.bind = function(success) {
-
+/*
 		var rpc = webinos.rpcHandler.createRPC(this, "registerApplication", this.temporaryRandomAppID);
 		rpc.fromObjectRef =  Math.floor(Math.random()*1001);
 		
@@ -42,6 +50,10 @@
 		webinos.rpcHandler.executeRPC(rpc, function () {
 			success();
 		});
+		*/
+		
+		success();
+		
 	}
 	
 	
@@ -75,9 +87,9 @@
      
 	EventsModule.prototype.addWebinosEventListener = function(listener, type, source, destination){
 
-		var listenerID =  new Date().getTime();
+		//var listenerID =  new Date().getTime();
 		
-		registeredListeners[listenerID] = listener;
+		//registeredListeners[listenerID] = listener;
 		
 		var req = {};
 		req.type = type;
@@ -88,9 +100,32 @@
 		
 		
 		req.destination = destination;
-		req.listenerID = listenerID;
+		//req.listenerID = listenerID;
 		
 		var rpc = webinos.rpcHandler.createRPC(this, "addWebinosEventListener",  req);
+		rpc.fromObjectRef =  Math.floor(Math.random()*1001);
+		
+		var callback = new RPCWebinosService({api:rpc.fromObjectRef});
+		callback.handleEvent = function (params,scb,ecb) {
+			console.log("Received a new WebinosEvent");
+			
+			//search in registered listeners for interested listeners based on eventType etc
+			
+			//if (typeof registeredListeners[params.listenerID] !== undefined){
+			//	registeredListeners[params.listenerID](params.webinosevent);
+				
+				listener(params.webinosevent);
+				scb();
+			//}
+			//else{ //there is currently no else
+			//	ecb();
+			//}
+		};
+		
+		webinos.rpcHandler.registerCallbackObject(callback);
+		
+		
+		
 		webinos.rpcHandler.executeRPC(rpc,
 				function (params){
 					console.log("New WebinosEvent listener registered");
@@ -103,7 +138,8 @@
 		// returns DOMString id
 		// raises(WebinosEventException);
 		
-		return listenerID;
+		//TODO make proper listener IDs
+		return "listenerID";
 	}
                          
      
@@ -127,7 +163,8 @@
 	WebinosEvent = function() {
 		this.id =  Math.floor(Math.random()*1001);  //DOMString
 		this.type = null;					//DOMString
-		this.addressing = null;  			//WebinosEventAddressing
+		this.addressing = {};  			//WebinosEventAddressing
+		this.addressing.source = eventService.temporaryRandomAppID;
 		this.inResponseTo = null;			//WebinosEvent
 		this.timeStamp = null;				//DOMTimeStamp
 		this.expiryTimeStamp = null;		//DOMTimeStamp
@@ -141,11 +178,18 @@
 
 	WebinosEvent.prototype.dispatchWebinosEvent = function(callbacks, referenceTimeout, sync){
 
+		
+		
 		var params = {};
 		params.webinosevent = {};
 		params.webinosevent.id = this.id;
 		params.webinosevent.type = this.type;
-		params.webinosevent.adressing = this.addressing;
+		params.webinosevent.addressing = this.addressing;
+		
+		if (params.webinosevent.addressing === 'undefined' || params.webinosevent.addressing == null){
+			params.webinosevent.addressing = {};
+			params.webinosevent.addressing.source = eventService.temporaryRandomAppID;
+		}
 		params.webinosevent.inResponseTo = this.inResponseTo;
 		params.webinosevent.timeStamp = this.timeStamp;
 		params.webinosevent.expiryTimeStamp = this.expiryTimeStamp;
@@ -155,6 +199,7 @@
 		params.webinosevent.payload = this.payload;
 		params.referenceTimeout = referenceTimeout;
 		params.sync = sync;
+		
 		
 		
 		registeredDispatchListeners[this.id] = callbacks;
@@ -198,8 +243,8 @@
 		webinos.rpcHandler.executeRPC(rpc);
 		
 		
-		rpc.serviceAddress = webinos.session.getPZHId();
-		webinos.rpcHandler.executeRPC(rpc);
+		//rpc.serviceAddress = webinos.session.getPZHId();
+		//webinos.rpcHandler.executeRPC(rpc);
     	
 		
 		//returns void
