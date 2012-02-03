@@ -537,7 +537,7 @@
 				try {
 					pzh.connect(servername);
 					pzhs[servername] = pzh;					
-					callback(true);
+					callback(true, instance);
 				} catch (err) {
 					helper.debug(1, 'PZH ('+pzh.sessionId+') Error starting server ' + err);
 					callback(false);
