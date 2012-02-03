@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2011 Istituto Superiore Mario Boella (ISMB)
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -21,7 +21,12 @@ var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
 var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
-var local_contacts = require(path.resolve(__dirname,'local_contacts.js'));
+var local_contacts = '';
+if(process.platform!=='android')
+{
+  local_contacts = require(path.resolve(__dirname,'local_contacts.js'));
+}
+//TODO else JAVA_BRIDGE
 
 var c_def_path = path.resolve(__dirname,'contacts_def.js');
 var Contact = require(c_def_path).Contact;
@@ -34,6 +39,7 @@ var ContactOrganization = require(c_def_path).ContactOrganization;
  * Instances of remote contacts and local contacts
  */
 RemoteContacts = require(path.resolve(__dirname,'google_contacts.js'));//new remote_contacts.contacts();
+if(process.platform!=='android') //TODO else JAVA_BRIDGE
 LocalContacts = new local_contacts.contacts();
 
 /**
@@ -43,11 +49,11 @@ LocalContacts = new local_contacts.contacts();
 this.authenticate = function(params, callback)
 {
 
-  if (params[0]['type'] == "local")
+  if (params[0]['type'] == "local" && process.platform!=='android')
   {
     callback(LocalContacts.open(params[0]['addressBookName']));
   }
-  else if (params[0]['type'] == "remote")
+  else if (params[0]['type'] == "remote" && process.platform!=='android')
   {
 // TODO CHANGE
     var pmlib = require(webinosRoot+'/common/manager/policy_manager/lib/policymanager.js'), policyManager, exec = require('child_process').exec; // this line should be moved in the policy manager
@@ -93,7 +99,7 @@ this.authenticate = function(params, callback)
         break;
 
       default:
-      if (params[1] == "ALWAYS ALLOW") //TODO for standalone test only! Remove for Webinos release...
+      if (params[1] == "ALWAYS ALLOW" || process.platform==='android') //TODO for standalone test only! Remove for Webinos release...
         RemoteContacts.logIn(params[0]['usr'], params[0]['pwd'], callback);
       else
       {
@@ -108,13 +114,13 @@ this.authenticate = function(params, callback)
  * returns true if contacts service is already authenticated with GMail or a
  * valid address book file is aready open TODO this method has to be removed
  * when user profile will handle authentication
- * 
+ *
  */
 this.isAlreadyAuthenticated = function(params, callback)
 {
   if (params)
   {
-    if (params[0]['type'] == "local")
+    if (params[0]['type'] == "local" && process.platform!=='android')
     {
       callback(LocalContacts.isOpen());
     }
@@ -145,7 +151,7 @@ function makeW3Ccontacts(type, callback)
   var contacts_l;
   var rawContacts;
 
-  if (type == "local")
+  if (type == "local" && process.platform!=='android')
   {
     // get an array of local contacts
     rawContacts = LocalContacts.getAB();
@@ -237,7 +243,7 @@ function rawContact2W3CContact(rawContact)
    * _id, _displayName, _name, _nickname, _phonenumbers, _emails, _addrs, _ims,
    * _orgs, _rev, _birthday, _gender, _note, _photos, _catgories, _urls,
    * _timezone
-   * 
+   *
    */
 
   var _contact = new Contact(rawContact.id, rawContact.displayName, _contactName, rawContact.nickname,
@@ -260,7 +266,7 @@ ContactFindOptions.prototype.updatedSince = ""; //is a Date
 
 /**
  * callback used to internally retrieve some data
- * 
+ *
  * @param par
  * @returns
  */
@@ -298,15 +304,15 @@ this.find = function(type, fields, successCB, errorCB, options)
    * TODO how to do the following? If there is a task from the device task
    * source in one of the task queues (e.g. an existing find() operation is
    * still pending a response), run these substeps:
-   * 
+   *
    * If errorCallback is not null, let error be a ContactError object whose code
    * attribute has the value PENDING_OPERATION_ERROR and queue a task to invoke
    * errorCallback with error as its argument.
-   * 
+   *
    * Abort this operation. Return, and run the remaining steps asynchronously.
    */
 
-  // initialize contacs_l with all contacts 
+  // initialize contacs_l with all contacts
   //TODO should we cache the contact list somewhere in this module for speed up?
   makeW3Ccontacts(type, function(params)
   {
@@ -333,10 +339,10 @@ this.find = function(type, fields, successCB, errorCB, options)
 
 /**
  * Filter contacts by checking their attributes key and values are always string
- * 
+ *
  * c_array array of Contacts to filter key = Contact property name value = value
  * to be checked
- * 
+ *
  * returns a filtered array of Contacts or an empty array
  */
 function filterContacts(key, value, c_array)
