@@ -605,11 +605,12 @@
 			//modules.push(webinosRoot + dependencies.manager.context_manager.location);
 //		}
 		
-		if (typeof modules === 'undefined') {
+		if ( typeof modules === 'undefined' || modules === null) {
 			modules = [];
 		}
 		
 		// add ServiceDiscovery, which should always be present
+		
 		modules.unshift({name: "service_discovery", param: {}});
 
 		for (var i = 0; i < modules.length; i++){
@@ -621,7 +622,7 @@
 				console.log(error);
 				console.log("Could not load module " + modules[i].name + " with message: " + error );
 			}
-		}
+		}		
 	};
 	
 	function setSessionId (id) {

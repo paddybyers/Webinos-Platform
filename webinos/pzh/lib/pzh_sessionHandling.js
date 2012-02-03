@@ -7,12 +7,11 @@
 
 	/** Node modules used by Pzh */
 	var tls = require('tls'),
-		fs = require('fs'),
-		path = require('path'),
-		crypto = require('crypto'),	
-		util = require('util');		
-		
-
+	fs = require('fs'),
+	path = require('path'),
+	crypto = require('crypto'),	
+	util = require('util');		
+	
 	var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
 	var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 	var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
@@ -22,19 +21,19 @@
 	var Pzh = null;
 	var helper     = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_helper.js'));
 	var pzhapis    = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_internal_apis.js'));
-	
-	
+
+	var server = null;
+	var initialized = true;
+	var pzhs = [];
 	if (typeof exports !== 'undefined') {
 		try {
 
 			var rpc       = require(path.join(webinosRoot, dependencies.rpc.location));
-			var MessageHandler = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js')).MessageHandler;
-			
 			var authcode  = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_authcode.js'));
-			
 			var cert      = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
 			var utils     = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 
+			var MessageHandler = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js')).MessageHandler;
 			var RPCHandler = rpc.RPCHandler;
 		} catch (err) {
 			helper.debug(1, "Webinos modules missing, please check webinos installation" + err);
@@ -59,26 +58,21 @@
 		this.connectedPzhIds = [];
 		/** This is used for synchronization purpose with connected PZP and PZH */	
 		this.connectedPzpIds = [];
-		
-	    this.conn = [];
-		this.tlsId = [];		
-		var self = this;
-		
+		// Used for reconnection
+		this.tlsId = [];
+		// Handler for remote method calls.
+		this.rpcHandler = new RPCHandler();
+		// handler of all things message
+		this.messageHandler = new MessageHandler(this.rpcHandler);
+		// load specified modules
+		this.rpcHandler.loadModules(modules);
 		/* This is used for authenticating new PZPs */
+		var self = this;
 		authcode.createAuthCounter(function(res) {
 		    self.expecting = res;
 		});
-
-		// Handler for remote method calls.
-		this.rpcHandler = new RPCHandler();
-
-		// handler of all things message
-		this.messageHandler = new MessageHandler(this.rpcHandler);
-		
-		// load specified modules
-		this.rpcHandler.loadModules(modules);
-		
-	};
+	}
+	
 	/**
 	 * @description A generic function used to set message parameter
 	 * @param {String} from Source address
@@ -161,9 +155,12 @@
 			
 			fs.readFile(self.config.pzhCertDir+'/'+self.config.master.cert.name, function(err) {
 				if(err !== null && err.code === 'ENOENT') {
-					// 0 here specifies connection certificate
-					// 1 is for master certificate
+
+					// 0 is for master certificate
+					// 1 here specifies connection certificate
 					// 2 is for PZP certificate
+					
+					// This self signed certificate is for getting connection certificate CSR. 
 					cert.selfSigned(self, 'Pzh', self.config.conn, 1, function(status, selfSignErr) {
 						if(status === 'certGenerated') {
 							helper.debug(2, 'PZH Generating Certificates');
@@ -200,12 +197,13 @@
 											}									
 										}
 										
+										// This self signed certificate is  master certificate / CA
 										cert.selfSigned(self, 'Pzh:Master', self.config.master, 0, function(result) {
 											if(result === 'certGenerated') {
 												try {
 													// This is working, waiting for completion of Android and Windows part to commit code.
 													/*try {
-														var key =require("../../common/manager/keystore/src/build/Release/keystore");				
+														var key =requiserverre("../../common/manager/keystore/src/build/Release/keystore");				
 														key.put(self.config.master.key.name, self.config.master.key.value);
 														key.put(self.config.conn.key.name, self.config.conn.key.value);
 													} catch (err) {
@@ -222,6 +220,7 @@
 													helper.debug(1,'PZH ('+self.sessionId+') Error writing master certificates file');
 													return;
 												}
+												// Signed request for connection certificate by master certificate
 												cert.signRequest(self, self.config.conn.csr.value, self.config.master, 1, function(result, cert) {
 													if(result === 'certSigned'){ 
 														self.config.conn.cert.value = cert;
@@ -287,10 +286,10 @@
 	/**
 	* @description Starts Pzh server. It creates server configuration and then createsServer 
 	*/
-	Pzh.prototype.connect = function () {
-		var self = this, server, ca;
+	Pzh.prototype.connect = function (serverName) {
+		var self = this, ca;
 		try {
-			ca =  [self.config.master.cert.value];			
+			ca =  [self.config.master.cert.value];
 		} catch (err) {
 			helper.debug(1,'PZH ('+self.sessionId+') Exception in reading other Pzh certificates' + err);
 			return;
@@ -314,113 +313,89 @@
 		/*if(!self.connectedPzh.hasOwnProperty(self.sessionId)) {
 			self.connectedPzh[self.sessionId] = {'address': self.server, 'port': self.port};
 		}*/
-		
-		server = tls.createServer (options, function (conn) {
-			var data = {}, cn, msg = {}, sessionId;
-			self.conn = conn;
-			//console.log(conn);
-			if(conn.authorized === false) {
-				helper.debug(2, "Connection NOT authorised at PZH");
-				//Sometimes, if this is a new PZP, we have to allow it.
-				self.expecting.isExpected(function(expected) {
-					if (!expected || conn.authorizationError !== "UNABLE_TO_GET_CRL"){
-						//we're not expecting anything - disallow.
-						helper.debug(2, "Ending connect: " + conn.authorizationError); 
-						conn.socket.end();
-					} else {
-						helper.debug(2, "Continuing connect - expected: " + conn.authorizationError); 
-					}
-				});
-			}
-			
-			conn.on('clientError', function(Exception) {
-				helper.debug(1, "Client connection error: " + Exception);				 
-			});
-			
-			if(conn.authorized) {
-				helper.debug(2, "Connection authorised at PZH");
-				try {
-					cn = conn.getPeerCertificate().subject.CN;
-					data = cn.split(':');				
-				} catch(err) {
-					helper.debug(1,'PZH ('+self.sessionId+') Exception in reading common name of peer certificate ' + err);
 
+		server.addContext(serverName, options);
+	};
+	
+	Pzh.prototype.handleConnectionAuthorization = function(self, conn) {
+		if(conn.authorized === false) {
+			helper.debug(2, "Connection NOT authorised at PZH " );
+			
+			//Sometimes, if this is a new PZP, we have to allow it.
+			self.expecting.isExpected(function(expected) {
+			
+				if (!expected || conn.authorizationError !== "UNABLE_TO_GET_CRL"){
+					//we're not expecting anything - disallow.
+					helper.debug(2, "Ending connect: " + conn.authorizationError);
+					conn.socket.end();
+				} else {
+					helper.debug(2, "Continuing connect - expected: " + conn.authorizationError);
+				}
+			});
+		}
+
+
+
+		if(conn.authorized) {
+			var cn, data;
+			helper.debug(2, "Connection authorised at PZH");
+			try {
+				cn = conn.getPeerCertificate().subject.CN;
+				data = cn.split(':');
+			} catch(err) {
+				helper.debug(1,'PZH ('+self.sessionId+') Exception in reading common name of peer certificate ' + err);
+				return;
+			}
+
+			// Assumption: PZH is of form ipaddr or web url
+			// Assumption: PZP is of form url@mobile:Deviceid@mac
+			if(data[0] === 'Pzh' ) {
+				var  pzhId, otherPzh = [], myKey;
+				try {
+					pzhId = data[1].split(':')[0];
+				} catch (err1) {
+					helper.debug(1,'PZH ('+self.sessionId+') Pzh information in certificate is in unrecognized format ' + err);
 					return;
 				}
-				// Assumption: PZH is of form ipaddr or web url
-				// Assumption: PZP is of form url@mobile:Deviceid@mac
-				if(data[0] === 'Pzh' ) {
-					var  pzhId, otherPzh = [], myKey;
-					try {
-						pzhId = data[1].split(':')[0];
-					} catch (err1) {
-						helper.debug(1,'PZH ('+self.sessionId+') Pzh information in certificate is in unrecognized format ' + err);
-						return;
-					}
-					helper.debug(2, 'PZH ('+self.sessionId+') PZH '+pzhId+' Connected');
-					if(!self.connectedPzh.hasOwnProperty(pzhId)) {
-						self.connectedPzh[pzhId] = {'socket': conn, 
-						'address': conn.socket.remoteAddress, 
-						'port': conn.socket.remotePort};
-				
-						self.connectedPzhIds.push(pzhId);
-			
-						msg = self.prepMsg(self.sessionId, pzhId, 'pzhUpdate', self.connectedPzhIds);
-						self.sendMessage(msg, pzhId);
-				
-						msg = self.messageHandler.registerSender(self.sessionId, pzhId);
-						self.sendMessage(msg, pzhId);
-					}
-				} else if(data[0] === 'Pzp' ) { 
-					sessionId = self.sessionId+'/'+data[1].split(':')[0];
-					helper.debug(2, 'PZH ('+self.sessionId+') PZP '+sessionId+' Connected');
-					if(!self.connectedPzp.hasOwnProperty(sessionId)) {
-						self.connectedPzpIds.push(sessionId);
-						self.connectedPzp[sessionId] = {'socket': conn, 
-								'address': conn.socket.remoteAddress, 
-								'port': ''};
 
-					}
-					msg = self.messageHandler.registerSender(self.sessionId, sessionId);
-					self.sendMessage(msg, sessionId);//
-				}
-			} 
-			
-			conn.on('data', function(data) {
-				try {
-					conn.pause();
-					self.processMsg(conn, data);
-					process.nextTick(function () {
-						conn.resume();
-					});
-				} catch (err) {
-					helper.debug(1, 'PZH ('+self.sessionId+') Exception in processing recieved message ' + err);
-				}
-			});
-		
-			conn.on('end', function(err) {
-				helper.debug(2, 'PZH ('+self.sessionId+') Server connection end' + err);
-			});		
+				helper.debug(2, 'PZH ('+self.sessionId+') PZH '+pzhId+' Connected');
+				if(!self.connectedPzh.hasOwnProperty(pzhId)) {
+					self.connectedPzh[pzhId] = {'socket': conn,
+					'address': conn.socket.remoteAddress,
+					'port': conn.socket.remotePort};
+					self.connectedPzhIds.push(pzhId);
 
-			// It calls removeClient to remove PZP from connected_client and connectedPzp.
-			conn.on('close', function() {
-				try {
-					helper.debug(2, 'PZH ('+self.sessionId+') Pzh/Pzp  closed');
-					var removed = utils.removeClient(self, conn);
-					self.messageHandler.removeRoute(removed, self.sessionId);
-				} catch (err) {
-					helper.debug(1, 'PZH ('+self.sessionId+') Remove client from connectedPzp/connectedPzh failed' + err);
-				}
-			});
+					msg = self.prepMsg(self.sessionId, pzhId, 'pzhUpdate', self.connectedPzhIds);
+					self.sendMessage(msg, pzhId);
 
-			conn.on('error', function(err) {
-				helper.debug(1, 'PZH ('+self.sessionId+') General Error' + err);
-			
-			});
-		});
- 			
-		return server;
+					msg = self.messageHandler.registerSender(self.sessionId, pzhId);
+					self.sendMessage(msg, pzhId);
+				}
+			} else if(data[0] === 'Pzp' ) {
+				var sessionId = self.sessionId+'/'+data[1].split(':')[0];
+				helper.debug(2, 'PZH ('+self.sessionId+') PZP '+sessionId+' Connected');
+				if(!self.connectedPzp.hasOwnProperty(sessionId)) {
+					self.connectedPzpIds.push(sessionId);
+					self.connectedPzp[sessionId] = {'socket': conn,
+							'address': conn.socket.remoteAddress,
+							'port': ''};
+				}
+				var msg = self.messageHandler.registerSender(self.sessionId, sessionId);
+				self.sendMessage(msg, sessionId);//
+			}
+		}
 	};
+	Pzh.prototype.handleData = function(conn, data) {
+		try {
+			conn.pause();
+			this.processMsg(conn, data);
+			process.nextTick(function () {
+				conn.resume();
+			});
+		} catch (err) {
+			helper.debug(1, 'PZH ('+self.sessionId+') Exception in processing recieved message ' + err);
+		}
+	}
 	
 	Pzh.prototype.getMyUrl = function(cb) {
     	//TODO: Find out where the Pzh URL would be stored.  Config?
@@ -428,37 +403,35 @@
 	}	
 	
 	Pzh.prototype.addNewPZPCert = function (parse, cb) {
-        "use strict";
-    	var self = this;
-	    try {
-	        self.expecting.isExpectedCode(parse.payload.message.code, function(expected) {
-	            if (expected) {
-		            cert.signRequest(self, parse.payload.message.csr, self.config.master, 2, function(result, cert) {
-			            if(result === "certSigned") {
-                            self.expecting.unsetExpected(function() {
-				                //Save this certificate locally on the PZH.
-				                //pzp name: parse.payload.message.name
-				                fs.writeFileSync(self.config.pzhSignedCertDir+'/'+ parse.payload.message.name + ".pem", cert);
-			
-				                var payload = {'clientCert': cert, 'masterCert':self.config.master.cert.value};
-				                var msg = self.prepMsg(self.sessionId, null, 'signedCert', payload);
-				                cb(null, msg);
-				            });
-			            } else {
-			                helper.debug(1, 'PZH ('+self.sessionId+') Error Signing Client Certificate');
-			                cb.call("Could not create client certificate - " + result, null);
-			            }
-		            });
-	            } else {
-                    var payload = {};
-		            var msg = self.prepMsg(self.sessionId, null, 'failedCert', payload);
-		            helper.debug(2, "Failed to create client certificate: not expected");
-		            cb.call(null, msg);
-	            }
-	        });	    	    
-
+		"use strict";
+		var self = this;
+		try {
+			self.expecting.isExpectedCode(parse.payload.message.code, function(expected) {
+				if (expected) {
+					cert.signRequest(self, parse.payload.message.csr, self.config.master, 2, function(result, cert) {
+						if(result === "certSigned") {
+							self.expecting.unsetExpected(function() {
+								//Save this certificate locally on the PZH.
+								//pzp name: parse.payload.message.name
+								fs.writeFileSync(self.config.pzhSignedCertDir+'/'+ parse.payload.message.name + ".pem", cert);
+								var payload = {'clientCert': cert, 'masterCert':self.config.master.cert.value};
+								var msg = self.prepMsg(self.sessionId, null, 'signedCert', payload);
+								cb(null, msg);
+							});
+						} else {
+							helper.debug(1, 'PZH ('+self.sessionId+') Error Signing Client Certificate');
+							cb.call("Could not create client certificate - " + result, null);
+						}
+					});
+				} else {
+					var payload = {};
+					var msg = self.prepMsg(self.sessionId, null, 'failedCert', payload);
+					helper.debug(2, "Failed to create client certificate: not expected");
+					cb.call(null, msg);
+				}
+			});
 		} catch (err) {
-    		helper.debug(1, 'PZH ('+self.sessionId+') Error Signing Client Certificate' + err);
+			helper.debug(1, 'PZH ('+self.sessionId+') Error Signing Client Certificate' + err);
 			cb("Could not create client certificate", null);
 		}
 	}
@@ -471,12 +444,12 @@
 		utils.processedMsg(self, data, 1, function(parse) {		
 			if(parse.type === 'prop' && parse.payload.status === 'clientCert' ) {
 				self.addNewPZPCert(parse, function(err, msg) {
-                    if (err !== null) {
-                        helper.debug(2, err);
-					    return;
-                    } else { 
-    				    self.sendMessage(msg,null,conn)
-				    }
+					if (err !== null) {
+						helper.debug(2, err);
+						return;
+					} else {
+						self.sendMessage(msg,null,conn)
+					}
 				});
 				
 			} else if (parse.type === 'prop' && parse.payload.status === 'pzpDetails') {
@@ -539,13 +512,11 @@
 	 * @param modules array of Webinos modules
 	 * @returns callback with startedPzh message 
 	 */
-	function startPzh(contents, server, port, modules, callback) {
+	function startPzh(contents, servername, modules, callback) {
 		var pzh;
 		try{
 			pzh = new Pzh(modules);
-			pzh.port = port;
-			pzh.server = server;
-			pzh.contents = contents;		
+			pzh.contents = contents;
 		} catch (err) {
 			helper.debug(1, 'PZH - Error Initializing Pzh '  + err);
 			return;
@@ -564,45 +535,103 @@
 			pzh.checkFiles(function(result) {
 				helper.debug(2, 'PZH ('+pzh.sessionId+') Starting PZH: ' + result);
 				try {
-					pzh.sock = pzh.connect();			
+					pzh.connect(servername);
+					pzhs[servername] = pzh;					
+					callback(true);
 				} catch (err) {
 					helper.debug(1, 'PZH ('+pzh.sessionId+') Error starting server ' + err);
+					callback(false);
 					return;
-				}
-				try {
-					pzh.sock.on('error', function (err) {
-						if (err !==  null && err.code === 'EADDRINUSE') {
-							helper.debug(2, 'PZH ('+pzh.sessionId+') Address in use');
-							pzh.port = parseInt(pzh.port, 10) + 1 ;
-							pzh.sock.listen(pzh.port, server);
-						}
-					});
-
-					pzh.sock.on('listening', function() {
-						helper.debug(2, 'PZH ('+pzh.sessionId+') Listening on PORT ' + pzh.port);
-						if(typeof callback !== 'undefined') {
-							callback.call(pzh, 'startedPzh', pzh);
-						}
-					});
-				
-					utils.resolveIP(server, function(resolvedAddress) {
-						server = resolvedAddress;
-						helper.debug(3, "Connecting Address" + server);
-						pzh.sock.listen(pzh.port, server);
-					});
-				} catch (err1) {
-					helper.debug(1, 'PZH ('+pzh.sessionId+') Error listening/resolving ip address ' + err1);					
-					return;
-				}
-				
+					
+				}				
 			});
 		});
 		return pzh;
 	};
-	
+
+
+	function startFarm(callback) {
+		if (initialized === true) {
+			var obj = {};
+			obj.key = {};
+			obj.csr = {};
+			obj.cert = {};
+			obj.crl = {};
+			
+			var self = {};
+			self.config = {};
+			self.config.common = 'PzhFarm';
+			self.config.country = 'UK';
+			self.config.state = 'MX';
+			self.config.city = 'ST';
+			self.config.orgname = 'Webinos'
+			self.config.orgunit = 'WP4'
+			self.config.email = 'internal@webinos.org'
+
+			cert.selfSigned( self, 'PzhFarm', obj, 0, function(status, selfSignErr) {
+				console.log(status);
+				if(status === 'certGenerated') {
+					var options = {key: obj.key.value,
+						cert: obj.cert.value,
+						ca: obj.cert.value,
+						requestCert: true };
+
+					server = tls.createServer (options, function (conn) {
+						console.log(conn.servername);
+						if (conn.servername && pzhs[conn.servername]) {
+							console.log('sending message to ' + conn.servername);
+							pzhs[conn.servername].handleConnectionAuthorization(pzhs[conn.servername], conn);
+						} else {
+							console.log('Server Is Not Registered in Farm');
+						}
+						
+						conn.on('data', function(data){
+							console.log('msg received at farm');
+							if(conn.servername && pzhs[conn.servername]) {
+								pzhs[conn.servername].handleData(conn, data);
+							}
+						});
+
+						conn.on('end', function(err) {
+							helper.debug(2, 'PZH '+ conn.servername +' connection end' + err);
+						});
+						
+						// It calls removeClient to remove PZP from connected_client and connectedPzp.
+						conn.on('close', function() {
+							try {
+								helper.debug(2, 'PZH ('+conn.servername+') Pzh/Pzp  closed');
+								//var removed = utils.removeClient(self, conn);
+								//self.messageHandler.removeRoute(removed, conn.servername);
+							} catch (err) {
+								helper.debug(1, 'PZH ('+conn.servername+') Remove client from connectedPzp/connectedPzh failed' + err);
+							}
+						});
+						
+						conn.on('clientError', function(Exception) {
+							helper.debug(1, "Client connection error: " + Exception);
+						});
+						
+						conn.on('error', function(err) {
+							helper.debug(1, 'PZH ('+conn.servername+') General Error' + err);
+
+						});
+					});
+
+					server.on('listening', function(){
+						console.log('********** PZH Farm Intialized *********** ');
+						callback(true);
+					});
+
+					server.listen(8000);
+					initialized = false;
+					
+				}
+			});
+		}
+	};
 	function restartPzh(instance, callback) {
-		try	{
-		    helper.debug(2,util.inspect(instance));
+		try {
+		    helper.debug(2, util.inspect(instance));
 		    if ((typeof instance.conn.end) === 'undefined' ) {
 			    callback("Failed - no open connections to close");
 		    } else {
@@ -622,6 +651,7 @@
 	if (typeof exports !== 'undefined') {
 		exports.startPzh = startPzh;
 		exports.restartPzh = restartPzh;
+		exports.startFarm = startFarm;
 		
 	}
 }());

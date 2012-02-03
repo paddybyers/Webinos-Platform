@@ -163,7 +163,7 @@
 		    cert.selfSigned(self, 'Pzp', self.config.conn, 2, function (status, selfSignErr) {
 				if (status === 'certGenerated') {
 		            fs.writeFileSync(pzpKeyDir+'/'+self.config.conn.key.name, self.config.conn.key.value);
-					options = {key: self.config.conn.key.value, cert: self.config.conn.cert.value};
+					options = {key: self.config.conn.key.value, cert: self.config.conn.cert.value, servername: self.servername};
 					callback.call(self, options);
 				} else {
 					utils.debug(1, 'creating certificated failed.');			
@@ -192,7 +192,8 @@
 					key: self.config.conn.key.value,
 					cert: self.config.conn.cert.value,
 					ca: self.config.master.cert.value,
-					crl: self.config.master.crl.value
+					crl: self.config.master.crl.value,
+					servername: self.servername
 				};
 				callback.call(self, options);
 			} 
@@ -302,11 +303,12 @@
 					utils.debug(2, 'PZP: Not Authenticated ');
 					self.pzhId = client.getPeerCertificate().subject.CN.split(':')[1];//data2.from;
 					self.connectedPzh[self.pzhId] = {socket: client};
-					self.prepMsg(self.sessionId, self.pzhId, 'clientCert',
+					self.prepMsg(self.sessionId, self.pzhId,
+					 'clientCert',
 						{   csr: self.config.conn.csr.value, 
 						    name: self.config.common.split(':')[0],
 						    code: self.code //"DEBUG"
-					    }); 
+					 });
 				}
 			});
 		} catch (err) {
@@ -315,7 +317,7 @@
 		}
 		
 		/* It fetches data and forward it to processMsg
-		* @param data is teh received data
+		* @param data is the received data
 		*/
 		client.on('data', function(data) {
 			try {
@@ -350,7 +352,7 @@
 				}
 			}
 			
-			// TODO: Try reconnecting back to server. 			
+			// TODO: Try reconnecting back to server but when. 			
 		});
 
 		client.on('error', function (err) {
@@ -400,13 +402,11 @@
 					}
 				}	
 			} else if(data2.type === 'prop' && data2.payload.status === 'failedCert') {
-                utils.debug(1, "Failed to get certificate from PZH");                
-			    callback.call(self, "ERROR");
+				utils.debug(1, "Failed to get certificate from PZH");                
+				callback.call(self, "ERROR");
 			    
-			} else if(data2.type === 'prop' && 
-					data2.payload.status === 'foundServices') {
+			} else if(data2.type === 'prop' && data2.payload.status === 'foundServices') {
 				utils.debug(2, 'PZP ('+self.sessionId+') Received message about available remote services.');
-				
 				this.serviceListener && this.serviceListener(data2.payload.message);
 				this.serviceListener = undefined;
 			}
@@ -432,15 +432,16 @@
 	 * @param server name
 	 * @param port: port on which PZH is running
 	 */
-	sessionPzp.startPzp = function(contents, servername, port, code, modules, callback) {
+	sessionPzp.startPzp = function(contents, servername, pzhaddress, port, code, modules, callback) {
 		var client      = new Pzp(modules);
 		client.code     = code;		
 		client.pzhPort  = port;
 		client.modules  = modules;
 		client.contents = contents;
+		client.servername = servername;
 		
-		utils.resolveIP(servername, function(resolvedAddress) {
-			client.pzhName = resolvedAddress;			
+		utils.resolveIP(pzhaddress, function(resolvedAddress) {
+			client.pzhName = resolvedAddress;
 			utils.debug(3, 'connecting address: ' + client.pzhName);
 			
 			var dir = webinosDemo+'/certificates/pzp/';
@@ -456,7 +457,9 @@
 									var config = {	key: client.config.conn.key.value,
 										cert: client.config.conn.cert.value,
 										crl: client.config.master.crl.value,
-										ca: client.config.master.cert.value};
+										ca: client.config.master.cert.value,
+										servername: client.servername
+									};
 
 									client.connect(config, function(result) {
 										if(result === 'startedPZP' && typeof callback !== "undefined") {

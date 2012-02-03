@@ -82,7 +82,7 @@ certificate.signRequest = function(self, csr, master, certType, callback) {
 		var clientCert = certman.signRequest(csr, 30, master.key.value, master.cert.value, certType, "pzh.webinos.org");
 		callback.call(self, "certSigned", clientCert);
 	} catch(err1) {
-	    utils.debug(1, "Failed to sign certificate: " + err1.code + ", " + err1.stack);
+		utils.debug(1, "Failed to sign certificate: " + err1.code + ", " + err1.stack);
 		callback.call(self, "failed");
 		return;
 	}	

@@ -121,8 +121,12 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 
 		var contents ="pzh_name=localhost\ncountry=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=" + config.pzpName + "\nemail=internal@webinos.org\ndays=180\n"
 		websocket.startPzpWebSocketServer(config.pzhHost, config.pzpWebsocketPort, config.pzpHttpPort, function() {
-			pzp.startPzp(contents, config.pzhHost, config.pzhPort, config.code, pzpModules, function() {
+			pzp.startPzp(contents, 'localhost/john',config.pzhHost, config.pzhPort, config.code, pzpModules, function() {
 				console.log("=== PZP started ===");
+				contents ="pzh_name=localhost\ncountry=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzp1\nemail=internal@webinos.org\ndays=180\n"
+				pzp.startPzp(contents, 'localhost/habib',config.pzhHost, config.pzhPort, config.code, pzpModules, function() {
+					console.log("=== PZP started ===");
+				});
 			});
 		});
 	});

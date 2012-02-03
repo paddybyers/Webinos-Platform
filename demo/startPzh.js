@@ -48,57 +48,63 @@ var pzhModules = [
 if (options.host === '' || options.port <= 0) {
 	help();
 } else {
-	fs.readFile(path.join(__dirname, 'config-pzh.json'), function(err, data) {
-		var config;
-		
-		if (err) {
-			console.warn("could not load config-pzh.json\n" + err.toString());
-			config = {};
-		}
-		else {
-			config = JSON.parse(data);
-		}
-		
-		if (!config.host) {
-			config.host = 'localhost';
-		}
-		if (!config.port) {
-			config.port = 8000;
-		}
-		if (!config.pzhWSPort) {
-			config.pzhWSPort = 8083;
-		}
-		if (options.host) {
-			config.host = options.host;
-		}
-		if (options.port) {
-			config.port = options.port;
-		}
-		if (options.pzhWSPort) {
-			config.pzhWSPort = options.pzhWSPort;
-		}
+	Pzh.startFarm(function() {
+		fs.readFile(path.join(__dirname, 'config-pzh.json'), function(err, data) {
+			var config;
 
-		var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh\nemail=internal@webinos.org\ndays=180\n" ;
+			if (err) {
+				console.warn("could not load config-pzh.json\n" + err.toString());
+				config = {};
+			}
+			else {
+				config = JSON.parse(data);
+			}
 
-		Pzh.startPzh(contents, config.host, config.port, pzhModules, function(res,instance) {
-			console.log('=== PZH STARTED ===');
+			if (!config.host) {
+				config.host = 'localhost';
+			}
+			if (!config.port) {
+				config.port = 8000;
+			}
+			if (!config.pzhWSPort) {
+				config.pzhWSPort = 8083;
+			}
+			if (options.host) {
+				config.host = options.host;
+			}
+			if (options.port) {
+				config.port = options.port;
+			}
+			if (options.pzhWSPort) {
+				config.pzhWSPort = options.pzhWSPort;
+			}
 
-			var requestClientCert = true;   // Are we requesting a client certificate?
-			var domainName = "localhost";   // Used for the callback for OpenID/OAuth
-			var httpOnly = false;           // Are we running HTTP or HTTPS?
-			var certDir = path.resolve("./certificates/pzh/WebinosPzh");
-			
-			
-			PzhWebInterface.startServer(config.pzhWSPort, requestClientCert, domainName, httpOnly, certDir, instance, function(status) {
-				if (status) {
-				    console.log('=== PZH WEB INTERFACE STARTED ===');
-			    } else {
-			        console.log('*** PZH WEB INTERFACE FAILED TO START ***');
-			    }   
+			var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh\nemail=internal@webinos.org\ndays=180\n" ;
+
+			Pzh.startPzh(contents, 'localhost/john', pzhModules, function(res,instance) {
+				console.log('******* PZH STARTED *******');
+				var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh1\nemail=internal@webinos.org\ndays=180\n" ;
+
+				Pzh.startPzh(contents, 'localhost/habib', pzhModules, function(res,instance) {
+					console.log('******* PZH1 STARTED *******');
+				});
+				var requestClientCert = true;   // Are we requesting a client certificate?
+				var domainName = "localhost";   // Used for the callback for OpenID/OAuth
+				var httpOnly = false;           // Are we running HTTP or HTTPS?
+				var certDir = path.resolve("./certificates/pzh/WebinosPzh");
+
+
+				PzhWebInterface.startServer(config.pzhWSPort, requestClientCert, domainName, httpOnly, certDir, instance, function(status) {
+					if (status) {
+						console.log('=== PZH WEB INTERFACE STARTED ===');
+					} else {
+						console.log('*** PZH WEB INTERFACE FAILED TO START ***');
+					}
+					
+				});
+
+
 			});
-
-
 		});
 	});
 }
-

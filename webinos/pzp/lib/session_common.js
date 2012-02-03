@@ -271,16 +271,21 @@ exports.configure = function(self, certPath, id, contents, callback) {
 
 exports.resolveIP = function(serverName, callback) {
 	if(net.isIP(serverName) !== 0) {
+		console.log('netisip');
 		callback(serverName);
 	} else {
-		dns.resolve(serverName, function(err, addresses) {			
+		dns.resolve(serverName, function(err, addresses) {
+			console.log(err);
 			if (typeof err !== 'undefined') {
 				// try again with lookup
 				dns.lookup(serverName, function(err, address, family) {
+					console.log(err);
+					console.log(address);
 					callback(address);
 				});				
 			} else {
 				// resolve succeeded
+				console.log(addresses[0]);
 				callback(addresses[0]);			
 			}
 		});
