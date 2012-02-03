@@ -39,10 +39,8 @@ pzpCertReq = certman.createCertificateRequest(pzpKey,
 if (debug) console.log("PZP Certificate Request: \n[" + pzpCertReq + "]\n");
 
 var pzpCert = null;
-pzpCert = certman.signRequest(pzpCertReq, 30, caKey, caCert,0,"http://test.url");
+pzpCert = certman.signRequest(pzpCertReq, 30, caKey, caCert,2,"http://test.url");
 if (debug) console.log("PZP Certificate, signed by PZH CA: \n[" + pzpCert + "]\n");
-
-
 
 
 var crlWithKey = null;
@@ -50,3 +48,7 @@ crlWithKey = certman.addToCRL(caKey, crl, pzpCert);
 if (debug) console.log("PZP Certificate revoked, new CRL: \n[" + crlWithKey + "]\n");
 
  
+
+
+
+
