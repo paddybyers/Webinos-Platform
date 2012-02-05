@@ -1,8 +1,10 @@
 var os = require('os');
 var path = require('path');
+
 var pzhConfig = exports;
 
 var ERROR = 1;
+var INFO = 2;
 
 var CA = 0;
 var CONNCERT = 1;
@@ -90,8 +92,8 @@ pzhConfig.config = function (url, callback) {
 						// This is working, waiting for completion of Android and Windows part to commit code.
 						/*try {
 							var key =requiserverre("../../common/manager/keystore/src/build/Release/keystore");				
-							key.put(self.config.master.key.name, self.config.master.key.value);
-							key.put(self.config.conn.key.name, self.config.conn.key.value);
+							key.put(config.master.key.name, config.master.key.value);
+							key.put(config.conn.key.name, config.conn.key.value);
 						} catch (err) {
 							log(ERROR, "Error reading key from key store "+ err);
 							return;
@@ -103,19 +105,19 @@ pzhConfig.config = function (url, callback) {
 						fs.writeFileSync(config.pzhCertDir+'/'+config.master.cert.name, config.master.cert.value);
 						fs.writeFileSync(config.pzhCertDir+'/'+config.master.crl.name, config.master.crl.value);
 						} catch (err) {
-							log(ERROR,'PZH ('+id+') Error writing master certificates file');
-							return;
+						log(ERROR,' @pzhfarm@ ('+id+') Error writing master certificates file');
+						return;
 						}
 		
 						// Signed request for connection certificate by master certificate
-						cert.signRequest(self, self.config.conn.csr.value, self.config.master, 1, function(result, cert) {
+						cert.signRequest(self, config.conn.csr.value, config.master, CONNCERT, function(result, cert) {
 							if(result === 'certSigned'){ 
-								self.config.conn.cert.value = cert;
+								config.conn.cert.value = cert;
 								try {
-									fs.writeFileSync(self.config.pzhCertDir+'/'+self.config.conn.cert.name, cert);
-									callback.call(self, 'Certificates Created');
+									fs.writeFileSync(config.pzhCertDir+'/'+config.conn.cert.name, cert);
+									callback.call(self, config);
 								} catch (err) {
-									log(ERROR,'PZH ('+id+') Error writing connection certificate');
+									log(ERROR,' @pzhfarm@ ('+id+') Error writing connection certificate');
 									return;
 								}
 							}
@@ -132,35 +134,34 @@ pzhConfig.config = function (url, callback) {
 		}
 	}
 	});
-			} else {
-
-				self.config.master.cert.value = fs.readFileSync(self.config.pzhCertDir+'/'+self.config.master.cert.name).toString(); 
-				self.config.master.key.value = fs.readFileSync(self.config.pzhKeyDir+'/'+self.config.master.key.name).toString(); 
-				self.config.conn.key.value = fs.readFileSync(self.config.pzhKeyDir+'/'+self.config.conn.key.name).toString(); 
-				self.config.conn.cert.value = fs.readFileSync(self.config.pzhCertDir+'/'+self.config.conn.cert.name).toString(); 
+	} else {
+		config.master.cert.value = fs.readFileSync(config.pzhCertDir+'/'+config.master.cert.name).toString(); 
+		config.master.key.value = fs.readFileSync(config.pzhKeyDir+'/'+config.master.key.name).toString(); 
+		config.conn.key.value = fs.readFileSync(config.pzhKeyDir+'/'+config.conn.key.name).toString(); 
+		config.conn.cert.value = fs.readFileSync(config.pzhCertDir+'/'+config.conn.cert.name).toString(); 
 				
-				// TODO: This works fine for linux and mac. Requires implementation on Android and Windows
-				/*try{ 
-					//var key =require("../../common/manager/keystore/src/build/Release/keystore");
-					//self.config.master.key.value = key.get(self.config.master.key.name);
-					//self.config.conn.key.value = key.get(self.config.conn.key.name);
-				} catch(err){
-					console.log(err);
-					return;
-				}*/
+		// TODO: This works fine for linux and mac. Requires implementation on Android and Windows
+		/*try{ 
+			//var key =require("../../common/manager/keystore/src/build/Release/keystore");
+			//config.master.key.value = key.get(config.master.key.name);
+			//config.conn.key.value = key.get(config.conn.key.name);
+		} catch(err){
+			console.log(err);
+			return;
+		}*/
 				
-				//self.config.master.key.value = fs.readFileSync(pzhKeyDir+'/'+self.config.master.key.name).toString();
-				if ( path.existsSync(self.config.pzhCertDir+'/'+self.config.master.crl.name)) {
-					self.config.master.crl.value = fs.readFileSync(self.config.pzhCertDir+'/'+self.config.master.crl.name).toString();
-					log(INFO, "Using CRL " + self.config.pzhCertDir+'/'+self.config.master.crl.name);
-				} else {
-					self.config.master.crl.value = null;
-					log(INFO, "WARNING: No CRL found.  May be worth regenerating your certificates");
-				}
-				
-				callback.call(self, config);
-			}
-		});
+		//config.master.key.value = fs.readFileSync(pzhKeyDir+'/'+config.master.key.name).toString();
+		if ( path.existsSync(config.pzhCertDir+'/'+config.master.crl.name)) {
+			config.master.crl.value = fs.readFileSync(config.pzhCertDir+'/'+config.master.crl.name).toString();
+			log(INFO, "Using CRL " + config.pzhCertDir+'/'+config.master.crl.name);
+		} else {
+			config.master.crl.value = null;
+			log(INFO, "WARNING: No CRL found.  May be worth regenerating your certificates");
+		}
+			
+		callback.call(self, config);
+	}
+	});
 	} catch(err) {
 		log(ERROR,'PZH ('+id+') Exception in reading/creating certificates' + err);
 	

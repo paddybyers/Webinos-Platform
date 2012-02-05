@@ -195,6 +195,7 @@ exports.configure = function(self, certPath, id, contents, callback) {
 					}
 				}					
 			}
+			
 			name = id+'_'+common;
 			self.config.conn = {};
 			self.config.conn.key = {};

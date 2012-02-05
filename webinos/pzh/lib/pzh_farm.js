@@ -74,8 +74,9 @@ farm.startFarm = function (config, callback) {
 	}
 };
 
-farm.addPzh = function(servername, config) {
-	pzhs[servername] = pzh; 
+farm.addPzh = function( config) {
+	pzh = pzh.createPzh(config);
+	pzhs[config.servername] = pzh; 
 	var options = {key: config.conn.key.value,
 		cert: config.conn.cert.value,
 		ca: config.master.cert.value,
@@ -85,6 +86,10 @@ farm.addPzh = function(servername, config) {
 	};
 
 	utils.setMessagingParam(pzh);
+	if (typeof server === "undefined" || server === null) {
+		ca
+	}
+		
 	server.addContext(serverName, options);
-	server.addContext(servername, );
+	
 };

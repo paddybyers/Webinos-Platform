@@ -149,9 +149,6 @@
 				}
 			});
 		}
-
-
-
 		if(conn.authorized) {
 			var cn, data;
 			helper.debug(2, "Connection authorised at PZH");
@@ -331,23 +328,22 @@
 	 */
 	function startPzh(config, modules, callback) {
 		var pzh;
-		try{
+		try {
 			pzh = new Pzh(modules);
 			pzh.config = config;
 		} catch (err) {
 			helper.debug(1, 'PZH - Error Initializing Pzh '  + err);
 			return;
 		}
-		var dir = webinosDemo + '/certificates/pzh'
-		utils.configure(pzh, dir, 'pzh', contents, function() {
-			try {
-				pzh.sessionId = pzh.config.common.split(':')[0];
-				var crashMsg = fs.createWriteStream(webinosDemo + '/'+ pzh.sessionId + '_crash.txt', {'flags': 'a'});
-				helper.setDebugStream(crashMsg);
-			} catch (err) {
-				helper.debug(1, 'PZH ('+pzh.sessionId+') Pzh information is not in correct format ' + err);
-				return;
-			}
+		
+		try { 	
+			pzh.sessionId = pzh.config.common.split(':')[0];
+			var crashMsg = fs.createWriteStream(webinosDemo + '/'+ pzh.sessionId + '_crash.txt', {'flags': 'a'});
+			helper.setDebugStream(crashMsg);
+		} catch (err) {
+			helper.debug(1, 'PZH ('+pzh.sessionId+') Pzh information is not in correct format ' + err);
+			return;
+		}
 			//sessionPzh.push({ 'id': pzh.sessionId, 'connectedPzh': pzh.connectedPzhIds, 'connectedPzp': pzh.connectedPzpIds });
 			pzh.checkFiles(function(result) {
 				helper.debug(2, 'PZH ('+pzh.sessionId+') Starting PZH: ' + result);
