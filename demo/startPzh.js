@@ -81,14 +81,13 @@ if (options.host === '' || options.port <= 0) {
 
 			var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh\nemail=internal@webinos.org\ndays=180\n" ;
 
-			Pzh.startPzh(contents, 'localhost/john', pzhModules, function(res,instance) {
-				console.log('******* PZH STARTED *******');
-				var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh1\nemail=internal@webinos.org\ndays=180\n" ;
+			Pzh.startPzh(config, pzhModules, function(res,instance) {
+				console.log('******* PZH STARTED *******');			
 
-				Pzh.startPzh(contents, 'localhost/habib', pzhModules, function(res,instance) {
+				Pzh.startPzh(config, pzhModules, function(res,instance) {
 					console.log('******* PZH1 STARTED *******');
 				});
-				var requestClientCert = true;   // Are we requesting a client certificate?
+				/*var requestClientCert = true;   // Are we requesting a client certificate?
 				var httpOnly = false;           // Are we running HTTP or HTTPS?
 
 				PzhWebInterface.startServer(config.pzhWebPort, requestClientCert, httpOnly, instance, function(status) {
@@ -98,7 +97,7 @@ if (options.host === '' || options.port <= 0) {
 						console.log('*** PZH WEB INTERFACE FAILED TO START ***');
 					}
 					
-				});
+				});*/
 			});
 		});
 	});

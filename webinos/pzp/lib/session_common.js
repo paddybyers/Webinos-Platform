@@ -216,8 +216,8 @@ exports.configure = function(self, certPath, id, contents, callback) {
 			self.config.master.crl.name = name+'_master_cert.crl';
 			
 			self.config.webserver = {
-			    cert : { name : name+'_ws_cert.pem' },
-		        key : { name : name+'_ws_key.pem' }
+				cert : { name : name+'_ws_cert.pem' },
+				key :  { name : name+'_ws_key.pem' }
 			};
 			
 			

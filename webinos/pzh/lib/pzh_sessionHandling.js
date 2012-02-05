@@ -9,8 +9,8 @@
 	var tls = require('tls'),
 	fs = require('fs'),
 	path = require('path'),
-	crypto = require('crypto'),	
-	util = require('util');		
+	crypto = require('crypto'),
+	util = require('util');
 	
 	var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
 	var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
@@ -25,9 +25,9 @@
 	var server = null;
 	var initialized = true;
 	var pzhs = [];
+	
 	if (typeof exports !== 'undefined') {
 		try {
-
 			var rpc       = require(path.join(webinosRoot, dependencies.rpc.location));
 			var authcode  = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_authcode.js'));
 			var cert      = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
@@ -58,8 +58,6 @@
 		this.connectedPzhIds = [];
 		/** This is used for synchronization purpose with connected PZP and PZH */	
 		this.connectedPzpIds = [];
-		// Used for reconnection
-		this.tlsId = [];
 		// Handler for remote method calls.
 		this.rpcHandler = new RPCHandler();
 		// handler of all things message
@@ -82,10 +80,16 @@
 	 * @returns {Object} Message to be sent 
 	 */
 	Pzh.prototype.prepMsg = function(from, to, status, message) {
-		return {'type': 'prop', 
+		var msg = null;
+		if ( from === null || to === null || status === null || message === null )  {
+			helper.debug(2, "Prep message failed");
+		} else {
+			msg = {'type': 'prop', 
 			'from': from,
 			'to': to,
 			'payload':{'status':status, 'message':message}};
+		}
+		return msg;
 	};
 
 	/**
@@ -127,195 +131,7 @@
 			
 		}
 	};
-
-	/**
-	 * 
-	 */
-	Pzh.prototype.sendRegisterMessage = function () {
-		var pzhId = this.conn.getPeerCertificate().subject.CN.split(':')[1];
-		var msg = this.messageHandler.registerSender(this.sessionId, pzhId);
-		this.sendMessage(msg, pzhId);
-	};
 	
-	/** 
-	* @descripton Checks for master certificate, if certificate is not found it calls generating certificate function defined in certificate manager. This function is crypto sensitive. 
-	* @param {function} callback It is callback function that is invoked after checking/creating certificates
-	*/
-	Pzh.prototype.checkFiles = function (callback) {
-		var self = this;
-		try {
-			var pzhRoot = webinosDemo+'/certificates/pzh';
-			var pzhName = pzhRoot+'/'+self.sessionId;
-
-			self.config.pzhCertDir = path.resolve(__dirname, pzhName+'/cert'),
-			self.config.pzhKeyDir = path.resolve(__dirname, pzhName+'/keys'),
-			self.config.pzhSignedCertDir = path.resolve(__dirname, pzhName+'/signed_cert'),
-			self.config.pzhOtherCertDir  = path.resolve(__dirname, pzhName+'/other_cert'),
-			self.config.pzhRevokedCertDir = path.resolve(__dirname, pzhName+'/signed_cert/revoked');
-			
-			fs.readFile(self.config.pzhCertDir+'/'+self.config.master.cert.name, function(err) {
-				if(err !== null && err.code === 'ENOENT') {
-
-					// 0 is for master certificate
-					// 1 here specifies connection certificate
-					// 2 is for PZP certificate
-					
-					// This self signed certificate is for getting connection certificate CSR. 
-					cert.selfSigned(self, 'Pzh', self.config.conn, 1, function(status, selfSignErr) {
-						if(status === 'certGenerated') {
-							helper.debug(2, 'PZH Generating Certificates');
-							fs.readdir(webinosDemo+'/certificates', function(err) {
-								if(err !== null && err.code === "ENOENT") {
-									try {
-										fs.mkdirSync(webinosDemo+'/certificates', '0700');								
-									} catch (err) {
-										helper.debug(1,'PZH ('+self.sessionId+') Error creating certificates directory');
-										return;
-									}
-								}
-								fs.readdir(pzhRoot, function(err) {
-									if(err !== null && err.code === "ENOENT") {
-										try {
-											fs.mkdirSync(pzhRoot, '0700');
-										} catch(err) {
-											helper.debug(1,'PZH ('+self.sessionId+') Error creating certificates/pzh directory');
-											return;
-										}
-									}
-									fs.readdir(pzhName, function(err) {
-										if(err !== null && err.code === "ENOENT") {
-											try {	
-												fs.mkdirSync(pzhName,'0700');
-												fs.mkdirSync(self.config.pzhCertDir, '0700');								
-												fs.mkdirSync(self.config.pzhSignedCertDir, '0700');
-												fs.mkdirSync(self.config.pzhKeyDir, '0700');
-												fs.mkdirSync(self.config.pzhOtherCertDir, '0700');
-												fs.mkdirSync(self.config.pzhRevokedCertDir, '0700');
-											} catch(err) {
-												helper.debug(1,'PZH ('+self.sessionId+') Error creating certificates/pzh/pzh_name/ directories');
-												return;
-											}									
-										}
-										
-										// This self signed certificate is  master certificate / CA
-										cert.selfSigned(self, 'Pzh:Master', self.config.master, 0, function(result) {
-											if(result === 'certGenerated') {
-												try {
-													// This is working, waiting for completion of Android and Windows part to commit code.
-													/*try {
-														var key =requiserverre("../../common/manager/keystore/src/build/Release/keystore");				
-														key.put(self.config.master.key.name, self.config.master.key.value);
-														key.put(self.config.conn.key.name, self.config.conn.key.value);
-													} catch (err) {
-														helper.debug(1, "Error reading key from key store "+ err);
-														return;
-													}*/
-													
-													fs.writeFileSync(self.config.pzhKeyDir+'/'+self.config.master.key.name, self.config.master.key.value);
-													fs.writeFileSync(self.config.pzhKeyDir+'/'+self.config.conn.key.name, self.config.conn.key.value);
-														
-													fs.writeFileSync(self.config.pzhCertDir+'/'+self.config.master.cert.name, self.config.master.cert.value);
-													fs.writeFileSync(self.config.pzhCertDir+'/'+self.config.master.crl.name, self.config.master.crl.value);
-												} catch (err) {
-													helper.debug(1,'PZH ('+self.sessionId+') Error writing master certificates file');
-													return;
-												}
-												// Signed request for connection certificate by master certificate
-												cert.signRequest(self, self.config.conn.csr.value, self.config.master, 1, function(result, cert) {
-													if(result === 'certSigned'){ 
-														self.config.conn.cert.value = cert;
-														try {
-															fs.writeFileSync(self.config.pzhCertDir+'/'+self.config.conn.cert.name, cert);
-															callback.call(self, 'Certificates Created');
-														} catch (err) {
-															helper.debug(1,'PZH ('+self.sessionId+') Error writing connection certificate');
-															return;
-														}
-													}
-												});
-											}
-										});								
-									});
-									
-								});
-							});
-							
-							
-						} else {
-							helper.debug(1, 'cert manager status: ' + status);
-							if (typeof selfSignErr !== 'undefined') {
-								helper.debug(1, 'cert manager error: ' + selfSignErr);
-							}
-						}
-					});
-				} else {
-
-					self.config.master.cert.value = fs.readFileSync(self.config.pzhCertDir+'/'+self.config.master.cert.name).toString(); 
-					self.config.master.key.value = fs.readFileSync(self.config.pzhKeyDir+'/'+self.config.master.key.name).toString(); 
-					self.config.conn.key.value = fs.readFileSync(self.config.pzhKeyDir+'/'+self.config.conn.key.name).toString(); 
-					self.config.conn.cert.value = fs.readFileSync(self.config.pzhCertDir+'/'+self.config.conn.cert.name).toString(); 
-					
-					// TODO: This works fine for linux and mac. Requires implementation on Android and Windows
-					/*try{ 
-						//var key =require("../../common/manager/keystore/src/build/Release/keystore");
-						//self.config.master.key.value = key.get(self.config.master.key.name);
-						//self.config.conn.key.value = key.get(self.config.conn.key.name);
-					} catch(err){
-						console.log(err);
-						return;
-					}*/
-					
-					//self.config.master.key.value = fs.readFileSync(pzhKeyDir+'/'+self.config.master.key.name).toString();
-					if ( path.existsSync(self.config.pzhCertDir+'/'+self.config.master.crl.name)) {
-						self.config.master.crl.value = fs.readFileSync(self.config.pzhCertDir+'/'+self.config.master.crl.name).toString();
-						helper.debug(2, "Using CRL " + self.config.pzhCertDir+'/'+self.config.master.crl.name);
-					} else {
-						self.config.master.crl.value = null;
-						helper.debug(2, "WARNING: No CRL found.  May be worth regenerating your certificates");
-					}
-					
-					callback.call(self, 'Certificates Present');
-				}
-			});
-		} catch(err) {
-			helper.debug(1,'PZH ('+self.sessionId+') Exception in reading/creating certificates' + err);
-		
-		}
-	};
-	
-	/**
-	* @description Starts Pzh server. It creates server configuration and then createsServer 
-	*/
-	Pzh.prototype.connect = function (serverName) {
-		var self = this, ca;
-		try {
-			ca =  [self.config.master.cert.value];
-		} catch (err) {
-			helper.debug(1,'PZH ('+self.sessionId+') Exception in reading other Pzh certificates' + err);
-			return;
-		}
-		
-		/** @param {Object} options Creates options parameter, key, cert and ca are set */		
-		var options = {key: self.config.conn.key.value,
-				cert: self.config.conn.cert.value,
-				ca: self.config.master.cert.value,
-				crl: self.config.master.crl.value,
-				requestCert:true, 
-				rejectUnauthorized:false
-				};
-
-		/** Sets messaging parameter */
-		utils.setMessagingParam(self, this.messageHandler);
-		/** @param {Object} connectedPzh holds connected Pzh information
-		* @param connectedPzh.address stores information about IP address
-		* @param connectedPzh.port stores port on which external Pzh is running
-		*/
-		/*if(!self.connectedPzh.hasOwnProperty(self.sessionId)) {
-			self.connectedPzh[self.sessionId] = {'address': self.server, 'port': self.port};
-		}*/
-
-		server.addContext(serverName, options);
-	};
 	
 	Pzh.prototype.handleConnectionAuthorization = function(self, conn) {
 		if(conn.authorized === false) {
@@ -385,6 +201,7 @@
 			}
 		}
 	};
+
 	Pzh.prototype.handleData = function(conn, data) {
 		try {
 			conn.pause();
@@ -399,7 +216,7 @@
 	
 	Pzh.prototype.getMyUrl = function(cb) {
     	//TODO: Find out where the Pzh URL would be stored.  Config?
-	     cb("http://127.0.0.1:8082/");
+	     cb.call(this, config.servername );
 	}	
 	
 	Pzh.prototype.addNewPZPCert = function (parse, cb) {
@@ -512,11 +329,11 @@
 	 * @param modules array of Webinos modules
 	 * @returns callback with startedPzh message 
 	 */
-	function startPzh(contents, servername, modules, callback) {
+	function startPzh(config, modules, callback) {
 		var pzh;
 		try{
 			pzh = new Pzh(modules);
-			pzh.contents = contents;
+			pzh.config = config;
 		} catch (err) {
 			helper.debug(1, 'PZH - Error Initializing Pzh '  + err);
 			return;
@@ -537,7 +354,7 @@
 				try {
 					pzh.connect(servername);
 					pzhs[servername] = pzh;					
-					callback(true, instance);
+					callback(true, pzh);
 				} catch (err) {
 					helper.debug(1, 'PZH ('+pzh.sessionId+') Error starting server ' + err);
 					callback(false);
@@ -550,85 +367,7 @@
 	};
 
 
-	function startFarm(callback) {
-		if (initialized === true) {
-			var obj = {};
-			obj.key = {};
-			obj.csr = {};
-			obj.cert = {};
-			obj.crl = {};
-			
-			var self = {};
-			self.config = {};
-			self.config.common = 'PzhFarm';
-			self.config.country = 'UK';
-			self.config.state = 'MX';
-			self.config.city = 'ST';
-			self.config.orgname = 'Webinos'
-			self.config.orgunit = 'WP4'
-			self.config.email = 'internal@webinos.org'
-
-			cert.selfSigned( self, 'PzhFarm', obj, 0, function(status, selfSignErr) {
-				console.log(status);
-				if(status === 'certGenerated') {
-					var options = {key: obj.key.value,
-						cert: obj.cert.value,
-						ca: obj.cert.value,
-						requestCert: true };
-
-					server = tls.createServer (options, function (conn) {
-						console.log(conn.servername);
-						if (conn.servername && pzhs[conn.servername]) {
-							console.log('sending message to ' + conn.servername);
-							pzhs[conn.servername].handleConnectionAuthorization(pzhs[conn.servername], conn);
-						} else {
-							console.log('Server Is Not Registered in Farm');
-						}
-						
-						conn.on('data', function(data){
-							console.log('msg received at farm');
-							if(conn.servername && pzhs[conn.servername]) {
-								pzhs[conn.servername].handleData(conn, data);
-							}
-						});
-
-						conn.on('end', function(err) {
-							helper.debug(2, 'PZH '+ conn.servername +' connection end' + err);
-						});
-						
-						// It calls removeClient to remove PZP from connected_client and connectedPzp.
-						conn.on('close', function() {
-							try {
-								helper.debug(2, 'PZH ('+conn.servername+') Pzh/Pzp  closed');
-								//var removed = utils.removeClient(self, conn);
-								//self.messageHandler.removeRoute(removed, conn.servername);
-							} catch (err) {
-								helper.debug(1, 'PZH ('+conn.servername+') Remove client from connectedPzp/connectedPzh failed' + err);
-							}
-						});
-						
-						conn.on('clientError', function(Exception) {
-							helper.debug(1, "Client connection error: " + Exception);
-						});
-						
-						conn.on('error', function(err) {
-							helper.debug(1, 'PZH ('+conn.servername+') General Error' + err);
-
-						});
-					});
-
-					server.on('listening', function(){
-						console.log('********** PZH Farm Intialized *********** ');
-						callback(true);
-					});
-
-					server.listen(8000);
-					initialized = false;
-					
-				}
-			});
-		}
-	};
+	
 	function restartPzh(instance, callback) {
 		try {
 		    helper.debug(2, util.inspect(instance));
