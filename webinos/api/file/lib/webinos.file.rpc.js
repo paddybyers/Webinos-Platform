@@ -189,7 +189,9 @@
 			isFile: entry.isFile,
 			isDirectory: entry.isDirectory,
 			// name: entry.name,
-			fullPath: entry.fullPath
+			fullPath: entry.fullPath,
+			// HACK
+			_url: entry.toURL()
 		};
 	};
 

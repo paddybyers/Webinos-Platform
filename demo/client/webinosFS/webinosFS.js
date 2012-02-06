@@ -1,9 +1,12 @@
 /**
+ * TODO Undo exporting "internal" stuff?
  * TODO On entry conflict, check if types (i.e., directory or file) of the conflicting entries differ.
  * TODO On file entry conflict, enable the user to select a corresponding shard.
  * TODO On webinos update event, add new shard(s) and update the current view.
  * TODO Check various "inline" TODOs.
  */
+// browse -> (select ->) view
+// Find some way to access the relevant entry from browsing while selecting/viewing!
 (function (exports) {
 	"use strict";
 
@@ -27,7 +30,8 @@
 		if (!(shard in this)) {
 			this.push(shard);
 
-			shard.readEntries(exports.workingDirectory, exports.queue.token);
+			if (exports.state == "browse")
+				shard.readEntries(exports.path, exports.queue.token);
 		}
 	};
 
@@ -75,28 +79,28 @@
 
 		this.splice(i, 0, entry);
 
-		$(exports).trigger("entry.add", [entry, i, this]);
+		$(exports).triggerHandler("entry.add", [entry, i, this]);
 	};
 
 	$(exports).on("entry.add", function (event, entry, i, entries) {
-		var $list = $("#list");
+		var $entries = $("#entries");
 
 		if (i == 0)
-			$list.append(entry.html);
+			$entries.append(entry.html);
 		else
 			entries[i - 1].html.after(entry.html);
 
-		$list.listview("refresh");
+		$entries.listview("refresh");
 	});
 
 	exports.entries.clear = function () {
 		this.splice(0, this.length);
 
-		$(exports).trigger("entry.clear");
+		$(exports).triggerHandler("entry.clear");
 	};
 
 	$(exports).on("entry.clear", function (event) {
-		$("#list").empty();
+		$("#entries").empty();
 	});
 
 	exports.Entry = function (shard, entry) {
@@ -144,7 +148,9 @@
 
 	exports.DirectoryEntry.prototype.isDirectory = true;
 	exports.DirectoryEntry.prototype.htmlify = function () {
-		return $('<li><a href="#browse?workingDirectory=' + encodeURIComponent(this.fullPath) + '">' + this.name + '</a></li>');
+		return $('<li><a href="#browse?' + $.param({
+			path: this.fullPath
+		}) + '">' + this.name + '</a></li>');
 	};
 
 	exports.FileEntry = function (shard, entry) {
@@ -155,26 +161,31 @@
 
 	exports.FileEntry.prototype.isFile = true;
 	exports.FileEntry.prototype.htmlify = function () {
-		return $('<li>' + this.name + '</li>');
+		return $('<li><a href="#view?' + $.param({
+			path: this.fullPath
+		}) + '">' + this.name + '</a></li>');
 	};
 
-	exports.workingDirectory = "/";
-	exports.changeDirectory = function (to) {
+	exports.state = "browse";
+	exports.path = "/";
+
+	exports.browse = function (path) {
 		exports.queue.clear();
 		exports.entries.clear();
 
-		exports.workingDirectory = to;
+		exports.state = "browse";
+		exports.path = path;
 
 		exports.shards.forEach(function (shard) {
-			shard.readEntries(exports.workingDirectory, exports.queue.token);
+			shard.readEntries(exports.path, exports.queue.token);
 		});
 
-		$(exports).trigger("changedirectory", [exports.workingDirectory]);
+		$(exports).triggerHandler("browse", [exports.path]);
 	};
 
-	$(exports).on("changedirectory", function (event, path) {
-		var $back = $("#back"),
-			$path = $("#path");
+	$(exports).on("browse", function (event, path) {
+		var $back = $(".back", "#browse"),
+			$path = $(".path", "#browse");
 
 		if (path == "/")
 			$back.hide();
@@ -186,24 +197,60 @@
 		$path.text(path);
 	});
 
+	exports.view = function (path) {
+		exports.state = "view";
+		exports.path = path;
+
+		$(exports).triggerHandler("view", [exports.path]);
+	};
+
+	$(exports).on("view", function (event, path) {
+		$(".name", "#view").text(webinos.path.basename(path));
+	});
+
+	exports.events = {};
+	exports.events.service = undefined;
+	exports.events.handler = function (event) {
+
+	};
+
 	$(document).ready(function () {
 		webinos.session.addListener("registeredBrowser", function (event) {
-			webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/file"), {
+			webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/events"), {
 				onFound: function (service) {
-					$(exports).trigger("service.found", service);
-				}
+					exports.events.service = service;
+
+    	    		service.bind(function () {
+    	    			service.addWebinosEventListener(exports.events.handler);
+    	    		});
+    	    	}
 			});
+
+			// TODO Fix pseudo-sequentialization of service discovery.
+			setTimeout(function () {
+				webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/file"), {
+					onFound: function (service) {
+						$(exports).triggerHandler("service.found", service);
+					}
+				});
+			}, 250);
 		});
 
-		$("#back").click(function (event) {
+		$(".back", "#browse").click(function (event) {
 			$.mobile.changePage("#browse?" + $.param({
-				workingDirectory: webinos.path.dirname(exports.workingDirectory)
+				path: webinos.path.dirname(exports.path)
 			}));
 		});
 
-		$("#refresh").click(function (event) {
+		$(".refresh", "#browse").click(function (event) {
 			$.mobile.changePage("#browse?" + $.param({
-				workingDirectory: exports.workingDirectory
+				path: exports.path
+			}));
+		});
+
+		$(".back", "#view").click(function (event) {
+			$.mobile.changePage("#browse?" + $.param({
+				path: webinos.path.dirname(exports.path)
 			}));
 		});
 	});
@@ -211,7 +258,7 @@
 	$(exports).on("service.found", function (event, service) {
 		service.bindService({
 			onBind: function () {
-				$(exports).trigger("service.bound", service);
+				$(exports).triggerHandler("service.bound", service);
 			}
 		});
 	});
@@ -234,14 +281,22 @@
 
 			if (operation == "browse") {
 				data.options.allowSamePageTransition = true;
-				data.options.transition = "none";
+
+				switch (exports.state) {
+					case "browse":
+						data.options.transition = "none";
+						break;
+					case "view":
+						data.options.reverse = true;
+						break;
+				}
 			}
 		}
 	});
 
 	$(document).on("pageshow", function (event, data) {
 		var operation = "browse",
-			params = { workingDirectory: "/" };
+			params = { path: "/" };
 
 		var url = $.mobile.path.parseUrl(window.location.href);
 		var matches = url.hash.match(/^#([^\?]+)(?:\?(.*))?$/);
@@ -253,11 +308,14 @@
 				params = $.deparam(matches[2]);
 		}
 
-		if (operation == "browse") {
-			if (typeof params.workingDirectory === "undefined")
-				params.workingDirectory = "/";
+		switch (operation) {
+			case "browse":
+				if (typeof params.path === "undefined")
+					params.path = "/";
 
-			exports.changeDirectory(params.workingDirectory);
+				return exports.browse(params.path);
+			case "view":
+				return exports.view(params.path);
 		}
 	});
 })(webinosFS = {});

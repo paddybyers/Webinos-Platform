@@ -15,13 +15,21 @@
 <body>
 <div id="browse" data-role="page">
 	<div data-role="header">
-		<a id="back" data-icon="back" style="display: none;">Back</a>
-		<h1 id="path"></h1>
-		<a id="refresh" data-icon="refresh">Refresh</a>
+		<a class="back" data-icon="back" style="display: none;">Back</a>
+		<h1 class="path"></h1>
+		<a class="refresh" data-icon="refresh">Refresh</a>
 	</div>
 	<div data-role="content">
-		<ul id="list" data-role="listview">
+		<ul id="entries" data-role="listview">
 		</ul>
+	</div>
+</div>
+<div id="view" data-role="page">
+	<div data-role="header">
+		<a class="back" data-icon="back">Back</a>
+		<h1 class="name"></h1>
+	</div>
+	<div data-role="content"> 
 	</div>
 </div>
 </body>
