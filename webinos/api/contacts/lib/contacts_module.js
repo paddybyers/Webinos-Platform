@@ -55,7 +55,7 @@ console.log("ASSERT params[1]===ALWAYS_ALLOW",params[1] === "ALWAYS ALLOW")
     console.log("---------DEBUG: first if");
     callback(LocalContacts.open(params[0]['addressBookName']));
   }
-  else if (params[0]['type'] == "remote" && !(params[1] === "ALWAYS ALLOW" || process.platform==='android'))
+  else if (params[0]['type'] == "remote" && params[1] !== "ALWAYS ALLOW" && process.platform!=='android')
   {
         console.log("---------DEBUG: second if");
 // TODO CHANGE
