@@ -15,11 +15,6 @@
 *
 *******************************************************************************/
 
-/*
-* PLEASE NOTE THIS CODE CURRENTLY DOES NOT CONTAIN ACCESS TO ACTUAL VEHICLE DATA DUE TO COPYRIGHT ISSUES.
-* First Author: Simon Isenberg, Second Author: Krishna Bangalore
-*/
-
 (function() {
 
 // rpcHandler set be setRPCHandler
