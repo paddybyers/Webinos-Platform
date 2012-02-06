@@ -48,13 +48,16 @@ LocalContacts = new local_contacts.contacts();
  */
 this.authenticate = function(params, callback)
 {
-
-  if (params[0]['type'] == "local" && process.platform!=='android')
+console.log("---------DEBUG: calling authenticate with params[0]= "+ params+" and platform = "+ process.platform);
+console.log("ASSERT params[1]===ALWAYS_ALLOW",params[1] === "ALWAYS ALLOW")
+  if (params[0]['type'] === "local" && process.platform!=='android')
   {
+    console.log("---------DEBUG: first if");
     callback(LocalContacts.open(params[0]['addressBookName']));
   }
-  else if (params[0]['type'] == "remote" && process.platform!=='android')
+  else if (params[0]['type'] == "remote" && !(params[1] === "ALWAYS ALLOW" || process.platform==='android'))
   {
+        console.log("---------DEBUG: second if");
 // TODO CHANGE
     var pmlib = require(webinosRoot+'/common/manager/policy_manager/lib/policymanager.js'), policyManager, exec = require('child_process').exec; // this line should be moved in the policy manager
 
@@ -99,15 +102,25 @@ this.authenticate = function(params, callback)
         break;
 
       default:
-      if (params[1] == "ALWAYS ALLOW" || process.platform==='android') //TODO for standalone test only! Remove for Webinos release...
-        RemoteContacts.logIn(params[0]['usr'], params[0]['pwd'], callback);
+	      callback(false);
+      console.log("KO");
+        break;
+    }
+
+  }
+      else if (params[0]['type'] == "remote" && (params[1] === "ALWAYS ALLOW" || process.platform==='android')) //TODO for standalone test only! Remove for Webinos release...
+      {
+	console.log("---------DEBUG: third if");
+	RemoteContacts.logIn(params[0]['usr'], params[0]['pwd'], callback);
+      }
       else
       {
-        callback(false);
-        console.log("KO");
+	console.log("---------DEBUG: fourth if");
+	console.log("KO");
+	callback(false);
       }
-    }
-  }
+
+ // }
 };
 
 /**
