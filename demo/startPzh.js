@@ -1,6 +1,7 @@
 var fs = require('fs'),
 	path                = require('path'),
 	Pzh                 = require('../webinos/pzh/lib/pzh_sessionHandling.js'),
+	PzhFarm             = require('../webinos/pzh/lib/pzh_farm.js'),
 	PzhWebInterface     = require('../webinos/pzh/web/pzh_web_interface.js');
 
 var options = {};
@@ -9,8 +10,8 @@ function help() {
     console.log('Usage: node startPzh.js [options]');
     console.log('Options:');
     console.log('--host=[host]            host of the pzh (default localhost)');
-    console.log('--port=[port]            port to host the pzh (default 8000)');
-    console.log('--pzh-web-port=[port]    port to pzp web server (default 8083)');
+    console.log('--port=[port]            port to host the pzh (default 443)');
+    console.log('--pzh-web-port=[port]    port to pzp web server (default 80)');
     process.exit();
 }
 
@@ -23,15 +24,7 @@ process.argv.forEach(function (arg) {
 	      case '--host':
 	        options.host = parts[1];
 	        break;
-	      case '--port':
-	    	  options.port = parseInt(parts[1], 10);
-	    	  break;
-	      case '--pzh-web-port':
-	    	  options.pzhWebPort = parseInt(parts[1], 10);
-	    	  break;
-	      default:
-	        console.log('unknown option: ' + parts[0]);
-	        break;
+
 	      }
 	    }
 	    else if (parts[0] === '--help') {
@@ -45,12 +38,13 @@ var pzhModules = [
  //   {name: "events", param: {}}
 ];
 
+var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=webinosPzh1\nemail=internal@webinos.org\ndays=180\n"
 
-Pzh.startFarm(function() {
+PzhFarm.startFarm('localhost' , contents, function(result) {
 	
-	Pzh.startPzh(config, pzhModules, function(res,instance) {
+	Pzh.startPzh(contents, pzhModules, function(res,instance) {
 		console.log('******* PZH STARTED *******');
-		Pzh.startPzh(config, pzhModules, function(res,instance) {
+		Pzh.startPzh(contents, pzhModules, function(res,instance) {
 			console.log('******* PZH1 STARTED *******');
 		});			
 	});

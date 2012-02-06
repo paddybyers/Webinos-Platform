@@ -242,7 +242,7 @@
 					this.clients[regid] = sessionid;
 				}
    
-				logObj(message, "register Message");
+				console.log("register Message");
 			}
     		return; 
 		}
@@ -252,7 +252,7 @@
 			
 			//check if a session with destination has been stored 
 			if(message.to !== this.self) {
-				logObj(message, "forward Message");
+				console.log("forward Message");
            
 				//if no session is available for the destination, forward to the hop nearest, 
 				//i.e A->D, if session for D is not reachable, check C, then check B if C is not reachable
@@ -269,21 +269,24 @@
 					var occurences = (message.to.split(this.separator).length - 1);
 					var data = message.to.split(this.separator);
 					var id = data[0];
-				    var forwardto = data[0]; 
+					var forwardto = data[0];
 				    
 					//strip from right side
-				    for(var i = 1; i < occurences; i++) {
-				    	id = id + this.separator + data[i];
-				    	var new_session1 = [id, this.self];
-				    	new_session1.join("->");
-				    	var new_session2 = [this.self, id];
-				    	new_session2.join("->");
+					for(var i = 1; i < occurences; i++) {
+						id = id + this.separator + data[i];
+						var new_session1 = [id, this.self];
+						new_session1.join("->");
+						var new_session2 = [this.self, id];
+						new_session2.join("->");
 
-				    	if(this.clients[new_session1] || this.clients[new_session2]) {
-				    		forwardto = id;
-				    	}
-				    }
-			        this.sendMsg(message, forwardto, this.objectRef);
+						if(this.clients[new_session1] || this.clients[new_session2]) {
+							forwardto = id;
+						}
+					}
+					console.log(message);
+					console.log(forwardto);
+					console.log(this.objectRef);
+					this.sendMsg(message, forwardto, this.objectRef);
 				}
 				else if(this.clients[session2]) {
 					this.sendMsg(message, this.clients[session2], this.objectRef);
@@ -296,30 +299,30 @@
 			//handle message on itself 
 			else {
 				if(message.payload) {
-			       if(message.to != message.resp_to) {
+					if(message.to != message.resp_to) {
 						console.log(message.payload);
 						var from = message.from;
 						var msgid = message.id;
 						this.rpcHandler.handleMessage(message.payload, from, msgid);
-			        } 
-			        else {
-			        	if(typeof message.payload.method !== "undefined" ) {
-			        		// FIXME: can we call rpc.handleMessage here without checking messageCallbacks[] for message.id? 
-			        		logObj(message, "Message forwarded to RPC to handle callback");
+					} 
+					else {
+						if(typeof message.payload.method !== "undefined" ) {
+							// FIXME: can we call rpc.handleMessage here without checking messageCallbacks[] for message.id?
+							console.log("Message forwarded to RPC to handle callback");
 							var from = message.from;
-			        		var msgid = message.id;	       
-			        		this.rpcHandler.handleMessage(message.payload, from, msgid);
-			        	}
-			        	else {
-			        		if(typeof message.payload.result !== "undefined" || typeof message.payload.error !== "undefined") {
-			        			this.rpcHandler.handleMessage(message.payload);
-			        		}
-			        	}
-			        	
-			        	if(this.messageCallbacks[message.id]) {
-			        		this.messageCallbacks[message.id].onSuccess(message.payload.result);
-			        	}
-			        }
+							var msgid = message.id;
+							this.rpcHandler.handleMessage(message.payload, from, msgid);
+						}
+						else {
+							if(typeof message.payload.result !== "undefined" || typeof message.payload.error !== "undefined") {
+								this.rpcHandler.handleMessage(message.payload);
+							}
+						}
+
+						if(this.messageCallbacks[message.id]) {
+							this.messageCallbacks[message.id].onSuccess(message.payload.result);
+						}
+					}
 				}
 				else {
 					// what other message type are we expecting?

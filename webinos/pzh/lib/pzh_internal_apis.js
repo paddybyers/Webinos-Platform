@@ -129,7 +129,7 @@ pzhapis.crashLog = function(pzh, callback) {
 	"use strict";
 	
 	try {
-	    var logFile = webinosDemo + '/'+pzh.sessionId + '_crash.txt';
+		var logFile = webinosDemo + '/'+pzh.sessionId + '_crash.txt';
 		var clog = fs.readFileSync(logFile, 'utf8');
 		callback(null,clog);
 	} catch (err) {
@@ -140,3 +140,20 @@ pzhapis.crashLog = function(pzh, callback) {
 
 
 
+pzhapis.restartPzh = function(instance, callback) {
+	try {
+		log(INFO, util.inspect(instance));
+		if ((typeof instance.conn.end) === 'undefined' ) {
+			callback.call(instance, "Failed - no open connections to close");
+		} else {
+		instance.conn.end();
+		instance.sock.close();
+			startPzh(instance.contents, instance.server, instance.port, function(result){
+				callback.call(instance, result);
+			});
+		}
+	} catch(err) {
+		log(ERROR, 'Pzh restart failed ' + err);
+		callback.call(instance, err);
+	}
+}

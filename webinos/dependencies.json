@@ -87,6 +87,10 @@
       "location": "common/manager/policy_manager/"
     }
   },
+  "uniqueID": {
+    "name":"uniqueID",
+    "location": "common/uniqueID/"
+  },
   "rpc": {
     "name": "RPC",
     "location": "common/rpc/"

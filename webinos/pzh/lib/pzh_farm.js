@@ -1,9 +1,14 @@
+var tls         = require('tls');
+var path        = require('path');
+var util        = require('util');
 
-var tls = require('tls');
+var moduleRoot    = require(path.resolve(__dirname, '../dependencies.json'));
+var dependencies  = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+var webinosRoot   = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
-var initialized = true;
-
-var CACERT = 0;
+var cert          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
+var log           = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_helper.js')).debug;
+var configuration = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_configuration.js'));
 
 var pzhs = [];
 
@@ -14,64 +19,58 @@ var farm = exports;
  * @param config: Holds certificate details
  * @param callback: true in case successful or else false in case unsucessful
  */
-farm.startFarm = function (config, callback) {
-	if (initialized === true) {		
-		cert.selfSigned( config.certDetails, 'PzhFarm', config, CACERT, 
-		function(status, selfSignErr) {
-			console.log(status);
-			if(status === 'certGenerated') {
-				var options = {key: config.key.value,
-					cert: config.cert.value,
-					ca: config.cert.value,
-					requestCert: true };
-
-				farm.server = tls.createServer (options, function (conn) {
-					console.log(conn.servername);
-					if (conn.servername && pzhs[conn.servername]) {
-						console.log(' @pzhfarm@ sending message to ' + conn.servername);
-						pzhs[conn.servername].handleConnectionAuthorization(pzhs[conn.servername], conn);
-					} else {
-						console.log('Server Is Not Registered in Farm');						
-					}
-					
-					conn.on('data', function(data){
-						console.log(' @pzhfarm@ msg received at farm');
-						if(conn.servername && pzhs[conn.servername]) {
-							pzhs[conn.servername].handleData(conn, data);
-						}
-					});
-
-					conn.on('end', function(err) {
-						helper.debug(2, ' @pzhfarm@ ' +conn.servername+' connection end' + err);
-					});
-					
-					// It calls removeClient to remove PZP from connected_client and connectedPzp.
-					conn.on('close', function() {
-						try {
-							helper.debug(2, '@pzhfarm@ ('+conn.servername+') Pzh/Pzp  closed');
-							//var removed = utils.removeClient(self, conn);
-							//self.messageHandler.removeRoute(removed, conn.servername);
-						} catch (err) {
-							helper.debug(1, '@pzhfarm@ ('+conn.servername+') Remove client from connectedPzp/connectedPzh failed' + err);
-						}
-					});
-					
-					conn.on('error', function(err) {
-						helper.debug(1, '@pzhfarm@ ('+conn.servername+') General Error' + err);
-
-					});
-				});
-
-				server.on('listening', function(){
-					console.log('********** PZH Farm Intialized *********** ');
-					callback(true);
-				});
-
-				server.listen(8000);
-				initialized = false;				
+farm.startFarm = function (url, contents, callback) {
+	configuration.createDirectoryStructure();
+	configuration.setConfiguration(url, contents, 'PzhFarm', function (config) {
+		var options = {key: config.cert.conn.key.value,
+			cert: config.cert.conn.cert.value,
+			ca: config.cert.conn.cert.value,
+			requestCert: true };
+		
+		farm.server = tls.createServer (options, function (conn) {
+			log('DEBUG', conn.servername);
+			if (conn.servername && pzhs[conn.servername]) {
+				log('INFO', ' [PZHFARM] sending message to ' + conn.servername);
+				pzhs[conn.servername].handleConnectionAuthorization(pzhs[conn.servername], conn);
+			} else {
+				log('ERROR', ' [PZHFARM] Server Is Not Registered in Farm');
 			}
+
+			conn.on('data', function(data){
+				log('INFO', ' [PZHFARM] msg received at farm');
+				if(conn.servername && pzhs[conn.servername]) {
+					pzhs[conn.servername].handleData(conn, data);
+				}
+			});
+
+			conn.on('end', function(err) {
+				log('INFO', ' [PZHFARM] ' +conn.servername+' connection end' + err);
+			});
+
+			// It calls removeClient to remove PZP from connected_client and connectedPzp.
+			conn.on('close', function() {
+				try {
+					log('INFO', '[PZHFARM] ('+conn.servername+') Pzh/Pzp  closed');
+					//var removed = utils.removeClient(self, conn);
+					//self.messageHandler.removeRoute(removed, conn.servername);
+				} catch (err) {
+					log('ERROR', '[PZHFARM] ('+conn.servername+') Remove client from connectedPzp/connectedPzh failed' + err);
+				}
+			});
+
+			conn.on('error', function(err) {
+				log('ERROR', '[PZHFARM] ('+conn.servername+') General Error' + err);
+
+			});
 		});
-	}
+
+		farm.server.on('listening', function(){
+			log('INFO', '********** PZH Farm Intialized *********** ');
+			callback(true);
+		});
+
+		farm.server.listen(8000);
+	});
 };
 
 farm.addPzh = function( config) {
@@ -87,9 +86,9 @@ farm.addPzh = function( config) {
 
 	utils.setMessagingParam(pzh);
 	if (typeof server === "undefined" || server === null) {
-		ca
+		log('ERROR', 'Farm is not running, please startFarm');
+	} else {
+		server.addContext(serverName, options);
 	}
-		
-	server.addContext(serverName, options);
 	
 };
