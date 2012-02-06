@@ -44,15 +44,16 @@ configure.setConfiguration = function (id, contents, pzhType, callback) {
 	var webinosDemo = configure.webinosDemoPath();
 	var config;
 	
-	fs.readFile(( webinosDemo+'/config/'+ id +'.txt'), function(err, data) {
+	fs.readFile(( webinosDemo+'/config/'+ id +'.json'), function(err, data) {
+		
 		if ( err && err.code=== 'ENOENT' ) {
 			// CREATE NEW CONFIGURATION
 			// TODO: If configuration file is deleted and certificates exist
 
 			var name = id;
-
-			if (id.split['/'] && id.split['/'][1]) {
-				name = id.split['/'][1];
+			console.log(id.split('/'));
+			if (id.split('/') && id.split('/')[1]) {
+				name = id.split('/')[1];
 			}
 
 			config = createConfigStructure(name);
@@ -77,21 +78,15 @@ configure.setConfiguration = function (id, contents, pzhType, callback) {
 									return;
 								}*/
 
-								fs.writeFileSync(config.cert.pzhKeyDir+'/' +config.cert.master.key.name,  config.cert.master.key.value);
-								fs.writeFileSync(config.cert.pzhCertDir+'/'+config.cert.master.cert.name, config.cert.master.cert.value);
-								fs.writeFileSync(config.cert.pzhCertDir+'/'+config.cert.master.crl.name,  config.cert.master.crl.value);
-
 								cert.signRequest(config.cert.conn.csr.value, config.cert.master, 1, function(result, cert) {
 									// connection certificate signed by master certificate
-									log('INFO', ' [CONFIG] CA Signed Conn Certificate ' + result);
+									log('INFO', ' [CONFIG] CA Signed Conn Certificate ');
 									if(result === 'certSigned') {
-										try {
-											fs.writeFileSync(config.cert.pzhCertDir+'/'+config.cert.conn.cert.name, config.cert.conn.cert.value);
-											fs.writeFileSync(config.cert.pzhKeyDir+'/' +config.cert.conn.key.name,  config.cert.conn.key.value);
-											fs.writeFileSync((webinosDemo+ '/config/' + id+'.json'), JSON.stringify(config, null, " "));
+										try {										
+											fs.writeFileSync((webinosDemo+ '/config/' + name+'.json'), JSON.stringify(config, null, " "));
 											callback(config);
 										} catch (err) {
-											log('ERROR',' [CONFIG] ('+id+') Error writing connection certificate');
+											log('ERROR',' [CONFIG] ('+name+') Error writing connection certificate');
 											return;
 										}
 									} else {
@@ -108,19 +103,13 @@ configure.setConfiguration = function (id, contents, pzhType, callback) {
 			});
 			
 		} else {
-			log('INFO', data);
-
+			config = JSON.parse(data);
 			var name = id;
 
 			if (id.split['/'] && id.split['/'][1]) {
 				name = id.split['/'][1];
 			}
-			config = createConfigStructure();
-			config.cert.master.cert.value = fs.readFileSync(config.cert.pzhCertDir+'/'+config.cert.master.cert.name).toString();
-			config.cert.master.key.value  = fs.readFileSync(config.cert.pzhKeyDir+'/'+config.cert.master.key.name).toString();
-			config.cert.conn.key.value    = fs.readFileSync(config.cert.pzhKeyDir+'/'+config.cert.conn.key.name).toString();
-			config.cert.conn.cert.value   = fs.readFileSync(config.cert.pzhCertDir+'/'+config.cert.conn.cert.name).toString();
-
+			
 			// TODO: This works fine for linux and mac. Requires implementation on Android and Windows
 			/*try{
 				//var key =require("../../common/manager/keystore/src/build/Release/keystore");
@@ -130,17 +119,7 @@ configure.setConfiguration = function (id, contents, pzhType, callback) {
 				console.log(err);
 				return;
 			}*/
-
-			//config.master.key.value = fs.readFileSync(pzhKeyDir+'/'+config.master.key.name).toString();
-			if ( path.existsSync(config.cert.pzhCertDir+'/'+config.cert.master.crl.name)) {
-				config.cert.master.crl.value = fs.readFileSync(config.cert.pzhCertDir+'/'+config.cert.master.crl.name).toString();
-				log('INFO', "[CONFIG] Using CRL " + config.cert.pzhCertDir+'/'+config.cert.master.crl.name);
-			} else {
-				config.cert.master.crl.value = null;
-				log('INFO', "[CONFIG] WARNING: No CRL found.  May be worth regenerating your certificates");
-			}
-
-			callback.call(self, config);
+			callback(config);
 		}
 	});
 

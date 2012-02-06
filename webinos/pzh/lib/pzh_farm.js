@@ -7,6 +7,7 @@ var dependencies  = require(path.resolve(__dirname, '../' + moduleRoot.root.loca
 var webinosRoot   = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
 var cert          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
+var utils         = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 var log           = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_helper.js')).debug;
 var configuration = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_configuration.js'));
 
@@ -73,22 +74,3 @@ farm.startFarm = function (url, contents, callback) {
 	});
 };
 
-farm.addPzh = function( config) {
-	pzh = pzh.createPzh(config);
-	pzhs[config.servername] = pzh; 
-	var options = {key: config.conn.key.value,
-		cert: config.conn.cert.value,
-		ca: config.master.cert.value,
-		crl: config.master.crl.value,
-		requestCert:true, 
-		rejectUnauthorized:false
-	};
-
-	utils.setMessagingParam(pzh);
-	if (typeof server === "undefined" || server === null) {
-		log('ERROR', 'Farm is not running, please startFarm');
-	} else {
-		server.addContext(serverName, options);
-	}
-	
-};

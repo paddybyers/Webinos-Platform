@@ -18,10 +18,11 @@
 	var webinosDemo  = path.resolve(__dirname, '../../../demo');
 	
 	/** Global variables used in Pzh */
-	var Pzh = null;
+	var Pzh        = null;
 	var log        = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_helper.js')).debug;
 	var pzhapis    = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_internal_apis.js'));
-
+	var config     = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_configuration.js'));
+	
 	var server = null;
 	var initialized = true;
 	var pzhs = [];
@@ -248,8 +249,7 @@
 			log('ERROR ', 'PZH ('+self.sessionId+') Error Signing Client Certificate' + err);
 			cb("Could not create client certificate", null);
 		}
-	}
-	
+	}	
 	
 	/** @description This is a crypto sensitive function
 	*/
@@ -317,39 +317,32 @@
 				}
 			}
 		});	
-	};	
-	
-	/** starts pzh, creates TLS server, resolve DNS and listens.
-	 * @param contents contains certificate details
-	 * @param server holds ipaddress or hostname on which pzh will be started
-	 * @param port port on which server is running
-	 * @param modules array of Webinos modules
-	 * @returns callback with startedPzh message 
-	 */
-	function startPzh(uri, contents, config, modules, callback) {
-		var pzh;
-		try {
-			pzh = new Pzh(modules);
-			 config.setConfiguration(uri, contents, "Pzh", function(config) {
-				pzh.config    = config;
-				pzh.sessionId = pzh.config.common.split(':')[0];
-				
-				pzh.connect(servername);
-				pzhs[servername] = pzh;
-				callback(true, pzh);
-			});
-		} catch (err) {
-			log('ERROR', 'Pzh Initializing Error '  + err);
+	};
+	exports.addPzh = function ( uri, contents, modules, callback) {
+		var pzh = new Pzh(modules);
+		config.setConfiguration(uri, contents, 'Pzh', function(config) {
+			pzh.config    = config;
+			pzh.sessionId = pzh.config.certValues.common.split(':')[0];
 			
-			callback(false, null);
-			return;
-		}
-		return pzh;
-	};	
-	
-	if (typeof exports !== 'undefined') {
-		exports.startPzh = startPzh;
-	
+			pzhs[config.servername] = pzh;
+			
+			var options = {key: config.cert.conn.key.value,
+				cert: config.cert.conn.cert.value,
+				ca: config.cert.master.cert.value,
+				crl: config.cert.master.crl.value,
+				requestCert:true, 
+				rejectUnauthorized:false
+			};
+
+			utils.setMessagingParam(pzh);
+			
+			if (typeof server === "undefined" || server === null) {
+				log('ERROR', 'Farm is not running, please startFarm');
+			} else {
+				server.addContext(uri, options);
+			}
+			callback(true, pzh);
+		});
 	}
 }());
 

@@ -41,9 +41,9 @@ certificate.selfSigned = function(name, certValues, obj, callback) {
 
 	if ( name === 'PzhFarm' || name === 'PzhFarmCA') {
 		certType = 0;
-	} else if(name === 'Pzh') {
+	} else if(name === 'Pzh' || name === 'PzhCA') {
 		certType = 1;
-	} else if(name === 'Pzp') {
+	} else {
 		certType = 2;
 	}
 
