@@ -44,12 +44,14 @@ function Address(contry, region, county, city, street, streetNumber, premises, a
 	this.postalCode = postalCode;
 }
 
-function ParkSensorEvent(position, left, midLeft, midRight, right){
+function ParkSensorEvent(position, outLeft, left, midLeft, midRight, right, outRight){
 	this.position = position;
 	this.left = left;
 	this.midLeft = midLeft;
 	this.midRight = midRight;
 	this.right = right;
+	this.outRight = outRight;
+	this.outLeft = outLeft;
 }
 
 function ClimateControlEvent(zone, desiredTemperature, acstatus, ventLevel, ventMode){
@@ -111,28 +113,28 @@ function get(vehicleDataId, vehicleDataHandler, errorCB){
         errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
         break;	
     case "lights-fog-front":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
+    	vehicleDataHandler(vs.get(vehicleDataId[0]));
         break;
     case "lights-fog-rear":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));;
+    	vehicleDataHandler(vs.get(vehicleDataId[0]));
 		break;	
     case "lights-signal-left":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
+    	vehicleDataHandler(vs.get(vehicleDataId[0]));
 		break;		
     case "lights-signal-right":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
+    	vehicleDataHandler(vs.get(vehicleDataId[0]));
 		break;
 	case "lights-signal-warn":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
+		vehicleDataHandler(vs.get(vehicleDataId[0]));
 		break;
 	case "lights-parking":
-        errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
+		vehicleDataHandler(vs.get(vehicleDataId[0]));
 		break;
 	case "lights-hibeam":
-		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
+		vehicleDataHandler(vs.get(vehicleDataId[0]));
 		break;
 	case "lights-head":
-		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
+		vehicleDataHandler(vs.get(vehicleDataId[0]));
 		break;
     case "wiper-front-wash":
 		errorCB(new VehicleError(vehicleDataId[0] + 'not found'));
@@ -198,7 +200,6 @@ var listeningToWiperFrontLevel2 = false;
 
 /*AddEventListener*/
 addEventListener = function (vehicleDataId, successHandler, errorHandler, objectRef){
-	
 	console.log("vehicleDataId " + vehicleDataId);	
 		switch(vehicleDataId){
 			case "shift":
@@ -276,8 +277,10 @@ addEventListener = function (vehicleDataId, successHandler, errorHandler, object
 			case "lights-fog-front":
 				objectRefs.push([objectRef, vehicleDataId]);
 				if(!listeningToLightsFogFront){
-					listeningToLightsFogRear = true;
+					listeningToLightsFogFront = true;
 				}
+				
+				
 				break;
 			case "lights-fog-rear":
 				objectRefs.push([objectRef, vehicleDataId]);
@@ -314,6 +317,7 @@ addEventListener = function (vehicleDataId, successHandler, errorHandler, object
 				if(!listeningToLightsHibeam){
 					listeningToLightsHibeam = true;
 				}
+			
 				break;
 			case "lights-head":
 				objectRefs.push([objectRef, vehicleDataId]);
@@ -483,15 +487,14 @@ removeEventListener = function(arguments){
 
 /*handleShiftEvents*/
 function handleShiftEvents(shiftE){
-        if(listeningToGear){
+	if(listeningToGear){
         for(i = 0; i < objectRefs.length; i++){
 				if(objectRefs[i][1] == "shift"){
                 	json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", shiftE);
                  	rpcHandler.executeRPC(json);
 				}
         }
-        }
- 
+	}
 }
 
 
@@ -574,6 +577,94 @@ function findDestination(search, successCb, errorCb){
 }
 
 
+function handleLightsFogFront(event){
+	if(listeningToLightsFogFront){
+        for(i = 0; i < objectRefs.length; i++){
+				if(objectRefs[i][1] == "lights-fog-front"){
+                	json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", event);
+                 	rpcHandler.executeRPC(json);
+				}
+        }
+	}
+}
+
+
+
+function handleLightsFogRear(event){
+	if(listeningToLightsFogRear){
+        for(i = 0; i < objectRefs.length; i++){
+				if(objectRefs[i][1] == "lights-fog-rear"){
+                	json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", event);
+                 	rpcHandler.executeRPC(json);
+				}
+        }
+	}
+}
+function handleLightsHibeam(event){
+	if(listeningToLightsHibeam){
+        for(i = 0; i < objectRefs.length; i++){
+				if(objectRefs[i][1] == "lights-hibeam"){
+                	json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", event);
+                 	rpcHandler.executeRPC(json);
+				}
+        }
+	}
+}
+function handleLightsParking(event){
+	if(listeningToLightsParking){
+        for(i = 0; i < objectRefs.length; i++){
+				if(objectRefs[i][1] == "lights-parking"){
+                	json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", event);
+                 	rpcHandler.executeRPC(json);
+				}
+        }
+	}
+}
+
+function handleLightsHead(event){
+	if(listeningToLightsHead){
+        for(i = 0; i < objectRefs.length; i++){
+				if(objectRefs[i][1] == "lights-head"){
+                	json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", event);
+                 	rpcHandler.executeRPC(json);
+				}
+        }
+	}
+}
+
+function handleLightsSignalLeft(event){
+	if(listeningToLightsSignalLeft){
+        for(i = 0; i < objectRefs.length; i++){
+				if(objectRefs[i][1] == "lights-signal-left"){
+                	json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", event);
+                 	rpcHandler.executeRPC(json);
+				}
+        }
+	}
+}
+
+function handleLightsSignalRight(event){
+	if(listeningToLightsSignalRight){
+        for(i = 0; i < objectRefs.length; i++){
+				if(objectRefs[i][1] == "lights-signal-right"){
+                	json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", event);
+                 	rpcHandler.executeRPC(json);
+				}
+        }
+	}
+}
+
+function handleLightsSignalWarn(event){
+	if(listeningToLightsSignalWarn){
+        for(i = 0; i < objectRefs.length; i++){
+				if(objectRefs[i][1] == "lights-signal-warn"){
+                	json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", event);
+                 	rpcHandler.executeRPC(json);
+				}
+        }
+	}
+}
+
 function setRPCHandler(rpcHdlr) {
 	rpcHandler = rpcHdlr;
 }
@@ -587,12 +678,21 @@ function setRequired(obj) {
     vs.addListener('destination-reached', handleDestinationReached);
     vs.addListener('destination-changed', handleDestinationChanged);
     vs.addListener('destination-cancelled', handleDestinationCancelled);
+    vs.addListener('lights-fog-front', handleLightsFogFront);
+    vs.addListener('lights-fog-rear', handleLightsFogRear);
+    vs.addListener('lights-hibeam', handleLightsHibeam);
+    vs.addListener('lights-parking', handleLightsParking);
+    vs.addListener('lights-head', handleLightsHead);
+    vs.addListener('lights-signal-left', handleLightsSignalLeft);
+    vs.addListener('lights-signal-right', handleLightsSignalRight);
+    vs.addListener('lights-signal-warn', handleLightsSignalWarn);
 }
 
 
 exports.addEventListener = addEventListener;
 exports.removeEventListener = removeEventListener;
 exports.get = get;
+
 exports.findDestination = findDestination;
 exports.requestGuidance = requestGuidance;
 exports.setRPCHandler = setRPCHandler;
@@ -601,7 +701,7 @@ exports.setRequired = setRequired;
 exports.serviceDesc = {
 		api:'http://webinos.org/api/vehicle',
 		displayName:'Vehicle API (Simulator)',
-		description:'Provides faked vehicle data.'
+		description:'Provides data from the vehicle simulator.'
 };
 
 })(module.exports);

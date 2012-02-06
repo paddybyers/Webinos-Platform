@@ -214,6 +214,13 @@ exports.configure = function(self, certPath, id, contents, callback) {
 			self.config.master.csr.name = name+'_master_cert.csr';
 			self.config.master.crl = {};
 			self.config.master.crl.name = name+'_master_cert.crl';
+			
+			self.config.webserver = {
+			    cert : { name : name+'_ws_cert.pem' },
+		        key : { name : name+'_ws_key.pem' }
+			};
+			
+			
 			data1 = contents.toString().split('\n');
 			getId(self, function(getid) {
 				self.config.id = getid;
@@ -262,6 +269,13 @@ exports.configure = function(self, certPath, id, contents, callback) {
 			self.config.master.csr.name = name+'_master_cert.csr';
 			self.config.master.crl = {};
 			self.config.master.crl.name = name+'_master_cert.crl';
+			
+			self.config.webserver = {
+			    cert : { name : name+'_ws_cert.pem' },
+		        key : { name : name+'_ws_key.pem' }
+			};
+			
+			
 			self.config.common = common;
 			self.config.days = 180;			
 			callback.call(self,'Certificate Present');	

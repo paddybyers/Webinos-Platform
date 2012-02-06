@@ -22,25 +22,25 @@
                        connectedPzp = data.payload.message.connectedPzp;
                        connectedPzh = data.payload.message.connectedPzh;
                     }
-                    	
+                        
                     if(document.getElementById('pzh_pzp_list'))
                         document.getElementById('pzh_pzp_list').innerHTML="";
             
                     $("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
                     var i;
                     if(typeof connectedPzp !== "undefined") {
-		                for(i =0; i < connectedPzp.length; i++) {
-		                    $("<option value=" + connectedPzp[i] + " >" +connectedPzp[i] + "</option>").appendTo("#pzh_pzp_list");                  
-		                }
-		            }
-		            $("<option value="+pzpId+" >" + pzpId+ "</option>").appendTo("#pzh_pzp_list");                      
+                                for(i =0; i < connectedPzp.length; i++) {
+                                    $("<option value=" + connectedPzp[i] + " >" +connectedPzp[i] + "</option>").appendTo("#pzh_pzp_list");                  
+                                }
+                            }
+                            $("<option value="+pzpId+" >" + pzpId+ "</option>").appendTo("#pzh_pzp_list");                      
                     $("</optgroup>").appendTo("#pzh_pzp_list");
                     $("<optgroup label = 'PZH' id ='pzh_list' >").appendTo("#pzh_pzp_list");
                     if(typeof connectedPzh !== "undefined") {
-		                for(i =0; i < connectedPzh.length; i++) {
-		                    $("<option value=" + connectedPzh[i] + " >" +connectedPzh[i] + "</option>").appendTo("#pzh_pzp_list");                  
-		                }
-		            }
+                                for(i =0; i < connectedPzh.length; i++) {
+                                    $("<option value=" + connectedPzh[i] + " >" +connectedPzh[i] + "</option>").appendTo("#pzh_pzp_list");                  
+                                }
+                            }
                    $("</optgroup>").appendTo("#pzh_pzp_list");
                 }
                 webinos.session.addListener('registeredBrowser', fillPZAddrs);
@@ -66,6 +66,7 @@
                         displayError("*none*");                        
                         
                     $('#findService').bind('click', function() {
+                            webinos.session.setServiceLocation($('#pzh_pzp_list').val());
                             webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/payment'), {onFound: function (service) {
                                 paymentService = service;   displayStatus("Service found");
                             }});                           
@@ -74,8 +75,19 @@
 
                     $('#createShoppingBasket').bind('click', function() {
 
+                     providerList=document.getElementById('provider_list');
+   
                      if (paymentService == null) { alert("Need to find service first");  }
                      else {                    
+                         // set parameters appropriate for test case
+                         if(providerList.options[providerList.selectedIndex].value=="BlueVia")customer="kn12011684494805"; // consumer key
+                         else if(providerList.options[providerList.selectedIndex].value=="GSMA")customer="+16309700001"; // subscriber telephone
+                         else customer="TestCustomer";
+
+                         if(providerList.options[providerList.selectedIndex].value=="BlueVia")shop="cc9171216b9854493e488191b988c3f0"; // consumer secret
+                         else if(providerList.options[providerList.selectedIndex].value=="GSMA")shop="webinosTest"; // GSMA sandbox account
+                         else shop="TestShop";
+                         
                           paymentService.createShoppingBasket(
                            function (basket) {
                                 myBasket = basket;
@@ -87,9 +99,9 @@
                                 if(typeof(error)=='object')displayError(error.code+" : "+error.message);
                                 else displayError("Unknown error condition");
                             },
-                            "ServiceProvider123",
-                            "CustomerNumber456",
-                            "Shop78"
+                            providerList.options[providerList.selectedIndex].value,
+                            customer,
+                            shop
                             );      
                        }
                     }); 
@@ -116,21 +128,21 @@
                            tobuy="Mornington Crescent";
                         var topay= 0;
                         if(document.getElementById("itemList").selectedIndex==1)
-                           topay=60;
+                           topay=0.06;
                         if(document.getElementById("itemList").selectedIndex==2)
-                           topay=100;
+                           topay=0.10;
                         if(document.getElementById("itemList").selectedIndex==3)
-                           topay=220;
+                           topay=0.22;
                         if(document.getElementById("itemList").selectedIndex==4)
-                           topay=300;
+                           topay=0.30;
                         if(document.getElementById("itemList").selectedIndex==5)
-                           topay=400;
+                           topay=0.40;
                         if(document.getElementById("itemList").selectedIndex==6)
-                           topay=500;
+                           topay=50.5;
                       var myItem=new ShoppingItem();
                       myItem.productID=""+document.getElementById("itemList").selectedIndex;
                       myItem.description=tobuy;
-                      myItem.currency="GBP";
+                      myItem.currency="EUR";
                       myItem.itemPrice=topay;
                       myItem.itemCount=1;
                       myItem.itemsPrice=topay;
@@ -233,16 +245,17 @@
    
                         <p>
                         <div> PZH PZP LIST : <select id="pzh_pzp_list"> <option> </option> </select> <br> </div>
+                        <div> Payment Provider : <select id="provider_list"> <option>Local test</option> <option value="GSMA">GSMA Test</option> <option value="BlueVia">BlueVia Test (unfinished)</option> </select> <br> </div>
                         <button id="findService">Find Service</button><br />
                         <button id="createShoppingBasket">Create Shopping  Basket</button><br />
                         <select id="itemList" name="itemList" size=1>
                           <option value="">Select item to add to basket
-                          <option value="item1">Old Kent Road - &pound;60
-                          <option value="item2">Euston Road - &pound;100
-                          <option value="item3">The Strand - &pound;220
-                          <option value="item4">Regent Street - &pound;300
-                          <option value="item5">Mayfair - &pound;400
-                          <option value="item6">Mornington Crescent - &pound;500
+                          <option value="item1">Old Kent Road - &euro; 0.06
+                          <option value="item2">Euston Road - &euro; 0.10
+                          <option value="item3">The Strand - &euro; 0.22
+                          <option value="item4">Regent Street - &euro; 0.30
+                          <option value="item5">Mayfair - &euro; 0.40
+                          <option value="item6">Mornington Crescent - &euro; 0.05
                         </select>
                         <button id="addItem">Add Item</button><br />
                         <button id="update">Update</button><br />

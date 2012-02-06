@@ -26,7 +26,7 @@
 	 * Webinos Service constructor.
 	 * @param rpcHandler A handler for functions that use RPC to deliver their result.  
 	 */
-	var Contacts = function(rpcHandler) {
+	var Contacts = function(rpcHandler,params) {
 		// inherit from RPCWebinosService
 		this.base = RPCWebinosService;
 		this.base({
@@ -34,7 +34,7 @@
 			displayName: 'Contacts',
 			description: 'W3C Contacts Module'
 		});
-		
+
 	};
 
 	

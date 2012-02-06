@@ -1,43 +1,42 @@
-
-      
+/* 
+ *   webinos Personal Zone Hub web interface routes file
+ *   
+ *   This page contains the routes we're exposing to the PZH web interface
+ *   for managing the personal zone hub.  E.g. adding new devices, revocation,
+ *   showing device status, etc.
+ *
+ *   Original author: John Lyle (john.lyle@cs.ox.ac.uk)
+ *
+ *
+ * TODO - Integrate with a real strategy for managing user identity.  
+ *        Currently we have an identity but we don't check anything about it.
+ *
+ * TODO - We're requesting a client certificate, but we don't change behaviour 
+ *        if one isn't presented.  This might remove some functionality in the 
+ *        future.
+ *
+ * TODO - integrate with the policy system rather than this adhoc 
+ *        "ensureAuthenticated" approach.
+ */
+ 
 module.exports = function(app){
-
-    // Webinos dependencies
-    var path         = require('path');
-    var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
-    var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
-    var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
-    var pzhapis      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_internal_apis.js'));
-    var utils        = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
-       
-    
-    var express         = require('express'),
+    "use strict";
+    var path            = require('path'),
         util            = require('util'),
         crypto          = require('crypto'),
         fs              = require('fs'),
+        moduleRoot      = require(path.resolve(__dirname, '../dependencies.json')),
+        webinosRoot     = path.resolve(__dirname, '../' + moduleRoot.root.location),
+        dependencies    = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json')),
+        pzhapis         = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_internal_apis.js')),
+        utils           = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')),
+        express         = require('express'),
         passport        = require('passport'), 
-        GoogleStrategy  = require('passport-google').Strategy;
+        GoogleStrategy  = require('passport-google').Strategy,
         YahooStrategy   = require('passport-yahoo').Strategy;
-  
-    //for testing.  May be removed.
-    function fakeUser() {
-        return {
-            from: "google",
-            identifier: "Fake ID",
-            displayName: "Fake user",
-            emails : ["fake@example.com"]
-        }
-    }
   
     app.get('/', function(req, res){
       res.render('index', { user: req.user, isMutualAuth: false });
-
-      //var fake = fakeUser();
-      //res.render('index', { user: fake, isMutualAuth: false });
-      //console.log(util.inspect(req.user));
-      
-      //console.log("index, app: \n" + util.inspect(app));
-
     });
 
     app.get('/account', ensureAuthenticated, function(req, res){
@@ -45,52 +44,81 @@ module.exports = function(app){
     });
 
     app.get('/addpzp', ensureAuthenticated, function(req, res){
-
       pzhapis.addPzpQR(app.Pzh, function(err, qr, text) {
-          res.render('addpzp', { user: req.user, pzh: app.Pzh, isMutualAuth: false, qrcode: {img: qr, code: text} });
-      });
-      
+          res.render('addpzp', { 
+            user: req.user, 
+            pzh: app.Pzh, 
+            isMutualAuth: false, 
+            qrcode: {img: qr, code: text} 
+          });
+      });     
     });
         
     app.get('/zone', ensureAuthenticated, function(req, res){    
-
-
-      pzhapis.listZoneDevices(app.Pzh, function(err, list) {
-        
-        res.render('zone', { user: req.user, pzh: app.Pzh, isMutualAuth: false, devices: list });
-                
-      });
-      
+        pzhapis.listZoneDevices(app.Pzh, function(err, list) {          
+            res.render('zone', { 
+                user: req.user, 
+                pzh: app.Pzh, 
+                isMutualAuth: false, 
+                devices: list 
+            });
+        });
     });
     
     app.get('/revoke/pzp/:id', ensureAuthenticated, function(req, res){    
+      "use strict";
       var result = null;
       pzhapis.revoke(app.Pzh, req.params.id, function(err) {
         if (typeof err === 'undefined') {
             //todo force a restart.
             result = { success: true };            
-            res.render('revoke', {user: req.user, isMututalAuth: false, revoke: result});
-
+            res.render('revoke', {
+                user: req.user, 
+                isMututalAuth: false, 
+                revoke: result
+            });
         } else {
             result = { success: false, reason: err };
-            res.render('revoke', {user: req.user, isMututalAuth: false, revoke: result});
+            res.render('revoke', {user: req.user, 
+                isMututalAuth: false, 
+                revoke: result});
         }
       });
     });
     
     app.get('/revoke/pzh/:id', ensureAuthenticated, function(req, res) {
+      "use strict";
       var result = null;
       result = { success: false, reason: "not supported" };        
-      res.render('revoke', {user: req.user, isMututalAuth: false, revoke: result});      
+      res.render('revoke', {
+        user: req.user, 
+        isMututalAuth: false, 
+        revoke: result
+      });      
     });
     
     app.get('/restart', ensureAuthenticated, function(req,res) {
+        "use strict";
         pzhapis.restartPzh(app.Pzh, function(err, result, newpzh) {
             if (err) {
-                res.render('restart', {user: req.user, isMututalAuth: false, restart : { success: false, reason: err}});      
+                res.render('restart', {
+                    user: req.user, 
+                    isMututalAuth: false, 
+                    restart : { 
+                        success: false, 
+                        reason: err
+                    }
+                });      
             } else {               
                 app.Pzh = newpzh;
-                res.render('restart', {user: req.user, isMututalAuth: false, restart : { success: true, reason: "We're awesome"}});                  
+                res.render('restart', {
+                    user: req.user, 
+                    isMututalAuth: false, 
+                    restart : { 
+                        success: true, 
+                        reason: null
+                    }
+                });                  
             }
         });   
     });
@@ -100,7 +128,12 @@ module.exports = function(app){
             if (err !== null) {
                 msg = "Ironically, the crashlog crashed - " + err;  
             }
-            res.render('crashlog', { user: req.user, pzh: app.Pzh, isMutualAuth: false, crashlog: msg});          
+            res.render('crashlog', { 
+                user: req.user, 
+                pzh: app.Pzh, 
+                isMutualAuth: false, 
+                crashlog: msg
+            });          
             
         });    
     });
@@ -112,13 +145,11 @@ module.exports = function(app){
         var certvalue = req.body.message.cert;
         pzhapis.addPzhCertificate(app.Pzh, certname, certvalue, function(err) {
             //Handle error;
-        });
-        
+        });       
         //send outgoing certificate
         pzhapis.getPzhCertificate(app.Pzh, function(payload) {
             res.json(payload);
         });
-         
     });
 
     app.get('/certificate', function(req, res){
@@ -181,7 +212,6 @@ module.exports = function(app){
     //   the request will proceed.  Otherwise, the user will be redirected to the
     //   login page.
     function ensureAuthenticated(req, res, next) {
-              
       if (req.isAuthenticated()) { return next(); }
       res.redirect('/login');
     }
