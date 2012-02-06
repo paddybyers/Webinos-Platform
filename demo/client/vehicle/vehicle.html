@@ -225,6 +225,14 @@
 						
 					});
 					
+					$('#registerBrowser').bind('click', function() {
+                        var options = {type: 'prop', payload: {status:'registerBrowser'}};
+                        webinos.session.message_send(options);                
+                		
+                		$('#initVehicle').removeAttr('disabled');
+                	
+                	});
+					
 					$('#deviceorientationType').change(function(){
 						var listenerRegistered = false;
 						for(i=0; i < listenersDeviceOrientation.length; i++){
@@ -962,6 +970,8 @@
      </div>
      <div id="functions">
 		<h2>Testfunctions:</h2>
+		<input type="button" id="registerBrowser" value="Register Browser" class="button" /><br />
+
         <select id="pzh_pzp_list"> <option> </option> </select><br />
             <input type="button" id="initVehicle" value="Use Vehicle API" class="button" disabled/><br />
             <input type="button" id="initOrientation" value="Use Device Orientation" class="button" disabled/><br />
