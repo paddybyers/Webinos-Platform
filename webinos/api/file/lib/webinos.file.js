@@ -9,6 +9,7 @@
  * @author Felix-Johannes Jendrusch <felix-johannes.jendrusch@fokus.fraunhofer.de>
  * 
  * TODO Use error/exception types/codes according to specification (check everywhere!).
+ * TODO Split "big" functions up.
  * TODO Check various "inline" TODOs.
  */
 (function (exports) {
