@@ -7,7 +7,7 @@
 (function (exports) {
 	"use strict";
 
-	// TODO Check token on push and clear tasks array on reset.
+	// TODO Check token on push and clear tasks array on clear.
 	exports.queue = async.queue(function (data, callback) {
 		try {
 			if (data.token >= exports.queue.token)
@@ -18,7 +18,7 @@
 	}, 1);
 
 	exports.queue.token = 0;
-	exports.queue.reset = function () {
+	exports.queue.clear = function () {
 		exports.queue.token++;
 	};
 
@@ -48,7 +48,7 @@
 					token: token,
 					fun: webinos.utils.bind(function () {
 						entries.forEach(function (entry) {
-							exports.entries.add(new exports.Entry(this, entry));
+							exports.entries.add(exports.Entry.create(this, entry));
 						}, this);
 					}, this)
 				});
@@ -75,27 +75,29 @@
 
 		this.splice(i, 0, entry);
 
-		// TODO Use loose coupling to update the user interface.
-		this.render(i);
+		$(exports).trigger("entry.add", [entry, i, this]);
 	};
+
+	$(exports).on("entry.add", function (event, entry, i, entries) {
+		var $list = $("#list");
+
+		if (i == 0)
+			$list.append(entry.html);
+		else
+			entries[i - 1].html.after(entry.html);
+
+		$list.listview("refresh");
+	});
 
 	exports.entries.clear = function () {
 		this.splice(0, this.length);
 
-		// TODO Use loose coupling to update the user interface.
+		$(exports).trigger("entry.clear");
+	};
+
+	$(exports).on("entry.clear", function (event) {
 		$("#list").empty();
-	};
-
-	exports.entries.render = function (i) {
-		var $list = $("#list");
-
-		if (i == 0)
-			$list.append(this[i].html);
-		else
-			this[i - 1].html.after(this[i].html);
-
-		$list.listview("refresh");
-	};
+	});
 
 	exports.Entry = function (shard, entry) {
 		this.shards = [shard];
@@ -104,21 +106,61 @@
 				this.push(shard);
 		};
 
-		this.isFile = entry.isFile;
-		this.isDirectory = entry.isDirectory;
 		this.name = webinos.path.basename(entry.fullPath);
 		this.fullPath = entry.fullPath;
 
-		// TODO Extract to "render" (or something similar).
-		if (this.isFile)
-			this.html = $('<li>' + this.name + '</li>');
-		else if (this.isDirectory)
-			this.html = $('<li><a href="#browse?workingDirectory=' + encodeURIComponent(this.fullPath) + '">' + this.name + '</a></li>');
+		Object.defineProperty(this, "html", {
+			get: function () {
+				if (typeof this.$html === "undefined")
+					this.$html = this.htmlify();
+
+				return this.$html;
+			},
+			set: function (value) {
+				this.$html = value;
+			},
+			configurable: true,
+			enumerable: true
+		});
+	};
+
+	exports.Entry.create = function (shard, entry) {
+		if (entry.isFile)
+			return new exports.FileEntry(shard, entry);
+		else if (entry.isDirectory)
+			return new exports.DirectoryEntry(shard, entry);
+	};
+
+	exports.Entry.prototype.isFile = false;
+	exports.Entry.prototype.isDirectory = false;
+
+	exports.Entry.prototype.$html = undefined;
+
+	exports.DirectoryEntry = function (shard, entry) {
+		exports.Entry.call(this, shard, entry);
+	};
+
+	webinos.utils.inherits(exports.DirectoryEntry, exports.Entry);
+
+	exports.DirectoryEntry.prototype.isDirectory = true;
+	exports.DirectoryEntry.prototype.htmlify = function () {
+		return $('<li><a href="#browse?workingDirectory=' + encodeURIComponent(this.fullPath) + '">' + this.name + '</a></li>');
+	};
+
+	exports.FileEntry = function (shard, entry) {
+		exports.Entry.call(this, shard, entry);
+	};
+
+	webinos.utils.inherits(exports.FileEntry, exports.Entry);
+
+	exports.FileEntry.prototype.isFile = true;
+	exports.FileEntry.prototype.htmlify = function () {
+		return $('<li>' + this.name + '</li>');
 	};
 
 	exports.workingDirectory = "/";
 	exports.changeDirectory = function (to) {
-		exports.queue.reset();
+		exports.queue.clear();
 		exports.entries.clear();
 
 		exports.workingDirectory = to;
@@ -127,17 +169,21 @@
 			shard.readEntries(exports.workingDirectory, exports.queue.token);
 		});
 
-		$(exports).trigger("changedirectory", [exports.workingDirectory, exports.queue.token]);
+		$(exports).trigger("changedirectory", [exports.workingDirectory]);
 	};
 
-	$(exports).on("changedirectory", function (event, path, token) {
-		exports.queue.push({
-			token: token,
-			fun: function () {
-				$("#back .ui-btn-text").text(webinos.path.dirname(path));
-				$("#path").text(path);
-			}
-		});
+	$(exports).on("changedirectory", function (event, path) {
+		var $back = $("#back"),
+			$path = $("#path");
+
+		if (path == "/")
+			$back.hide();
+		else {
+			// $(".ui-btn-text", $back).text(...);
+			$back.show();
+		}
+
+		$path.text(path);
 	});
 
 	$(document).ready(function () {
@@ -150,7 +196,15 @@
 		});
 
 		$("#back").click(function (event) {
-			$.mobile.changePage("#browse?" + $.param({ workingDirectory: webinos.path.dirname(exports.workingDirectory) }));
+			$.mobile.changePage("#browse?" + $.param({
+				workingDirectory: webinos.path.dirname(exports.workingDirectory)
+			}));
+		});
+
+		$("#refresh").click(function (event) {
+			$.mobile.changePage("#browse?" + $.param({
+				workingDirectory: exports.workingDirectory
+			}));
 		});
 	});
 
