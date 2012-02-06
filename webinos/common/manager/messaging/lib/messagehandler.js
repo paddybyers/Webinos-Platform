@@ -40,10 +40,10 @@
 	 */
 
 	var MessageHandler = function (rpcHandler) {
-		this.sendMessage = null;
+		this.sendMsg = null;
 		this.objectRef = null;
 		
-		this.getOwnId = null;
+		this.ownId = null;
 		this.separator = null;
 		
 		this.rpcHandler = rpcHandler;
@@ -72,11 +72,11 @@
 	 * sendMessageFunction could be: io.sockets.send(sessionid); 
 	 */
 	MessageHandler.prototype.setSendMessage = function (sendMessageFunction) {
-		this.sendMessage = sendMessageFunction;
+		this.sendMsg = sendMessageFunction;
 	};
 	
 	MessageHandler.prototype.sendMessage = function (message, sessionid, objectRef) {
-		this.sendMessage (message, sessionid, objectRef);
+		this.sendMsg (message, sessionid, objectRef);
 	};
 	
 	/**
@@ -91,9 +91,17 @@
 	 * Function to get own identity.  
 	 */
 	MessageHandler.prototype.setGetOwnId = function (OwnIdGetter) {
-		this.getOwnId = OwnIdGetter;
+		this.ownId = OwnIdGetter;
 	};
 
+	/**
+	 * Function to get own identity.  
+	 */
+	MessageHandler.prototype.getOwnId = function () {
+		return this.ownId;
+	};
+
+	
 	/**
 	 *  Set separator used to in Addressing to separator different part of the address. 
 	 *  e.g. PZH/PZP/APPID, "/" is the separator here 	
@@ -133,6 +141,9 @@
 		options.register = true;
 		options.to = to;
 		options.from = from;
+		options.type = "JSONRPC";
+		options.payload = null;
+
 		var message = this.createMessage(options);
 		return message;
 	};
@@ -150,10 +161,12 @@
 	 */
 	MessageHandler.prototype.write = function(rpc, respto, msgid) {
 
-		//create response message
-		var options = {};
+	    //create response message
+	    var options = {};
 	    options.to = respto;
 	    options.resp_to = respto;
+	    
+	    options.from = this.ownId;
 	    
 	    if (typeof msgid !== undefined && msgid != null){
 	    	options.id = msgid;
@@ -162,7 +175,9 @@
 	    	//TODO calling write function from RPC does not allow to register call-backs yet
 	    	msgid = 1 + Math.floor(Math.random() * 1024);
 	    }
-	    
+	    	
+		if(typeof rpc.jsonrpc !== "undefined")
+		  options.type = "JSONRPC";
 		options.payload = rpc;
 		var message = this.createMessage(options);
 		
@@ -194,15 +209,15 @@
 						console.log("MSGHANDLER:  forwardto", forwardto);
 					}
 				}
-				this.sendMessage(message, forwardto, this.objectRef);
+				this.sendMsg(message, forwardto, this.objectRef);
 			}
 		    else if(this.clients[session2]){
 		    	console.log("MSGHANDLER:  clients[session2]:" + this.clients[session2]);
-		    	this.sendMessage(message, this.clients[session2], this.objectRef);
+		    	this.sendMsg(message, this.clients[session2], this.objectRef);
 		    }
 		    else if(this.clients[session1]){
 		    	console.log("MSGHANDLER:  clients[session1]:" + this.clients[session1]);
-		    	this.sendMessage(message, this.clients[session1], this.objectRef);
+		    	this.sendMsg(message, this.clients[session1], this.objectRef);
 		    }
 		}
 	};
@@ -233,7 +248,7 @@
 		}
 		// check message destination 
 		else if(message.hasOwnProperty("to") && (message.to)) {
-			this.self = this.getOwnId;
+			this.self = this.ownId;
 			
 			//check if a session with destination has been stored 
 			if(message.to !== this.self) {
@@ -268,13 +283,13 @@
 				    		forwardto = id;
 				    	}
 				    }
-			        this.sendMessage(message, forwardto, this.objectRef);
+			        this.sendMsg(message, forwardto, this.objectRef);
 				}
 				else if(this.clients[session2]) {
-					this.sendMessage(message, this.clients[session2], this.objectRef);
+					this.sendMsg(message, this.clients[session2], this.objectRef);
 				}
 				else if(this.clients[session1]) {
-					this.sendMessage(message, this.clients[session1], this.objectRef);
+					this.sendMsg(message, this.clients[session1], this.objectRef);
 				}	
 				return;
 			}

@@ -1,25 +1,22 @@
+/**
+ * TODO Check various "inline" TODOs.
+ */
 (function (exports) {
 	"use strict";
 
-	var EventEmitter = require("events").EventEmitter;
+	var nEvents = require("events"),
+		nUtil = require("util");
 
 	var webinos = require("webinos")(__dirname);
-	var utils = webinos.global.require(webinos.global.rpc.location, "lib/webinos.utils.js");
+		webinos.utils = webinos.global.require(webinos.global.rpc.location, "lib/webinos.utils.js");
 
 	exports.DOMException = function (type, message) {
-		if (typeof type !== "string")
-			throw new TypeError("first argument must be a string");
-
 		this.name = type;
-
-		if (typeof message !== "string")
-			throw new TypeError("second argument must be a string");
-
 		this.message = message;
 
-		if (typeof exports.DOMException.typeToCodeMap[type] !== "undefined")
+		if (typeof exports.DOMException.typeToCodeMap[type] === "number")
 			this.code = exports.DOMException.typeToCodeMap[type];
-	}
+	};
 
 	exports.DOMException.INDEX_SIZE_ERR = 1;
 	exports.DOMException.DOMSTRING_SIZE_ERR = 2;
@@ -69,38 +66,31 @@
 		"TimeoutError": exports.DOMException.TIMEOUT_ERR,
 		"InvalidNodeTypeError": exports.DOMException.INVALID_NODE_TYPE_ERR,
 		"DataCloneError": exports.DOMException.DATA_CLONE_ERR
-	}
+	};
 
 	exports.DOMException.prototype.code = 0;
 
 	exports.DOMError = function (type) {
-		if (typeof type !== "string")
-			throw new TypeError("first argument must be a string");
-
 		this.name = type;
-	}
+	};
 
 	exports.EventTarget = function () {
-		this.__eventEmitter = new EventEmitter();
-	}
+		this._eventEmitter = new nEvents.EventEmitter();
+	};
 
 	exports.EventTarget.prototype.addEventListener = function (type, listener, capture /* ignored */) {
 		if (listener === null)
 			return;
-		else if (typeof listener !== "function") // Anything else doesn't make sense.
-			throw new TypeError("second argument must be callable");
 
-		this.__eventEmitter.addListener(type, utils.bind(listener, this) /* bind to event's currentTarget */);
-	}
+		this._eventEmitter.addListener(type, webinos.utils.bind(listener, this) /* bind to event's currentTarget */);
+	};
 
 	exports.EventTarget.prototype.removeEventListener = function (type, listener, capture /* ignored */) {
 		if (listener === null)
 			return;
-		else if (typeof listener !== "function") // Anything else doesn't make sense.
-			throw new TypeError("second argument must be callable");
 
-		this.__eventEmitter.removeListener(type, utils.bind(listener, this) /* bind to event's currentTarget */);
-	}
+		this._eventEmitter.removeListener(type, webinos.utils.bind(listener, this) /* bind to event's currentTarget */);
+	};
 
 	exports.EventTarget.prototype.dispatchEvent = function (event) {
 		if (event.dispatch || !event.initialized)
@@ -114,7 +104,7 @@
 		event.target = this;
 		event.currentTarget = this;
 
-		this.__eventEmitter.emit(event.type, event);
+		this._eventEmitter.emit(event.type, event);
 
 		event.dispatch = false;
 
@@ -123,14 +113,10 @@
 		event.currentTarget = null;
 
 		return true /* !event.canceled */;
-	}
+	};
 
 	exports.Event = function (type, eventInitDict) {
 		this.initialized = true;
-
-		// Skip validation for inheritance support (or rework inheritance).
-		// if (typeof type !== "string")
-		//	throw new TypeError("first argument must be a string");
 
 		this.type = type;
 
@@ -141,9 +127,9 @@
 			if (typeof eventInitDict.cancelable === "boolean")
 				this.cancelable = eventInitDict.cancelable;
 
-			// TODO Set other event attributes defined in the dictionary? How to check respective types?
+			// TODO Set other event attributes defined in the dictionary. How to validate attribute types?
 		}
-	}
+	};
 
 	exports.Event.CAPTURING_PHASE = 1;
 	exports.Event.AT_TARGET = 2;
@@ -171,15 +157,15 @@
 
 	exports.Event.prototype.stopPropagation = function () {
 		throw new exports.DOMException("NotSupportedError", "stopping event propagation is not supported");
-	}
+	};
 
 	exports.Event.prototype.stopImmediatePropagation = function () {
 		throw new exports.DOMException("NotSupportedError", "immediately stopping event propagation is not supported");
-	}
+	};
 
 	exports.Event.prototype.preventDefault = function () {
 		throw new exports.DOMException("NotSupportedError", "event canceling is not supported");
-	}
+	};
 
 	exports.Event.prototype.initEvent = function (type, bubbles, cancelable) {
 		this.initialized = true;
@@ -198,7 +184,7 @@
 		this.type = type;
 		this.bubbles = bubbles;
 		this.cancelable = cancelable;
-	}
+	};
 
 	exports.ProgressEvent = function (type, eventInitDict) {
 		exports.Event.call(this, type, eventInitDict);
@@ -213,10 +199,9 @@
 			if (typeof eventInitDict.total === "number")
 				this.total = eventInitDict.total;
 		}
-	}
+	};
 
-	exports.ProgressEvent.prototype = new exports.Event();
-	exports.ProgressEvent.prototype.constructor = exports.ProgressEvent;
+	nUtil.inherits(exports.ProgressEvent, exports.Event);
 
 	exports.ProgressEvent.prototype.lengthComputable = false;
 	exports.ProgressEvent.prototype.loaded = 0;

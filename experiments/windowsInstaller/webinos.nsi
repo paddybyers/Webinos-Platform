@@ -171,7 +171,7 @@ SectionIn RO
   
   SetOutPath "$INSTDIR\webinos"
 
-  File /r /x .gitignore /x pom.xml /x wrt /x wscript /x *.gyp /x obj /x *.sln /x *.vcxproj* /x *.cpp /x *.h /x *.c /x *.cc /x *.exp /x *.ilk /x *.pdb /x *.lib /x .git /x common\manager\context_manager\data\contextSettings.json "${SRCROOT}\webinos\*.*"
+  File /r /x .gitignore /x test /x pom.xml /x wrt /x wscript /x *.gyp /x obj /x *.sln /x *.vcxproj* /x *.cpp /x *.h /x *.c /x *.cc /x *.exp /x *.ilk /x *.pdb /x *.lib /x .git /x common\manager\context_manager\data\contextSettings.json "${SRCROOT}\webinos\*.*"
   
   SetOutPath "$INSTDIR\node_modules"
   
@@ -336,15 +336,20 @@ addClientStartShortcut:
   
   
   WriteINIStr "$SMPROGRAMS\${PRODUCT_NAME}\PZP UI.url" "InternetShortcut" "URL" "http://localhost:8080/client/client.html"
+  WriteINIStr "$SMPROGRAMS\${PRODUCT_NAME}\PZH Admin UI.url" "InternetShortcut" "URL" "http://localhost:8082/client/pzh.html"
 
   SectionGetFlags ${SecXmppSupport} $R0
   IntOp $R0 $R0 & ${SF_SELECTED}
   IntCmp $R0 ${SF_SELECTED} "" writeRegistryInfo writeRegistryInfo 
     SetOutPath "$INSTDIR\webinos\common\xmpp\lib"
-    CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\Start Xmpp PZP client 1.lnk" $NodeExe "pzp.js 0 w021@servicelab.org/mobile webinos" "$INSTDIR\${PRODUCT_ICON}"
-    CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\Start Xmpp PZP client 2.lnk" $NodeExe "pzp.js  1 w021@servicelab.org/tv webinos" "$INSTDIR\${PRODUCT_ICON}"
-	WriteINIStr "$SMPROGRAMS\${PRODUCT_NAME}\Xmpp PZP client 1 UI.url" "InternetShortcut" "URL" "http://localhost:8000"
-	WriteINIStr "$SMPROGRAMS\${PRODUCT_NAME}\Xmpp PZP client 2 UI.url" "InternetShortcut" "URL" "http://localhost:8010"
+    CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\XMPP\Start Xmpp PZP client 1.lnk" $NodeExe "pzp.js 0 w021@servicelab.org/mobile webinos" "$INSTDIR\${PRODUCT_ICON}"
+    CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\XMPP\Start Xmpp PZP client 2.lnk" $NodeExe "pzp.js  1 w021@servicelab.org/tv webinos" "$INSTDIR\${PRODUCT_ICON}"
+    CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\XMPP\Start Xmpp PZP client via BOSH 1.lnk" $NodeExe "node pzp.js 2 w021@servicelab.org/viabosh webinos http://xmpp.servicelab.org/jabber/" "$INSTDIR\${PRODUCT_ICON}"
+    CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\XMPP\Start Xmpp PZP client via BOSH 2.lnk" $NodeExe "node pzp.js 3 w021@servicelab.org/viabosh2 webinos http://xmpp.servicelab.org/jabber/" "$INSTDIR\${PRODUCT_ICON}"
+	WriteINIStr "$SMPROGRAMS\${PRODUCT_NAME}\XMPP\Xmpp PZP client 1 UI.url" "InternetShortcut" "URL" "http://localhost:8000"
+	WriteINIStr "$SMPROGRAMS\${PRODUCT_NAME}\XMPP\Xmpp PZP client 2 UI.url" "InternetShortcut" "URL" "http://localhost:8010"
+	WriteINIStr "$SMPROGRAMS\${PRODUCT_NAME}\XMPP\Xmpp PZP client via BOSH 1 UI.url" "InternetShortcut" "URL" "http://localhost:8020"
+	WriteINIStr "$SMPROGRAMS\${PRODUCT_NAME}\XMPP\Xmpp PZP client via BOSH 2 UI.url" "InternetShortcut" "URL" "http://localhost:8030"
   writeRegistryInfo:
   ; Store install folder in registry
   WriteRegStr HKLM SOFTWARE\${PRODUCT_NAME} "" $INSTDIR

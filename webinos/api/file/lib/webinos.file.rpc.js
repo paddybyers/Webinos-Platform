@@ -1,323 +1,328 @@
+/**
+ * TODO Reuse event callback utility functions.
+ * TODO Check various "inline" TODOs.
+ */
 (function (exports) {
 	"use strict";
 
-	var dom = require("./webinos.dom.rpc.js");
-	var file = require("./webinos.file.js");
+	var nUtil = require("util");
 
-	exports.Blob = {
-		serialize: function (blob) {
-			var object = {
-				type: blob.type
-			/* , */
-			// size: blob.size
-			}
+	var webinos = require("webinos")(__dirname);
+		webinos.dom = { rpc: require("./webinos.dom.rpc.js") },
+		webinos.file = require("./webinos.file.js");
 
-			if (blob instanceof file.Text) {
-				object.__type = "text";
-				object.__text = blob.__text;
-			} else if (blob instanceof file.File) {
-				object.__type = "file";
-				object.lastModifiedDate = blob.lastModifiedDate;
-				object.__entry = exports.Entry.serialize(blob.__entry);
-				object.__size = blob.__size;
-				object.__start = blob.__start;
-				object.__end = blob.__end;
-			}
+	exports.Blob = {};
+	exports.Blob.serialize = function (blob) {
+		var object = {
+			// size: blob.size,
+			type: blob.type
+		};
 
-			return object;
-		},
-
-		deserialize: function (object) {
-			if (object.__type == "text")
-				return new file.Text(object.__text, object.type);
-			else if (object.__type == "file")
-				return new file.File(exports.Entry.deserialize(object.__entry), object.__start, object.__end,
-						object.type);
+		if (blob instanceof webinos.file.Buffer) {
+			object.__type = "buffer";
+			object._buffer = blob._buffer.toString("hex");
+		} else if (blob instanceof webinos.file.File) {
+			object.__type = "file";
+			object.name = blob.name;
+			object.lastModifiedDate = blob.lastModifiedDate;
+			object._entry = exports.Entry.serialize(blob._entry);
+			object._size = blob._size;
+			object._start = blob._start;
+			object._end = blob._end;
 		}
-	}
 
-	exports.FileReader = {
-		serialize: function (reader) {
-			return {
-				readyState: reader.readyState,
-				result: reader.result,
-				error: reader.error ? dom.DOMError.serialize(reader.error) : null
-			}
-		},
+		return object;
+	};
 
-		readAsText: function (params, successCallback, errorCallback, objectRef) {
-			var __object = new file.FileReader();
-
-			var self = this;
-			var eventCallback = function (attribute) {
-				return function (event) {
-					self.rpc.notify(objectRef, attribute)(exports.FileReader.serialize(__object),
-							dom.ProgressEvent.serialize(event));
-				}
-			}
-
-			__object.onloadstart = eventCallback("onloadstart");
-			__object.onprogress = eventCallback("onprogress");
-			__object.onerror = eventCallback("onerror");
-			__object.onabort = eventCallback("onabort");
-			__object.onload = eventCallback("onload");
-			__object.onloadend = eventCallback("onloadend");
-
-			// TODO Catch...
-			__object.readAsText(exports.Blob.deserialize(params[0]), params[1]);
+	exports.Blob.deserialize = function (object) {
+		switch (object.__type) {
+			case "buffer":
+				return new webinos.file.Buffer(new Buffer(object._buffer, "hex"), object.type);
+			case "file":
+				return new webinos.file.File(exports.Entry.deserialize(object._entry), object._start, object._end, object.type);
 		}
-	}
+	};
 
-	exports.FileWriter = {
-		serialize: function (writer) {
-			return {
-				readyState: writer.readyState,
-				error: writer.error ? exports.FileError.serialize(writer.error) : null,
-				position: writer.position,
-				length: writer.length,
-				__entry: exports.Entry.serialize(writer.__entry)
-			}
-		},
+	exports.FileReader = {};
+	exports.FileReader.serialize = function (reader) {
+		return {
+			readyState: reader.readyState,
+			result: reader.result,
+			error: reader.error ? webinos.dom.rpc.DOMError.serialize(reader.error) : null
+		};
+	};
 
-		deserialize: function (object) {
-			var writer = new file.FileWriter(exports.Entry.deserialize(object.__entry));
+	exports.FileReader.readAsBuffer = function (params, successCallback, errorCallback, objectRef) {
+		// TODO ...
+	};
 
-			// writer.readyState = object.readyState;
-			writer.error = object.error;
-			writer.position = object.position;
-			// writer.length = object.length;
+	exports.FileReader.readAsText = function (params, successCallback, errorCallback, objectRef) {
+		var reader = new webinos.file.FileReader(); // TODO Deserialize remote FileReader?
 
-			return writer;
-		},
+		var eventCallback = function (attribute) {
+			return function (event) {
+				this.rpc.notify(objectRef, attribute)(exports.FileReader.serialize(reader), webinos.dom.rpc.ProgressEvent.serialize(event));
+			};
+		};
 
-		write: function (params, successCallback, errorCallback, objectRef) {
-			var __object = exports.FileWriter.deserialize(params[0]);
+		reader.onloadstart = webinos.utils.bind(eventCallback("onloadstart"), this);
+		reader.onprogress = webinos.utils.bind(eventCallback("onprogress"), this);
+		reader.onerror = webinos.utils.bind(eventCallback("onerror"), this);
+		reader.onabort = webinos.utils.bind(eventCallback("onabort"), this);
+		reader.onload = webinos.utils.bind(eventCallback("onload"), this);
+		reader.onloadend = webinos.utils.bind(eventCallback("onloadend"), this);
 
-			var self = this;
-			var eventCallback = function (attribute) {
-				return function (event) {
-					self.rpc.notify(objectRef, attribute)(exports.FileWriter.serialize(__object),
-							dom.ProgressEvent.serialize(event));
-				}
-			}
-
-			__object.onwritestart = eventCallback("onwritestart");
-			__object.onprogress = eventCallback("onprogress");
-			__object.onerror = eventCallback("onerror");
-			__object.onabort = eventCallback("onabort");
-			__object.onwrite = eventCallback("onwrite");
-			__object.onwriteend = eventCallback("onwriteend");
-
-			// TODO Catch...
-			__object.write(exports.Blob.deserialize(params[1]));
-		},
-
-		truncate: function (params, successCallback, errorCallback, objectRef) {
-			var __object = exports.FileWriter.deserialize(params[0]);
-
-			var self = this;
-			var eventCallback = function (attribute) {
-				return function (event) {
-					self.rpc.notify(objectRef, attribute)(exports.FileWriter.serialize(__object),
-							dom.ProgressEvent.serialize(event));
-				}
-			}
-
-			__object.onwritestart = eventCallback("onwritestart");
-			__object.onprogress = eventCallback("onprogress");
-			__object.onerror = eventCallback("onerror");
-			__object.onabort = eventCallback("onabort");
-			__object.onwrite = eventCallback("onwrite");
-			__object.onwriteend = eventCallback("onwriteend");
-
-			// TODO Catch...
-			__object.truncate(params[1]);
+		try {
+			reader.readAsText(exports.Blob.deserialize(params[0]), params[1]);
+		} catch (exception) {
+			// TODO Call errorCallback with exception (converted to error?).
 		}
-	}
+	};
 
-	exports.LocalFileSystem = {
-		__object: new file.LocalFileSystem(),
+	exports.FileReader.readAsDataURL = function (params, successCallback, errorCallback, objectRef) {
+		// TODO ...
+	};
 
-		requestFileSystem: function (params, successCallback, errorCallback) {
-			exports.LocalFileSystem.__object.requestFileSystem(params[0], params[1], function (filesystem) {
-				successCallback(exports.FileSystem.serialize(filesystem));
-			}, function (error) {
-				errorCallback(exports.FileError.serialize(error));
-			});
-		},
+	exports.FileWriter = {};
+	exports.FileWriter.serialize = function (writer) {
+		return {
+			readyState: writer.readyState,
+			error: writer.error ? exports.FileError.serialize(writer.error) : null,
+			position: writer.position,
+			length: writer.length,
+			_entry: exports.Entry.serialize(writer._entry)
+		};
+	};
 
-		resolveLocalFileSystemURL: function (params, successCallback, errorCallback) {
-			exports.LocalFileSystem.__object.resolveLocalFileSystemURL(params[0], function (entry) {
-				successCallback(exports.Entry.serialize(entry));
-			}, function (error) {
-				errorCallback(exports.FileError.serialize(error));
-			});
+	exports.FileWriter.deserialize = function (object) {
+		var writer = new webinos.file.FileWriter(exports.Entry.deserialize(object._entry));
+
+		// writer.readyState = object.readyState;
+		writer.error = object.error;
+		writer.position = object.position;
+		// writer.length = object.length;
+
+		return writer;
+	};
+
+	exports.FileWriter.write = function (params, successCallback, errorCallback, objectRef) {
+		var writer = exports.FileWriter.deserialize(params[0]);
+
+		var eventCallback = function (attribute) {
+			return function (event) {
+				this.rpc.notify(objectRef, attribute)(exports.FileWriter.serialize(writer), webinos.dom.rpc.ProgressEvent.serialize(event));
+			};
+		};
+
+		writer.onwritestart = webinos.utils.bind(eventCallback("onwritestart"), this);
+		writer.onprogress = webinos.utils.bind(eventCallback("onprogress"), this);
+		writer.onerror = webinos.utils.bind(eventCallback("onerror"), this);
+		writer.onabort = webinos.utils.bind(eventCallback("onabort"), this);
+		writer.onwrite = webinos.utils.bind(eventCallback("onwrite"), this);
+		writer.onwriteend = webinos.utils.bind(eventCallback("onwriteend"), this);
+
+		try {
+			writer.write(exports.Blob.deserialize(params[1]));
+		} catch (exception) {
+			// TODO Call errorCallback with exception (converted to error?).
 		}
-	}
+	};
 
-	exports.FileSystem = {
-		serialize: function (filesystem) {
-			return {
-				name: filesystem.name,
-				__realPath: filesystem.__realPath
-			}
-		},
+	exports.FileWriter.truncate = function (params, successCallback, errorCallback, objectRef) {
+		var writer = exports.FileWriter.deserialize(params[0]);
 
-		deserialize: function (object) {
-			return new file.FileSystem(object.name, object.__realPath);
+		var eventCallback = function (attribute) {
+			return function (event) {
+				this.rpc.notify(objectRef, attribute)(exports.FileWriter.serialize(writer), webinos.dom.rpc.ProgressEvent.serialize(event));
+			};
+		};
+
+		writer.onwritestart = webinos.utils.bind(eventCallback("onwritestart"), this);
+		writer.onprogress = webinos.utils.bind(eventCallback("onprogress"), this);
+		writer.onerror = webinos.utils.bind(eventCallback("onerror"), this);
+		writer.onabort = webinos.utils.bind(eventCallback("onabort"), this);
+		writer.onwrite = webinos.utils.bind(eventCallback("onwrite"), this);
+		writer.onwriteend = webinos.utils.bind(eventCallback("onwriteend"), this);
+
+		try {
+			writer.truncate(params[1]);
+		} catch (exception) {
+			// TODO Call errorCallback with exception (converted to error?).
 		}
-	}
+	};
 
-	exports.Entry = {
-		serialize: function (entry) {
-			return {
-				filesystem: exports.FileSystem.serialize(entry.filesystem),
-				fullPath: entry.fullPath,
-				isFile: entry.isFile,
-				isDirectory: entry.isDirectory
-			}
-		},
+	exports.LocalFileSystem = {};
+	exports.LocalFileSystem.object = new webinos.file.LocalFileSystem();
+	exports.LocalFileSystem.requestFileSystem = function (params, successCallback, errorCallback) {
+		exports.LocalFileSystem.object.requestFileSystem(params[0], params[1], function (filesystem) {
+			successCallback(exports.FileSystem.serialize(filesystem));
+		}, function (error) {
+			errorCallback(exports.FileError.serialize(error));
+		});
+	};
 
-		deserialize: function (object) {
-			if (object.isDirectory)
-				var entry = file.DirectoryEntry;
-			else if (object.isFile)
-				var entry = file.FileEntry;
+	exports.LocalFileSystem.resolveLocalFileSystemURL = function (params, successCallback, errorCallback) {
+		exports.LocalFileSystem._object.resolveLocalFileSystemURL(params[0], function (entry) {
+			successCallback(exports.Entry.serialize(entry));
+		}, function (error) {
+			errorCallback(exports.FileError.serialize(error));
+		});
+	};
 
-			return new entry(exports.FileSystem.deserialize(object.filesystem), object.fullPath);
-		},
+	exports.FileSystem = {};
+	exports.FileSystem.serialize = function (filesystem) {
+		return {
+			name: filesystem.name,
+			// root: exports.Entry.serialize(filesystem.root),
+			_realPath: filesystem._realPath
+		};
+	};
 
-		copyTo: function (params, successCallback, errorCallback) {
-			var __object = exports.Entry.deserialize(params[0]);
+	exports.FileSystem.deserialize = function (object) {
+		return new webinos.file.FileSystem(object.name, object._realPath);
+	};
 
-			__object.copyTo(exports.Entry.deserialize(params[1]), params[2], function (entry) {
-				successCallback(exports.Entry.serialize(entry));
-			}, function (error) {
-				errorCallback(exports.FileError.serialize(error));
+	exports.Entry = {};
+	exports.Entry.serialize = function (entry) {
+		return {
+			filesystem: exports.FileSystem.serialize(entry.filesystem),
+			isFile: entry.isFile,
+			isDirectory: entry.isDirectory,
+			// name: entry.name,
+			fullPath: entry.fullPath
+		};
+	};
+
+	exports.Entry.deserialize = function (object) {
+		if (object.isDirectory)
+			return new webinos.file.DirectoryEntry(exports.FileSystem.deserialize(object.filesystem), object.fullPath);
+		else if (object.isFile)
+			return new webinos.file.FileEntry(exports.FileSystem.deserialize(object.filesystem), object.fullPath);
+	};
+
+	exports.Entry.copyTo = function (params, successCallback, errorCallback) {
+		var entry = exports.Entry.deserialize(params[0]);
+
+		entry.copyTo(exports.Entry.deserialize(params[1]), params[2], function (newEntry) {
+			successCallback(exports.Entry.serialize(newEntry));
+		}, function (error) {
+			errorCallback(exports.FileError.serialize(error));
+		});
+	};
+
+	exports.Entry.getMetadata = function (params, successCallback, errorCallback) {
+		var entry = exports.Entry.deserialize(params[0]);
+
+		entry.getMetadata(function (metadata) {
+			successCallback(metadata);
+		}, function (error) {
+			errorCallback(exports.FileError.serialize(error));
+		});
+	};
+
+	exports.Entry.getParent = function (params, successCallback, errorCallback) {
+		var entry = exports.Entry.deserialize(params[0]);
+
+		entry.getParent(function (parentEntry) {
+			successCallback(exports.Entry.serialize(parentEntry));
+		}, function (error) {
+			errorCallback(exports.FileError.serialize(error));
+		});
+	};
+
+	exports.Entry.moveTo = function (params, successCallback, errorCallback) {
+		var entry = exports.Entry.deserialize(params[0]);
+
+		entry.moveTo(exports.Entry.deserialize(params[1]), params[2], function (newEntry) {
+			successCallback(exports.Entry.serialize(newEntry));
+		}, function (error) {
+			errorCallback(exports.FileError.serialize(error));
+		});
+	};
+
+	exports.Entry.remove = function (params, successCallback, errorCallback) {
+		var entry = exports.Entry.deserialize(params[0]);
+
+		entry.remove(function () {
+			successCallback();
+		}, function (error) {
+			errorCallback(exports.FileError.serialize(error));
+		});
+	};
+
+	exports.DirectoryEntry = {};
+	exports.DirectoryEntry.getDirectory = function (params, successCallback, errorCallback) {
+		var entry = exports.Entry.deserialize(params[0]);
+
+		entry.getDirectory(params[1], params[2], function (otherEntry) {
+			successCallback(exports.Entry.serialize(otherEntry));
+		}, function (error) {
+			errorCallback(exports.FileError.serialize(error));
+		});
+	};
+
+	exports.DirectoryEntry.getFile = function (params, successCallback, errorCallback) {
+		var entry = exports.Entry.deserialize(params[0]);
+
+		entry.getFile(params[1], params[2], function (otherEntry) {
+			successCallback(exports.Entry.serialize(otherEntry));
+		}, function (error) {
+			errorCallback(exports.FileError.serialize(error));
+		});
+	};
+
+	exports.DirectoryEntry.removeRecursively = function (params, successCallback, errorCallback) {
+		var entry = exports.Entry.deserialize(params[0]);
+
+		entry.removeRecursively(function () {
+			successCallback();
+		}, function (error) {
+			errorCallback(exports.FileError.serialize(error));
+		});
+	};
+
+	exports.DirectoryReader = {};
+	exports.DirectoryReader.readEntries = function (params, successCallback, errorCallback) {
+		var reader = exports.Entry.deserialize(params[0]).createReader();
+
+		reader._start = params[1];
+		reader.readEntries(function (entries) {
+			successCallback({
+				_start: reader._start,
+				entries: entries.map(exports.Entry.serialize)
 			});
-		},
+		}, function (error) {
+			errorCallback(exports.FileError.serialize(error));
+		});
+	};
 
-		getMetadata: function (params, successCallback, errorCallback) {
-			var __object = exports.Entry.deserialize(params[0]);
+	exports.FileEntry = {};
+	exports.FileEntry.createWriter = function (params, successCallback, errorCallback) {
+		var entry = exports.Entry.deserialize(params[0]);
 
-			__object.getMetadata(function (metadata) {
-				successCallback(metadata);
-			}, function (error) {
-				errorCallback(exports.FileError.serialize(error));
-			});
-		},
+		entry.createWriter(function (writer) {
+			successCallback(exports.FileWriter.serialize(writer));
+		}, function (error) {
+			errorCallback(exports.FileError.serialize(error));
+		});
+	};
 
-		getParent: function (params, successCallback, errorCallback) {
-			var __object = exports.Entry.deserialize(params[0]);
+	exports.FileEntry.file = function (params, successCallback, errorCallback) {
+		var entry = exports.Entry.deserialize(params[0]);
 
-			__object.getParent(function (entry) {
-				successCallback(exports.Entry.serialize(entry));
-			}, function (error) {
-				errorCallback(exports.FileError.serialize(error));
-			});
-		},
+		entry.file(function (file) {
+			successCallback(exports.Blob.serialize(file));
+		}, function (error) {
+			errorCallback(exports.FileError.serialize(error));
+		});
+	};
 
-		moveTo: function (params, successCallback, errorCallback) {
-			var __object = exports.Entry.deserialize(params[0]);
-
-			__object.moveTo(exports.Entry.deserialize(params[1]), params[2], function (entry) {
-				successCallback(exports.Entry.serialize(entry));
-			}, function (error) {
-				errorCallback(exports.FileError.serialize(error));
-			});
-		},
-
-		remove: function (params, successCallback, errorCallback) {
-			var __object = exports.Entry.deserialize(params[0]);
-
-			__object.remove(function () {
-				successCallback();
-			}, function (error) {
-				errorCallback(exports.FileError.serialize(error));
-			});
-		}
-	}
-
-	exports.DirectoryEntry = {
-		getDirectory: function (params, successCallback, errorCallback) {
-			var __object = exports.Entry.deserialize(params[0]);
-
-			__object.getDirectory(params[1], params[2], function (entry) {
-				successCallback(exports.Entry.serialize(entry));
-			}, function (error) {
-				errorCallback(exports.FileError.serialize(error));
-			});
-		},
-
-		getFile: function (params, successCallback, errorCallback) {
-			var __object = exports.Entry.deserialize(params[0]);
-
-			__object.getFile(params[1], params[2], function (entry) {
-				successCallback(exports.Entry.serialize(entry));
-			}, function (error) {
-				errorCallback(exports.FileError.serialize(error));
-			});
-		},
-
-		removeRecursively: function (params, successCallback, errorCallback) {
-			var __object = exports.Entry.deserialize(params[0]);
-
-			__object.removeRecursively(function () {
-				successCallback();
-			}, function (error) {
-				errorCallback(exports.FileError.serialize(error));
-			});
-		}
-	}
-
-	exports.DirectoryReader = {
-		readEntries: function (params, successCallback, errorCallback) {
-			var __object = exports.Entry.deserialize(params[0]).createReader();
-
-			__object.__start = params[1];
-			__object.__length = params[2];
-
-			__object.readEntries(function (entries) {
-				successCallback({
-					__start: __object.__start,
-					__length: __object.__length,
-					entries: entries.map(exports.Entry.serialize)
-				});
-			}, function (error) {
-				errorCallback(exports.FileError.serialize(error));
-			});
-		}
-	}
-
-	exports.FileEntry = {
-		createWriter: function (params, successCallback, errorCallback) {
-			var __object = exports.Entry.deserialize(params[0]);
-
-			__object.createWriter(function (writer) {
-				successCallback(exports.FileWriter.serialize(writer));
-			}, function (error) {
-				errorCallback(exports.FileError.serialize(error));
-			});
-		},
-
-		file: function (params, successCallback, errorCallback) {
-			var __object = exports.Entry.deserialize(params[0]);
-
-			__object.file(function (file) {
-				successCallback(exports.Blob.serialize(file));
-			}, function (error) {
-				errorCallback(exports.FileError.serialize(error));
-			});
-		}
-	}
-
-	exports.FileError = {
-		serialize: function (error) {
-			return {
-				code: error.code
-			}
-		}
-	}
+	exports.FileError = {};
+	exports.FileError.serialize = function (error) {
+		return {
+			code: error.code
+		};
+	};
 
 	exports.Service = function (rpc) {
 		RPCWebinosService.call(this, {
@@ -327,12 +332,13 @@
 		});
 
 		this.rpc = rpc;
-	}
+	};
 
-	exports.Service.prototype = new RPCWebinosService();
-	exports.Service.prototype.constructor = exports.Service;
+	nUtil.inherits(exports.Service, RPCWebinosService);
 
+	exports.Service.prototype.readAsBuffer = exports.FileReader.readAsBuffer;
 	exports.Service.prototype.readAsText = exports.FileReader.readAsText;
+	exports.Service.prototype.readAsDataURL = exports.FileReader.readAsDataURL;
 
 	exports.Service.prototype.write = exports.FileWriter.write;
 	exports.Service.prototype.seek = exports.FileWriter.seek;

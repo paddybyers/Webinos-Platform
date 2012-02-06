@@ -26,7 +26,6 @@
     <module>payment</module>
     <module>sensors</module>
     <module>servicedisco</module>
-    <module>test-module</module>
     <module>tv</module>
   </modules>
 </project>

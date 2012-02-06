@@ -50,6 +50,8 @@ def generate_project(argv):
   gyp_args = [gyp_definition_file, '--depth=.', '-DNODE_ROOT=%s' % nodeRoot, '-I%s' % os.path.join(toolsdir, "node_module.gypi"), '-Dlibrary=loadable_module', '-I%s' % os.path.join(nodeRoot, "common.gypi")];
   if sys.platform == 'win32': # Visual studio 2010 for windows
     gyp_args.extend(['-f', 'msvs', '-G', 'msvs_version=2010', '-Dnode_lib_file=%s' % node_lib_file])
+  elif sys.platform == 'darwin': # Mac create xcode project
+    gyp_args.extend(['-f', 'xcode'])  
   else: # If we want XCode for Mac, this is the place to specify it
     gyp_args.extend(['-f', 'make'])
   
@@ -65,6 +67,8 @@ def generate_project(argv):
     if sys.platform == 'win32':
       fix_visual_studio_targetext_warning()
       return build_project_with_visual_studio(toolsdir, gyp_definition_file)
+    elif sys.platform == 'darwin': # Mac create xcode project
+      return build_project_with_xcode()	
     else: # If we want XCode for Mac, this is the place to specify it, too
       return build_project_with_make()
       
@@ -171,6 +175,11 @@ def build_project_with_make():
   """ Builds the generated Makefile using make"""
     
   return subprocess.call("make")
+  
+def build_project_with_xcode():
+  """ Builds the generated Xcode project using xcode"""
+  
+  return subprocess.call("xcodebuild")
   
 if __name__ == '__main__':
   # If this is called directly from python, then generate_project reading the command line args

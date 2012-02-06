@@ -1,0 +1,21 @@
+<div id = "crashLog">
+		<h2> PZH Event log </h2>
+        <%
+            
+            var crashlist = crashlog.split('\n');
+            if (crashlist.length > 0) {
+                %> 
+                <ul class="codelist">
+                <%
+                var i=0
+                for (i=0;i<crashlist.length;i++) {
+                    %> <li class="code"><%=crashlist[i]%></li><%                
+                }
+                %>
+                </ul>
+                <%
+            }
+        %>
+
+        
+</div>

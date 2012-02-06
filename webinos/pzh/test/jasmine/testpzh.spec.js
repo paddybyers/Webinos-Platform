@@ -112,7 +112,8 @@ describe("PZH functionalities", function() {
 		
 		waits(500);
 		runs ( function() {
-			Pzh.restartPzh(pzh, function(result, pzh1) {
+			Pzh.restartPzh(pzh, function(err, result, pzh1) {
+				expected(err).toBeNull();
 				expect(result).not.toBeNull();
 				expect(result).toEqual("startedPzh");
 				pzh = pzh1;				
@@ -123,11 +124,11 @@ describe("PZH functionalities", function() {
 		runs(function(){
 			Pzp.startPzp(PzpContents, ipAddr, port, code, pzpModules, function(result, pzp1) {				
 				expect(result).not.toEqual("startedPZP");					
-				pzp = pzp1;
+				process.exit(0);
 			});
 		});
 		
-		waits(500);
+		waits(1000);
 		runs( function() {
 			process.exit(0);
 		});

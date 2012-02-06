@@ -42,6 +42,7 @@
   //////////////////////////////////////////////////////////////////////////////////////
   exports.handleContextData = function(contextData){
   
+  	
     
     var connectedPzh = sessionPzp.getPzhId();
     if (connectedPzh == "null" || connectedPzh == "undefined"){
@@ -59,10 +60,16 @@
 
       var contextService = [];
       var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), function(services){
-        //util= require('util');
+      //var message = sessionPzp.getMessageHandler();
+      //console.log(message);
+      //util= require('util');
         //console.log(util.inspect(services, false, null), 'white+red_bg');
         services[0].serviceAddress = connectedPzh
-  
+        
+      var query = {};
+      query.type = "DB-insert";
+      query.data = data;
+      //message.write(query, connectedPzh, 0);
           var query = {};
           query.type = "DB-insert";
           query.data = data;

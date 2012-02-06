@@ -5,9 +5,9 @@
 	<link rel="icon" href="webinos.ico" type="image/x-icon">
 	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
 	<script type="text/javascript" src="jquery-1.6.4.min.js"></script>
-	<script src="iphone-style-checkboxes.js" type="text/javascript" charset="utf-8"></script>
-  <link rel="stylesheet" href="switch.css" type="text/css" media="screen" charset="utf-8" />
-	<script type="text/javascript" src="http://localhost:9898/nowjs/now.js"></script>
+	<!-- <script src="iphone-style-checkboxes.js" type="text/javascript" charset="utf-8"></script> -->
+  	<!-- <link rel="stylesheet" href="switch.css" type="text/css" media="screen" charset="utf-8" /> -->
+	<script type="text/javascript" src="/nowjs/now.js"></script>
 	<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
 	<script type="text/javascript">
 		now.ready(function(){ 
@@ -16,7 +16,7 @@
 	
 		$(document).ready(function() {
 		
-			 $(':checkbox').iphoneStyle();
+			 //$(':checkbox').iphoneStyle();
 			 
 			if(navigator.geolocation){
 				$('#myLocation').removeAttr('disabled');
@@ -39,21 +39,58 @@
 
 			$('#setPsFront').click(function(){
 				var psData = new Object();
+				psData.ol = $('#pf-ol').val();
 				psData.l = $('#pf-l').val();
 				psData.ml = $('#pf-ml').val();
 				psData.mr = $('#pf-mr').val();
 				psData.r = $('#pf-r').val();
+				psData.or = $('#pf-or').val();
 				now.setPsFront(psData);	
 			});
 
 			$('#setPsRear').click(function(){
 				var psData = new Object();
+				psData.ol = $('#pr-ol').val();
 				psData.l = $('#pr-l').val();
 				psData.ml = $('#pr-ml').val();
 				psData.mr = $('#pr-mr').val();
 				psData.r = $('#pr-r').val();
+				psData.or = $('#pr-or').val();
 				now.setPsRear(psData);	
 			});
+			
+			$('#l-fog-front').bind('click',function(){
+					now.setLightsFogFront($('#l-fog-front').is(':checked'));
+			});
+			
+			$('#l-fog-rear').bind('click',function(){
+					now.setLightsFogRear($('#l-fog-rear').is(':checked'));
+			});
+			
+			$('#l-hibeam').bind('click',function(){
+					now.setLightsHibeam($('#l-hibeam').is(':checked'));
+			});
+
+			$('#l-parking').bind('click',function(){
+					now.setLightsParking($('#l-parking').is(':checked'));
+			});
+
+			$('#l-head').bind('click',function(){
+					now.setLightsHead($('#l-head').is(':checked'));
+			});
+
+			$('#l-signal-left').bind('click',function(){
+					now.setLightsSignalLeft($('#l-signal-left').is(':checked'));
+			});
+
+			$('#l-signal-right').bind('click',function(){
+					now.setLightsSignalRight($('#l-signal-right').is(':checked'));
+			});
+
+			$('#l-signal-warn').bind('click',function(){
+					now.setLightsSignalWarn($('#l-signal-warn').is(':checked'));
+			});
+						
 			$('#locateOnMap').click(function(){
 				var address = $('#d-street').val() + " " + $('d-streetnumber').val() + ", " + $('#d-city').val() + ", " + $('#d-country').val();
 				geocoder.geocode( { 'address': address}, handleGeocoder);
@@ -193,6 +230,18 @@
    	 function handleReversedGeocoder(results, status){
    	 	if (status == google.maps.GeocoderStatus.OK) {
           if (results[0]) {
+          
+          	var position = new Object();
+         	position.coords = new Object();
+			position.coords.latitude = results[0].geometry.location.lat()
+			position.coords.longitude = results[0].geometry.location.lng();
+		    position.coords.altitude = $('#c-alt').val();
+    		position.coords.accuracy = 99;
+ 			position.coords.heading = $('#c-heading').val();
+			position.coords.speed = $('#c-speed').val();
+         	now.setGeolocation(position);
+          
+          	
          	updateAddress(results[0]);
           }
         } else {
@@ -210,7 +259,17 @@
          	marker.setPosition(centerPoint);
          	$('#c-lat').val(centerPoint.lat());
          	$('#c-lng').val(centerPoint.lng());
-         	//updateMarker();
+         	
+         	var position = new Object();
+         	position.coords = new Object();
+			position.coords.latitude = results[0].geometry.location.lat()
+			position.coords.longitude = results[0].geometry.location.lng();
+		    position.coords.altitude = $('#c-alt').val();
+    		position.coords.accuracy = 99;
+ 			position.coords.heading = $('#c-heading').val();
+			position.coords.speed = $('#c-speed').val();
+         	now.setGeolocation(position);
+         	
           }
         } else {
           alert("Geocoder failed due to: " + status);
@@ -223,7 +282,7 @@
 <body>
 <div id="content" class='content cf'>
 	<div id="header">
-		<h1><img src="testbed_logo.png"></h1>
+		<h1><img src="simulator_logo.png"></h1>
      </div>
      <div id="functions">
 	<h3>Gear</h3>
@@ -253,23 +312,26 @@
 	<input type='button' id='setTripComputer' value="Set Tripcomputer"/>
 	
 	<h3>Parksensors Front</h3>
+	<p><label>OutLeft:</label><input type='text' value='255' id='pf-ol'></p>
 	<p><label>Left:</label><input type='text' value='255' id='pf-l'></p>
 	<p><label>MidLeft:</label><input type='text' value='255' id='pf-ml'></p>
 	<p><label>MidRight:</label><input type='text' value='255' id='pf-mr'></p>
 	<p><label>Right:</label><input type='text' value='255' id='pf-r'></p>
+	<p><label>OutRight:</label><input type='text' value='255' id='pf-or'></p>
 	<input type='button' id='setPsFront' value="Set Parksensors Front"/>
 
 	<h3>Parksensors Rear</h3>
-	<p><label>Left:</label><input type='text' value='255' id='pr-l'></p>
+	<p><label>OutLeft:</label><input type='text' value='255' id='pr-ol'></p>
 	<p><label>MidLeft:</label><input type='text' value='255' id='pr-ml'></p>
 	<p><label>MidRight:</label><input type='text' value='255' id='pr-mr'></p>
 	<p><label>Right:</label><input type='text' value='255' id='pr-r'></p>
+	<p><label>OutRight:</label><input type='text' value='255' id='pr-or'></p>
 	<input type='button' id='setPsRear' value="Set Parksensors Rear"/>
 
 	<h3>Lights (in progress) </h3>
-	<p><label class='box'>Signal left: </label><input type="checkbox" id="l-singal-left" /></p>
-	<p><label class='box'>Signal right: </label><input type="checkbox" id="l-singal-right" /></p>
-	<p><label class='box'>Signal warn: </label><input type="checkbox" id="l-singal-warn" /></p>
+	<p><label class='box'>Signal left: </label><input type="checkbox" id="l-signal-left" /></p>
+	<p><label class='box'>Signal right: </label><input type="checkbox" id="l-signal-right" /></p>
+	<p><label class='box'>Signal warn: </label><input type="checkbox" id="l-signal-warn" /></p>
 	<p><label class='box'>Parking: </label><input type="checkbox" id="l-parking" /></p>
 	<p><label class='box'>Head: </label><input type="checkbox" id="l-head" /></p>
 	<p><label class='box'>Hibeam: </label><input type="checkbox" id="l-hibeam" /></p>

@@ -10,51 +10,40 @@
         <script type="text/javascript" src="/client/jquery-ui.js"></script>
         <script type="text/javascript" src="/client/dojo.js"></script>
         <script type="text/javascript">
-                $(document).ready(function() {  
+                $(document).ready(function() {
                                 $("#tabs").tabs();
+                                $('#get42_example button').button();
+                                
+                                function logMessage(msg) {
+                                	if (msg) {
+	                                    $('#message').append('<li>' + msg + '</li>');
+                                	}
+                                }
 
                                 function fillPZAddrs(data) {
                                     var pzpId = data.from;
                                     var pzhId, connectedPzh , connectedPzp;
-                                    if(pzpId !== "virgin_pzp") {
+                                    if (pzpId !== "virgin_pzp") {
                                       pzhId = data.payload.message.pzhId;                                     
-                                      connectedPzp = data.payload.message.connectedPzp;
-                                      connectedPzh = data.payload.message.connectedPzh;
+                                      connectedPzp = data.payload.message.connectedPzp; // all connected pzp
+                                      connectedPzh = data.payload.message.connectedPzh; // all connected pzh
+                                      
+                                      logMessage('registeredBrowser msg from ' + pzpId);
                                     }
-                                    
-                                    if(document.getElementById('pzh_pzp_list'))
-                                        document.getElementById('pzh_pzp_list').innerHTML="";
-                            
-                                    $("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
-                                    var i;
-                                    if(typeof connectedPzp!== "undefined") {
-		                                for(i =0; i < connectedPzp.length; i++) {
-		                                    $("<option value=" + connectedPzp[i] + " >" +connectedPzp[i] + "</option>").appendTo("#pzh_pzp_list");                  
-		                                }
-		                            }
-                                    $("<option value="+pzpId+" >" + pzpId+ "</option>").appendTo("#pzh_pzp_list");                      
-                                    $("</optgroup>").appendTo("#pzh_pzp_list");
-                                    $("<optgroup label = 'PZH' id ='pzh_list' >").appendTo("#pzh_pzp_list");
-                                    if (typeof connectedPzh !== "undefined") {
-                                      for(i =0; i < connectedPzh.length; i++) {
-                                          $("<option value=" + connectedPzh[i] + " >" +connectedPzh[i] + "</option>").appendTo("#pzh_pzp_list");                  
-                                      }
-                                    }
-                                    $("</optgroup>").appendTo("#pzh_pzp_list");
                                 }
                                 webinos.session.addListener('registeredBrowser', fillPZAddrs);
                                 
                                 function updatePZAddrs(data) {
                                     if(typeof data.payload.message.pzp !== "undefined") {
-                                        $("<option value=" + data.payload.message.pzp + " >" +data.payload.message.pzp + "</option>").appendTo("#pzp_list");
+                                        logMessage('new pzp ' + data.payload.message.pzp);
                                     } else {
-                                        $("<option value=" + data.payload.message.pzh + " >" +data.payload.message.pzh + "</option>").appendTo("#pzh_list");
+                                        logMessage('new pzh ' + data.payload.message.pzh);
                                     }
                                 }
                                 webinos.session.addListener('update', updatePZAddrs);
                                 
                                 function printInfo(data) {
-                                    $('#message').append('<li>'+data.payload.message+'</li>');
+                                	logMessage(data.payload.message);
                                 }
                                 webinos.session.addListener('info', printInfo);
                                 
@@ -72,7 +61,10 @@
                                 servername: document.getElementById('pzpservername').value,
                                 serverport: document.getElementById('pzpserverport').value,
                                 code:  document.getElementById('pzpcode').value,
-                                modules: [{name:'get42', params: [23]}], // FIXME just for testing, need gui to configure modules
+                                modules: [{name:'get42', params: [23]},
+				      {name:'contacts', params:[0]},
+				      {name:'context', params:[0]}
+				], // FIXME just for testing, need gui to configure modules
                                 value: config}; 
                         
                         var options = {type: 'prop', payload: payload};
@@ -89,35 +81,40 @@
                         webinos.session.message_send(options);                
                 });
                 
-                var test = [];
-                         
+                var test = {};
+                var recentService;
+                
                 $('#findService').bind('click', function() {
-                		test = [];
-                        webinos.session.setServiceLocation($('#pzh_pzp_list').val());
+                		test = {};
+                		recentService = null;
+                		$('#get42Services').empty();
+                		
                         webinos.ServiceDiscovery.findServices( 
                         new ServiceType('http://webinos.org/api/test'),                         
                         {onFound: function (service) {
-                            test.push(service);         
+                            test[service.serviceAddress] = service;
+                            $('#get42Services').append($('<option>' + service.serviceAddress + '</option>'));
                     }});
                 });
                 
+                $("#get42Services option").live('click', function(event) {
+                	$(this).parent().attr("recent", $(this).val());
+                });
+                
                 $('#bind').bind('click', function() {
-                    for (var i=0; i<test.length; i++) {
-                        test[i].bindService({onBind:function(service) {
-                            $('#message').append('<li> TEST API' + service.api + ' bound.</li>');
-                        }});
-                    }
+                	recentService = test[$('#get42Services').attr('recent')];
+                	recentService.bindService({onBind:function(service) {
+                        logMessage('TEST API ' + service.api + ' bound.');
+                    }});
                 });
                              
                 $('#get42').bind('click', function() {
-                        for (var i=0; i<test.length; i++) {
-                                test[i].get42('foo', function(result) {
-                                        alert(result);
-                                },
-                                function(error){
-                                        alert(error.code + " " + error.message);
-                                });
-                        }
+                	recentService.get42('foo', function(result) {
+                        alert(result);
+                    },
+                    function(error){
+                        alert(error.code + " " + error.message);
+                    });
                 });
 
                 $('#listen42').bind('click', function() {
@@ -142,7 +139,7 @@
                 <li> <a href="#discovery"> Discovery </a> </li>
                 <li> <a href="#sensor"> Sensor </a> </li>
                 <li> <a href="#payment"> Payment </a> </li>
-                <li> <a href="#file-api"> File API </a> </li>
+                <li> <a href="#file"> File API </a> </li>
                 <li> <a href="#events"> Event API </a> </li>
                 <li> <a href="#tv"> TV API </a> </li>
                 <li><a href="#context"> Context </a></li>
@@ -182,24 +179,46 @@
                         <tr><td>Days</td><td> <input type="text" id="pzpdays" value="180"/></td> </tr>  
                 </table>        
         </div>
-        <div id = "get42_example" style="background-color:#0879a9"> 
-                <table style="background-color:lightgray; border:3px solid #0879a9">
-                                        <tr> <td> Use registerBrowser if you do not see anything in drop down </td>
-                                        <td> <button id="registerBrowser" class="button"> Register Browser </button> </td> </tr>
-                                        <tr> <td> Select from the list Available PZP & PZH to find Service </td>
-                                        <td> <select id="pzh_pzp_list"> <option> </option> </select> </td> 
-                                        <td> <button id="findService" class="button"> Find Service </button> </td></tr>
-                                        <tr> <td><p><i> Find Service will determine where your code will be executed</i></p> 
-                                </td>  </tr>
-                                <tr> <td>
-                    <button id="bind" class="button">Bind</button>
-                                </td> <td> 
-                                        <button id="get42" class="button">Get 42</button>
-                </td> <td> 
-                    <button id="listen42" class="button">Listener for 42</button>
-                                </td> </tr>                             
-                </table>
-        </div>
+        <div id = "get42_example" style="background-color:#0879a9">
+				<table
+					style="background-color: lightgray; border: 3px solid #0879a9">
+					<tr>
+						<td>Use "Register Browser" if you do not see anything in drop
+							down</td>
+						<td>
+							<button id="registerBrowser" class="button">Register
+								Browser</button>
+						</td>
+					</tr>
+					<tr>
+						<td>Use "Find Services" to search for available get42-Services.<br/>
+							Select one, then bind and use. Select another and bind again and use.
+						</td>
+						<td>
+							<button id="findService" class="button">Find Services</button>
+							<br />
+							<select id="get42Services" size="5"></select>
+						</td>
+					</tr>
+					<tr>
+						<td><p>
+								<i> The selected address means the Service at that address
+									will be used.</i>
+							</p></td>
+					</tr>
+					<tr>
+						<td>
+							<button id="bind" class="button">Bind</button>
+						</td>
+						<td>
+							<button id="get42" class="button">Get 42</button>
+						</td>
+						<td>
+							<button id="listen42" class="button">Listener for 42</button>
+						</td>
+					</tr>
+				</table>
+			</div>
          
         <div id = "contact" style="background-color:#0879a9">
                 <iframe src="contacts/contactsClient.html" width="100%" height="100%">
@@ -221,8 +240,8 @@
                 <iframe src="discoveryUI.html" width="100%" height="100%">
                 </iframe>               
         </div>
-        <div id="file-api" style="background-color:#0879a9">
-                <iframe src="file-api-demo.html" width="100%" height="100%">
+        <div id="file" style="background-color:#0879a9">
+                <iframe src="file/file.html" width="100%" height="100%">
                 </iframe>       
         </div>
         <div id="events" style="background-color:#0879a9">
