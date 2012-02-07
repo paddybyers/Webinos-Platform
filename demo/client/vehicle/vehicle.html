@@ -24,6 +24,9 @@
 			var _vehicleDataIds;
 			var _deviceOrientationTypes;
 			
+
+			$(document).ready(function() {
+		        
 			function fillPZAddrs(data) {
 		            var pzhId, connectedPzp, connectedPzh;
 			        if(data.from !== "virgin_pzp") {
@@ -56,7 +59,7 @@
 		            $("</optgroup>").appendTo("#pzh_pzp_list");
 		        }
 			
-			//webinos.session.addListener('registeredBrowser', fillPZAddrs);
+			webinos.session.addListener('registeredBrowser', fillPZAddrs);
 			
 			function updatePZAddrs(data) {
 		            if(typeof data.payload.message.pzp !== "undefined") {
@@ -65,29 +68,13 @@
 		                $("<option value=" + data.payload.message.pzh + " >" +data.payload.message.pzh + "</option>").appendTo("#pzh_list");
 		            }
 		        }
-		        //webinos.session.addListener('update', updatePZAddrs);
+		        webinos.session.addListener('update', updatePZAddrs);
 		        
 		        function printInfo(data) {
 		            $('#message').append('<li>'+data.payload.message+'</li>');
 		        }
-		        //webinos.session.addListener('info', printInfo);
+		        webinos.session.addListener('info', printInfo);
 
-			
-			function initMe(){
-				console.log('adding listeners...');
-				webinos.session.addListener('registeredBrowser', fillPZAddrs);
-				webinos.session.addListener('update', updatePZAddrs);
-				webinos.session.addListener('info', printInfo);
-			}
-
-			function done(){
-				console.log('ready. setting timeout before adding listeners');
-				var t = setTimeout("initMe()", 5000);			
-			}
-
-			$(document).ready(function() {
-		        
-				done();
 				
 		        
 				$('#init').removeAttr('disabled'); // FIXME wasn't really enabled otherwise
