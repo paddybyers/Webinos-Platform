@@ -605,22 +605,24 @@
 			//modules.push(webinosRoot + dependencies.manager.context_manager.location);
 //		}
 		
-		if ( typeof modules === 'undefined' || modules === null) {
-			modules = [];
+		var _modules;
+		if (!modules){
+			_modules = [];
+		} else {
+			_modules = modules.slice(0); // copy array
 		}
 		
 		// add ServiceDiscovery, which should always be present
-		
-		modules.unshift({name: "service_discovery", param: {}});
+		_modules.unshift({name: "service_discovery", param: {}});
 
-		for (var i = 0; i < modules.length; i++){
+		for (var i = 0; i < _modules.length; i++){
 			try{
-				var Service = require(webinosRoot + dependencies.api[modules[i].name].location).Service;
-				this.registerObject(new Service(this, modules[i].params));
+				var Service = require(webinosRoot + dependencies.api[_modules[i].name].location).Service;
+				this.registerObject(new Service(this, _modules[i].params));
 			}
 			catch (error){
 				console.log(error);
-				console.log("Could not load module " + modules[i].name + " with message: " + error );
+				console.log("Could not load module " + _modules[i].name + " with message: " + error );
 			}
 		}		
 	};
