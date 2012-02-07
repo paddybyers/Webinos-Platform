@@ -214,21 +214,30 @@
 	 * @param config structure used for connecting with Pzh
 	 * @param callback is called after connection is useful or fails to inform startPzp
 	 */
-	Pzp.prototype.connect = function (address, conn_key, conn_csr, uri, callback) {
+	Pzp.prototype.connect = function (conn_csr, callback) {
 		var self, client, master;
 		self = this;
+		var conn_key, config = {};
+		try{
+			var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
+			conn_key = key.get(self.config.cert.conn.key_id);
+		} catch(err){
+			log('ERR0R','[CONFIG] Key fetching error' )
+			return;
+		}
 		try {
-			if (typeof self.config.cert.master.cert === "undefined") {
-				master = [];
+			if (typeof self.config.cert.master.cert !== "undefined") {
+				config = { key: conn_key, 
+					cert: self.config.cert.conn.cert, 
+					servername: self.config.uri, 
+					ca: self.config.cert.master.cert};
 			} else {
-				master = self.config.cert.master.cert;
+				config = { key: conn_key, 
+					cert: self.config.cert.conn.cert, 
+					servername: self.config.uri};
 			}
-
-			var config = { key: conn_key, cert: self.config.cert.conn.cert, servername: 'localhost/john'};
-			console.log(configuration.pzhPort);
-			console.log(address);
 			console.log(config);
-			client = tls.connect(configuration.pzhPort, address, config,
+			client = tls.connect(configuration.pzhPort, self.address, config,
 			function() {
 				log('INFO','PZP Connection to PZH status: ' + client.authorized );
 				log('INFO','PZP Reusing session : ' + client.isSessionReused());
@@ -314,7 +323,11 @@
 		utils.processedMsg(self, data, 1, function(data2) { // 1 is for #	
 			if(data2.type === 'prop' && data2.payload.status === 'signedCert') {
 				log('INFO', '[PZP - '+self.sessionId+']PZP Writing certificates data ');
-				self.config.conn_cert= data2.payload.message.clientCert;
+				self.config.cert.conn.cert= data2.payload.message.clientCert;
+				self.config.cert.master.cert = data2.payload.message.masterCert;
+				self.connect( null, function(result) {
+					console.log(result);
+				});
 			} // This is update message about other connected PZP
 			else if(data2.type === 'prop' && data2.payload.status === 'pzpUpdate') {
 				log('INFO', '[PZP - '+self.sessionId+'] Update PZPs details') ;
@@ -345,7 +358,7 @@
 			// Forward message to message handler
 			else {
 				rpc.setSessionId(self.sessionId);
-				this.messageHandler.onMessageReceved( data2, data2.to);
+				self.messageHandler.onMessageReceived( data2, data2.to);
 			}
 		});
 	};	
@@ -371,10 +384,13 @@
 		
 		configuration.setConfiguration(contents, 'Pzp', function (config, conn_key, conn_csr) {
 			client.config = config;
+			client.config.uri = uri;
+			client.sessionId = client.config.certValues.common.split(':')[0];
 			utils.resolveIP(url, function(resolvedAddress) {
 				log('DEBUG', 'Connecting Address: ' + resolvedAddress);
+				client.address = resolvedAddress;
 				try {
-					client.connect(resolvedAddress, conn_key, conn_csr, uri, function(result) {
+					client.connect(conn_csr, function(result) {
 						if(result === 'startedPZP' ) {
 							instance = client;
 							websocket.updateInstance(instance);

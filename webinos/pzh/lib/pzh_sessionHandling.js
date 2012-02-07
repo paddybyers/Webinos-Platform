@@ -224,26 +224,37 @@
 		try {
 			self.expecting.isExpectedCode(parse.payload.message.code, function(expected) {
 				if (expected) {
-					cert.signRequest(self, parse.payload.message.csr, self.config.master, 2, function(result, cert) {
+					var master_key;
+					try{
+						var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
+						master_key = key.get(self.config.cert.master.key_id);
+					} catch(err){
+						log('ERR0R','[CONFIG] Key fetching error' )
+						return;
+					}
+					cert.signRequest(parse.payload.message.csr, master_key, self.config.cert.master.cert, 2, function(result, cert) {
 						if(result === "certSigned") {
 							self.expecting.unsetExpected(function() {
 								//Save this certificate locally on the PZH.
 								//pzp name: parse.payload.message.name
-								fs.writeFileSync(self.config.pzhSignedCertDir+'/'+ parse.payload.message.name + ".pem", cert);
-								var payload = {'clientCert': cert, 'masterCert':self.config.master.cert.value};
-								var msg = self.prepMsg(self.sessionId, null, 'signedCert', payload);
-								cb(null, msg);
+								self.config.cert.signedCert = {};
+								self.config.cert.signedCert.name =  parse.payload.message.name;
+								self.config.cert.signedCert.value = cert;
+								var payload = {'clientCert': cert, 'masterCert':self.config.cert.master.cert};
+								var msg = self.prepMsg(self.sessionId, parse.from, 'signedCert', payload);
+								console.log(msg);
+								cb.call(self, null, msg);
 							});
 						} else {
 							log('ERROR ', 'PZH ('+self.sessionId+') Error Signing Client Certificate');
-							cb.call("Could not create client certificate - " + result, null);
+							cb.call(self, "Could not create client certificate - " + result, null);
 						}
 					});
 				} else {
 					var payload = {};
 					var msg = self.prepMsg(self.sessionId, null, 'failedCert', payload);
 					log('INFO', "Failed to create client certificate: not expected");
-					cb.call(null, msg);
+					cb.call(self, null, msg);
 				}
 			});pzhs
 		} catch (err) {
