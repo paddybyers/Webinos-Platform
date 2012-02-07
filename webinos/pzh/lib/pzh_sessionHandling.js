@@ -187,7 +187,7 @@
 					self.sendMessage(msg, pzhId);
 				}
 			} else if(data[0] === 'Pzp' ) {
-				var sessionId = self.sessionId+'/'+data[1].split(':')[0];
+				var sessionId = self.sessionId+'/'+data[1].split(':')[0];pzhs
 				log('INFO', 'PZH ('+self.sessionId+') PZP '+sessionId+' Connected');
 				if(!self.connectedPzp.hasOwnProperty(sessionId)) {
 					self.connectedPzpIds.push(sessionId);
@@ -245,7 +245,7 @@
 					log('INFO', "Failed to create client certificate: not expected");
 					cb.call(null, msg);
 				}
-			});
+			});pzhs
 		} catch (err) {
 			log('ERROR ', 'PZH ('+self.sessionId+') Error Signing Client Certificate' + err);
 			cb("Could not create client certificate", null);
@@ -327,13 +327,13 @@
 	
 	exports.addPzh = function ( uri, contents, modules, callback) {
 		var pzh = new Pzh(modules);
-		config.setConfiguration(uri, contents, 'Pzh', function(config) {
+		config.setConfiguration(contents, 'Pzh', function(config, conn_key) {
 			pzh.config    = config;
 			pzh.sessionId = pzh.config.certValues.common.split(':')[0];
 			
-			pzhs[config.servername] = pzh;
+			farm.pzhs[uri] = pzh;
 			
-			var options = {key: config.cert.conn.key,
+			var options = {key: conn_key,
 				cert: config.cert.conn.cert,
 				ca: config.cert.master.cert,
 				crl: config.cert.master.crl,
@@ -345,12 +345,12 @@
 			pzh.messageHandler.setObjectRef(pzh);
 			pzh.messageHandler.setSendMessage(send);
 			pzh.messageHandler.setSeparator("/");
-			
 			if (typeof farm.server === "undefined" || farm.server === null) {
 				log('ERROR', 'Farm is not running, please startFarm');
 			} else {
 				farm.server.addContext(uri, options);
 			}
+			
 			callback(true, pzh);
 		});
 	}

@@ -119,15 +119,17 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 			config.code = options.code;
 		}
 
-		var contents ="pzh_name=localhost\ncountry=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=" + config.pzpName + "\nemail=internal@webinos.org\ndays=180\n"
-		websocket.startPzpWebSocketServer(config.pzhHost, config.pzpWebsocketPort, config.pzpHttpPort, function() {
-			pzp.startPzp(contents, 'localhost/john',config.pzhHost, config.pzhPort, config.code, pzpModules, function() {
+		var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=" + config.pzpName + "\nemail=internal@webinos.org\ndays=180\n"
+		//websocket.startPzpWebSocketServer(config.pzhHost, config.pzpWebsocketPort, config.pzpHttpPort, function() {
+			pzp.startPzp('localhost', 'localhost/john', contents, config.code, pzpModules, function() {
 				console.log("=== PZP started ===");
-				contents ="pzh_name=localhost\ncountry=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzp1\nemail=internal@webinos.org\ndays=180\n"
-				pzp.startPzp(contents, 'localhost/habib',config.pzhHost, config.pzhPort, config.code, pzpModules, function() {
-					console.log("=== PZP started ===");
-				});
+
 			});
-		});
+		//});
 	});
 }
+
+/*contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzp1\nemail=internal@webinos.org\ndays=180\n"
+				pzp.startPzp('localhost/habib',contents, config.code, pzpModules, function() {
+					console.log("=== PZP 2 started ===");
+				});*/

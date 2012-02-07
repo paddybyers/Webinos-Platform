@@ -139,15 +139,13 @@ common.resolveIP = function(serverName, callback) {
 		callback(serverName);
 	} else {
 		dns.resolve(serverName, function(err, addresses) {
-			if (err) {
-				common.debug('ERROR', err);
-				callback(err);
-			}
 			if (typeof err !== 'undefined') {
 				// try again with lookup
 				dns.lookup(serverName, function(err, address, family) {
 					if (err) {
 						common.debug('ERROR', err);
+						callback("undefined");
+						return;
 					}
 					callback(address);
 				});				
