@@ -1,0 +1,44 @@
+html, body{
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	width: 100%;
+}
+
+#map{
+	width: 70%;
+	height: 100%;
+	float: left;
+	position: relative;
+}
+
+#bc-full{
+	position: relative;
+	width: 30%;
+	height: 100%;
+	float: left;
+	box-shadow: #000000 0px 0px 10px;
+	background-color:  #585E59;
+	background: url(rauschen.png), -moz-linear-gradient(top, #585E59, #363D38) ; 
+	background:  url(rauschen.png), -webkit-gradient(linear, left top, left bottom, from(#585E59), to(#363D38)), url(rauschen.png); 
+	background: url(rauschen.png), -webkit-linear-gradient(top, #585E59, #363D38); 
+	background:  url(rauschen.png), -o-linear-gradient(top, #585E59, #363D38); 
+	background:  url(rauschen.png), -ms-linear-gradient(top, #585E59, #363D38); 
+	background:  url(rauschen.png), linear-gradient(top, #585E59, #363D38);
+
+}
+
+#logo{
+	z-index: 200;
+	position: fixed;
+	top: -5px;
+	left: 20px;
+	width: 200px;
+	height: 45px;
+	background-color: #fff;
+	box-shadow: #000000 0px 0px 10px;
+	-moz-border-radius:4px; /* Firefox */
+	-webkit-border-radius:4px; /* Safari, Chrome */
+	-khtml-border-radius:4px; /* Konqueror */
+	border-radius:4px; /* CSS3 */
+}
