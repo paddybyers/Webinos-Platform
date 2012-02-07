@@ -499,6 +499,23 @@
 	};
 	
 	/**
+	 * Remove services from internal array. Used by PZH.
+	 * @param address Remove all services for this address.
+	 */
+	_RPCHandler.prototype.removeRemoteServiceObjects = function(address) {
+		var oldCount = this.remoteServiceObjects.length;
+		
+		function isNotServiceFromAddress(element) {
+			return address !== element.serviceAddress;
+		}
+		
+		this.remoteServiceObjects = this.remoteServiceObjects.filter(isNotServiceFromAddress);
+		
+		var removedCount = oldCount - this.remoteServiceObjects.length;
+		console.log("removeRemoteServiceObjects: removed " + removedCount + " services from: " + address);
+	};
+	
+	/**
 	 * Return an array of all known services, including local and remote
 	 * services. Used by PZH.
 	 * @param exceptAddress Address of services that match will be excluded from
@@ -506,7 +523,6 @@
 	 */
 	_RPCHandler.prototype.getAllServices = function(exceptAddress) {
 		var results = [];
-		debugger;
 		
 		function isNotExceptAddress(el) {
 			return (el.serviceAddress !== exceptAddress) ? true : false;

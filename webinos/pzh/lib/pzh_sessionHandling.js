@@ -408,6 +408,7 @@
 					helper.debug(2, 'PZH ('+self.sessionId+') Pzh/Pzp  closed');
 					var removed = utils.removeClient(self, conn);
 					self.messageHandler.removeRoute(removed, self.sessionId);
+					self.rpcHandler.removeRemoteServiceObjects(removed);
 				} catch (err) {
 					helper.debug(1, 'PZH ('+self.sessionId+') Remove client from connectedPzp/connectedPzh failed' + err);
 				}
