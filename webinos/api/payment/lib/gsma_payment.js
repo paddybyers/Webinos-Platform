@@ -66,10 +66,10 @@
     var request = https.request(options, function (response) {
     response.on("data", function (chunk) {
         
-       //console.log("DATA: " + chunk);
+       console.log("DATA: " + chunk);
        // do we have the subscriber in the reply?
        reply=""+chunk;	
-       if(reply.indexOf("<subscriber address=\""+customerRef+"\">")==-1)retcode="Unknown subscriber";
+       if(reply.indexOf("<error>")!=-1)retcode=GSMA_Error_Extract(reply,"<error>","</error>");
        else if(reply.indexOf("401 - Not Authorized")!=-1)retcode="Shop not authorized";
        else retcode="ok";
        //console.log("retcode: " + retcode);
@@ -137,7 +137,7 @@
                
       paymentBody=
         "endUserId="+customerRef+"&"+
-        "transactionOperationStatus="+"reserved"+"&"+
+        "transactionOperationStatus="+"reserved"+"&"+  // intentional error
         "description="+encodeURIComponent( itemsDescription )+"&"+
         "currency="+encodeURIComponent( itemCurrency )+"&"+
         "amount="+encodeURIComponent( itemsPrice )+"&"+
@@ -172,8 +172,13 @@
     response.on("data", function (chunk) {
         locaHeader =  response.headers["location"];
         if((locaHeader!=null)&&(locaHeader.length>0))GSMA_Request_location = locaHeader;
-        retcode="ok";
-        console.log("DATA: " + chunk);
+
+       reply=""+chunk;
+       if(reply.indexOf("requestError")!=-1)retcode=GSMA_Error_Extract(reply,"\"text\":\"","\",\"variables");
+       else retcode="ok";
+
+        //console.log("DATA: " + chunk);
+        //console.log("RETCODE: " + retcode);
      
     });
     response.on("close", function (err) {
@@ -260,7 +265,9 @@
     response.on("data", function (chunk) {
         locaHeader =  response.headers["location"];
         if((locaHeader!=null)&&(locaHeader.length>0))GSMA_Request_location = locaHeader;
-        retcode="ok";
+        reply=""+chunk;
+        if(reply.indexOf("requestError")!=-1)retcode=GSMA_Error_Extract(reply,"\"text\":\"","\",\"variables");
+        else retcode="ok";
         console.log("DATA: " + chunk);
      
     });
@@ -399,4 +406,11 @@
   };
 
 
+   GSMA_Error_Extract = function (serverMSG, fromText, toText){
+     fromTextPos=serverMSG.indexOf(fromText);
+     toTextPos=serverMSG.indexOf(toText);
+     if(fromTextPos==-1)return serverMSG;
+     if(toTextPos==-1)return serverMSG.slice(fromTextPos+fromText.length);
+     return serverMSG.slice(fromTextPos+fromText.length,toTextPos);
+   }
 
