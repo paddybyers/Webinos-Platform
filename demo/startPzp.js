@@ -60,6 +60,7 @@ var pzpModules = [
     {name: "get42", param: {}},
     {name: "file", param: {}},
     {name: "geolocation", param: {}},
+    {name: "applauncher", param: {}},
 //    {name: "events", param: {}},
     {name: "sensors", param: {}},
     {name: "payment", param: {}},

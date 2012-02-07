@@ -79,6 +79,7 @@
             if (typeof WebinosDeviceOrientation !== 'undefined') typeMap['http://webinos.org/api/deviceorientation'] = WebinosDeviceOrientation;
             if (typeof Vehicle !== 'undefined') typeMap['http://webinos.org/api/vehicle'] = Vehicle;
             if (typeof EventsModule !== 'undefined') typeMap['http://webinos.org/api/events'] = EventsModule;
+            if (typeof AppLauncherModule !== 'undefined') typeMap['http://webinos.org/api/applauncher'] = AppLauncherModule;
             if (typeof Sensor !== 'undefined') {
                 typeMap['http://webinos.org/api/sensors'] = Sensor;
                 typeMap['http://webinos.org/api/sensors.temperature'] = Sensor;
