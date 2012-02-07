@@ -204,13 +204,7 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 						utils.sendMessageMessaging(instance, instance.messageHandler, msg);
 					} else {
 						rpc.setSessionId("virgin_pzp");
-						
-						// FIXME FIXME FIXME where do we get a messagehandler 
-						// instance from to call the following funcs
-//						messaging.setGetOwnId("virgin_pzp");
-//						messaging.setSendMessage(messageWS);
-//						messaging.setSeparator("/");
-//						messaging.onMessageReceived(msg, msg.to);
+						pzp.messaging.onMessageReceived(msg, msg.to);
 					}
 				}
 			});

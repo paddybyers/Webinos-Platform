@@ -21,7 +21,7 @@
 	var Pzh        = null;
 	var log        = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
 	var pzhapis    = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_internal_apis.js'));
-	var config     = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_configuration.js'));
+	var config     = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
 	var farm       = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_farm.js'));
 	
 	var server = null;

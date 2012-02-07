@@ -9,7 +9,7 @@ var webinosRoot   = path.resolve(__dirname, '../' + moduleRoot.root.location);
 var cert          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
 var utils         = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 var log           = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
-var configuration = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_configuration.js'));
+var configuration = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
 
 var pzhs = [];
 

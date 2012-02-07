@@ -2,6 +2,8 @@ var configure = exports;
 
 var path          = require('path');
 var fs            = require('fs');
+var os            = require('os');
+
 var moduleRoot    = require(path.resolve(__dirname, '../dependencies.json'));
 var dependencies  = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 var webinosRoot   = path.resolve(__dirname, '../' + moduleRoot.root.location);
@@ -12,87 +14,124 @@ var common        = require(path.join(webinosRoot, dependencies.pzp.location, 'l
 var uniqueID      = require(path.join(webinosRoot, dependencies.uniqueID.location, 'lib/uniqueID.js'));
 
 
-/** 
-* @descripton Checks for master certificate, if certificate is not found it calls generating certificate function defined in certificate manager. This function is crypto sensitive. 
+/**
+* @descripton Checks for master certificate, if certificate is not found it calls generating certificate function defined in certificate manager. This function is crypto sensitive.
 * @param {function} callback It is callback function that is invoked after checking/creating certificates
 */
-configure.setConfiguration = function (id, contents, pzhType, callback) {
-	// ASSUMPTION: ID URI should be of form pzh.webinos.org
+configure.setConfiguration = function (id, contents, type, callback) {
 	var webinosDemo = common.webinosConfigPath();
 	var config;
-
+	
 	var name = id;
 	if (id.split('/') && id.split('/')[1]) {
 		name = id.split('/')[1];
 	}
-
+	
 	fs.readFile(( webinosDemo+'/config/'+ name +'.json'), function(err, data) {
-		
 		if ( err && err.code=== 'ENOENT' ) {
 			// CREATE NEW CONFIGURATION
 			config = createConfigStructure(name);
 			setCertValue(config, contents);
 			// This self signed certificate is for getting connection certificate CSR.
-			cert.selfSigned( pzhType, config.certValues, config.cert.conn, function(status, selfSignErr) {
+			try {
+			cert.selfSigned( type, config.certValues, function(status, selfSignErr, conn_key, conn_cert, csr ) {
 				if(status === 'certGenerated') {
-					log('INFO', ' [CONFIG] PZH Generating Certificates');
-					// This self signed certificate is  master certificate / CA
-					cert.selfSigned( pzhType+'CA', config.certValues, config.cert.master, function(result, selfSignErr) {
-						if(result === 'certGenerated') {
-							log('INFO', ' [CONFIG] CA Certificate');
-							try {
-								cert.signRequest(config.cert.conn.csr, config.cert.master, 1, function(result, cert) {
+					log('INFO', ' [CONFIG] Generated CONN Certificates');
+					if (type !== 'Pzp') {
+						// This self signed certificate is  master certificate / CA
+						cert.selfSigned( type+'CA', config.certValues, function(result, selfSignErr, master_key, master_cert) {
+							if(result === 'certGenerated') {
+								log('INFO', ' [CONFIG] Generated CA Certificate');
+								cert.signRequest(csr, master_key,  master_cert.cert, 1, function(result, cert) {
 									// connection certificate signed by master certificate
-									log('INFO', ' [CONFIG] CA Signed Conn Certificate ');
+									log('INFO', ' [CONFIG] Generated CA Signed CONN Certificate ');
 									if(result === 'certSigned') {
 										try {
-											var name1 = (webinosDemo+ '/config/'+name+'.json');
-											var value = JSON.stringify(config, null, " ");
-											fs.writeFile(name1, value, function(err) {
+											config.cert.master.cert = master_cert.cert;
+											config.cert.master.crl  = master_cert.crl;
+											config.cert.conn.cert   = conn_cert.cert;
+											config.cert.conn.crl   = conn_cert.crl;
+											
+											// This works only for Linux and MAC
+											try {
+												var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
+												key.put(config.cert.master.key_id, master_key);
+												key.put(config.cert.conn.key_id,   conn_key);
+											} catch (err) {
+												log('ERROR', "[CONFIG] Storing keys in key store "+ err);
+												callback("undefined");
+												return;
+											}
+											fs.writeFile((webinosDemo+ '/config/'+name+'.json'), JSON.stringify(config, null, " "), function(err) {
 												if(!err) {
-													callback(config);
+													callback(config, conn_key);
 												}
 											});
 										} catch (err) {
-											log('ERROR',' [CONFIG] ('+name+') Error writing configuration file');
-											callback(false);
+											log('ERROR',' [CONFIG] Error writing configuration file');
+											callback("undefined");
 											return;
 										}
 									} else {
 										log('ERROR', '[CONFIG] Manager Status: ' + result);
-										callback(false);
+										callback("undefined");
 									}
 								});
-							} catch (err) {
-								log('ERROR', '[CONFIG] Certificate generation error');
+
 							}
+						});
+					} else {
+						try {
+							try{
+								var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
+								key.put(config.cert.conn.key_id, conn_key);
+							} catch (err) {
+								log('ERROR', "Error storing key in key store "+ err);
+								return;
+							}
+							config.cert.conn.cert = conn_cert.cert;
+							config.cert.conn.crl  = conn_cert.crl;
+							
+							fs.writeFile((webinosDemo+ '/config/'+name+'.json'), JSON.stringify(config, null, " "), function(err) {
+								if(!err) {
+									callback(config, conn_key, csr);
+								}
+							});
+						} catch (err) {
+							log('ERROR',' [CONFIG] Error writing configuration file');
+							callback("undefined");
+							return;
 						}
-					});
+						
+						callback(config, conn_key, csr);
+					}
+					
 				} else {
-					log('ERROR', status);
-					log('ERROR', selfSignErr);
+					log('ERROR', '[CONFIG] '+status);
+					log('ERROR', '[CONFIG] '+selfSignErr);
 				}
-				
+
 			});
-			
+			} catch (err) {
+				log('ERROR', '[CONFIG] Certificate generation error');
+			}
+
 		} else {
 			config = JSON.parse(data);
-			var name = id;
-
-			if (id.split['/'] && id.split['/'][1]) {
-				name = id.split['/'][1];
-			}
-			
 			// TODO: This works fine for linux and mac. Requires implementation on Android and Windows
-			/*try{
-				//var key =require("../../common/manager/keystore/src/build/Release/keystore");
-				//config.master.key.value = key.get(config.master.key.name);
-				//config.conn.key.value = key.get(config.conn.key.name);
-			} catch(err){
-				console.log(err);
-				return;
-			}*/
-			callback(config);
+			if (os.type === 'linux' && os.type === 'darwin') {
+				try{
+					var key =require("../../common/manager/keystore/src/build/Release/keystore");
+					if (type !== 'Pzp') {
+						master_key = key.get(config.master.key_id);
+					}
+					conn_key   = key.get(config.conn.key_id);
+				} catch(err){
+					log('ERR0R','[CONFIG] Key fetching error' )
+					return;
+				}
+				callback(config, master_key, conn_key);
+			}
 		}
 	});
 
@@ -114,20 +153,25 @@ configure.createDirectoryStructure = function (callback) {
 				fs.mkdirSync( webinosDemo +'/config','0700');
 			}
 		});
+		// Configuration directory, which holds information about certificate, ports, openid details
+		fs.readdir ( webinosDemo+'/logs', function(err) {
+			if ( err && err.code=== 'ENOENT' ) {
+				fs.mkdirSync( webinosDemo +'/logs','0700');
+			}
+		});
 
 	} catch (err){
 		log('ERROR', '[CONFIG] Error setting default Webinos Directories' + err.code);
-		
-		
+
+
 	}
 }
 
 function createConfigStructure (name) {
 	var config = {};
 	config.cert = {
-		conn :      {key:{} , cert:{}, csr:{}, crl:{} },
-		master :    {key:{} , cert:{}, csr:{}, crl:{} },
-		webserver : {key:{} , cert:{} }
+		conn   : { key_id: name+'_conn_key', cert:{}, crl:{} },
+		master : { key_id: name+'_master_key', cert:{}, crl:{} },
 	};
 	config.certValues = {};
 	return config;

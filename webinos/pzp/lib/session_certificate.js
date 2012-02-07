@@ -7,6 +7,7 @@ var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
 
 var utils =  require(path.resolve(webinosRoot,dependencies.pzp.location, 'lib/session_common.js')).debug;
+
 /* @description Create private key, certificate request, self signed certificate and empty crl. This is crypto sensitive function
  * @param {Object} self is currect object of Pzh/Pzp
  * @param {String} name used in common field to differentiate Pzh and Pzp 
@@ -14,10 +15,15 @@ var utils =  require(path.resolve(webinosRoot,dependencies.pzp.location, 'lib/se
  * @returns {Function} callback returns failed or certGenerated. Added to get synchronous behaviour
  */
 
-certificate.selfSigned = function(name, certValues, obj, callback) {
+certificate.selfSigned = function(name, certValues,  callback) {
 	"use strict";
 	var certman;
+	
 	var certType;
+	var obj= {cert: '', crl:''};
+
+	var key , csr ;
+	
 	try {
 	  if(process.platform !== 'android') {
 		certman = require(path.resolve(webinosRoot,dependencies.manager.certificate_manager.location));	
@@ -30,13 +36,11 @@ certificate.selfSigned = function(name, certValues, obj, callback) {
 	}
 
 	try {
-		obj.key = certman.genRsaKey(1024);
+		key = certman.genRsaKey(1024);
 	} catch(err1) {
 		callback("failed", err1);
 		return;
 	}
-
-	
 	
 	var cn = name+':'+certValues.common;
 
@@ -49,7 +53,7 @@ certificate.selfSigned = function(name, certValues, obj, callback) {
 	}
 
 	try {
-		obj.csr = certman.createCertificateRequest(obj.key,
+		csr = certman.createCertificateRequest(key,
 			certValues.country,
 			certValues.state,
 			certValues.city,
@@ -61,27 +65,27 @@ certificate.selfSigned = function(name, certValues, obj, callback) {
 		callback("failed", e);
 		return;
 	}
-
+	
 	try {
-		obj.cert = certman.selfSignRequest(obj.csr, 180, obj.key, certType, "pzh.webinos.org");
+		obj.cert = certman.selfSignRequest(csr, 180, key, certType, "pzh.webinos.org");
 	} catch (e1) {
 		callback("failed", e1);
 		return;
 	}
 
 	try {
-		obj.crl = certman.createEmptyCRL(obj.key,  obj.cert, 180, 0);
+		obj.crl = certman.createEmptyCRL(key, obj.cert, 180, 0);
 	} catch (e2) {
 		callback("failed", e2);
 		return;
 	}
 
-	callback("certGenerated");
+	callback("certGenerated", null, key, obj, csr);
 };
 
 /* @description Crypto sensitive 
 */
-certificate.signRequest = function(csr, master, certType, callback) {
+certificate.signRequest = function(csr, master_key, master_cert, certType, callback) {
 	"use strict";
 	var certman;
 	
@@ -91,8 +95,9 @@ certificate.signRequest = function(csr, master, certType, callback) {
 		callback( "failed");
 		return;
 	}
+	
 	try {
-		var clientCert = certman.signRequest(csr, 30, master.key, master.cert, certType, "pzh.webinos.org");
+		var clientCert = certman.signRequest(csr, 30, master_key, master_cert, certType, "pzh.webinos.org");
 		callback("certSigned", clientCert);
 	} catch(err1) {
 		log('ERROR', "Failed to sign certificate: " + err1.code + ", " + err1.stack);
@@ -101,7 +106,7 @@ certificate.signRequest = function(csr, master, certType, callback) {
 	}	
 };
 
-certificate.revokeClientCert = function(self, master, pzpCert, callback) {
+certificate.revokeClientCert = function(self, master_key, master_crl, pzpCert, callback) {
 	"use strict";
 	var certman;
 	
@@ -114,9 +119,9 @@ certificate.revokeClientCert = function(self, master, pzpCert, callback) {
 	}
 	try {
 		log("ERROR", "Calling certman.addToCRL\n");
-		var crl = certman.addToCRL("" + master.key, "" + master.crl, "" + pzpCert);
+		var crl = certman.addToCRL("" + master_key, "" + master_crl, "" + pzpCert);
 		// master.key.value, master.cert.value
-		callback("certRevoked", crl);
+		callback("certRevoked",  crl);
 	} catch(err1) {
 		log("ERROR", "Error: " + err1);
 		callback("failed", err1);

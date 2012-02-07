@@ -14,12 +14,8 @@ var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
 var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
 var webinosDemo  = path.resolve(__dirname, '../../../demo');
-var validation = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_schema.js')); // ADDED BY POLITO
-
-		
-if (typeof exports !== "undefined") {
-	var rpc       = require(path.join(webinosRoot, dependencies.rpc.location));
-}
+var validation   = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_schema.js')); // ADDED BY POLITO
+var rpc          = require(path.join(webinosRoot, dependencies.rpc.location));
 
 common.webinosConfigPath = function() {
 	var webinosDemo;
@@ -60,7 +56,7 @@ common.debug = function(num, msg) {
 
 /** @desription It removes the connected PZP/Pzh details.
  */
-exports.removeClient = function(self, conn) {
+common.removeClient = function(self, conn) {
 	"use strict";
 	var i, delId, delPzhId;
 	
@@ -105,7 +101,7 @@ exports.removeClient = function(self, conn) {
 	
 };
 
-exports.processedMsg = function(self, data, dataLen, callback) {
+common.processedMsg = function(self, data, dataLen, callback) {
 	"use strict";
 	var msg = data.toString('utf8');
 	if(msg[0] ==='#' && msg[msg.length-dataLen] === '#') {
@@ -116,52 +112,49 @@ exports.processedMsg = function(self, data, dataLen, callback) {
 			// BEGIN OF POLITO MODIFICATIONS
 			var valError = validation.checkSchema(parse);
 			if(valError === false) { // validation error is false, so validation is ok
-				console.log('Received recognized packet ' + JSON.stringify(msg));
+				common.debug('DEBUG','[VALIDATION] Received recognized packet ' + JSON.stringify(msg));
 			}
 			else if (valError === true) {
 				// for debug purposes, we only print a message about unrecognized packet
 				// in the final version we should throw an error
 				// Currently there is no a formal list of allowed packages and throw errors
 				// would prevent the PZH from working
-				console.log('Received unrecognized packet ' + JSON.stringify(msg));
-				console.log(msg);
+				common.debug('INFO','[VALIDATION] Received unrecognized packet ' + JSON.stringify(msg));
+				
 			}
 			else if (valError === 'failed') {
-				console.log('Validation failed');
+				common.debug('ERROR','[VALIDATION] failed');
 			}
 			else {
-				console.log('Invalid validation response ' + valError);
+				common.debug('ERROR','[VALIDATION] Invalid response ' + valError);
 			}
-
-			//utils.debug(2, 'PZH WSServer: Received packet' + JSON.stringify(msg));
 
 			callback.call(self, parse);
 		}
 	}	
 };
 
-exports.resolveIP = function(serverName, callback) {
-	if(net.isIP(serverName) !== 0) {
-		console.log('netisip');
+common.resolveIP = function(serverName, callback) {
+	if(net.isIP(serverName) !== 0) {		
 		callback(serverName);
 	} else {
 		dns.resolve(serverName, function(err, addresses) {
-			console.log(err);
+			if (err) {
+				common.debug('ERROR', err);
+				callback(err);
+			}
 			if (typeof err !== 'undefined') {
 				// try again with lookup
 				dns.lookup(serverName, function(err, address, family) {
-					console.log(err);
-					console.log(address);
+					if (err) {
+						common.debug('ERROR', err);
+					}
 					callback(address);
 				});				
 			} else {
 				// resolve succeeded
-				console.log(addresses[0]);
 				callback(addresses[0]);			
 			}
 		});
 	}
 };
-
-exports.debug = debug;
-

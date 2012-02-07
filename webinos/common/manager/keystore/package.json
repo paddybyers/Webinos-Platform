@@ -1,12 +1,12 @@
 { "name": "keystore"
 , "description": "An interface to the native password/keystorage interface. Currently works for Linux and Mac OS X"
 , "version": "1"
-, "main": "keystore"
+, "main": "src/build/Release/keystore.node"
 , "keywords": ["Gnome keyring","Keychain Services"]
-, "maintainers": [{ "name": "Shamal Faily"}]
-, "contributors": [{ "name": "Shamal Faily"}]
+, "maintainers": [{ "name": "Shamal Faily, Habib Virji"}]
+, "contributors": [{ "name": "Shamal Faily, Habib Virji"}]
 , "bugs":
-  { "email": "shamal.faily@cs.ox.ac.uk"
+  { "email": "shamal.faily@cs.ox.ac.uk, habib.virji@samsung.com"
   , "url": "http://www.cs.ox.ac.uk/people/shamal.faily"
   }
 , "licenses":
