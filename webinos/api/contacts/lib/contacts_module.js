@@ -26,7 +26,10 @@ if(process.platform!=='android')
 {
   local_contacts = require(path.resolve(__dirname,'local_contacts.js'));
 }
-//TODO else JAVA_BRIDGE
+else //on android
+{
+  local_contacts = require('bridge').load('org.webinos.impl.ContactManagerImpl', this);
+}
 
 var c_def_path = path.resolve(__dirname,'contacts_def.js');
 var Contact = require(c_def_path).Contact;
@@ -40,7 +43,14 @@ var ContactOrganization = require(c_def_path).ContactOrganization;
  */
 RemoteContacts = require(path.resolve(__dirname,'google_contacts.js'));//new remote_contacts.contacts();
 if(process.platform!=='android') //TODO else JAVA_BRIDGE
-LocalContacts = new local_contacts.contacts();
+{
+  LocalContacts = new local_contacts.contacts();
+}
+else
+{
+  LocalContacts = local_contacts;
+}
+
 
 /**
  * Either open a local address book or perform login into GMail account TODO
@@ -113,9 +123,14 @@ console.log("ASSERT params[1]===ALWAYS_ALLOW",params[1] === "ALWAYS ALLOW")
 	console.log("---------DEBUG: third if");
 	RemoteContacts.logIn(params[0]['usr'], params[0]['pwd'], callback);
       }
+      else if (params[0]['type'] == "local" &&  process.platform==='android') //TODO for standalone test only! Remove for Webinos release...
+      {
+	console.log("---------DEBUG: fourth if - ANDROID ONLY");
+	callback(true);
+      }
       else
       {
-	console.log("---------DEBUG: fourth if");
+	console.log("---------DEBUG: fifth if");
 	console.log("KO");
 	callback(false);
       }
@@ -141,6 +156,11 @@ this.isAlreadyAuthenticated = function(params, callback)
     {
       RemoteContacts.isLoggedIn(callback);
     }
+    else if (params[0]['type'] == "local" && process.platform==='android')
+    {
+      //Always
+      callback(true);
+    }
   }
 };
 
@@ -150,9 +170,15 @@ this.isAlreadyAuthenticated = function(params, callback)
  */
 this.getAllContacts = function(params, callback)
 {
-  if (params)
+  if (params && process.platform!=='android')
   {
     makeW3Ccontacts(params[0]['type'], callback);
+  }
+  else if (params && process.platform === 'android')
+  {
+    var opt = new Array();
+    var fields = {};
+    LocalContacts.find(fields, callback, function(){}, opt);
   }
 };
 
@@ -308,6 +334,8 @@ function simpleCallback(par)
  */
 this.find = function(type, fields, successCB, errorCB, options)
 {
+  if( process.platform !== 'android')
+  {
   var cb = successCB;
   if (cb == null || cb == undefined)
     throw TypeError("Please provide a success callback");
@@ -348,6 +376,14 @@ this.find = function(type, fields, successCB, errorCB, options)
       }
     })(params);
   });
+}
+  else //on Android
+  {
+    if(!options)
+      options=new Array();
+    LocalContacts.find(fields, successCB, function(){}, options);
+  }
+  
 };
 
 /**
