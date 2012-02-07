@@ -10,7 +10,7 @@ var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
 var webinosDemo  = path.resolve(__dirname, '../../../demo');
 
 var qrcode       = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_qrcode.js'));
-var helper       = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_helper.js'));
+var log          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
 var revoker      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_revoke.js'));	
 var session      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_sessionHandling.js'));
 
@@ -120,7 +120,7 @@ pzhapis.addPzhCertificate = function(pzh, name, certificate, callback) {
             callback();
         });
     } catch (error) {
-        helper.debug(1, "PZH couldn't save an incoming PZH certificate" + error);
+        log('ERROR', "PZH couldn't save an incoming PZH certificate" + error);
         callback(error);
     }
 }	
@@ -129,11 +129,12 @@ pzhapis.crashLog = function(pzh, callback) {
 	"use strict";
 	
 	try {
+		// TODO: Create log directory and store information in it about PZH
 		var logFile = webinosDemo + '/'+pzh.sessionId + '_crash.txt';
 		var clog = fs.readFileSync(logFile, 'utf8');
 		callback(null,clog);
 	} catch (err) {
-		helper.debug(1, 'PZH ('+pzh.sessionId+') Error creating crashlog ' + err);
+		log('ERROR', 'PZH ('+pzh.sessionId+') Error creating crashlog ' + err);
 		callback(err);
 	}
 }
@@ -142,7 +143,7 @@ pzhapis.crashLog = function(pzh, callback) {
 
 pzhapis.restartPzh = function(instance, callback) {
 	try {
-		log(INFO, util.inspect(instance));
+		log('INFO', util.inspect(instance));
 		if ((typeof instance.conn.end) === 'undefined' ) {
 			callback.call(instance, "Failed - no open connections to close");
 		} else {
@@ -153,7 +154,7 @@ pzhapis.restartPzh = function(instance, callback) {
 			});
 		}
 	} catch(err) {
-		log(ERROR, 'Pzh restart failed ' + err);
+		log('ERROR', 'Pzh restart failed ' + err);
 		callback.call(instance, err);
 	}
 }

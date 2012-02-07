@@ -30,12 +30,13 @@ certificate.selfSigned = function(name, certValues, obj, callback) {
 	}
 
 	try {
-		obj.key.value = certman.genRsaKey(1024);
+		obj.key = certman.genRsaKey(1024);
 	} catch(err1) {
 		callback("failed", err1);
 		return;
 	}
 
+	
 	
 	var cn = name+':'+certValues.common;
 
@@ -48,7 +49,7 @@ certificate.selfSigned = function(name, certValues, obj, callback) {
 	}
 
 	try {
-		obj.csr.value = certman.createCertificateRequest(obj.key.value,
+		obj.csr = certman.createCertificateRequest(obj.key,
 			certValues.country,
 			certValues.state,
 			certValues.city,
@@ -62,14 +63,14 @@ certificate.selfSigned = function(name, certValues, obj, callback) {
 	}
 
 	try {
-		obj.cert.value = certman.selfSignRequest(obj.csr.value, 180, obj.key.value, certType, "pzh.webinos.org");
+		obj.cert = certman.selfSignRequest(obj.csr, 180, obj.key, certType, "pzh.webinos.org");
 	} catch (e1) {
 		callback("failed", e1);
 		return;
 	}
 
 	try {
-		obj.crl.value = certman.createEmptyCRL(obj.key.value,  obj.cert.value, 180, 0);
+		obj.crl = certman.createEmptyCRL(obj.key,  obj.cert, 180, 0);
 	} catch (e2) {
 		callback("failed", e2);
 		return;
@@ -91,7 +92,7 @@ certificate.signRequest = function(csr, master, certType, callback) {
 		return;
 	}
 	try {
-		var clientCert = certman.signRequest(csr, 30, master.key.value, master.cert.value, certType, "pzh.webinos.org");
+		var clientCert = certman.signRequest(csr, 30, master.key, master.cert, certType, "pzh.webinos.org");
 		callback("certSigned", clientCert);
 	} catch(err1) {
 		log('ERROR', "Failed to sign certificate: " + err1.code + ", " + err1.stack);
@@ -113,7 +114,7 @@ certificate.revokeClientCert = function(self, master, pzpCert, callback) {
 	}
 	try {
 		log("ERROR", "Calling certman.addToCRL\n");
-		var crl = certman.addToCRL("" + master.key.value, "" + master.crl.value, "" + pzpCert); 
+		var crl = certman.addToCRL("" + master.key, "" + master.crl, "" + pzpCert);
 		// master.key.value, master.cert.value
 		callback("certRevoked", crl);
 	} catch(err1) {

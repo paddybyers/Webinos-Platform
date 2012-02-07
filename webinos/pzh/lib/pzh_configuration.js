@@ -1,6 +1,5 @@
 var configure = exports;
 
-var os            = require('os');
 var path          = require('path');
 var fs            = require('fs');
 var moduleRoot    = require(path.resolve(__dirname, '../dependencies.json'));
@@ -8,32 +7,10 @@ var dependencies  = require(path.resolve(__dirname, '../' + moduleRoot.root.loca
 var webinosRoot   = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
 var cert          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
-var log           = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_helper.js')).debug;
+var log           = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
+var common        = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 var uniqueID      = require(path.join(webinosRoot, dependencies.uniqueID.location, 'lib/uniqueID.js'));
 
-configure.webinosDemoPath = function() {
-	var webinosDemo;
-	switch(os.type().toLowerCase()){
-		case 'windows_nt':
-			webinosDemo = path.resolve(process.env.appdata + '/webinos/');
-			break;
-		case 'linux':
-			switch(os.platform().toLowerCase()){
-				case 'android':
-					webinosDemo = path.resolve(process.env.EXTERNAL_STORAGE + '/.webinos/');
-					break;
-				case 'linux':
-					webinosDemo = path.resolve(process.env.HOME + '/.webinos/');
-					break;
-			}
-			break;
-		case 'darwin':
-			webinosDemo = path.resolve(process.env.HOME + '/.webinos/');
-			break;
-	}
-	
-	return webinosDemo;
-};
 
 /** 
 * @descripton Checks for master certificate, if certificate is not found it calls generating certificate function defined in certificate manager. This function is crypto sensitive. 
@@ -41,24 +18,20 @@ configure.webinosDemoPath = function() {
 */
 configure.setConfiguration = function (id, contents, pzhType, callback) {
 	// ASSUMPTION: ID URI should be of form pzh.webinos.org
-	var webinosDemo = configure.webinosDemoPath();
+	var webinosDemo = common.webinosConfigPath();
 	var config;
-	
-	fs.readFile(( webinosDemo+'/config/'+ id +'.json'), function(err, data) {
+
+	var name = id;
+	if (id.split('/') && id.split('/')[1]) {
+		name = id.split('/')[1];
+	}
+
+	fs.readFile(( webinosDemo+'/config/'+ name +'.json'), function(err, data) {
 		
 		if ( err && err.code=== 'ENOENT' ) {
 			// CREATE NEW CONFIGURATION
-			// TODO: If configuration file is deleted and certificates exist
-
-			var name = id;
-			console.log(id.split('/'));
-			if (id.split('/') && id.split('/')[1]) {
-				name = id.split('/')[1];
-			}
-
 			config = createConfigStructure(name);
 			setCertValue(config, contents);
-			createPZHDirectories( webinosDemo, name, config);
 			// This self signed certificate is for getting connection certificate CSR.
 			cert.selfSigned( pzhType, config.certValues, config.cert.conn, function(status, selfSignErr) {
 				if(status === 'certGenerated') {
@@ -68,25 +41,21 @@ configure.setConfiguration = function (id, contents, pzhType, callback) {
 						if(result === 'certGenerated') {
 							log('INFO', ' [CONFIG] CA Certificate');
 							try {
-								// This is working, waiting for completion of Android and Windows part to commit code.
-								/*try {
-									var key =require("../../common/manager/keystore/src/build/Release/keystore");
-									key.put(config.master.key.name, config.master.key.value);
-									key.put(config.conn.key.name, config.conn.key.value);
-								} catch (err) {
-									log('ERROR', "Error reading key from key store "+ err);
-									return;
-								}*/
-
-								cert.signRequest(config.cert.conn.csr.value, config.cert.master, 1, function(result, cert) {
+								cert.signRequest(config.cert.conn.csr, config.cert.master, 1, function(result, cert) {
 									// connection certificate signed by master certificate
 									log('INFO', ' [CONFIG] CA Signed Conn Certificate ');
 									if(result === 'certSigned') {
-										try {										
-											fs.writeFileSync((webinosDemo+ '/config/' + name+'.json'), JSON.stringify(config, null, " "));
-											callback(config);
+										try {
+											var name1 = (webinosDemo+ '/config/'+name+'.json');
+											var value = JSON.stringify(config, null, " ");
+											fs.writeFile(name1, value, function(err) {
+												if(!err) {
+													callback(config);
+												}
+											});
 										} catch (err) {
-											log('ERROR',' [CONFIG] ('+name+') Error writing connection certificate');
+											log('ERROR',' [CONFIG] ('+name+') Error writing configuration file');
+											callback(false);
 											return;
 										}
 									} else {
@@ -99,7 +68,11 @@ configure.setConfiguration = function (id, contents, pzhType, callback) {
 							}
 						}
 					});
+				} else {
+					log('ERROR', status);
+					log('ERROR', selfSignErr);
 				}
+				
 			});
 			
 		} else {
@@ -126,9 +99,8 @@ configure.setConfiguration = function (id, contents, pzhType, callback) {
 
 };
 
-
 configure.createDirectoryStructure = function (callback) {
-	var webinosDemo = configure.webinosDemoPath();
+	var webinosDemo = common.webinosConfigPath();
 	try {
 		// Main webinos directory
 		fs.readdir ( webinosDemo, function(err) {
@@ -142,17 +114,7 @@ configure.createDirectoryStructure = function (callback) {
 				fs.mkdirSync( webinosDemo +'/config','0700');
 			}
 		});
-		// Certificates diretory
-		fs.readdir ( webinosDemo+'/certificates', function(err) {
-			if ( err && err.code === 'ENOENT' ) {
-				fs.mkdirSync( webinosDemo +'/certificates','0700');
-			}
-		});
-		fs.readdir ( webinosDemo+'/certificates/PZH', function(err) {
-			if ( err && err.code === 'ENOENT' ) {
-				fs.mkdirSync( webinosDemo +'/certificates/PZH','0700');
-			}
-		});
+
 	} catch (err){
 		log('ERROR', '[CONFIG] Error setting default Webinos Directories' + err.code);
 		
@@ -160,52 +122,12 @@ configure.createDirectoryStructure = function (callback) {
 	}
 }
 
-function createPZHDirectories (webinosDemo, id, config ) {
-	var pzhName                   = webinosDemo+'/certificates/PZH/'+id;
-	config.cert.pzhName           = pzhName;
-	config.cert.pzhCertDir        = path.resolve(webinosDemo, pzhName+'/cert');
-	config.cert.pzhKeyDir         = path.resolve(webinosDemo, pzhName+'/keys');
-	config.cert.pzhSignedCertDir  = path.resolve(webinosDemo, pzhName+'/signed_cert');
-	config.cert.pzhOtherCertDir   = path.resolve(webinosDemo, pzhName+'/other_cert');
-	config.cert.pzhRevokedCertDir = path.resolve(webinosDemo, pzhName+'/signed_cert/revoked');
-
-	fs.readdir(pzhName, function(err) {
-		if(err && err.code === "ENOENT") {
-			try {
-				fs.mkdirSync(config.cert.pzhName,'0700');
-				fs.mkdirSync(config.cert.pzhCertDir, '0700');
-				fs.mkdirSync(config.cert.pzhSignedCertDir, '0700');
-				fs.mkdirSync(config.cert.pzhKeyDir, '0700');
-				fs.mkdirSync(config.cert.pzhOtherCertDir, '0700');
-				fs.mkdirSync(config.cert.pzhRevokedCertDir, '0700');
-				
-			} catch(err) {
-				log('ERROR',' [CONFIG] ('+id+') Error creating certificates/pzh/pzh_name/ directories');
-				return;
-			}
-		}
-	});	
-};
-
 function createConfigStructure (name) {
 	var config = {};
 	config.cert = {
-		conn : {
-			key:  { name: name+'_conn_key.pem'},
-			cert: { name: name+'_conn_cert.pem'},
-			csr:  { name: name+'_conn_cert.csr'},
-			crl:  { name: name+'_conn_cert.crl'}
-		},
-		master : {
-			key:  { name: name+'_master_key.pem'},
-			cert: { name: name+'_master_cert.pem'},
-			csr:  { name: name+'_master_cert.csr'},
-			crl:  { name: name+'_master_cert.crl'}
-		},
-		webserver : {
-			cert : { name : name+'_ws_cert.pem' },
-			key :  { name : name+'_ws_key.pem' }
-		}
+		conn :      {key:{} , cert:{}, csr:{}, crl:{} },
+		master :    {key:{} , cert:{}, csr:{}, crl:{} },
+		webserver : {key:{} , cert:{} }
 	};
 	config.certValues = {};
 	return config;
@@ -231,7 +153,7 @@ function setCertValue(config, contents) {
 		} else if(data1[i][0] === 'organizationUnit') {
 			config.certValues.orgunit = data1[i][1];
 		} else if(data1[i][0] === 'common') {
-			config.certValues.common  = data1[i][1] +':DeviceId('+os.type+')';
+			config.certValues.common  = data1[i][1] +':DeviceId('+uniqueID.getUUID_40.substring(0,10)+')';
 		} else if(data1[i][0] === 'email') {
 			config.certValues.email    = data1[i][1];
 		} else if(data1[i][0] === 'days') {

@@ -8,7 +8,6 @@
 #include <openssl/x509.h>
 #include <stdlib.h>
 #include <string.h>
-
 /*
  * Note: you CANT use STL in this module - it breaks the Android build.
  */
@@ -47,96 +46,98 @@ int genRsaKey(const int bits, char * privkey)
 
 int createCertificateRequest(char* result, char* keyToCertify, char * country, char* state, char* loc, char* organisation, char *organisationUnit, char* cname, char* email)
 {
-    BIO *mem = BIO_new(BIO_s_mem());   
-    X509_REQ * req=X509_REQ_new();
+	BIO *mem = BIO_new(BIO_s_mem());   
+	X509_REQ * req=X509_REQ_new();
     
-    X509_NAME *nm;
-    nm = X509_NAME_new();
+	X509_NAME *nm = X509_NAME_new();
 
-	
-    int err=0;
+	int err=-1;
 
-    //fill in details
-    if(!(err = X509_NAME_add_entry_by_txt(nm,"C",
-				MBSTRING_ASC, (unsigned char*)country, -1, -1, 0))) {
-    	return err;
+
+	//fill in details
+	if(!(err = X509_NAME_add_entry_by_txt(nm,"C",
+		MBSTRING_ASC, (unsigned char*)country, -1, -1, 0))) {
+		return err;
 	}
+
 	if(!(err = X509_NAME_add_entry_by_txt(nm,"ST",
-				MBSTRING_ASC, (unsigned char*)state, -1, -1, 0))) {
+		MBSTRING_ASC, (unsigned char*)state, -1, -1, 0))) {
 		return err;
 	}
+
 	if(!(err = X509_NAME_add_entry_by_txt(nm,"L",
-				MBSTRING_ASC, (unsigned char*)loc, -1, -1, 0))) {
+		MBSTRING_ASC, (unsigned char*)loc, -1, -1, 0))) {		
 		return err;
 	}
+
 	if(!(err = X509_NAME_add_entry_by_txt(nm,"O",
-				MBSTRING_ASC, (unsigned char*)organisation, -1, -1, 0))) {
+		MBSTRING_ASC, (unsigned char*)organisation, -1, -1, 0))) {
 		return err;
 	}
+
 	if(!(err = X509_NAME_add_entry_by_txt(nm,"OU",
-				MBSTRING_ASC, (unsigned char*)organisationUnit, -1, -1, 0))) {
+		MBSTRING_ASC, (unsigned char*)organisationUnit, -1, -1, 0))) {
 		return err;
 	}
+	
 	if(!(err = X509_NAME_add_entry_by_txt(nm,"CN",
-				MBSTRING_ASC, (unsigned char*)cname, -1, -1, 0))) {
+		MBSTRING_ASC, (unsigned char*)cname, -1, -1, 0))) {
 		return err;
 	}
+	
 	if(!(err = X509_NAME_add_entry_by_txt(nm,"emailAddress",MBSTRING_ASC, (unsigned char*)email, -1, -1, 0))) {
 		return err;
-    }
+	}
+	
 	if(!(err = X509_REQ_set_subject_name(req, nm))) {
 		return err;
 	}
-	
 	//Set the public key   
-    //...convert PEM private key into a BIO
-    
-    BIO* bmem = BIO_new_mem_buf(keyToCertify, -1);
-    if (!bmem) {
-    	BIO_free(bmem);
-        return -3;
-    }
-    
-    // read the private key into an EVP_PKEY structure
-    EVP_PKEY* privkey = PEM_read_bio_PrivateKey(bmem, NULL, NULL, NULL);
-    if (!privkey) {
-    	BIO_free(bmem);
-        return -4;
-    }
+	//...convert PEM private key into a BIO
 
-    if(!(err = X509_REQ_set_pubkey(req, privkey)))
-    {
-    	BIO_free(bmem);
-        return err;
-    }
-    
-    if(!(err = X509_REQ_set_version(req,3)))
-    {
-    	BIO_free(bmem);
-        return err;
-    }
-        
-    //write it to PEM format
-    if (!(err = PEM_write_bio_X509_REQ(mem, req))) {
-        BIO_free(mem);
-        BIO_free(bmem);
-    	return err;
-    }
+	BIO* bmem = BIO_new_mem_buf(keyToCertify, -1);
+	if (!bmem) {
+	BIO_free(bmem);
+	return -3;
+	}
 
-    BUF_MEM *bptr;
-    BIO_get_mem_ptr(mem, &bptr);
-    BIO_read(mem, result, bptr->length);
-    
-    BIO_free(bmem);
-    BIO_free(mem);
+	// read the private key into an EVP_PKEY structure
+	EVP_PKEY* privkey = PEM_read_bio_PrivateKey(bmem, NULL, NULL, NULL);
+	if (!privkey) {
+		BIO_free(bmem);
+		return -4;
+	}
 
-    return 0;
+	if(!(err = X509_REQ_set_pubkey(req, privkey)))
+	{
+		BIO_free(bmem);
+		return err;
+	}
+
+	if(!(err = X509_REQ_set_version(req,3)))
+	{
+		BIO_free(bmem);
+		return err;
+	}
+	//write it to PEM format
+	if (!(err = PEM_write_bio_X509_REQ(mem, req))) {
+		BIO_free(mem);
+		BIO_free(bmem);
+		return err;
+	}
+	BUF_MEM *bptr;
+	BIO_get_mem_ptr(mem, &bptr);
+	BIO_read(mem, result, bptr->length);
+
+	BIO_free(bmem);
+	BIO_free(mem);
+	return 0;
 }
 
 ASN1_INTEGER* getRandomSN() 
 {
-    ASN1_INTEGER* res = ASN1_INTEGER_new();
-    BIGNUM *btmp = BN_new();
+	ASN1_INTEGER* res = ASN1_INTEGER_new();
+	BIGNUM *btmp = BN_new();
 	//64 bits of randomness?
 	BN_pseudo_rand(btmp, 64, 0, 0);
 	BN_to_ASN1_INTEGER(btmp, res);
@@ -148,63 +149,63 @@ ASN1_INTEGER* getRandomSN()
 
 int selfSignRequest(char* pemRequest, int days, char* pemCAKey, int certType, char *url, char* result)  {
 
-    BIO* bioReq = BIO_new_mem_buf(pemRequest, -1);
-    BIO* bioCAKey = BIO_new_mem_buf(pemCAKey, -1);
-    
-    int err = 0;
-	
+	BIO* bioReq = BIO_new_mem_buf(pemRequest, -1);
+	BIO* bioCAKey = BIO_new_mem_buf(pemCAKey, -1);
+
+	int err = 0;
+
 	X509_REQ *req=NULL;
-    if (!(req=PEM_read_bio_X509_REQ(bioReq, NULL, NULL, NULL))) {
-    	BIO_free(bioReq);
-    	BIO_free(bioCAKey);
-    	return -5;
-    }
+	if (!(req=PEM_read_bio_X509_REQ(bioReq, NULL, NULL, NULL))) {
+	BIO_free(bioReq);
+	BIO_free(bioCAKey);
+	return -5;
+	}
 
-    EVP_PKEY* caKey = PEM_read_bio_PrivateKey(bioCAKey, NULL, NULL, NULL);
-    if (!caKey) { 
-    	BIO_free(bioReq);
-    	BIO_free(bioCAKey);
-    	return -6;
-    }
+	EVP_PKEY* caKey = PEM_read_bio_PrivateKey(bioCAKey, NULL, NULL, NULL);
+	if (!caKey) {
+		BIO_free(bioReq);
+		BIO_free(bioCAKey);
+		return -6;
+	}
 
-    X509* cert = X509_new();
-    EVP_PKEY* reqPub;
-    
-    //redo all the certificate details, because OpenSSL wants us to work hard
-    if(!(err =  X509_set_version(cert, 3)))
-    {
-    	BIO_free(bioReq);
-    	BIO_free(bioCAKey);
-        return err;
-    }
+	X509* cert = X509_new();
+	EVP_PKEY* reqPub;
 
- 	if(!(err = X509_set_issuer_name(cert, X509_REQ_get_subject_name(req))))
-    {
-    	BIO_free(bioReq);
-    	BIO_free(bioCAKey);
-        return err;
-    }
+	//redo all the certificate details, because OpenSSL wants us to work hard
+	if(!(err =  X509_set_version(cert, 3)))
+	{
+		BIO_free(bioReq);
+		BIO_free(bioCAKey);
+		return err;
+	}
 
-    if(!(X509_gmtime_adj(X509_get_notBefore(cert),0)))
-    {
-    	BIO_free(bioReq);
-    	BIO_free(bioCAKey);
-        return err;
-    }
+	if(!(err = X509_set_issuer_name(cert, X509_REQ_get_subject_name(req))))
+	{
+		BIO_free(bioReq);
+		BIO_free(bioCAKey);
+		return err;
+	}
+
+	if(!(X509_gmtime_adj(X509_get_notBefore(cert),0)))
+	{
+		BIO_free(bioReq);
+		BIO_free(bioCAKey);
+		return err;
+	}
 
 	if(!(X509_gmtime_adj(X509_get_notAfter(cert), (long)60*60*24*days)))
-    {
-    	BIO_free(bioReq);
-    	BIO_free(bioCAKey);
-        return err;
-    }
-    
+	{
+		BIO_free(bioReq);
+		BIO_free(bioCAKey);
+		return err;
+	}
+
 	if(!(err = X509_set_subject_name(cert, X509_REQ_get_subject_name(req))))
-    {
-    	BIO_free(bioReq);
-    	BIO_free(bioCAKey);
-        return err;
-    }
+	{
+		BIO_free(bioReq);
+		BIO_free(bioCAKey);
+		return err;
+	}
 	
 	if (!(reqPub = X509_REQ_get_pubkey(req))) {
 		BIO_free(bioReq);
@@ -213,13 +214,13 @@ int selfSignRequest(char* pemRequest, int days, char* pemCAKey, int certType, ch
 	}
 	err = X509_set_pubkey(cert,reqPub);
 	EVP_PKEY_free(reqPub);
-    if (!err) {
-    	return err; // an error occurred, this is terrible style.
-    }
+	if (!err) {
+		return err; // an error occurred, this is terrible style.
+	}
 
-    //create a serial number at random
-    ASN1_INTEGER* serial = getRandomSN(); 
-    X509_set_serialNumber(cert, serial);
+	//create a serial number at random
+	ASN1_INTEGER* serial = getRandomSN();
+	X509_set_serialNumber(cert, serial);
 
 	// V3 extensions
 	X509_EXTENSION *ex;
@@ -282,24 +283,23 @@ int selfSignRequest(char* pemRequest, int days, char* pemCAKey, int certType, ch
 	}
 	
 
-	if (!(err = X509_sign(cert,caKey,EVP_sha1())))
-	{
+	if (!(err = X509_sign(cert,caKey,EVP_sha1()))) {
 		BIO_free(bioReq);
 		BIO_free(bioCAKey);
 		return err;
-    }
+	}
 
-    BIO *mem = BIO_new(BIO_s_mem());
-    PEM_write_bio_X509(mem,cert);
-    
-    BUF_MEM *bptr;
-    BIO_get_mem_ptr(mem, &bptr);
-    BIO_read(mem, result, bptr->length);
-    
-    BIO_free(mem);
-    BIO_free(bioReq);
-    BIO_free(bioCAKey);
-    return 0;
+	BIO *mem = BIO_new(BIO_s_mem());
+	PEM_write_bio_X509(mem,cert);
+
+	BUF_MEM *bptr;
+	BIO_get_mem_ptr(mem, &bptr);
+	BIO_read(mem, result, bptr->length);
+
+	BIO_free(mem);
+	BIO_free(bioReq);
+	BIO_free(bioCAKey);
+	return 0;
 
 }
 

@@ -8,7 +8,7 @@ var webinosRoot   = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
 var cert          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
 var utils         = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
-var log           = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_helper.js')).debug;
+var log           = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
 var configuration = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_configuration.js'));
 
 var pzhs = [];
@@ -23,9 +23,9 @@ var farm = exports;
 farm.startFarm = function (url, contents, callback) {
 	configuration.createDirectoryStructure();
 	configuration.setConfiguration(url, contents, 'PzhFarm', function (config) {
-		var options = {key: config.cert.conn.key.value,
-			cert: config.cert.conn.cert.value,
-			ca: config.cert.conn.cert.value,
+		var options = {key: config.cert.conn.key,
+			cert: config.cert.conn.cert,
+			ca: config.cert.conn.cert,
 			requestCert: true };
 		
 		farm.server = tls.createServer (options, function (conn) {

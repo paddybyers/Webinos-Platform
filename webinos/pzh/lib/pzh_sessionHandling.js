@@ -19,9 +19,10 @@
 	
 	/** Global variables used in Pzh */
 	var Pzh        = null;
-	var log        = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_helper.js')).debug;
+	var log        = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
 	var pzhapis    = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_internal_apis.js'));
 	var config     = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_configuration.js'));
+	var farm       = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_farm.js'));
 	
 	var server = null;
 	var initialized = true;
@@ -310,7 +311,7 @@
 			} else { // Message is forwarded to Message handler function, onMessageReceived
 				try {			
 					rpc.setSessionId(self.sessionId);
-					utils.sendMessageMessaging(self, this.messageHandler, parse);
+					self.messageHandler.onMessageReceived(parse, parse.to);
 				} catch (err2) {
 					log('ERROR ', 'Error Setting RPC Session Id/Message Sending to Messaging ' + err2);
 					return;
@@ -318,6 +319,12 @@
 			}
 		});	
 	};
+
+	var send = function (message, address, object) {
+		"use strict";
+		object.sendMessage(message, address);
+	};
+	
 	exports.addPzh = function ( uri, contents, modules, callback) {
 		var pzh = new Pzh(modules);
 		config.setConfiguration(uri, contents, 'Pzh', function(config) {
@@ -326,20 +333,23 @@
 			
 			pzhs[config.servername] = pzh;
 			
-			var options = {key: config.cert.conn.key.value,
-				cert: config.cert.conn.cert.value,
-				ca: config.cert.master.cert.value,
-				crl: config.cert.master.crl.value,
+			var options = {key: config.cert.conn.key,
+				cert: config.cert.conn.cert,
+				ca: config.cert.master.cert,
+				crl: config.cert.master.crl,
 				requestCert:true, 
 				rejectUnauthorized:false
 			};
 
-			utils.setMessagingParam(pzh);
+			pzh.messageHandler.setGetOwnId(pzh.sessionId);
+			pzh.messageHandler.setObjectRef(pzh);
+			pzh.messageHandler.setSendMessage(send);
+			pzh.messageHandler.setSeparator("/");
 			
-			if (typeof server === "undefined" || server === null) {
+			if (typeof farm.server === "undefined" || farm.server === null) {
 				log('ERROR', 'Farm is not running, please startFarm');
 			} else {
-				server.addContext(uri, options);
+				farm.server.addContext(uri, options);
 			}
 			callback(true, pzh);
 		});

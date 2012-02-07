@@ -61,40 +61,39 @@ v8::Handle<Value> _genRsaKey(const Arguments& args)
 
 v8::Handle<Value> _createCertificateRequest(const Arguments& args)
 {
-    HandleScope scope;
-    if (args.Length() == 8 && args[0]->IsString() && args[1]->IsString() 
-        && args[2]->IsString() && args[3]->IsString() && args[4]->IsString() 
-        && args[5]->IsString() && args[6]->IsString() && args[7]->IsString()  ) {
-      //extract the strings
-      
-      String::Utf8Value key(args[0]->ToString());
-      String::Utf8Value country(args[1]->ToString());
-      String::Utf8Value state(args[2]->ToString());
-      String::Utf8Value loc(args[3]->ToString());
-      String::Utf8Value organisation(args[4]->ToString());
-      String::Utf8Value organisationUnit(args[5]->ToString());
-      String::Utf8Value cname(args[6]->ToString());
-      String::Utf8Value email(args[7]->ToString());
-            
-      //call the wrapper & check for errors
-      char *pem=(char *)calloc(BUFFER_SIZE+1, sizeof(char)); /* Null-terminate */
-      int res = 0;
-      res = ::createCertificateRequest(pem, key.operator*(),
-                country.operator*(), state.operator*(), loc.operator*(), 
-                organisation.operator*(), organisationUnit.operator*(), cname.operator*(), email.operator*());
-	  if (res != 0) {
+	HandleScope scope;
+	if (args.Length() == 8 && args[0]->IsString() && args[1]->IsString()
+		&& args[2]->IsString() && args[3]->IsString() && args[4]->IsString()
+		&& args[5]->IsString() && args[6]->IsString() && args[7]->IsString()  ) {
+	//extract the strings
 
-          return ThrowException(Exception::TypeError(String::New("Error creating certificate request")));
-      }
-			
-      //create composite remote object 
-      Local<String> result = String::New(pem);
-      free(pem);
-      return scope.Close(result);
-    }
-    else {
-      return ThrowException(Exception::TypeError(String::New("8 arguments expected: all strings.")));
-    }
+		String::Utf8Value key(args[0]->ToString());
+		String::Utf8Value country(args[1]->ToString());
+		String::Utf8Value state(args[2]->ToString());
+		String::Utf8Value loc(args[3]->ToString());
+		String::Utf8Value organisation(args[4]->ToString());
+		String::Utf8Value organisationUnit(args[5]->ToString());
+		String::Utf8Value cname(args[6]->ToString());
+		String::Utf8Value email(args[7]->ToString());
+
+		//call the wrapper & check for errors
+		char *pem=(char *)calloc(BUFFER_SIZE+1, sizeof(char)); /* Null-terminate */
+		int res = 0;
+		res = ::createCertificateRequest(pem, key.operator*(),
+			country.operator*(), state.operator*(), loc.operator*(),
+			organisation.operator*(), organisationUnit.operator*(), cname.operator*(), email.operator*());		
+		if (res != 0) {
+			return ThrowException(Exception::TypeError(String::New("Error creating certificate request")));
+		}
+
+		//create composite remote object
+		Local<String> result = String::New(pem);
+		free(pem);
+		return scope.Close(result);
+	}
+	else {
+		return ThrowException(Exception::TypeError(String::New("8 arguments expected: all strings.")));
+	}
 }
 
 
@@ -105,29 +104,27 @@ v8::Handle<Value> _selfSignRequest(const Arguments& args)
 		&& args[2]->IsString() && args[3]->IsNumber()  && args[4]->IsString()) {
 	  //extract the strings and ints
 
-	  String::Utf8Value pemRequest(args[0]->ToString());
-	  int days = args[1]->Int32Value();
-	  String::Utf8Value pemCAKey(args[2]->ToString());
-      String::Utf8Value url(args[4]->ToString());
-      int certType = args[3]->Int32Value();
-      
-	  //call the wrapper & check for errors
-      char *pem=(char *)calloc(BUFFER_SIZE+1, sizeof(char)); /* Null-terminate */
-      int res = 0;
-      res = ::selfSignRequest(pemRequest.operator*(),days,pemCAKey.operator*(),certType,url.operator*(),pem);
-	  if (res != 0) {
+		String::Utf8Value pemRequest(args[0]->ToString());
+		int days = args[1]->Int32Value();
+		String::Utf8Value pemCAKey(args[2]->ToString());
+		String::Utf8Value url(args[4]->ToString());
+		int certType = args[3]->Int32Value();
 
-          return ThrowException(Exception::TypeError(String::New("Error creating self-signed certificate")));
-      }
-			
-      //create composite remote object 
-      Local<String> result = String::New(pem);
-      free(pem);
-      return scope.Close(result);
-    }
-    else {
-      return ThrowException(Exception::TypeError(String::New("5 arguments expected: string int string int string")));
-    }
+		//call the wrapper & check for errors
+		char *pem=(char *)calloc(BUFFER_SIZE+1, sizeof(char)); /* Null-terminate */
+		int res = 0;
+		res = ::selfSignRequest(pemRequest.operator*(),days,pemCAKey.operator*(),certType,url.operator*(),pem);
+		if (res != 0) {
+			return ThrowException(Exception::TypeError(String::New("Error creating self-signed certificate")));
+		}
+		//create composite remote object 
+		Local<String> result = String::New(pem);
+		free(pem);
+		return scope.Close(result);
+	}
+	else {
+		return ThrowException(Exception::TypeError(String::New("5 arguments expected: string int string int string")));
+	}
 }
 
 v8::Handle<Value> _signRequest(const Arguments& args)
