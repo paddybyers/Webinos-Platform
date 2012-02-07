@@ -5,6 +5,10 @@ var position;
 var map;
 var geocoder;
 
+var allServices = {};
+var recentService;
+
+
 function initializeMap() {
     var mapOptions = {
       zoom: 13,
@@ -27,6 +31,13 @@ function initializeMap() {
     });
 }
 
+function updateStatus(text){
+	$('#loadingstatus').html(text);
+}
+
+	
+
+
 function logMessage(msg) {
                                 	if (msg) {
 	                                    $('#message').append('<li>' + msg + '</li>');
@@ -34,18 +45,18 @@ function logMessage(msg) {
                                 }
 
 
-$(document).ready(function() {
-  initializeMap();
+						$(document).ready(function() {
+  								initializeMap();
   
-                                  function fillPZAddrs(data) {
+                                function fillPZAddrs(data) {
                                     var pzpId = data.from;
                                     var pzhId, connectedPzh , connectedPzp;
                                     if (pzpId !== "virgin_pzp") {
                                       pzhId = data.payload.message.pzhId;                                     
                                       connectedPzp = data.payload.message.connectedPzp; // all connected pzp
                                       connectedPzh = data.payload.message.connectedPzh; // all connected pzh
-                                      
-                                      logMessage('registeredBrowser msg from ' + pzpId);
+                                      updateStatus('2: Application registered');
+                                      findVehicle();
                                     }
                                 }
                                 webinos.session.addListener('registeredBrowser', fillPZAddrs);
@@ -58,18 +69,18 @@ $(document).ready(function() {
                                     }
                                 }
                                 webinos.session.addListener('update', updatePZAddrs);
-                                
+                   				
+                   				
+                   
                                 function printInfo(data) {
                                 	logMessage(data.payload.message);
                                 }
                                 webinos.session.addListener('info', printInfo);
 								
-								                $('#registerBrowser').bind('click', function() {
-                        var options = {type: 'prop', payload: {status:'registerBrowser'}};
-                        webinos.session.message_send(options);                
+				$('#registerBrowser').bind('click', function() {
+                                
                 });
-				var allServices = {};
-				var recentService;
+				
                 $('#findService').bind('click', function() {
                 		allServices = {};
                 		recentService = null;
@@ -96,11 +107,34 @@ $(document).ready(function() {
             	recentService.get('shift', handleGear, handleError);
             });
  
-
-
-
-
+		startUp();
+		
+		
+		function startUp(){
+			updateStatus('1: Registering application at PZP');
+			var options = {type: 'prop', payload: {status:'registerBrowser'}};
+            webinos.session.message_send(options);
+		}
+		
+		function findVehicle(){
+			updateStatus('3: Looking for the vehicle');
+			                		allServices = {};
+                		recentService = null;
+                		$('#vehicles').empty();
+                		
+                        webinos.ServiceDiscovery.findServices( 
+                        new ServiceType('http://webinos.org/api/vehicle'),                         
+                        {onFound: function (service) {
+                            recentService = service;
+                            allServices[service.serviceAddress] = service;
+                            $('#vehicles').append($('<option>' + service.serviceAddress + '</option>'));
+                    		
+                    }});
+		}
 });
+
+	
+
 
 function handleGear(data){
 	logMessage(data.gear);
