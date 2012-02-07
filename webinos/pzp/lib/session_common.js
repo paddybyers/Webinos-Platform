@@ -162,6 +162,3 @@ exports.resolveIP = function(serverName, callback) {
 		});
 	}
 };
-
-exports.debug = debug;
-
