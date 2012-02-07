@@ -18,6 +18,13 @@ if (typeof exports !== "undefined") {
 	var rpc       = require(path.join(webinosRoot, dependencies.rpc.location));
 }
 
+// global exception handler, which catches all unhandled exceptions,
+// prints a trace and exits. the trace is better than the default.
+process.addListener("uncaughtException", function (err) {
+    console.log("Uncaught exception: " + err);
+    console.trace();
+    process.exit();
+});
 
 var debug = function(num, msg) {
 	"use strict";
