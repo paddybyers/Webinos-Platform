@@ -24,9 +24,7 @@
 			var _vehicleDataIds;
 			var _deviceOrientationTypes;
 			
-			
-			$(document).ready(function() {
-		        function fillPZAddrs(data) {
+			function fillPZAddrs(data) {
 		            var pzhId, connectedPzp, connectedPzh;
 			        if(data.from !== "virgin_pzp") {
 			            pzhId = data.payload.message.pzhId;
@@ -57,21 +55,40 @@
 				    }
 		            $("</optgroup>").appendTo("#pzh_pzp_list");
 		        }
-		        webinos.session.addListener('registeredBrowser', fillPZAddrs);
-		        
-		        function updatePZAddrs(data) {
+			
+			//webinos.session.addListener('registeredBrowser', fillPZAddrs);
+			
+			function updatePZAddrs(data) {
 		            if(typeof data.payload.message.pzp !== "undefined") {
 		                $("<option value=" + data.payload.message.pzp + " >" +data.payload.message.pzp + "</option>").appendTo("#pzp_list");
 		            } else {
 		                $("<option value=" + data.payload.message.pzh + " >" +data.payload.message.pzh + "</option>").appendTo("#pzh_list");
 		            }
 		        }
-		        webinos.session.addListener('update', updatePZAddrs);
+		        //webinos.session.addListener('update', updatePZAddrs);
 		        
 		        function printInfo(data) {
 		            $('#message').append('<li>'+data.payload.message+'</li>');
 		        }
-		        webinos.session.addListener('info', printInfo);
+		        //webinos.session.addListener('info', printInfo);
+
+			
+			function initMe(){
+				console.log('adding listeners...');
+				webinos.session.addListener('registeredBrowser', fillPZAddrs);
+				webinos.session.addListener('update', updatePZAddrs);
+				webinos.session.addListener('info', printInfo);
+			}
+
+			function done(){
+				console.log('ready. setting timeout before adding listeners');
+				var t = setTimeout("initMe()", 5000);			
+			}
+
+			$(document).ready(function() {
+		        
+				done();
+				
 		        
 				$('#init').removeAttr('disabled'); // FIXME wasn't really enabled otherwise
 				
@@ -334,6 +351,9 @@
 								disableInit('Geolocation API',$('#initGeolocation'), $('#pzh_pzp_list').val());
 						}});
                     });
+
+
+
 					
 					var disableInit = function(name,btnId, pzx){
 						btnId.val(name + ' connected to ' + pzx);
@@ -1001,6 +1021,7 @@
 <!-- <input type="button" id="clear" value="clear Log"  class="button"/> -->
 <a href="#pdcApp"  id="pdcLauncher" title="Parkdistance App">Inline</a>
 		</p>
+	<a href='javascript:initMe()'>init</a>
     </div>
 <div id="info"></div>
 
