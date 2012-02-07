@@ -3,6 +3,8 @@ html, body{
 	padding: 0;
 	height: 100%;
 	width: 100%;
+	font-family: Helvetica, Arial, sans-serif;
+	font-size: 24px;
 }
 
 #map{
@@ -41,4 +43,39 @@ html, body{
 	-webkit-border-radius:4px; /* Safari, Chrome */
 	-khtml-border-radius:4px; /* Konqueror */
 	border-radius:4px; /* CSS3 */
+}
+
+#loading{
+	z-index: 300;
+	position: fixed;
+	height: 50px;
+	width: 400px;
+	
+	background-color: #000;
+	-moz-border-radius:4px; /* Firefox */
+	-webkit-border-radius:4px; /* Safari, Chrome */
+	-khtml-border-radius:4px; /* Konqueror */
+	border-radius:4px; /* CSS3 */
+	
+	left: 50%;
+	margin-left: -200px;
+	
+	top: 50%;
+	margin-top: -25px;
+	
+	opacity: 0.8;
+}
+
+#loadingimage{
+	opacity: 1;
+	padding-top: 7px;
+	
+	float: left;
+}
+
+#loadingstatus{
+	float: left;
+	padding-top: 10px;
+	opacity: 1;
+	color: #fff;
 }
