@@ -111,13 +111,13 @@ function logMessage(msg) {
 		
 		
 		function startUp(){
-			updateStatus('1: Registering application at PZP');
+			updateStatus('Registering application at PZP');
 			var options = {type: 'prop', payload: {status:'registerBrowser'}};
             webinos.session.message_send(options);
 		}
 		
 		function findVehicle(){
-			updateStatus('3: Looking for the vehicle');
+			updateStatus('Looking for vehicle');
 			                		allServices = {};
                 		recentService = null;
                 		$('#vehicles').empty();
@@ -125,11 +125,29 @@ function logMessage(msg) {
                         webinos.ServiceDiscovery.findServices( 
                         new ServiceType('http://webinos.org/api/vehicle'),                         
                         {onFound: function (service) {
+                            updateStatus('Vehicle found');
                             recentService = service;
                             allServices[service.serviceAddress] = service;
                             $('#vehicles').append($('<option>' + service.serviceAddress + '</option>'));
+            				bindToVehicle();        		
                     		
                     }});
+		}
+		
+		function bindToVehicle(){
+			updateStatus('Binding to Vehicle');
+			recentService.bindService({onBind:function(service) {
+						updateStatus('Bound to Vehicle');
+                        logMessage('API ' + service.api + ' bound.');
+            			
+            			registerVehicleListeners()
+            
+            }});
+		
+		}
+		
+		function registerVehicleListeners(){
+			updateStatus('Adding Listener Vehicle API');
 		}
 });
 
