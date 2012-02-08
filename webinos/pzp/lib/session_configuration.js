@@ -16,6 +16,19 @@ var uniqueID      = require(path.join(webinosRoot, dependencies.uniqueID.locatio
 
 configure.pzhPort = 8000; //443
 
+configure.storeConfig = function (config) {
+	var webinosDemo = common.webinosConfigPath();
+	var name = config.certValues.common.split(':')[0];
+	fs.writeFile((webinosDemo+ '/config/'+name+'.json'), JSON.stringify(config, null, " "), function(err) {
+		if(err) {
+			log('ERROR', '[CONFIG] Error saving configuration file');
+		} else {
+			log('INFO', '[CONFIG] Saved configuration file');
+		}
+		
+	});
+	
+}
 /**
 * @descripton Checks for master certificate, if certificate is not found it calls generating certificate function defined in certificate manager. This function is crypto sensitive.
 * @param {function} callback It is callback function that is invoked after checking/creating certificates
@@ -23,10 +36,9 @@ configure.pzhPort = 8000; //443
 configure.setConfiguration = function (contents, type, callback) {
 	var webinosDemo = common.webinosConfigPath();
 	var config;
-	
+
 	setCertValue(contents , function(certValues) {
 		var name = certValues.common.split(':')[0];
-		
 		fs.readFile(( webinosDemo+'/config/'+ name +'.json'), function(err, data) {
 			if ( err && err.code=== 'ENOENT' ) {
 
@@ -75,11 +87,8 @@ configure.setConfiguration = function (contents, type, callback) {
 											}
 												
 											try {
-												fs.writeFile((webinosDemo+ '/config/'+name+'.json'), JSON.stringify(config, null, " "), function(err) {
-													if(!err) {
-														callback(config, conn_key);
-													}
-												});
+												configure.storeConfig(config);
+												callback(config, conn_key);
 											} catch (err) {
 												log('ERROR','[CONFIG] Error writing configuration file' + err) ;
 												callback("undefined");
@@ -110,12 +119,9 @@ configure.setConfiguration = function (contents, type, callback) {
 								}
 								config.cert.conn.cert = conn_cert.cert;
 								config.cert.conn.crl  = conn_cert.crl;
+								configure.storeConfig(config);
+								callback(config, conn_key, csr);
 
-								fs.writeFile((webinosDemo+ '/config/'+name+'.json'), JSON.stringify(config, null, " "), function(err) {
-									if(!err) {
-										callback(config, conn_key, csr);
-									}
-								});
 							} catch (err) {
 								log('ERROR',' [CONFIG] Error writing configuration file');
 								callback("undefined");
@@ -136,19 +142,20 @@ configure.setConfiguration = function (contents, type, callback) {
 			} else {
 				var data1 = data.toString('utf8');
 				config = JSON.parse(data1);
+				var master_key = null, conn_key;
 				// TODO: FIXME:  This works fine for linux and mac. Requires implementation on Android and Windows
 				if (os.type().toLowerCase() === 'linux' || os.type().toLowerCase() === 'darwin') {
 					try{
 						var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
 						if (type !== 'Pzp') {
-							master_key = key.get(config.master.key_id);
+							master_key = key.get(config.cert.master.key_id);
 						}
-						conn_key   = key.get(config.conn.key_id);
+						conn_key   = key.get(config.cert.conn.key_id);
 					} catch(err){
 						log('ERR0R','[CONFIG] Key fetching error' )
 						return;
 					}
-					callback(config, master_key, conn_key);
+					callback(config, conn_key);
 				} else {
 					// TEMP SOLUTION FOR ANDROID AND WINDOWS
 					callback(config);
@@ -193,6 +200,7 @@ function createConfigStructure (name, certValues) {
 	config.cert = {
 		conn   : { key_id: name+'_conn_key', cert:{}, crl:{} },
 		master : { key_id: name+'_master_key', cert:{}, crl:{} },
+		signedCert: {name: '', value:''}
 	};
 	config.certValues = certValues;
 	return config;

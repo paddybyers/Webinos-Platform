@@ -67,7 +67,7 @@
 		
 		// load specified modules
 		this.rpcHandler.loadModules(modules);
-		this.tried = false;
+		this.tried = true;
 	};
 	
 	Pzp.prototype.prepMsg = function(from, to, status, message) {
@@ -226,38 +226,47 @@
 			return;
 		}
 		try {
-			if (typeof self.config.cert.master.cert !== "undefined") {
-				config = { key: conn_key, 
+			if (typeof self.config.cert.master.cert !== "undefined" && self.config.cert.master.cert !== '{}' ) {
+				config = {
+					key : conn_key, 
 					cert: self.config.cert.conn.cert, 
-					servername: self.config.uri, 
-					ca: self.config.cert.master.cert};
+					ca  : self.config.cert.master.cert,
+					crl : self.config.cert.master.crl,
+					servername: self.config.uri 
+				};
+				
 			} else {
 				config = { key: conn_key, 
 					cert: self.config.cert.conn.cert, 
-					servername: self.config.uri};
+					servername: self.config.uri};					
 			}
+
 			console.log(config);
-			client = tls.connect(configuration.pzhPort, self.address, config,
-			function() {
-				log('INFO','PZP Connection to PZH status: ' + client.authorized );
-				log('INFO','PZP Reusing session : ' + client.isSessionReused());
-				
-				if(client.authorized){
+			
+			
+			//if (self.tried === true) {
+				client = tls.connect(configuration.pzhPort, self.address, config,
+				function() {
+					log('INFO','PZP Connection to PZH status: ' + client.authorized );
+					log('INFO','PZP Reusing session : ' + client.isSessionReused());
+
+					if(client.authorized){
+						var cn = client.getPeerCertificate().subject.CN.split(':')[1];
+						self.authenticated(cn, client, callback);
+					} else {
+						log('INFO', 'PZP: Not Authenticated ');
+						self.pzhId = client.getPeerCertificate().subject.CN.split(':')[1];//data2.from;
+						self.connectedPzh[self.pzhId] = {socket: client};
+						self.prepMsg(self.sessionId, self.pzhId,
+						'clientCert',
+							{   csr: conn_csr,
+							name: self.config.certValues.common.split(':')[0],
+							code: self.code //"DEBUG"
+						});
+					}
 					self.tried = false;
-					var cn = client.getPeerCertificate().subject.CN.split(':')[1];
-					self.authenticated(cn, client, callback);
-				} else {
-					log('INFO', 'PZP: Not Authenticated ');
-					self.pzhId = client.getPeerCertificate().subject.CN.split(':')[1];//data2.from;
-					self.connectedPzh[self.pzhId] = {socket: client};
-					self.prepMsg(self.sessionId, self.pzhId,
-					 'clientCert',
-						{   csr: conn_csr,
-						    name: self.config.certValues.common.split(':')[0],
-						    code: self.code //"DEBUG"
-					 });
-				}
-			});
+				});
+			//} 
 		} catch (err) {
 			log('ERROR', 'PZP: Connection Exception' + err);
 			throw err;
@@ -269,7 +278,7 @@
 		client.on('data', function(data) {
 			try {
 				client.pause(); // This pauses socket, cannot receive messages
-				self.processMsg(data, callback);
+				self.processMsg(data, client,callback);
 				process.nextTick(function () {
 					client.resume();// unlocks socket. 
 				});			
@@ -317,17 +326,20 @@
 		
 	};
 	
-	Pzp.prototype.processMsg = function(data, callback) {
+	Pzp.prototype.processMsg = function(data, client, callback) {
 		var self = this;
 		var  msg, i ;		
 		utils.processedMsg(self, data, 1, function(data2) { // 1 is for #	
 			if(data2.type === 'prop' && data2.payload.status === 'signedCert') {
 				log('INFO', '[PZP - '+self.sessionId+']PZP Writing certificates data ');
-				self.config.cert.conn.cert= data2.payload.message.clientCert;
-				self.config.cert.master.cert = data2.payload.message.masterCert;
-				self.connect( null, function(result) {
-					console.log(result);
+				self.config.cert.conn.cert   = data2.payload.message.clientCert;
+				self.config.cert.master.cert = data2.payload.message.masterCert.cert;
+				self.config.cert.master.crl = data2.payload.message.masterCert.crl;
+				configuration.storeConfig(self.config);
+				self.connect(null, function(err){
+					console.log(err)
 				});
+				
 			} // This is update message about other connected PZP
 			else if(data2.type === 'prop' && data2.payload.status === 'pzpUpdate') {
 				log('INFO', '[PZP - '+self.sessionId+'] Update PZPs details') ;

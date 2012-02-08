@@ -49,8 +49,6 @@ int __get(const char * svc, void ** secret) throw(::KeyStoreException)
 	GnomeKeyringResult res = ::gnome_keyring_find_password_sync(&SecretSchema, &secretMem, "user", account.c_str(), "service", svc,  NULL);
 	if (res != GNOME_KEYRING_RESULT_OK) {
 		throw ::KeyStoreException(::gnome_keyring_result_to_message(res));
-	} else {
-		std::cerr<< " found password "  <<	 std::endl;
 	}
 	*secret = secretMem;
 	return ::strlen(secretMem);
