@@ -97,10 +97,10 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 			config.pzpHost='localhost';
 		}
 		if (!config.pzpHttpPort) {
-			config.pzpHttpPort = 8081;
+			config.pzpHttpPort = 8080;
 		}
 		if (!config.pzpWebsocketPort) {
-			config.pzpWebsocketPort = 8082;
+			config.pzpWebsocketPort = 8081;
 		}
 		if (!config.pzpName) {
 			config.pzpName = 'WebinosPzp';
