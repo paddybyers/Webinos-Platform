@@ -118,11 +118,9 @@
                 });
 
                 $('#listen42').bind('click', function() {
-                    for (var i=0; i<test.length; i++) {
-                        test[i].listenerFor42(function(result) {
-                            alert(result.msg);
-                        }, {opts: "unused"});
-                    }
+                    recentService.listenerFor42(function(result) {
+                        alert(result.msg);
+                    }, {opts: "unused"});
                 });
         
         });
