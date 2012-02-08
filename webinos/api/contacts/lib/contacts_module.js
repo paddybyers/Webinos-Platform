@@ -170,15 +170,17 @@ this.isAlreadyAuthenticated = function(params, callback)
  */
 this.getAllContacts = function(params, callback)
 {
-  if (params && process.platform!=='android')
-  {
-    makeW3Ccontacts(params[0]['type'], callback);
-  }
-  else if (params && process.platform === 'android')
-  {
-    var opt = new Array();
-    var fields = {};
-    LocalContacts.find(fields, callback, function(){}, opt);
+  if(params!==undefined){
+    if (process.platform!=='android')
+    {
+      makeW3Ccontacts(params[0]['type'], callback);
+    }
+    else
+    {
+      var opt = new Array();
+      var fields = {};
+      LocalContacts.find(fields, callback, function(){}, opt);
+    }
   }
 };
 
@@ -190,7 +192,7 @@ function makeW3Ccontacts(type, callback)
   var contacts_l;
   var rawContacts;
 
-  if (type == "local" && process.platform!=='android')
+  if (type == "local")
   {
     // get an array of local contacts
     rawContacts = LocalContacts.getAB();
