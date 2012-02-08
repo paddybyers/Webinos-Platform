@@ -189,7 +189,6 @@ $('#btnAuthenticate').bind('click', function()
       if ($("input[@name='contactType']:checked").val() == 'remote')
       {
         parameters.type = "remote";
-        //TODO set parameters.fields!!!!
 
         //contactsService[0]
 	recentService.isAlreadyAuthenticated(parameters, function(result)
@@ -359,8 +358,8 @@ $('#btnAuthenticate').bind('click', function()
 	    <!--<br>-->
             <button id="btnAuthenticate" class="button">Authenticate/Open</button>
             <br>
-            <button id="btnContacts" class="button">Get All Contacts List</button>
-            <button id="btnFindServiceContacts" class="button">Find Contact!</button>
+            <!--<button id="btnContacts" class="button">Get All Contacts List</button>-->
+            <button id="btnFindServiceContacts" class="button" title="Leave search fields empty to get the whole contacts list">Find Contact!</button>
           </div>
           <!--   </p> -->
 
