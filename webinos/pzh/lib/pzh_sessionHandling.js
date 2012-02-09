@@ -138,9 +138,9 @@
 	 * 
 	 */
 	Pzh.prototype.sendRegisterMessage = function () {
-		var pzhId = this.conn.getPeerCertificate().subject.CN.split(':')[1];
-		var msg = this.messageHandler.registerSender(this.sessionId, pzhId);
-		this.sendMessage(msg, pzhId);
+		var pzpId = this.conn.getPeerCertificate().subject.CN.split(':')[1];
+		var msg = this.messageHandler.registerSender(this.sessionId, pzpId);
+		this.sendMessage(msg, pzpId);
 	};
 	
 	/** 
@@ -317,8 +317,8 @@
 		
 		server = tls.createServer (options, function (conn) {
 			var data = {}, cn, msg = {}, sessionId;
-			self.conn = conn;
-			//console.log(conn);
+			self.conn = conn; // FIXME we shouldnt override conn, will fail because conn will be different for each connection
+			
 			if(conn.authorized === false) {
 				helper.debug(2, "Connection NOT authorised at PZH");
 				//Sometimes, if this is a new PZP, we have to allow it.
