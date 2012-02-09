@@ -22,15 +22,7 @@
   
   RemoteContextManager.prototype = new RPCWebinosService;
 
-  RemoteContextManager.prototype.find = function ( params,  successCallback,  errorCallback) {
-	/* TODO where is "find" implemented?
-    context.find(params[0],function(results){
-      successCallback(results);
-    },function(){
-
-    });
-    */
-  };
+//TODO: RegisterContextEvent
 
   RemoteContextManager.prototype.executeQuery = function(query, successCallback, errorCallback){
     switch(query.type)
