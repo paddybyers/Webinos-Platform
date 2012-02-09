@@ -474,7 +474,13 @@
 				results[i].serviceAddress = sessionId; // This is source addres, it is used by messaging for returning back
 			}
 			
-			// add other services reported from the pzh
+			// no connection to a PZH it seems, don't ask for remote services
+			if (!this.parent.pzhId) {
+				callback(results);
+				return;
+			}
+			
+			// add other services reported from the PZH
 			this.parent.addRemoteServiceListener(function(remoteServices) {
 				function isServiceType(el) {
 					return el.api === serviceType.api ? true : false;
