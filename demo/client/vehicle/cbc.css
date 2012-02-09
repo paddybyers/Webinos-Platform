@@ -95,6 +95,7 @@ html, body{
 #bc-full li {
 	border-bottom: 1px #CCC  dotted;
 	height: 20%;
+
 }
 
 #bc-full li a, #bc-full li a:visited, #bc-full li a:link {
@@ -112,6 +113,7 @@ html, body{
 	text-decoration:none;
 	color:auto;
 	opacity: 1;
-	background-color: fff;
+	background-color: #fff;
+	opacity: 0.1;
 	outline:0;
 }
