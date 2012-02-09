@@ -137,11 +137,10 @@
 	
 	Pzh.prototype.handleConnectionAuthorization = function(self, conn) {
 		if(conn.authorized === false) {
-// 			log('INFO', '[PZH -'+self.sessionId+'] Connection NOT authorised at PZH');
+			log('INFO', '[PZH -'+self.sessionId+'] Connection NOT authorised at PZH');
 
 			//Sometimes, if this is a new PZP, we have to allow it.
-			self.expecting.isExpected(function(expected) {
-			
+			self.expecting.isExpected(function(expected) {			
 				if (!expected || conn.authorizationError !== "UNABLE_TO_GET_CRL"){
 					//we're not expecting anything - disallow.
 					log('INFO', "Ending connect: " + conn.authorizationError);
@@ -227,19 +226,18 @@
 					var master_key;
 					try{
 						var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
-						master_key = key.get(self.config.cert.master.key_id);
+						master_key = key.get(self.config.master.key_id);
 					} catch(err){
 						log('ERR0R','[PZH] Key fetching error' )
 						return;
 					}
-					cert.signRequest(parse.payload.message.csr, master_key, self.config.cert.master.cert, 2, function(result, cert) {
+					cert.signRequest(parse.payload.message.csr, master_key, self.config.master.cert, 2, function(result, cert) {
 						if(result === "certSigned") {
 							self.expecting.unsetExpected(function() {
 								//Save this certificate locally on the PZH.
 								//pzp name: parse.payload.message.name
-								self.config.cert.signedCert.name  = parse.payload.message.name
-								self.config.cert.signedCert.value = cert;
-								var payload = {'clientCert': cert, 'masterCert':self.config.cert.master};
+								self.config.signedCert[parse.payload.message.name]=cert;
+								var payload = {'clientCert': cert, 'masterCert':self.config.master};
 								var msg = self.prepMsg(self.sessionId, parse.from, 'signedCert', payload);
 								config.storeConfig(self.config);
 								cb.call(self, null, msg);
@@ -258,7 +256,7 @@
 			});pzhs
 		} catch (err) {
 			log('ERROR ', '[PZH -'+self.sessionId+'] Error Signing Client Certificate' + err);
-			cb("Could not create client certificate", null);
+			cb.call(self, "Could not create client certificate");
 		}
 	}	
 	
@@ -342,13 +340,14 @@
 			pzh.sessionId = pzh.config.certValues.common.split(':')[0];
 			
 			farm.pzhs[uri] = pzh;
-			
-			var options = {key: conn_key,
-				cert: config.cert.conn.cert,
-				ca: config.cert.master.cert,
-				crl: config.cert.master.crl,
-				requestCert:true, 
-				rejectUnauthorized:false
+
+			var options = {
+				key  : conn_key,
+				cert : config.conn.cert,
+				ca   : config.master.cert,
+				crl  : config.master.crl,
+				requestCert: true,
+				rejectUnauthorized: false
 			};
 
 			pzh.messageHandler.setGetOwnId(pzh.sessionId);

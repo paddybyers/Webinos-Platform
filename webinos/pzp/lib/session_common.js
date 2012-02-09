@@ -143,7 +143,6 @@ common.resolveIP = function(serverName, callback) {
 				// try again with lookup
 				dns.lookup(serverName, function(err, address, family) {
 					if (err) {
-						common.debug('ERROR', err);
 						callback("undefined");
 						return;
 					}

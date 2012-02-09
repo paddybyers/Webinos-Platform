@@ -43,7 +43,7 @@ configure.setConfiguration = function (contents, type, callback) {
 			if ( err && err.code=== 'ENOENT' ) {
 
 				// CREATE NEW CONFIGURATION
-				config = createConfigStructure(name, certValues);
+				config = createConfigStructure(name, type, certValues);
 
 				// This self signed certificate is for getting connection certificate CSR.
 				try {
@@ -60,16 +60,16 @@ configure.setConfiguration = function (contents, type, callback) {
 										if(result === 'certSigned') {
 											log('INFO', '[CONFIG] Generated CA Signed CONN Certificate ');
 											try {
-												config.cert.master.cert = master_cert.cert;
-												config.cert.master.crl  = master_cert.crl;
-												config.cert.conn.cert   = conn_cert.cert;
-												config.cert.conn.crl    = conn_cert.crl;
+												config.master.cert = master_cert.cert;
+												config.master.crl  = master_cert.crl;
+												config.conn.cert   = cert;
+												
 												// This works only for Linux and MAC
 												if (os.type().toLowerCase()=== 'linux' || os.type().toLowerCase() === 'darwin') {
 													try {
 														var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
-														key.put(config.cert.master.key_id, master_key);
-														key.put(config.cert.conn.key_id,   conn_key);
+														key.put(config.master.key_id, master_key);
+														key.put(config.conn.key_id,   conn_key);
 													} catch (err) {
 														log('ERROR', '[CONFIG] Storing keys in key store' + err);
 														callback("undefined");
@@ -77,8 +77,8 @@ configure.setConfiguration = function (contents, type, callback) {
 													}
 												} else {
 													// TODO: FIXME: TEMP SOLUTION FOR ANDROID AND WINDOWS
-													config.cert.master.key = master_key;
-													config.cert.conn.key   = conn_key;
+													config.master.key = master_key;
+													config.conn.key   = conn_key;
 												}
 											} catch (err1) {
 												log('ERROR','[CONFIG] Error setting paramerters' + err1) ;
@@ -108,17 +108,16 @@ configure.setConfiguration = function (contents, type, callback) {
 								if (os.type().toLowerCase() === 'linux' || os.type().toLowerCase() === 'darwin') {
 									try{
 										var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
-										key.put(config.cert.conn.key_id, conn_key);
+										key.put(config.conn.key_id, conn_key);
 									} catch (err) {
 										log('ERROR', '[CONFIG] Error storing key in key store '+ err);
 										return;
 									}
 								} else {
 									// TODO: FIXME: TEMP SOLUTION FOR ANDROID AND WINDOWS
-									config.cert.conn.key = conn_key;
+									config.conn.key = conn_key;
 								}
-								config.cert.conn.cert = conn_cert.cert;
-								config.cert.conn.crl  = conn_cert.crl;
+								config.conn.cert = conn_cert.cert;
 								configure.storeConfig(config);
 								callback(config, conn_key, csr);
 
@@ -147,10 +146,7 @@ configure.setConfiguration = function (contents, type, callback) {
 				if (os.type().toLowerCase() === 'linux' || os.type().toLowerCase() === 'darwin') {
 					try{
 						var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
-						if (type !== 'Pzp') {
-							master_key = key.get(config.cert.master.key_id);
-						}
-						conn_key   = key.get(config.cert.conn.key_id);
+						conn_key   = key.get(config.conn.key_id);
 					} catch(err){
 						log('ERR0R','[CONFIG] Key fetching error' )
 						return;
@@ -195,13 +191,21 @@ configure.createDirectoryStructure = function (callback) {
 	}
 }
 
-function createConfigStructure (name, certValues) {
+function createConfigStructure (name, type, certValues) {
 	var config = {};
-	config.cert = {
-		conn   : { key_id: name+'_conn_key', cert:{}, crl:{} },
-		master : { key_id: name+'_master_key', cert:{}, crl:{} },
-		signedCert: {name: '', value:''}
-	};
+	if (type === 'Pzh') {
+		config.conn        = { key_id: name+'_conn_key',  cert:''};
+		config.master      = { key_id: name+'_master_key', cert:'', crl:'' };
+		config.signedCert  = {};
+		config.revokedCert = {};
+	} else if (type === 'PzhFarm') {
+		config.conn   = { key_id: name+'_conn_key',  cert:''};
+		config.master = { key_id: name+'_master_key',cert:''} ;
+	} else if (type === 'Pzp' ){
+		config.conn   = { key_id: name+'_conn_key', cert:''};
+		config.master = { cert:'', crl:'' };		
+	}
+	
 	config.certValues = certValues;
 	return config;
 }

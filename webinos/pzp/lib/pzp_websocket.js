@@ -201,10 +201,10 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 				} else {
 					if( typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
 						rpc.setSessionId(instance.sessionId);
-						utils.sendMessageMessaging(instance, instance.messageHandler, msg);
+						instance.messageHandler.onMessageReceived(msg, msg.to);
 					} else {
 						rpc.setSessionId("virgin_pzp");
-						pzp.messaging.onMessageReceived(msg, msg.to);
+						instance.messageHandler.onMessageReceived(msg, msg.to);
 					}
 				}
 			});

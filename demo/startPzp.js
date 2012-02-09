@@ -56,7 +56,7 @@ var pzpModules = [
     {name: "get42", param: {}},
     {name: "file", param: {}},
     {name: "geolocation", param: {}},
-    {name: "events", param: {}},
+ //   {name: "events", param: {}},
     {name: "sensors", param: {}},
     {name: "payment", param: {}},
     {name: "tv", param: {}},
@@ -120,16 +120,17 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		}
 
 		var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=" + config.pzpName + "\nemail=internal@webinos.org\ndays=180\n"
-		//websocket.startPzpWebSocketServer(config.pzhHost, config.pzpWebsocketPort, config.pzpHttpPort, function() {
-			pzp.startPzp('localhost', 'localhost/john', contents, config.code, pzpModules, function() {
-				console.log("=== PZP started ===");
+		websocket.startPzpWebSocketServer(config.pzhHost, config.pzpWebsocketPort, config.pzpHttpPort, function() {
+			pzp.startPzp('localhost/john', contents, config.code, pzpModules, function() {
+				console.log("=== PZP 1 started ===");
+				contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzp1\nemail=internal@webinos.org\ndays=180\n"
+				pzp.startPzp('localhost/janon',contents, config.code, pzpModules, function() {
+					console.log("=== PZP 2 started ===");
+				})
 
 			});
-		//});
+		});
 	});
 }
 
-/*contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzp1\nemail=internal@webinos.org\ndays=180\n"
-				pzp.startPzp('localhost/habib',contents, config.code, pzpModules, function() {
-					console.log("=== PZP 2 started ===");
-				});*/
+

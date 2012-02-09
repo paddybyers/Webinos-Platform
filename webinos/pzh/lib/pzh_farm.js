@@ -13,6 +13,7 @@ var configuration = require(path.join(webinosRoot, dependencies.pzp.location, 'l
 
 var farm = exports;
 farm.pzhs =[];
+
 /**
  * @description: It starts farm. 
  * @param config: Holds certificate details
@@ -21,11 +22,12 @@ farm.pzhs =[];
 farm.startFarm = function (url, contents, callback) {
 	configuration.createDirectoryStructure();
 	configuration.setConfiguration(contents, 'PzhFarm', function (config, conn_key) {
-		var options = {key: conn_key,
-			cert: config.cert.conn.cert,
-			ca:   config.cert.master.cert,
-			requestCert: true };
 		
+		var options = {key: conn_key,
+			cert: config.conn.cert,
+			ca:   config.master.cert,
+			requestCert: true };
+
 		farm.server = tls.createServer (options, function (conn) {
 			log('DEBUG', conn.servername);
 			if (conn.servername && farm.pzhs[conn.servername]) {

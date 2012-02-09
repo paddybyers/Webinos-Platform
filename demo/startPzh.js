@@ -34,8 +34,8 @@ process.argv.forEach(function (arg) {
 });
 
 var pzhModules = [
-    {name: "get42", params: [99]}//,
- //   {name: "events", param: {}}
+    {name: "get42", params: [99]},
+    {name: "events", param: {}}
 ];
 
 var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=pzhFarm\nemail=internal@webinos.org\ndays=180\n"
@@ -44,10 +44,10 @@ PzhFarm.startFarm('localhost' , contents, function(result) {
 	var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=pzh1\nemail=internal@webinos.org\ndays=180\n"
 	Pzh.addPzh('localhost/john', contents, pzhModules, function(res,instance) {
 		console.log('******* PZH STARTED *******');
-		/*var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=pzh2\nemail=internal@webinos.org\ndays=180\n"
+		var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=pzh2\nemail=internal@webinos.org\ndays=180\n"
 		Pzh.addPzh('localhost/janon',contents, pzhModules, function(res,instance) {
 			console.log('******* PZH1 STARTED *******');
-		});*/
+		});
 	});
 });
 

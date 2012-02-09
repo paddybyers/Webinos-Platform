@@ -41,12 +41,12 @@ certificate.selfSigned = function(name, certValues,  callback) {
 		callback("failed", err1);
 		return;
 	}
-	
+
 	var cn = name+':'+certValues.common;
 
-	if ( name === 'PzhFarm' || name === 'PzhFarmCA') {
+	if (  name === 'PzhFarmCA' ||  name === 'PzhCA') {
 		certType = 0;
-	} else if(name === 'Pzh' || name === 'PzhCA') {
+	} else if(name === 'Pzh' || name === 'PzhFarm') {
 		certType = 1;
 	} else {
 		certType = 2;
