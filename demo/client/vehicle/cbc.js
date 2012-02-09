@@ -6,8 +6,10 @@ var map;
 var geocoder;
 
 var allServices = {};
-var recentService;
+var vehicle;
 
+var geolocation;
+var ps;
 
 function initializeMap() {
     var mapOptions = {
@@ -56,7 +58,8 @@ function logMessage(msg) {
                                       connectedPzp = data.payload.message.connectedPzp; // all connected pzp
                                       connectedPzh = data.payload.message.connectedPzh; // all connected pzh
                                       updateStatus('2: Application registered');
-                                      findVehicle();
+                                      	findVehicle();
+										
                                     }
                                 }
                                 webinos.session.addListener('registeredBrowser', fillPZAddrs);
@@ -83,13 +86,13 @@ function logMessage(msg) {
 				
                 $('#findService').bind('click', function() {
                 		allServices = {};
-                		recentService = null;
+                		vehicle = null;
                 		$('#vehicles').empty();
                 		
                         webinos.ServiceDiscovery.findServices( 
                         new ServiceType('http://webinos.org/api/vehicle'),                         
                         {onFound: function (service) {
-                            recentService = service;
+                            vehicle = service;
                             allServices[service.serviceAddress] = service;
                             $('#vehicles').append($('<option>' + service.serviceAddress + '</option>'));
                     		
@@ -97,14 +100,14 @@ function logMessage(msg) {
                 });
                 
  			$('#bind').bind('click', function() {
-                	//recentService = allServices[$('#vehicles').attr('recent')];
+                	//vehicle = allServices[$('#vehicles').attr('recent')];
                 	//console.log(allServices);
-                	recentService.bindService({onBind:function(service) {
+                	vehicle.bindService({onBind:function(service) {
                         logMessage('API ' + service.api + ' bound.');
                     }});
                 });
             $('#getGear').bind('click', function(){
-            	recentService.get('shift', handleGear, handleError);
+            	vehicle.get('shift', handleGear, handleError);
             });
  
 		startUp();
@@ -117,46 +120,85 @@ function logMessage(msg) {
 		}
 		
 		function findVehicle(){
-			updateStatus('Looking for vehicle');
+			updateStatus('Looking for vehicle data provider');
 			                		allServices = {};
-                		recentService = null;
+                		vehicle = null;
                 		$('#vehicles').empty();
                 		
                         webinos.ServiceDiscovery.findServices( 
                         new ServiceType('http://webinos.org/api/vehicle'),                         
                         {onFound: function (service) {
                             updateStatus('Vehicle found');
-                            recentService = service;
-                            allServices[service.serviceAddress] = service;
-                            $('#vehicles').append($('<option>' + service.serviceAddress + '</option>'));
+                            vehicle = service;
             				bindToVehicle();        		
-                    		
+                    }});
+		}
+		
+		
+		function findGeolocation(){
+				updateStatus('Looking for a geolocation provider');
+			            allServices = {};
+                		geolocation = null;
+                		
+                		webinos.ServiceDiscovery.findServices( 
+                        new ServiceType('http://www.w3.org/ns/api-perms/geolocation'),                         
+                        {onFound: function (service) {
+                            updateStatus('geolocation service found');
+                            geolocation = service;
+            				bindToGeolocation();        		
                     }});
 		}
 		
 		function bindToVehicle(){
 			updateStatus('Binding to Vehicle');
-			recentService.bindService({onBind:function(service) {
+			vehicle.bindService({onBind:function(service) {
 						updateStatus('Bound to Vehicle');
                         logMessage('API ' + service.api + ' bound.');
-            			
             			registerVehicleListeners()
-            
             }});
+		}
 		
+		function bindToGeolocation(){
+			updateStatus('Binding to Geolocation');
+			geolocation.bindService({onBind:function(service) {
+						updateStatus('Bound to Geolocation service');
+                        logMessage('API ' + service.api + ' bound.');
+            			registerGeoListener()
+            }});
 		}
 		
 		function registerVehicleListeners(){
 			updateStatus('Adding Listener Vehicle API');
+			vehicle.addEventListener('shift', handleGear);
+			updateStatus('Listener registered.');
+			findGeolocation();
 		}
+		
+		function registerGeoListener(){
+			ps = geolocation.watchPosition(handlePosition,errorCB, params);
+		}
+		
+	
 });
 
-	
+
+function errorCB(error){
+	logMessage('error', "ERROR:" + error.message);
+	console.log('error' + error.message);
+}
 
 
 function handleGear(data){
 	logMessage(data.gear);
 }
+
+function handlePosition(data){
+	logMessage(data.coords.latitude + ' - ' + data.coords.longitude);
+	var uPos = new LatLng(data.coords.latitude, data.coords.longitude);
+	marker.setPosition(uPos);
+	map.setCenter(uPos);
+}
+
 function handleError(error){
 	logMessage(error)
 }
