@@ -25,7 +25,7 @@
 	var fs = require('fs');
 	var Pzp = null; 
 	var tlsId = '', instance;
-	var sessionPzp = [];	
+	var sessionPzp = {};	
 	var connectedApp ={};
 
 	var pzpCertDir;
@@ -202,8 +202,6 @@
 	sessionPzp.getPzpId = function() {
 		if (typeof instance !== "undefined") {
 			return instance.sessionId;
-		} else { 
-			return "virgin_pzp";
 		}
 	}
 	
@@ -338,8 +336,6 @@
 			delete self.connectedPzp[self.sessionId];
 			self.pzhId = '';
 			self.sessionId = 'virgin_pzp';
-			instance = '';
-			websocket.updateInstance(instance);
 			for ( webApp in self.connectedWebApp ) {
 				if (self.connectedWebApp.hasOwnProperty(webApp)) {
 					var addr = 'virgin_pzp' + '/' + websocket.webId;
@@ -354,7 +350,16 @@
 		});
 
 		client.on('error', function (err) {
-			utils.debug(1, 'PZP ('+self.sessionId+') Error connecting server' + err);
+			utils.debug(1, 'PZP ('+self.sessionId+') Error connecting to PZH ' + err);
+			
+			// connection to PZH refused likely because there is no PZH
+			// go into virgin PZP mode
+			if (err.code === 'ECONNREFUSED') {
+				self.pzhId = '';
+				self.sessionId = 'virgin_pzp';
+				utils.debug(2, 'PZP ('+self.sessionId+') virgin PZP mode');
+				callback('startedPZP');
+			}
 		});
 
 		client.on('close', function () {
