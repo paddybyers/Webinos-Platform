@@ -27,8 +27,7 @@ public abstract class SensorManager extends Base {
   public String vendor;  
   public Integer version; 
 
-  public abstract PendingOperation configureSensor(ConfigureSensorOptions options, ConfigureSensorCB successCB, SensorErrorCB errorCB)
-        throws SensorError;
+  public abstract PendingOperation configureSensor(ConfigureSensorOptions options, ConfigureSensorCB successCB, SensorErrorCB errorCB);
         
   public abstract void watchSensor(String api, SensorCB sensorCb);
   public abstract void unwatchSensor();

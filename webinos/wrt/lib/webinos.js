@@ -81,7 +81,18 @@
             if (typeof EventsModule !== 'undefined') typeMap['http://webinos.org/api/events'] = EventsModule;
             if (typeof Sensor !== 'undefined') {
                 typeMap['http://webinos.org/api/sensors'] = Sensor;
-                typeMap['http://webinos.org/api/sensors.temperature'] = Sensor;
+                typeMap['http://webinos.org/api/sensors.accelerometer'] = Sensor;
+                typeMap['http://webinos.org/api/sensors.gravity'] = Sensor;
+                typeMap['http://webinos.org/api/sensors.orientation'] = Sensor;
+                typeMap['http://webinos.org/api/sensors.gyro'] = Sensor;
+                typeMap['http://webinos.org/api/sensors.light'] = Sensor;
+                typeMap['http://webinos.org/api/sensors.linearacceleration'] = Sensor;      
+                typeMap['http://webinos.org/api/sensors.magneticfield'] = Sensor;
+                typeMap['http://webinos.org/api/sensors.pressure'] = Sensor;
+                typeMap['http://webinos.org/api/sensors.proximity'] = Sensor;
+                typeMap['http://webinos.org/api/sensors.rotationvector'] = Sensor;   
+                typeMap['http://webinos.org/api/sensors.temperature'] = Sensor;  
+                typeMap['http://webinos.org/api/sensors.noise'] = Sensor;                                                                                                     
             }                       
             if (typeof PaymentManager !== 'undefined') typeMap['http://webinos.org/api/payment'] = PaymentManager;
             if (typeof UserProfileIntModule !== 'undefined') typeMap['UserProfileInt'] = UserProfileIntModule;

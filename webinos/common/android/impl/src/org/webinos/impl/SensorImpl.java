@@ -22,8 +22,6 @@ import org.webinos.api.sensor.SensorError;
 import org.webinos.api.sensor.SensorErrorCB;
 import org.webinos.api.sensor.FindSensorsManager;
 import org.webinos.api.sensor.SensorFindCB;
-import org.webinos.api.sensor.SensorFindErrorCB;
-import org.webinos.api.sensor.SensorFindError;
 
 import org.meshpoint.anode.AndroidContext;
 import org.meshpoint.anode.module.IModule;
@@ -48,13 +46,81 @@ public class SensorImpl extends org.webinos.api.sensor.SensorManager implements 
 	/*****************************
 	 * Webinos Sensor methods
 	 *****************************/
+
 	@Override
-	public PendingOperation configureSensor(ConfigureSensorOptions options,
-			ConfigureSensorCB successCB, SensorErrorCB errorCB)
-			throws SensorError {
-		// TODO Auto-generated method stub
+	public PendingOperation findSensors(String api, SensorFindCB successCB, SensorErrorCB errorCB) {
+			
+    int sensorType = -100;
+	  
+	  if ("http://webinos.org/api/sensors.accelerometer".equals(api))
+	    sensorType = Sensor.TYPE_ACCELEROMETER;
+ 	  else if ("http://webinos.org/api/sensors.gravity".equals(api))
+	    sensorType = Sensor.TYPE_GRAVITY;
+ 	  else if ("http://webinos.org/api/sensors.orientation".equals(api))
+	    sensorType = Sensor.TYPE_ORIENTATION;	    
+ 	  else if ("http://webinos.org/api/sensors.gyro".equals(api))
+	    sensorType = Sensor.TYPE_GYROSCOPE;	  
+ 	  else if ("http://webinos.org/api/sensors.light".equals(api))
+	    sensorType = Sensor.TYPE_LIGHT;
+ 	  else if ("http://webinos.org/api/sensors.linearacceleration".equals(api))
+	    sensorType = Sensor.TYPE_LINEAR_ACCELERATION;	    
+ 	  else if ("http://webinos.org/api/sensors.magneticfield".equals(api))
+	    sensorType = Sensor.TYPE_MAGNETIC_FIELD;
+ 	  else if ("http://webinos.org/api/sensors.pressure".equals(api))
+	    sensorType = Sensor.TYPE_PRESSURE;	    	    
+ 	  else if ("http://webinos.org/api/sensors.proximity".equals(api))
+	    sensorType = Sensor.TYPE_PROXIMITY;	 	    
+ 	  else if ("http://webinos.org/api/sensors.rotationvector".equals(api))
+	    sensorType = Sensor.TYPE_ROTATION_VECTOR;	 	    
+ 	  else if ("http://webinos.org/api/sensors.temperature".equals(api))
+	    sensorType = Sensor.TYPE_TEMPERATURE; 
+ 	  else if ("http://webinos.org/api/sensors".equals(api))
+	    sensorType = Sensor.TYPE_ALL; 	    	  
+ 	  else
+	    Log.e(TAG, "Ilegal sensor type selected");  
+	  
+	  if (sensorType != -100){  
+
+      for (Sensor androidSensor : androidSensorList) {
+	      if ((androidSensor.getType() == sensorType)||(sensorType == Sensor.TYPE_ALL)) {
+	        // Callback for each sensor of requested type found in Android device
+	        org.webinos.api.sensor.SensorManager foundWebinosSensor = new org.webinos.api.sensor.SensorManager;
+	        foundWebinosSensor.state = org.webinos.api.sensor.SensorManager.SERVICE_INITATING;
+	        foundWebinosSensor.api = api;
+	        foundWebinosSensor.id = androidSensor.getName(); // Temporary id as the id of a Service must be unique within a users perzonal zone. So it must be set by the Service Discovery JS implementation
+		      foundWebinosSensor.displayName = androidSensor.getName();
+		      foundWebinosSensor.description = androidSensor.getName();
+		      foundWebinosSensor.icon = " ";
+		      foundWebinosSensor.maximumRange =androidSensor.getMaximumRange();
+		      foundWebinosSensor.minDelay = androidSensor.getMinDelay();
+		      foundWebinosSensor.power = androidSensor.getPower();
+		      foundWebinosSensor.resolution = androidSensor.getResolution();
+		      foundWebinosSensor.vendor = androidSensor.getVendor();
+		      foundWebinosSensor.version = androidSensor.getVersion();		
+		      
+		      successCB.onSuccess (foundWebinosSensor);      		      
+	      }	
+	    }	
+	  }	  
+	  
+	  else  {
+		   
+		  // Error callback
+		  SensorError sensorFindError = new SensorError;
+		  sensorFindError.code = SensorError.ILLEGAL_SENSOR_TYPE_ERROR; 
+		  errorCB.onError (sensorFindError);    	   		   
+		}
+	  
 		return null;
 	}
+
+	@Override
+	public PendingOperation configureSensor(ConfigureSensorOptions options,
+			ConfigureSensorCB successCB, SensorErrorCB errorCB) {
+		// TODO Implement configureSensors
+		return null;
+	}
+	
 	
 	/*
 	 * Temporary solution. The first sensor found matching the requested sensor type is registered.
