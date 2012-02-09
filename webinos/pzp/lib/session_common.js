@@ -56,7 +56,7 @@ exports.removeClient = function(self, conn) {
 	
 	for (i in self.connectedPzp) {
 		if(self.connectedPzp.hasOwnProperty(i)) {
-			if(conn.socket._peername.address === self.connectedPzp[i].address) {
+			if(conn === self.connectedPzp[i].socket) {
 				delId = i;
 				delete self.connectedPzp[i];
 			}
