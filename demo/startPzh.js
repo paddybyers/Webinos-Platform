@@ -53,7 +53,6 @@ if (options.host === '' || options.port <= 0) {
 		var config;
 		
 		if (err) {
-			console.warn("could not load config-pzh.json\n" + err.toString());
 			config = {};
 		}
 		else {
