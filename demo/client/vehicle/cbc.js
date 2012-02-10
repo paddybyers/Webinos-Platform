@@ -175,6 +175,7 @@ function logMessage(msg) {
 		}
 		
 		function registerGeoListener(){
+			var params = {};
 			ps = geolocation.watchPosition(handlePosition,errorCB, params);
 		}
 		
@@ -194,7 +195,7 @@ function handleGear(data){
 
 function handlePosition(data){
 	logMessage(data.coords.latitude + ' - ' + data.coords.longitude);
-	var uPos = new LatLng(data.coords.latitude, data.coords.longitude);
+	var uPos = new google.maps.LatLng(data.coords.latitude, data.coords.longitude);
 	marker.setPosition(uPos);
 	map.setCenter(uPos);
 }
