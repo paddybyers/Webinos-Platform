@@ -70,7 +70,8 @@ var pzpModules = [
     {name: "context", param: {}},
     {name: "authentication", param: {}},
     {name: "contacts", param: {}},
-    {name: "devicestatus", param: {}}
+    {name: "devicestatus", param: {}},
+    {name: "discovery", param: {}}
 ];
 
 if (options.pzhHost === '' || options.pzhPort <= 0) {
