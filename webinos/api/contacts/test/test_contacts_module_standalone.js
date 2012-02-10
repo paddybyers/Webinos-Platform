@@ -34,6 +34,7 @@ function printHelp()
     + 'node test_contacts_module_standalone.js <type> <params>\n'
     + 'if <type> = "local" then params must be a valid .mab file URI '
     + '(try "node_contacts_local/test/testAddressBook/abook.mab")\n'
+    + 'on android .mab file URI is not required as we try to access the phone address book'
     + 'if <type> = "remote" then params must be <username> <password> of a valid gmail account\n'
     + '<username> could end with or without "@gmail.com"\n'
     + 'hint: you may write or not the double quotes around the parameters: e.g. local == "local"';
@@ -53,17 +54,33 @@ switch (argc)
 {
   case 3:
   if (argv[2] == '-h' || argv[2] == '--help')
+  {
     printHelp();
+  }
+  else if (argv[2] === 'local' &&process.platform === 'android')
+  {
+    type = 'local';
+    var abook = argv[3];
+    console.log("***YOU SELECTED LOCAL CONTACTS***")
+    console.log("OPENING:", abook);
+    par[0] =
+    {
+      'type' : type,
+      'addressBookName' : abook
+    };
+  }
   else
+  {
     printError();
+  }
     break;
 
   case 4:
-  if (argv[2] == "local")
+  if (argv[2] === 'local')
   {
-    type = "local";
+    type = 'local';
     var abook = argv[3];
-    console.log("***LOCAL CONTACTS***")
+    console.log("***YOU SELECTED LOCAL CONTACTS***")
     console.log("OPENING:", abook);
     par[0] =
     {
@@ -78,12 +95,12 @@ switch (argc)
     break;
 
   case 5:
-  if (argv[2] == "remote")
+  if (argv[2] == 'remote')
   {
-    type = "remote";
+    type = 'remote';
     var username = argv[3];
     var password = argv[4];
-    console.log("***REMOTE (Google) CONTACTS***")
+    console.log("***YOU SELECTED REMOTE (Google) CONTACTS***")
     console.log("Loggin in as :", username);
 
     par[0] =
