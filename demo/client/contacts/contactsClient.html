@@ -286,10 +286,17 @@ $('#btnAuthenticate').bind('click', function()
           contactString += "<b>Picture:</b><br>";
           for ( var j = 0; j < list[i].photos.length; j++)
           {
-            if(list[i].photos[j].type=="file") //is base64 string
-                contactString+="<img src=\"data:image/png;base64,"+list[i].photos[j].value+"\" alt=\"Image\"><br>";
-            else if(list[i].photos[j].type=="url") //is an URL
+            if(list[i].photos[j].type=="file") //is base64 string	
+             contactString+="<img src=\"data:image/png;base64,"+list[i].photos[j].value+"\" alt=\"Image\"><br>";
+            
+	    else if(list[i].photos[j].type=="url") //is an URL
                 contactString+="<img src=\""+list[i].photos[j].value+"\" alt=\"Image\"><br>";
+	   
+	   //TODO: quick and dirty solution for android issue. Photos arrays starts as array and get here as object
+	   else { //if (/*(list[i].photos instanceof Object) &&*/ list[i].photos.value) {
+		var photo = list[i].photos[j].value;
+		contactString+="<img alt=\"Image\" , src=\"data:image\/png;base64, "+photo+"\" /><br>";
+	   }
           }
         }
 
