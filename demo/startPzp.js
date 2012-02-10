@@ -80,7 +80,6 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		var config;
 		
 		if (err) {
-			console.warn("could not load config-pzp.json\n" + err.toString());
 			config = {};
 		}
 		else {
