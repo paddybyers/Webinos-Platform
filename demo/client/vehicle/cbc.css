@@ -19,7 +19,23 @@ html, body{
 	width: 40%;
 	height: 10%;
 	float: left;
-	background-color: green;
+		/* fallback */
+  background-color: #363D38;
+  background-image: url(rauschen.png);
+  
+  /* Safari 4-5, Chrome 1-9 */
+  /* Can't specify a percentage size? Laaaaaame. */
+  background: url(rauschen.png), -webkit-gradient(radial, center center, 0, center center, 460, from(#585E59), to(#363D38));
+  
+  /* Safari 5.1+, Chrome 10+ */
+  background: url(rauschen.png), -webkit-radial-gradient(circle, #585E59, #363D38);
+  
+  /* Firefox 3.6+ */ 
+  background: url(rauschen.png), -moz-radial-gradient(circle, #585E59, #363D38);
+  
+  /* IE 10 */ 
+  background: url(rauschen.png), -ms-radial-gradient(circle, #585E59, #363D38);
+
 	box-shadow: #000000 0px 0px 10px;
 	z-index: 150;
 }
@@ -33,7 +49,7 @@ html, body{
 	background-color:  #585E59;
 	z-index: 100;
 	
-	
+	overflow: hidden;
 	
 	/* fallback */
   background-color: #363D38;
@@ -120,6 +136,7 @@ html, body{
 #bc-full li {
 	border-bottom: 1px #CCC  dotted;
 	height: 20%;
+	max-height: 20%;
 
 }
 
@@ -141,13 +158,7 @@ html, body{
 	opacity: 1;
 	outline:0;
 	color: #fff;
-		background: url(rauschen.png), -moz-linear-gradient(top, #585E59, #363D38) ; 
-	background:  url(rauschen.png), -webkit-gradient(linear, left top, left bottom, from(#585E59), to(#363D38)), url(rauschen.png); 
-	background: url(rauschen.png), -webkit-linear-gradient(top, #585E59, #363D38); 
-	background:  url(rauschen.png), -o-linear-gradient(top, #585E59, #363D38); 
-	background:  url(rauschen.png), -ms-linear-gradient(top, #585E59, #363D38); 
-	background:  url(rauschen.png), linear-gradient(top, #585E59, #363D38);
-
+	 box-shadow: inset 0 0 15px #313131;
 }
 
 .propertybox{
@@ -156,8 +167,8 @@ html, body{
 }
 .description{
 	position: absolute;
-	top: 2%;
-	left: 2%;
+	top: 6px;
+	left: 6px;
 	font-size: 18px;
 	font-weight: normal;
 }
@@ -201,18 +212,20 @@ html, body{
 	float:left;
 	list-style:none;
 	width: 25%;
-	height: 100%
+	height: 100%;
 	text-align: center;
-	background: pink;
 	position: relative;
+	font-weight: normal;
+	text-shadow: #313131 1px 1px 2px;
 }
 #bc-nav ul li a:link, a:visited{
 	position: relative;
 	text-decoration:none;
-	background-color: lime;
 	height: 100%;
 	width: 100%;
 	color:#fff;
+	display: block;
+	font-size: 20px;
 }
 
 
@@ -222,4 +235,14 @@ html, body{
 	text-decoration:none;
 	height: 100%;
 	width: 100%;
+	outline: 0;
+	box-shadow: 0 0 10px #000000;
+	font-weight: bold;
+	color: yellow;
+}
+
+.toplevellink{
+	position: relative;
+	top: 30%;
+
 }

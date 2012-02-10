@@ -23,16 +23,16 @@
 	</div>
 	<div id='bc-nav'>
 		<ul>
-			<li><a href='#'>Drive</a></li>
-			<li><a href='#'>Travel</a></li>
-			<li><a href='#'>Locate</a></li>
-			<li><a href='#'>Geek</a></li>
+			<li><a href='#drive' tabindex='1'><div class='toplevellink'>Drive</div></a></li>
+			<li><a href='#travel' tabindex='2'><div class='toplevellink'>Travel</div></a></li>
+			<li><a href='#check' tabindex='3'><div class='toplevellink'>Check</div></a></li>
+			<li><a href='#geek' tabindex='4'><div class='toplevellink'>Geek</div></a></li>
 		</ul>
 	</div>
 	<div id='bc-full'>
 		<ul>
 			<li>
-				<a href='#' tabindex='10'>
+				<a href='#geek1' tabindex='10' disabled>
 					<div class='propertybox'>
 						<div class='description'>Speed</div>
 						<div class='value' id='v-speed'>XX.XX</div>
@@ -41,7 +41,7 @@
 				</a>
 			</li>
 			<li>
-				<a href='#' tabindex='10'>
+				<a href='#geek2' tabindex='10'>
 					<div class='propertybox'>
 						<div class='description'>Gear</div>
 						<div class='value' id='v-gear'>5</div>
@@ -50,7 +50,7 @@
 				</a>
 			</li>
 			<li>
-				<a href='#' tabindex='10'>
+				<a href='#geek3' tabindex='10'>
 					<div class='propertybox'>
 						<div class='description'>Heading</div>
 						<div class='value' id='v-heading'>XX.XX</div>
@@ -59,7 +59,7 @@
 				</a>
 			</li>
 			<li>
-				<a href='#' tabindex='10'>
+				<a href='#geek4' tabindex='10'>
 					<div class='propertybox'>
 						<div class='description'>Latitudinal Accelartion</div>
 						<div class='value' id='v-lat-acc'>XX.XX</div>
@@ -68,7 +68,7 @@
 				</a>
 			</li>
 			<li>
-				<a href='#' tabindex='10'>
+				<a href='#geek5' tabindex='10'>
 					<div class='propertybox'>
 						<div class='description'>Longitudinal Acceleration</div>
 						<div class='value' id='v-lng-acc'>XX.XX</div>
@@ -80,6 +80,7 @@
 		</ul>
 	
 	</div>
+	
 	<div id='debug'>
 			<input type='button' id='registerBrowser' value='Register Browser' tabindex='100'><br>
 	<button id="findService" class="button" tabindex='101'>Find Services</button><br>
@@ -89,7 +90,6 @@
 	<div id='message'></div>
 
 	</div>
-	
 	<div id='logo'>
 		logo...
 	

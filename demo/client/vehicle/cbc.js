@@ -40,7 +40,7 @@ function updateStatus(text){
 	
 
 
-function logMessage(msg) {
+				function logMessage(msg) {
                                 	if (msg) {
 	                                    $('#message').append('<li>' + msg + '</li>');
                                 	}
@@ -48,6 +48,17 @@ function logMessage(msg) {
 
 
 						$(document).ready(function() {
+								$(window).bind('hashchange', function() {
+  										switch(window.location.hash){
+  											case '#travel':
+  												break;
+  											default:
+  												alert(window.location.hash);
+  												break;
+  										}
+								});
+						
+						
   								initializeMap();
   
                                 function fillPZAddrs(data) {
@@ -169,7 +180,7 @@ function logMessage(msg) {
 		
 		function registerVehicleListeners(){
 			updateStatus('Adding Listener Vehicle API');
-			vehicle.addEventListener('shift', handleGear);
+			vehicle.addEventListener('shift', handleGear, false);
 			updateStatus('Listener registered.');
 			findGeolocation();
 		}
@@ -190,16 +201,19 @@ function errorCB(error){
 
 
 function handleGear(data){
-	logMessage(data.gear);
+	$('#v-gear').html(data.gear)
 }
 
 function handlePosition(data){
-	logMessage(data.coords.latitude + ' - ' + data.coords.longitude);
+	//logMessage(data.coords.latitude + ' - ' + data.coords.longitude);
 	var uPos = new google.maps.LatLng(data.coords.latitude, data.coords.longitude);
 	marker.setPosition(uPos);
 	map.setCenter(uPos);
+
+	$('#v-speed').html(data.coords.speed);
+	
 }
 
 function handleError(error){
-	logMessage(error)
+	//logMessage(error)
 }
