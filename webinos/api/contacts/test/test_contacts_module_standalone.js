@@ -32,7 +32,7 @@ function printHelp()
 {
   var help_msg = 'Usage:\n' + 'node test_contacts_module_standalone.js --help or -h to print this help\n'
     + 'node test_contacts_module_standalone.js <type> <params>\n'
-    + 'if <type> = "local" then params must be a valid .mab file URI (on Android leave empty)'
+    + 'if <type> = "local" then params must be a valid .mab file URI '
     + '(try "node_contacts_local/test/testAddressBook/abook.mab")\n'
     + 'if <type> = "remote" then params must be <username> <password> of a valid gmail account\n'
     + '<username> could end with or without "@gmail.com"\n'
@@ -48,137 +48,33 @@ function printError()
 }
 
 var type = "";
-
+var par = [];
 switch (argc)
 {
   case 3:
   if (argv[2] == '-h' || argv[2] == '--help')
-  {
     printHelp();
-  }
-  else if(process.platform==='android' && argv[2] === "local")
-  {
-    console.log("***ANDROID CONTACTS***");
-        type = "local";
-    var par = [];
-    par[0] =
-    {
-      'type' : type,
-      'addressBookName' : 'android'
-    };
-
-    contacts_m.authenticate(par, function(status)
-    {
-      console.log("Authentication success: address book open): ", status);
-    });
-
-    contacts_m.isAlreadyAuthenticated(par, function(status)
-    {
-      console.log("Is Already Authenticated (address book already open): ", status);
-
-      if (status)
-      {
-        contacts_m.getAllContacts(par, function(contacts_list)
-        {
-          console.log("YOU HAVE " + contacts_list.length + " CONTACTS");
-          for ( var i = 0; i < contacts_list.length; i++)
-          {
-            if(contacts_list[i]['displayName']!=undefined && contacts_list[i]['displayName']!="" && contacts_list[i]['displayName'].length!=undefined)
-              console.log([i+1]+") "+contacts_list[i]['displayName']);
-            else
-              console.log([i+1]+") NO NAME");
-          }
-          console.log(findInstructions);
-        });
-
-      }
-    });
-  }
   else
-  {
     printError();
-  }
     break;
 
   case 4:
-  if (argv[2] === "local")
+  if (argv[2] == "local")
   {
     type = "local";
     var abook = argv[3];
-    console.log("***LOCAL CONTACTS***");
+    console.log("***LOCAL CONTACTS***")
     console.log("OPENING:", abook);
-    var par = [];
     par[0] =
     {
       'type' : type,
       'addressBookName' : abook
     };
-
-    contacts_m.authenticate(par, function(status)
-    {
-      console.log("Authentication success (address book open): ", status);
-    });
-
-    contacts_m.isAlreadyAuthenticated(par, function(status)
-    {
-      console.log("Is Already Authenticated (address book already open): ", status);
-
-      if (status)
-      {
-        contacts_m.getAllContacts(par, function(contacts_list)
-        {
-          //console.log("GET ALL", util.inspect(contacts_list, false, 5));
-          console.log("YOU HAVE " + contacts_list.length + " CONTACTS");
-          for ( var i = 0; i < contacts_list.length; i++)
-          {
-            if(contacts_list[i]['displayName']!=undefined && contacts_list[i]['displayName']!="" && contacts_list[i]['displayName'].length!=undefined)
-              console.log([i+1]+") "+contacts_list[i]['displayName']);
-            else
-              console.log([i+1]+") NO NAME");
-          }
-          console.log(findInstructions);
-        });
-
-        process.stdin.resume();
-        process.stdin.setEncoding('utf8');
-        process.stdin.on('data', function(input)
-        {
-          var fields = {};
-
-          var fieldArray = input.trim().split(":");
-          if (fieldArray.length > 1)
-          {
-            var len = fieldArray.length % 2 == 0 ? fieldArray.length : fieldArray.length - 1;
-            for ( var i = 0; i < len; i += 2)
-            {
-              fields[fieldArray[i]] = fieldArray[i + 1];
-            }
-            contacts_m.find(par[0].type, fields, function(result)
-            {
-              //console.log("FOUND:\n", util.inspect(result, false, 5))
-              console.log("\nFOUND " + result.length + " MATCHES:");
-              for ( var i = 0; i < result.length; i++)
-              {
-                if (result[i]['displayName'] != undefined && result[i]['displayName'] != "" &&
-                  result[i]['displayName'].length != undefined)
-                  console.log([ i + 1 ] + ") " + result[i]['displayName']);
-                else
-                  console.log([ i + 1 ] + ") NO NAME");
-              }
-              process.stdin.destroy();
-            }, function(err)
-            {
-              console.log("find() ERROR:", err)
-            });
-          }
-        });
-
-      }
-    });
-
   }
   else
+  {
     printError();
+  }
     break;
 
   case 5:
@@ -189,82 +85,82 @@ switch (argc)
     var password = argv[4];
     console.log("***REMOTE (Google) CONTACTS***")
     console.log("Loggin in as :", username);
-    var par = [];
+
     par[0] =
     {
       'type' : type,
       'usr' : username,
       'pwd' : password
     };
-    par[1] = "ALWAYS ALLOW"; //To avoid policy manager stopping us
-
-    contacts_m.authenticate(par, function(status)
-    {
-      console.log("Authentication success (login): ", status);
-
-      contacts_m.isAlreadyAuthenticated(par, function(status)
-      {
-        console.log("Is Already Authenticated (has a valid token): ", status);
-        if (status)
-        {
-          contacts_m.getAllContacts(par, function(contacts_list)
-          {
-            //console.log("GET ALL", util.inspect(contacts_list, false, 5));
-            console.log("YOU HAVE " + contacts_list.length + " CONTACTS");
-            for ( var i = 0; i < contacts_list.length; i++)
-            {
-              if(contacts_list[i]['displayName']!=undefined && contacts_list[i]['displayName']!="" && contacts_list[i]['displayName'].length!=undefined)
-                console.log([i+1]+") "+contacts_list[i]['displayName']);
-              else
-                console.log([i+1]+") NO NAME");
-            }
-            console.log(findInstructions);
-          });
-
-          process.stdin.resume();
-          process.stdin.setEncoding('utf8');
-          process.stdin.on('data', function(input)
-          {
-            var fields = {};
-
-            var fieldArray = input.trim().split(":");
-            if (fieldArray.length > 1)
-            {
-              var len = fieldArray.length % 2 == 0 ? fieldArray.length : fieldArray.length - 1;
-              for ( var i = 0; i < len; i += 2)
-              {
-                fields[fieldArray[i]] = fieldArray[i + 1];
-              }
-
-              contacts_m.find(par[0].type, fields, function(result)
-              {
-                //console.log("FOUND:\n", util.inspect(result, false, 5))
-                console.log("\nFOUND " + result.length + " MATCHES:");
-                for ( var i = 0; i < result.length; i++)
-                {
-                  if (result[i]['displayName'] != undefined && result[i]['displayName'] != "" &&
-                    result[i]['displayName'].length != undefined)
-                    console.log([ i + 1 ] + ") " + result[i]['displayName']);
-                  else
-                    console.log([ i + 1 ] + ") NO NAME");
-                }
-                process.stdin.destroy();
-              }, function(err)
-              {
-                console.log("find() ERROR:", err)
-              });
-            }
-          });
-
-        }
-      });
-
-    });
   }
   else
+  {
     printError();
+  }
     break;
 
   default:
   printError();
+ 
 }
+
+contacts_m.authenticate(par, function(status)
+{
+  console.log("Authentication success (login): ", status);
+
+  contacts_m.isAlreadyAuthenticated(par, function(status)
+  {
+    console.log("Is Already Authenticated (has a valid token): ", status);
+    if (status)
+    {
+      contacts_m.getAllContacts(par, function(contacts_list)
+      {
+	console.log("YOU HAVE " + contacts_list.length + " CONTACTS");
+	for ( var i = 0; i < contacts_list.length; i++)
+	{
+	  if(contacts_list[i]['displayName']!=undefined && contacts_list[i]['displayName']!="" && contacts_list[i]['displayName'].length!=undefined)
+	    console.log([i+1]+") "+contacts_list[i]['displayName']);
+	  else
+	    console.log([i+1]+") NO NAME");
+	}
+	console.log(findInstructions);
+      });
+
+      process.stdin.resume();
+      process.stdin.setEncoding('utf8');
+      process.stdin.on('data', function(input)
+      {
+	var fields = {};
+
+	var fieldArray = input.trim().split(":");
+	if (fieldArray.length > 1)
+	{
+	  var len = fieldArray.length % 2 == 0 ? fieldArray.length : fieldArray.length - 1;
+	  for ( var i = 0; i < len; i += 2)
+	  {
+	    fields[fieldArray[i]] = fieldArray[i + 1];
+	  }
+
+	  contacts_m.find(par[0].type, fields, function(result)
+	  {
+	    console.log("\nFOUND " + result.length + " MATCHES:");
+	    for ( var i = 0; i < result.length; i++)
+	    {
+	      if (result[i]['displayName'] != undefined && result[i]['displayName'] != "" &&
+		result[i]['displayName'].length != undefined)
+		console.log([ i + 1 ] + ") " + result[i]['displayName']);
+	      else
+		console.log([ i + 1 ] + ") NO NAME");
+	    }
+	    process.stdin.destroy();
+	  }, function(err)
+	  {
+	    console.log("find() ERROR:", err)
+	  });
+	}
+      });
+
+    }
+  });
+
+});
