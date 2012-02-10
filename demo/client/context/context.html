@@ -78,6 +78,8 @@
     webinos.ServiceDiscovery.findServices( 
         new ServiceType('http://webinos.org/api/context'),                         
         {onFound: function (service) {
+          console.log("Service found");
+          console.log(service);
           contextService[service.serviceAddress] = service;
             $('#ContexServices').append($('<option>' + service.serviceAddress + '</option>'));
     }});

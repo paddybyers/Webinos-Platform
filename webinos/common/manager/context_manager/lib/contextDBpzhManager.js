@@ -1,27 +1,27 @@
 (function() {
-	if (typeof webinos === 'undefined') {
-	  webinos = {};
-	  console.log("webinos not found");
-	}
-	if (typeof webinos.context === 'undefined')
-	  webinos.context = {};
+  if (typeof webinos === 'undefined') {
+    webinos = {};
+    console.log("webinos not found");
+  }
+  if (typeof webinos.context === 'undefined')
+    webinos.context = {};
 
-//	console.log("CONTEXT contextDBpzhManager.js LOADED");
-	
-	var path = require('path');
-	var moduleRoot = path.resolve(__dirname, '../') + '/';
+//console.log("CONTEXT contextDBpzhManager.js LOADED");
 
-	require(moduleRoot +'/lib/AsciiArt.js')
+  var path = require('path');
+  var moduleRoot = path.resolve(__dirname, '../') + '/';
 
-	var commonPaths = require(moduleRoot + '/lib/commonPaths.js');
-	if (commonPaths.storage === null){
-		console.log('[ERROR] User Storage Path not found.\nContext Manager disabled.', 'yellow+black_bg');
-		return;
-	}
-	require(moduleRoot + '/lib/storageCheck.js')(commonPaths, require(moduleRoot + '/data/storage.json'));
-	
-	
-	var moduleDependencies = require(moduleRoot + '/dependencies.json');
+  require(moduleRoot +'/lib/AsciiArt.js')
+
+  var commonPaths = require(moduleRoot + '/lib/commonPaths.js');
+  if (commonPaths.storage === null){
+    console.log('[ERROR] User Storage Path not found.\nContext Manager disabled.', 'yellow+black_bg');
+    return;
+  }
+  require(moduleRoot + '/lib/storageCheck.js')(commonPaths, require(moduleRoot + '/data/storage.json'));
+
+
+  var moduleDependencies = require(moduleRoot + '/dependencies.json');
   var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
   var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
 
@@ -32,18 +32,18 @@
   var db =  new sqlite3.Database(dbpath);
   var databasehelper = require('JSORMDB');
   bufferDB = new databasehelper.JSONDatabase({path : bufferpath, transactional : false});
-  
+
   sessionPzp = require(webinosRoot + '/pzp/lib/pzp_sessionHandling.js');
   var sessionInstance =null;
-  
+
 
   ////////////////////////////////////////////////////////////////////////////////////////
   //Running on the PZP
   //////////////////////////////////////////////////////////////////////////////////////
   exports.handleContextData = function(contextData){
-  
-  	
-    
+
+
+
     var connectedPzh = sessionPzp.getPzhId();
     if (connectedPzh == "null" || connectedPzh == "undefined"){
       bufferDB.insert(contextData)
@@ -60,24 +60,32 @@
 
       var contextService = [];
       var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), function(services){
-      //var message = sessionPzp.getMessageHandler();
-      //console.log(message);
-      //util= require('util');
-        //console.log(util.inspect(services, false, null), 'white+red_bg');
-        services[0].serviceAddress = connectedPzh
-        
-      var query = {};
-      query.type = "DB-insert";
-      query.data = data;
-      //message.write(query, connectedPzh, 0);
+        //var message = sessionPzp.getMessageHandler();
+//      console.log(message);
+        var pzhService = null;
+        util= require('util');
+        console.log(util.inspect(services, false, null), 'white+red_bg');
+        for (var i=0; i<services.length; i++){
+          if (services[i].serviceAddress == connectedPzh){
+            pzhService = services[i];
+          }
+        }
+        pzhService.bindService({onBind:function(service) {
+          console.log("Service Bound", 'white+red_bg');
           var query = {};
           query.type = "DB-insert";
           query.data = data;
-          if (services.length == 1){
-            services[0].executeQuery(query);
+          //message.write(query, connectedPzh, 0);
+          var query = {};
+          query.type = "DB-insert";
+          query.data = data;
+          if (pzhService != null){
+            pzhService.executeQuery(query);
             bufferDB.db.clear();
             bufferDB.commit();
           }
+        }});
+
       });
     }
     //success(true);
