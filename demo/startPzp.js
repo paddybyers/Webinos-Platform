@@ -121,12 +121,12 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 
 		var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=" + config.pzpName + "\nemail=internal@webinos.org\ndays=180\n"
 		websocket.startPzpWebSocketServer(config.pzhHost, config.pzpWebsocketPort, config.pzpHttpPort, function() {
-			pzp.startPzp('localhost/john', contents, config.code, pzpModules, function() {
+			pzp.startPzp('localhost/Habib', contents, config.code, pzpModules, function() {
 				console.log("=== PZP 1 started ===");
-				contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzp1\nemail=internal@webinos.org\ndays=180\n"
+				/* Since we support only 1 instance: contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzp1\nemail=internal@webinos.org\ndays=180\n"
 				pzp.startPzp('localhost/janon',contents, config.code, pzpModules, function() {
 					console.log("=== PZP 2 started ===");
-				})
+				})*/
 
 			});
 		});

@@ -6,7 +6,7 @@ var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.locat
 var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
 
-var utils =  require(path.resolve(webinosRoot,dependencies.pzp.location, 'lib/session_common.js')).debug;
+var log =  require(path.resolve(webinosRoot,dependencies.pzp.location, 'lib/session_common.js')).debug;
 
 /* @description Create private key, certificate request, self signed certificate and empty crl. This is crypto sensitive function
  * @param {Object} self is currect object of Pzh/Pzp
@@ -106,7 +106,7 @@ certificate.signRequest = function(csr, master_key, master_cert, certType, callb
 	}	
 };
 
-certificate.revokeClientCert = function(self, master_key, master_crl, pzpCert, callback) {
+certificate.revokeClientCert = function(master_key, master_crl, pzpCert, callback) {
 	"use strict";
 	var certman;
 	

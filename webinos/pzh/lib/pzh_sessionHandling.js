@@ -338,6 +338,10 @@
 		config.setConfiguration(contents, 'Pzh', function(config, conn_key) {
 			pzh.config    = config;
 			pzh.sessionId = pzh.config.certValues.common.split(':')[0];
+			pzh.contents  = contents;
+			pzh.modules   = modules;
+
+			pzh.config.servername = uri;
 			
 			farm.pzhs[uri] = pzh;
 

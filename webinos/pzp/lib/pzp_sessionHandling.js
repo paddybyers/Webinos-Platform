@@ -188,13 +188,13 @@
 					cert: self.config.conn.cert,
 					crl : self.config.master.crl,
 					ca  : self.config.master.cert,
-					servername: self.config.uri 
+					servername: self.config.servername
 				};
 			} else {
 				config = {
 					key : conn_key, 
 					cert: self.config.conn.cert,
-					servername: self.config.uri};					
+					servername: self.config.servername};
 			}
 			
 			client = tls.connect(configuration.pzhPort, self.address, config,
@@ -404,8 +404,8 @@
 		client.code     = code;
 		
 		configuration.setConfiguration(contents, 'Pzp', function (config, conn_key, conn_csr) {
-			client.config    = config;
-			client.config.id = url;
+			client.config            = config;
+			client.config.servername = url;
 			var name;
 			client.sessionId = client.config.certValues.common.split(':')[0];
 			if (url && url.split('/')) {

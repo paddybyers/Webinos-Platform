@@ -10,19 +10,16 @@ var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
 var utils        = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'))
 var log          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
+var config       = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
 
-pzhConnecting.downloadCertificate = function(pzh, servername, port, callback) {
+pzhConnecting.downloadCertificate = function(pzh, servername, callback) {
 	var self = pzh;	
 	var agent = new http.Agent({maxSockets: 1});
 	var headers = {'connection': 'keep-alive'};
-	if (servername === '' && port === '') {
-		log('INFO', ' Pzh download certificate missing servername and port ');
-		return;
-	}
 	
 	var options = {
-		headers: headers,		
-		port: port,
+		headers: headers,
+		port: config.port,
 		host: servername,
 		agent: agent,
 		method: 'POST'
@@ -60,9 +57,9 @@ pzhConnecting.connectOtherPZH = function(pzh, server, port) {
 	log('INFO', 'PZH ('+self.sessionId+') Connect Other PZH');
 	try {
 		//No CRL support yet, as this is out-of-zone communication.  TBC.
-		options = {key: self.config.conn.key.value,
-			cert: self.config.conn.cert.value,
-			ca: [self.config.master.cert.value]}; 
+		options = {key: self.config.conn.key,
+			cert: self.config.conn.cert,
+			ca: [self.config.master.cert]};
 	} catch (err) {
 		log('ERROR', 'PZH ('+self.sessionId+') Options setting failed while connecting other Pzh ' + err);
 		return;
@@ -84,8 +81,7 @@ pzhConnecting.connectOtherPZH = function(pzh, server, port) {
 					self.connectedPzh[connPzhId] = {socket : connPzh};
 					var msg = self.messageHandler.registerSender(self.sessionId, connPzhId);
 					self.sendMessage(msg, connPzhId);
-				};
-				}
+				}				
 			} catch (err1) {
 				log('ERROR', 'PZH ('+selfsessionId+') Error storing pzh in the list ' + err);
 				return;

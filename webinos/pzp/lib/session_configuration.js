@@ -14,7 +14,8 @@ var common        = require(path.join(webinosRoot, dependencies.pzp.location, 'l
 var uniqueID      = require(path.join(webinosRoot, dependencies.uniqueID.location, 'lib/uniqueID.js'));
 
 
-configure.pzhPort = 8000; //443
+configure.pzhPort    = 8000; 
+configure.pzhWebPort = 8083;
 
 configure.storeConfig = function (config) {
 	var webinosDemo = common.webinosConfigPath();
@@ -194,19 +195,21 @@ configure.createDirectoryStructure = function (callback) {
 function createConfigStructure (name, type, certValues) {
 	var config = {};
 	if (type === 'Pzh') {
-		config.conn        = { key_id: name+'_conn_key',  cert:''};
+		config.conn        = { key_id: name+'_conn_key',   cert:''};
 		config.master      = { key_id: name+'_master_key', cert:'', crl:'' };
 		config.signedCert  = {};
 		config.revokedCert = {};
+		config.otherCert   = {};
 	} else if (type === 'PzhFarm') {
-		config.conn   = { key_id: name+'_conn_key',  cert:''};
-		config.master = { key_id: name+'_master_key',cert:''} ;
+		config.conn      = { key_id: name+'_conn_key',   cert:''};
+		config.master    = { key_id: name+'_master_key', cert:''} ;
+		config.webServer = { key_id: name+'_ws_key',     cert:''} ;
 	} else if (type === 'Pzp' ){
 		config.conn   = { key_id: name+'_conn_key', cert:''};
 		config.master = { cert:'', crl:'' };		
-	}
-	
-	config.certValues = certValues;
+	};
+	config.userDetails = {};
+	config.certValues  = certValues;
 	return config;
 }
 

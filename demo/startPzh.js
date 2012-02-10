@@ -2,7 +2,8 @@ var fs = require('fs'),
 	path                = require('path'),
 	Pzh                 = require('../webinos/pzh/lib/pzh_sessionHandling.js'),
 	PzhFarm             = require('../webinos/pzh/lib/pzh_farm.js'),
-	PzhWebInterface     = require('../webinos/pzh/web/pzh_web_interface.js');
+	PzhWebInterface     = require('../webinos/pzh/web/pzh_web_interface.js'),
+	PzhConnect          = require('../webinos/pzh/lib/pzh_connecting.js');
 
 var options = {};
 
@@ -45,8 +46,8 @@ PzhFarm.startFarm('localhost' , contents, function(result) {
 	Pzh.addPzh('localhost/john', contents, pzhModules, function(res,instance) {
 		console.log('******* PZH STARTED *******');
 		var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=pzh2\nemail=internal@webinos.org\ndays=180\n"
-		Pzh.addPzh('localhost/janon',contents, pzhModules, function(res,instance) {
-			console.log('******* PZH1 STARTED *******');
+		Pzh.addPzh('localhost/Habib',contents, pzhModules, function(res,instance) {
+			console.log('******* PZH1 STARTED *******');			
 		});
 	});
 });
