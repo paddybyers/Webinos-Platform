@@ -1,13 +1,13 @@
 /****************
-* TODO!!!
-*
-* Implement configureSensor ().
-* Use configured rate when androidSensorManager.registerListener is called.
-* Let service discovery decide which sensors are searched for with androidSensorManager.getSensorList().
-*
-*
+* Implements SensorImpl.java
+* 
+* This module starts listening to a sensor of a given type using the Android SensorManager.
+* 
+* Note that configureSensor() is not implemented in this module. Instead it must be implemented in pure JS. The only 
+  configuration possible for Anndroid sensors is rate and this is an in-par to watchSensor()
+* 
+*	
 *********************/
-
 
 
 package org.webinos.impl;
@@ -16,7 +16,6 @@ import java.util.List;
 
 import org.webinos.api.PendingOperation;
 import org.webinos.api.sensor.SensorCB;
-import org.webinos.api.sensor.ConfigureSensorCB;
 import org.webinos.api.sensor.ConfigureSensorOptions;
 import org.webinos.api.sensor.SensorError;
 import org.webinos.api.sensor.SensorErrorCB;
@@ -44,20 +43,14 @@ public class SensorImpl extends org.webinos.api.sensor.SensorManager implements 
 	/*****************************
 	 * Webinos Sensor methods
 	 *****************************/
-	@Override
-	public PendingOperation configureSensor(ConfigureSensorOptions options,
-			ConfigureSensorCB successCB, SensorErrorCB errorCB)
-			throws SensorError {
-		// TODO Auto-generated method stub
-		return null;
-	}
 	
 	/*
-	 * Temporary solution. The first sensor found matching the requested sensor type is registered.
-	 * TODO: Connect this with service discovery instead
+	 * The first sensor found matching the requested sensor type is registered. Assumes that there is only one sensor 
+	 * of a certain type in Android
+	 * 
 	 */
   @Override
-	public synchronized void watchSensor(String api, SensorCB sensorCb) {
+	public synchronized void watchSensor(String api, int rate, SensorCB sensorCb, SensorErrorCB errorCB) {
 		  
 	  int sensorType = -100;
 	  
@@ -93,7 +86,7 @@ public class SensorImpl extends org.webinos.api.sensor.SensorManager implements 
   		  for (Sensor androidSensor : androidSensorList) {
 	  	     if (androidSensor.getType() == sensorType) {
 	  	       (webinosSensorListener = new WebinosSensorListener(sensorCb)).start();
-		         androidSensorManager.registerListener(webinosSensorListener, androidSensor, android.hardware.SensorManager.SENSOR_DELAY_UI);
+		         androidSensorManager.registerListener(webinosSensorListener, androidSensor, rate);
 	  	       return;
 	  	     }	
 	  	  }	
@@ -102,8 +95,15 @@ public class SensorImpl extends org.webinos.api.sensor.SensorManager implements 
 		   
 		    for (Sensor androidSensor : androidSensorList) {
 		  	  (webinosSensorListener = new WebinosSensorListener(sensorCb)).start();
-		      androidSensorManager.registerListener(webinosSensorListener, androidSensor, android.hardware.SensorManager.SENSOR_DELAY_UI);
+		      androidSensorManager.registerListener(webinosSensorListener, androidSensor, rate);
 	  	  }			   		   
+		}
+		else {
+			// Error callback
+		  SensorError sensorError = new SensorError();
+		  sensorError.code = SensorError.ILLEGAL_SENSOR_TYPE_ERROR; 
+		  errorCB.onError (sensorError); 
+		
 		}
 	}
 	
@@ -126,8 +126,8 @@ public class SensorImpl extends org.webinos.api.sensor.SensorManager implements 
 		androidContext = ((AndroidContext)ctx).getAndroidContext();
 		androidSensorManager = (android.hardware.SensorManager)androidContext.getSystemService(Context.SENSOR_SERVICE);
 		
-		/* Get sensor list for all sensors in device 
-		 * TODO Need to be connected with Webinos service discovery
+		/*  
+		 * Get sensor list for all sensors in device
 		 */
 		androidSensorList = androidSensorManager.getSensorList(Sensor.TYPE_ALL);
 		if(androidSensorList.isEmpty())
@@ -191,10 +191,12 @@ public class SensorImpl extends org.webinos.api.sensor.SensorManager implements 
 		}
 		
 		/* 
-		 * TBD what to do here 
+		 * The Webinos Sensor API does not have a specific event for change of accuracy and can't fire a Webinos SensorEvent as 
+		 * don't have any values to send with the onAccuracyChanged event. So do nothing. Assume that the accuracy is updated with 
+		 * the next onSensorChanged event.
 		 */		
 		@Override
-		public void onAccuracyChanged(Sensor arg0, int arg1) {}
+		public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 
 		@Override
 		public void onSensorChanged(android.hardware.SensorEvent androidSensorEvent) {
@@ -240,10 +242,10 @@ public class SensorImpl extends org.webinos.api.sensor.SensorManager implements 
 			else if (androidSensorEvent.accuracy == android.hardware.SensorManager.SENSOR_STATUS_UNRELIABLE)
 			  webinosSensorEvent.accuracy = org.webinos.api.sensor.SensorEvent.SENSOR_STATUS_UNRELIABLE;
 			  
-			/* Set rate to configured rate, temporary set to SENSOR_DELAY_UI */
-			webinosSensorEvent.rate = ConfigureSensorOptions.SENSOR_DELAY_UI;  
+			/* Set rate to undefined. Must be set to configured rate by JS side of sensor API if it has been configured */
+			webinosSensorEvent.rate = ConfigureSensorOptions.SENSOR_DELAY_UNDEFINED; 
 			
-			/* Set to true, i.e. events fired when value changes */
+			/* Set to true, i.e. events fired when value changes as this is not configurable in Android */
 			webinosSensorEvent.interrupt = true;						  
 			  			   
 			/* Set sensor values. Specification also defined normalized values between 0 and 1 but 

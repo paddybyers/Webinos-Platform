@@ -6,8 +6,9 @@ public class ConfigureSensorOptions {
     public static final int SENSOR_DELAY_GAME = 1;
     public static final int SENSOR_DELAY_UI = 2;
     public static final int SENSOR_DELAY_NORMAL = 3;
+    public static final int SENSOR_DELAY_UNDEFINED = 100;
 
-    public long timeout;
-    public long rate;
+    public int timeout;
+    public int rate;
     public boolean interrupt;
 }

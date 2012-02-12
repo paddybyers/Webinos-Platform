@@ -26,14 +26,17 @@ public class Org_webinos_api_sensor_ConfigureSensorOptions {
 		case 4: /* SENSOR_DELAY_UI */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)org.webinos.api.sensor.ConfigureSensorOptions.SENSOR_DELAY_UI);
 			break;
-		case 5: /* interrupt */
+		case 5: /* SENSOR_DELAY_UNDEFINED */
+			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)org.webinos.api.sensor.ConfigureSensorOptions.SENSOR_DELAY_UNDEFINED);
+			break;
+		case 6: /* interrupt */
 			result = org.meshpoint.anode.js.JSValue.asJSBoolean(inst.interrupt);
 			break;
-		case 6: /* rate */
-			result = org.meshpoint.anode.js.JSValue.asJSNumber(inst.rate);
+		case 7: /* rate */
+			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.rate);
 			break;
-		case 7: /* timeout */
-			result = org.meshpoint.anode.js.JSValue.asJSNumber(inst.timeout);
+		case 8: /* timeout */
+			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.timeout);
 			break;
 		default:
 		}
@@ -42,14 +45,14 @@ public class Org_webinos_api_sensor_ConfigureSensorOptions {
 
 	static void __set(org.webinos.api.sensor.ConfigureSensorOptions inst, int attrIdx, Object val) {
 		switch(attrIdx) {
-		case 5: /* interrupt */
+		case 6: /* interrupt */
 			inst.interrupt = ((org.meshpoint.anode.js.JSValue)val).getBooleanValue();
 			break;
-		case 6: /* rate */
-			inst.rate = ((org.meshpoint.anode.js.JSValue)val).longValue;
+		case 7: /* rate */
+			inst.rate = (int)((org.meshpoint.anode.js.JSValue)val).longValue;
 			break;
-		case 7: /* timeout */
-			inst.timeout = ((org.meshpoint.anode.js.JSValue)val).longValue;
+		case 8: /* timeout */
+			inst.timeout = (int)((org.meshpoint.anode.js.JSValue)val).longValue;
 			break;
 		default:
 			throw new UnsupportedOperationException();

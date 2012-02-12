@@ -4,27 +4,22 @@ package org.meshpoint.anode.stub.gen.platform;
 
 public class Org_webinos_api_sensor_SensorManager {
 
-	private static Object[] __args = new Object[3];
+	private static Object[] __args = new Object[4];
 
 	public static Object[] __getArgs() { return __args; }
 
 	static Object __invoke(org.webinos.api.sensor.SensorManager inst, int opIdx, Object[] args) {
 		Object result = null;
 		switch(opIdx) {
-		case 0: /* configureSensor */
-			result = inst.configureSensor(
-				(org.webinos.api.sensor.ConfigureSensorOptions)args[0],
-				(org.webinos.api.sensor.ConfigureSensorCB)args[1],
-				(org.webinos.api.sensor.SensorErrorCB)args[2]
-			);
-			break;
-		case 1: /* unwatchSensor */
+		case 0: /* unwatchSensor */
 			inst.unwatchSensor();
 			break;
-		case 2: /* watchSensor */
+		case 1: /* watchSensor */
 			inst.watchSensor(
 				(String)args[0],
-				(org.webinos.api.sensor.SensorCB)args[1]
+				(int)((org.meshpoint.anode.js.JSValue)args[1]).longValue,
+				(org.webinos.api.sensor.SensorCB)args[2],
+				(org.webinos.api.sensor.SensorErrorCB)args[3]
 			);
 			break;
 		default:
