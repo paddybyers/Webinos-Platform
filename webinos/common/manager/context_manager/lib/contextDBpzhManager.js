@@ -157,4 +157,7 @@
         }
     );
   }
+  exports.query = function(data, callback){
+	  require(moduleRoot + '/lib/contextQueryDB.js')(db, data, callback);
+  }
 })();
