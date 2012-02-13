@@ -518,7 +518,8 @@
 			} else if(parse.type === "prop" && parse.payload.status === 'findServices') {
 				helper.debug(2, 'Trying to send Webinos Services from this RPC handler to ' + parse.from + '...');
 				var services = self.rpcHandler.getAllServices(parse.from);
-				var msg = self.prepMsg(self.sessionId, null, 'foundServices', services);		
+				var msg = self.prepMsg(self.sessionId, null, 'foundServices', services);
+				msg.payload.id = parse.payload.message.id;
 				self.sendMessage(msg, null, conn);		
 		        helper.debug(2, 'Sent ' + (services && services.length) || 0 + ' Webinos Services from this RPC handler.');
 			} else { // Message is forwarded to Message handler function, onMessageReceived

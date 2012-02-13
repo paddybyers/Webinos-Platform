@@ -67,6 +67,29 @@
 		 */
 		this.remoteServiceObjects = [];
 		
+		/**
+		 * Holds callbacks for findServices callbacks from the PZH
+		 */
+		this.remoteServicesFoundCallbacks = {};
+		
+		if (typeof this.parent !== 'undefined') {
+			var that = this;
+			
+			// add listener to pzp object, to be called when remote services
+			// are returned by the pzh
+			this.parent.addRemoteServiceListener(function (payload) {
+				var callback = that.remoteServicesFoundCallbacks[payload.id];
+				
+				if (!callback) {
+					console.log("ServiceDiscovery: no findServices callback found for id: " + payload.id);
+					return;
+				}
+				
+				delete that.remoteServicesFoundCallbacks[payload.id];
+				callback(payload.message);
+			});
+		}
+		
 		this.requesterMapping = [];
 		
 		this.messageHandler = null;
@@ -480,18 +503,22 @@
 				return;
 			}
 			
-			// add other services reported from the PZH
-			this.parent.addRemoteServiceListener(function(remoteServices) {
-				function isServiceType(el) {
-					return el.api === serviceType.api ? true : false;
+			// store callback in map for lookup on returned remote results
+			var callbackId = Math.floor(Math.random()*101);
+			this.remoteServicesFoundCallbacks[callbackId] = (function(res) {
+				return function(remoteServices) {
+					
+					function isServiceType(el) {
+						return el.api === serviceType.api ? true : false;
+					}
+					res = res.concat(remoteServices.filter(isServiceType));
+					
+					callback(res);
 				}
-				results = results.concat(remoteServices.filter(isServiceType));
-				
-				callback(results);
-			});
+			})(results);
 			
 			// ask for remote service objects
-			this.parent.prepMsg(this.parent.sessionId, this.parent.pzhId, 'findServices');
+			this.parent.prepMsg(this.parent.sessionId, this.parent.pzhId, 'findServices', {id: callbackId});
 		}
 	};
 	

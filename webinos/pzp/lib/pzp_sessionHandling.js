@@ -412,8 +412,7 @@
 					data2.payload.status === 'foundServices') {
 				utils.debug(2, 'PZP ('+self.sessionId+') Received message about available remote services.');
 				
-				this.serviceListener && this.serviceListener(data2.payload.message);
-				this.serviceListener = undefined;
+				this.serviceListener && this.serviceListener(data2.payload);
 			}
 			// Forward message to message handler
 			else {
