@@ -38,7 +38,11 @@ var query = {
 		}]
 	}]
 };
-
+//SELECT * FROM vwcontextraw WHERE fldcontextrawID IN (
+//		select fldcontextrawID from  vwcontextraw, (SELECT fldcontextrawID as inID , (fldTimestamp-100) as fromT, (fldTimestamp+100) as toT FROM vwcontextraw 
+//			WHERE 0=0 AND ( fldContextObject = 'MyPositions' AND ( fldValueName = 'altitude' AND ( fldValue <= '1' ) ) AND ( fldAPI = 'GeolocationAPI' ) ) ) s Where fldTimestamp <= s.toT and  fldTimestamp >= s.fromT  
+//		 
+//		) 
 function prepareSql(query){
 	if (!query.sql) query.sql = "";
 	query.sql += "SELECT * FROM vwcontextraw WHERE fldcontextrawID IN (";
@@ -159,11 +163,12 @@ function processResults(result){
 		 results[i].values = {};
 		 results[i].API = results[i].rawData[0].fldAPI;
 		 results[i].Device = results[i].rawData[0].fldDevice;
+		 results[i].Application = results[i].rawData[0].fldapplication;
 		 results[i].Session = results[i].rawData[0].fldSession;
-		 results[i].Method = results[i].rawData[0].fldMethod;
 		 results[i].Timestamp = results[i].rawData[0].fldTimestamp;
 		 results[i].ContextObject = results[i].rawData[0].fldContextObject;
-
+		 results[i].Method = results[i].rawData[0].fldMethod;
+		 
 		 var parentObjType = {"0":{'type':'o','obj':results[i].values}};
 		 normalizeResult(result, 0, "0", parentObjType);
 		 delete(results[i].rawData);
