@@ -186,7 +186,7 @@
 					self.sendMessage(msg, pzhId);
 				}
 			} else if(data[0] === 'Pzp' ) {
-				var sessionId = self.sessionId+'/'+data[1].split(':')[0];pzhs
+				var sessionId = self.sessionId+'/'+data[1].split(':')[0];
 				log('INFO', '[PZH -'+self.sessionId+'] PZP '+sessionId+' Connected');
 				if(!self.connectedPzp.hasOwnProperty(sessionId)) {
 					self.connectedPzpIds.push(sessionId);
@@ -348,12 +348,13 @@
 			var options = {
 				key  : conn_key,
 				cert : config.conn.cert,
-				ca   : config.master.cert,
+				ca   : [config.master.cert],
 				crl  : config.master.crl,
 				requestCert: true,
 				rejectUnauthorized: false
 			};
-
+			pzh.options = options;
+			
 			pzh.messageHandler.setGetOwnId(pzh.sessionId);
 			pzh.messageHandler.setObjectRef(pzh);
 			pzh.messageHandler.setSendMessage(send);

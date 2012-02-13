@@ -110,7 +110,7 @@ app.get('/restart', ensureAuthenticated, function(req,res) {
 				}
 			});
 		} else {
-		app.Pzh = newpzh;
+			app.Pzh = newpzh;
 			res.render('restart', {
 				user: req.user,
 				isMututalAuth: false,
@@ -138,29 +138,21 @@ app.get('/crashlog', ensureAuthenticated,  function(req, res){
 	});
 });
 
-//This is an unauthenticated action.  Anyone may obtain my certificate this way.
-app.post('/certificate', function(req, res){
-	// add incoming certificate
-	var certname = req.body.message.name;
-	var certvalue = req.body.message.cert;
-	var to = req.body.pzh_addr;
-	
-	pzhapis.addPzhCertificate(app.Pzh, certname, certvalue, function(err) {
-		//Handle error;
-	});
-	//send outgoing certificate
-	pzhapis.getPzhCertificate(app.Pzh, to, function(payload) {
-		res.json(payload);
+app.post('/certificate_fetch', function(req, res){
+	pzhapis.addPzhCertificate(app.Pzh, req.body.pzh_addr, function(result) {
+		res.render('certificate', {
+			user: req.user,
+			pzh : app.Pzh,
+			isMutualAuth: false,
+			status: result
+		});
 	});
 });
 
 app.get('/certificate', function(req, res){
 	//send outgoing certificate
-	console.log(req.body);
-	var to = req.body.pzh_addr;
-	pzhapis.getPzhCertificate(app.Pzh, to, function(payload) {
-		res.json(payload);
-	});
+	res.render('certificate', {user: req.user});	
+
 });
 
 app.get('/login', function(req, res){

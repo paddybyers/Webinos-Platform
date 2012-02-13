@@ -13,6 +13,8 @@ var qrcode       = require(path.join(webinosRoot, dependencies.pzh.location, 'li
 var log          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
 var revoker      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_revoke.js'));	
 var session      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_sessionHandling.js'));
+var configuration= require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
+var farm         = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_farm.js'));
 
 pzhapis.addPzpQR = function (pzh, callback) {
 	"use strict";
@@ -93,25 +95,48 @@ pzhapis.restartPzh = function(pzh, callback) {
 	"use strict";
 	pzhapis.restartPzh(pzh, callback);
 }
-	
-pzhapis.getPzhCertificate = function(pzh, to, callback) {
+
+// This is sending side action on PZH end
+pzhapis.addPzhCertificate = function(pzh, to, callback) {
 	"use strict";
-	var payload = pzh.prepMsg(pzh.sessionId, to, 'receiveMasterCert', pzh.config.master.cert);
-	callback(payload);
+	
+	var id = pzh.config.servername.split('/')[0];
+	var id_to = to.split('/')[0];
+
+	// There are two scenarios:
+	// 1. Inside same PZH Farm, it is a mere copy. 
+	if (id === id_to) {
+		for (var pzh_id in farm.pzhs) {
+			if( pzh_id === to) {
+				// Store the information in other_cert
+				pzh.config.otherCert[pzh_id] = farm.pzhs[pzh_id].config.master.cert;
+				farm.pzhs[pzh_id].config.otherCert[pzh.config.servername] = pzh.config.master.cert;
+				// Add in particular context of each PZH options
+				pzh.options.ca.push(pzh.config.otherCert[pzh_id]);
+				farm.pzhs[pzh_id].options.ca.push(pzh.config.master.cert);
+				
+				farm.server.addContext(pzh.config.servername, pzh.options);
+				farm.server.addContext(to, farm.pzhs[pzh_id].options);
+				// pzh.serverContext.pair.credentials.context.addCACert(pzh.config.other_cert[pzh_id]);
+				
+				// Store configuration
+				configuration.storeConfig(pzh.config);
+				configuration.storeConfig(farm.pzhs[pzh_id].config);
+				callback(true);
+				return;
+
+			}
+		}
+		callback(false);
+	} 
+	// TODO:2. Outside farm, this will involve https.request going out.
+	else {
+		var payload = pzh.prepMsg(pzh.sessionId, to, 'receiveMasterCert', pzh.config.master.cert);
+		callback(true);
+	}
+	
 }
 
-pzhapis.addPzhCertificate = function(pzh, name, certificate, callback) {
-	"use strict";
-	try { 
-		pzh.config.other_cert[name] =  certificate;
-		pzh.conn.pair.credentials.context.addCACert(certificate);
-		callback();
-	} catch (error) {
-		log('ERROR', "PZH couldn't save an incoming PZH certificate" + error);
-		callback(error);
-	}
-}	
-	
 pzhapis.crashLog = function(pzh, callback) {
 	"use strict";	
 	try {
