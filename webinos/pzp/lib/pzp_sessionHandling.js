@@ -18,7 +18,6 @@
 		var rpc            = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js'));
 		var RPCHandler     = rpc.RPCHandler;
 		var MessageHandler = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js')).MessageHandler;
-		var pzp_server     = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/pzp_server.js'));
 		var utils          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 		var log            = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
 		var configuration  = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
@@ -160,14 +159,12 @@
 			var msg = self.messageHandler.registerSender(self.sessionId, self.pzhId);
 			self.sendMessage(msg, self.pzhId);
 			
-			/*pzp_server.startServer(self, function() {
-				self.prepMsg(self.sessionId, self.pzhId, 'pzpDetails', self.pzpServerPort);				
-				var localServices = self.rpcHandler.getRegisteredServices();
-				self.prepMsg(self.sessionId, self.pzhId, 'registerServices', localServices);
-				
-				log('INFO', 'Sent msg to register local services with pzh');
+			self.prepMsg(self.sessionId, self.pzhId, 'pzpDetails', self.pzpServerPort);				
 			
-			});*/
+			var localServices = self.rpcHandler.getRegisteredServices();
+			self.prepMsg(self.sessionId, self.pzhId, 'registerServices', localServices);
+			log('INFO', 'Sent msg to register local services with pzh');
+			
 			callback.call(self, 'startedPZP');
 		}
 	};

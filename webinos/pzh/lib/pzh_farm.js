@@ -57,9 +57,12 @@ farm.startFarm = function (url, contents, callback) {
 			conn.on('close', function() {
 				try {
 					log('INFO', '[PZHFARM] ('+conn.servername+') Pzh/Pzp  closed');
-					//var removed = utils.removeClient(self, conn);
-					//self.messageHandler.removeRoute(removed, conn.servername);
-					//self.rpcHandler.removeRemoteServiceObjects(removed);
+					if(conn.servername && farm.pzhs[conn.servername]) {
+						var cl = farm.pzhs[conn.servername];
+						var removed = utils.removeClient(cl, conn);
+						cl.messageHandler.removeRoute(removed, conn.servername);
+						cl.rpcHandler.removeRemoteServiceObjects(removed);
+					}
 				} catch (err) {
 					log('ERROR', '[PZHFARM] ('+conn.servername+') Remove client from connectedPzp/connectedPzh failed' + err);
 				}
