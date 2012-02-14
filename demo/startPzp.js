@@ -70,7 +70,8 @@ var pzpModules = [
     {name: "context", param: {}},
     {name: "authentication", param: {}},
     {name: "contacts", param: {}},
-    {name: "devicestatus", param: {}}
+    {name: "devicestatus", param: {}},
+    {name: "discovery", param: {}}
 ];
 
 if (options.pzhHost === '' || options.pzhPort <= 0) {
@@ -80,7 +81,6 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		var config;
 		
 		if (err) {
-			console.warn("could not load config-pzp.json\n" + err.toString());
 			config = {};
 		}
 		else {
@@ -97,10 +97,10 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 			config.pzpHost='localhost';
 		}
 		if (!config.pzpHttpPort) {
-			config.pzpHttpPort = 8081;
+			config.pzpHttpPort = 8080;
 		}
 		if (!config.pzpWebsocketPort) {
-			config.pzpWebsocketPort = 8082;
+			config.pzpWebsocketPort = 8081;
 		}
 		if (!config.pzpName) {
 			config.pzpName = 'WebinosPzp';

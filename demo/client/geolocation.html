@@ -5,6 +5,7 @@
 	<script type="text/javascript" src="webinos.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
     <script>
+    $('#serviceList').empty();
         jQuery(window).ready(function(){
             function fillPZAddrs(data) {
                var pzhId, connectedPzp, connectedPzh;
@@ -61,17 +62,25 @@
         });
 
 		var geoLocationService = null;
+		var geoLocationServices = [];
 		var watchId = null;
 	
         function findservice() {
+          console.log("findService");
             webinos.ServiceDiscovery.findServices(new ServiceType('http://www.w3.org/ns/api-perms/geolocation'), {onFound: function (service) {
-                geoLocationService = service;
+                  $('#serviceList').append($('<option>' + service.serviceAddress + '</option>'));
+              console.log("found");
+                geoLocationServices[service.serviceAddress] = service;
                 document.getElementById('position').innerHTML = "Geolocation service found";    
             }});        
         }
     
         function bindservice() {
             // bind geolocation rpc service
+            geoLocationService = geoLocationServices[$('#serviceList option:selected').val()];
+            console.log($('#serviceList option:selected').val());
+            console.log(geoLocationService);
+            console.log(geoLocationServices);
             geoLocationService.bindService({onBind: function (service) {
                 document.getElementById('position').innerHTML = "bound Geolocation service";    
             }});        
@@ -158,7 +167,7 @@
   </head>
   <body>
   	<p><div style="background-color:lightgray; border:1px solid black">
-		PZH PZP LIST : <select id="pzh_pzp_list"> <option> </option> </select> <br>
+		PZH PZP LIST : <select id="serviceList"> <option> </option> </select> <br>
   		<input type="radio" name="locmethod" value="webinos" id="loc_webinos" checked="checked">webinos RPC geolocation</input> <br>
 		<input type="radio" name="locmethod" value="html5" id="loc_html5">HTML5 client-side navigator.geolocation</input>
   	</div></p>

@@ -35,6 +35,14 @@
 		var exec = require('child_process').exec;
 		exec(startUpLine, function callback(error, stdout, stderr){
 		    console.log("Result: " + error + " " + stdout + " " + stderr);
+		    
+		    if (error != null){
+		    	errorCB();
+		    }
+		    else {
+		    	successCB();
+		    } 
+		    	
 		});
 		
 	};

@@ -1,5 +1,5 @@
 {
-    "Version": 1,
+    "Version": 2,
     "Map": [{
     	"name": "pzh",
         "type": "folder",
@@ -16,6 +16,9 @@
             "type": "json"
         }, {
             "name": "log.json",
+            "type": "json"
+        }, {
+            "name": "appContextVocabulary.json",
             "type": "json"
         }]
     }, {

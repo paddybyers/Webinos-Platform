@@ -138,9 +138,9 @@
 	 * 
 	 */
 	Pzh.prototype.sendRegisterMessage = function () {
-		var pzhId = this.conn.getPeerCertificate().subject.CN.split(':')[1];
-		var msg = this.messageHandler.registerSender(this.sessionId, pzhId);
-		this.sendMessage(msg, pzhId);
+		var pzpId = this.conn.getPeerCertificate().subject.CN.split(':')[1];
+		var msg = this.messageHandler.registerSender(this.sessionId, pzpId);
+		this.sendMessage(msg, pzpId);
 	};
 	
 	/** 
@@ -317,8 +317,8 @@
 		
 		server = tls.createServer (options, function (conn) {
 			var data = {}, cn, msg = {}, sessionId;
-			self.conn = conn;
-			//console.log(conn);
+			self.conn = conn; // FIXME we shouldnt override conn, will fail because conn will be different for each connection
+			
 			if(conn.authorized === false) {
 				helper.debug(2, "Connection NOT authorised at PZH");
 				//Sometimes, if this is a new PZP, we have to allow it.
@@ -408,6 +408,7 @@
 					helper.debug(2, 'PZH ('+self.sessionId+') Pzh/Pzp  closed');
 					var removed = utils.removeClient(self, conn);
 					self.messageHandler.removeRoute(removed, self.sessionId);
+					self.rpcHandler.removeRemoteServiceObjects(removed);
 				} catch (err) {
 					helper.debug(1, 'PZH ('+self.sessionId+') Remove client from connectedPzp/connectedPzh failed' + err);
 				}
@@ -517,7 +518,8 @@
 			} else if(parse.type === "prop" && parse.payload.status === 'findServices') {
 				helper.debug(2, 'Trying to send Webinos Services from this RPC handler to ' + parse.from + '...');
 				var services = self.rpcHandler.getAllServices(parse.from);
-				var msg = self.prepMsg(self.sessionId, null, 'foundServices', services);		
+				var msg = self.prepMsg(self.sessionId, null, 'foundServices', services);
+				msg.payload.id = parse.payload.message.id;
 				self.sendMessage(msg, null, conn);		
 		        helper.debug(2, 'Sent ' + (services && services.length) || 0 + ' Webinos Services from this RPC handler.');
 			} else { // Message is forwarded to Message handler function, onMessageReceived

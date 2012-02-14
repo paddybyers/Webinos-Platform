@@ -1,48 +1,29 @@
-var path = require('path');
-var util = require('util');
-var commonPaths = require(path.resolve(__dirname, '../../webinos/common/manager/context_manager/') + '/lib/commonPaths.js');
-commonPaths.localTest = path.resolve(__dirname) + '/';
-var sqlite3 = require(commonPaths.local + '/node_modules/node-sqlite3').verbose();
+var db;
 
-var dbpath = path.resolve(commonPaths.storage + '/pzh/contextDB.db');
-var db =  new sqlite3.Database(dbpath);
+module.exports = function(dbObj, data, callback){
+	db = dbObj;
+	var query = data;
+	prepareSql(query);
+	console.log(query.sql);
+	var result = {data:[]};
+	db.each(
+		query.sql,
+		function (err,row){
+			result.data[result.data.length] = row;
+		},
+		function(err){
+			if (err !== null) {
+				result.msg = {code:err.code,msg:err.message};
+				console.log("ERROR");
+				console.log(result);
+			}else{
+				processResults(result.data);
+			}
+			callback(result);
+		}
+	);
+}
 
-var query = {
-	select: '*',
-	where:[{
-		type:'and',
-		field:'MyPositions.altitude@GeolocationAPI',
-		op: 'le',
-		value:'1',
-	},{
-		type:'and',
-		field:'MyPositions.altitude',
-		op: 'le',
-		value:'1',
-	},{
-		type:'and',
-		field:'fldContextObject',
-		op: 'eq',
-		value:'MyPositions',
-		sub:[{
-			type:'and',
-			field:'fldValueName',
-			op: 'eq',
-			value:'altitude',
-			sub:[{
-				type:'and',
-				field:'fldValue',
-				op: 'le',
-				value:'1'
-			}]
-		}]
-	}]
-};
-//SELECT * FROM vwcontextraw WHERE fldcontextrawID IN (
-//		select fldcontextrawID from  vwcontextraw, (SELECT fldcontextrawID as inID , (fldTimestamp-100) as fromT, (fldTimestamp+100) as toT FROM vwcontextraw 
-//			WHERE 0=0 AND ( fldContextObject = 'MyPositions' AND ( fldValueName = 'altitude' AND ( fldValue <= '1' ) ) AND ( fldAPI = 'GeolocationAPI' ) ) ) s Where fldTimestamp <= s.toT and  fldTimestamp >= s.fromT  
-//		 
-//		) 
 function prepareSql(query){
 	if (!query.sql) query.sql = "";
 	query.sql += "SELECT * FROM vwcontextraw WHERE fldcontextrawID IN (";
@@ -105,29 +86,7 @@ function fixFilter(filter){//fldContextObject.fldValueName@fldAPI
 	filter = out;
 	return out;
 }
-prepareSql(query);
-console.log(query.sql);
-var result = {data:[]};
-db.each(
-	//"SELECT * FROM vwcontextraw WHERE fldcontextrawID IN (SELECT fldcontextrawID FROM vwcontextraw WHERE " +
-	//"fldValueName = 'altitude' AND fldValue <= 1" +
-//	"fldcontextrawID > '1'" +
-//	"fldAPI = 'TVAPI2'" +
-	//")", 
-		query.sql,
-	function (err,row){
-		result.data[result.data.length] = row;
-	},
-	function(err){
-		if (err !== null) {
-			result.msg = {code:err.code,msg:err.message};
-			console.log("ERROR");
-			console.log(result);
-		}else{
-			processResults(result.data);
-		}
-	}
-);
+
 
 function processResults(result){
 	 console.log("\n========================================================\n");
@@ -177,7 +136,7 @@ function processResults(result){
 //	 console.log(util.inspect(results, false, null));
 //	 console.log(util.inspect(parentObjType, false, null));
 	 console.log(JSON.stringify(results));
-	 
+	 result = results;
 	}
 function normalizeResult(result, index, parentObjRef, parentObjType) {
 	while (result.rawData[index] != undefined){
