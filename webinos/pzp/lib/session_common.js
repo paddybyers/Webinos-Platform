@@ -43,11 +43,11 @@ common.webinosConfigPath = function() {
 
 // global exception handler, which catches all unhandled exceptions,
 // prints a trace and exits. the trace is better than the default.
-process.addListener("uncaughtException", function (err) {
+/*process.addListener("uncaughtException", function (err) {
     console.log("Uncaught exception: " + err);
     console.trace();
     process.exit();
-});
+});*/
 
 common.debug = function(num, msg) {
 	"use strict";

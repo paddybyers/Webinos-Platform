@@ -207,7 +207,7 @@
 				conn.resume();
 			});
 		} catch (err) {
-			log('ERROR ', '[PZH  -'+self.sessionId+'] Exception in processing recieved message ' + err);
+			log('ERROR ', '[PZH  -'+this.sessionId+'] Exception in processing recieved message ' + err);
 		}
 	}
 	
