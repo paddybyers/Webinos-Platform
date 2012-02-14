@@ -134,13 +134,38 @@ var askPolicyManager = function(module,params,callback)
  * this method has to be removed when user profile will handle authentication
  */this.authenticate=function(params,callback)
 {
-  //ACCESS TO LOCAL CONTACTS
+  //ACCESS TO ANDROID CONTACTS
   if(params[0].type === 'local')
   {
     if(process.platform === 'android')
     {
-      //TODO Access to device address book always granted until P.M. get fixed
-      callback(true);
+//      //TODO Access to device address book always granted until P.M. get fixed
+//      //callback(true);
+//      
+      console.log("---contacts.askPolicyManager: Asking Policy Manager for contacts access");
+//      // TODO CHANGE
+      var pmlib = require(webinosRoot+'/common/manager/policy_manager/lib/policymanager.js'), policyManager; // this line should be moved in the policy manager
+
+      policyManager = new pmlib.policyManager();
+
+      var res, request = {}, subjectInfo = {}, resourceInfo = {};
+
+      subjectInfo.userId = "user1";
+      request.subjectInfo = subjectInfo;
+
+      resourceInfo.apiFeature = "http://www.w3.org/ns/api-perms/contacts.read";
+      request.resourceInfo = resourceInfo;
+
+      res = policyManager.enforceRequest(request);
+      if(res == 0) {
+    	  console.log("Policy Allow:" + res);
+    	  callback(true);  	
+      }
+      else {
+    	  console.log("Policy Deny:" + res);
+    	  callback(false);
+      }  
+    	console.log("==========================>>>>>>>>>>>>>>>>DEBUG!!!!!");
     }
     else //on other platforms
     {
