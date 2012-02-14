@@ -79,20 +79,10 @@
             if (typeof WebinosDeviceOrientation !== 'undefined') typeMap['http://webinos.org/api/deviceorientation'] = WebinosDeviceOrientation;
             if (typeof Vehicle !== 'undefined') typeMap['http://webinos.org/api/vehicle'] = Vehicle;
             if (typeof EventsModule !== 'undefined') typeMap['http://webinos.org/api/events'] = EventsModule;
+            if (typeof AppLauncherModule !== 'undefined') typeMap['http://webinos.org/api/applauncher'] = AppLauncherModule;
             if (typeof Sensor !== 'undefined') {
                 typeMap['http://webinos.org/api/sensors'] = Sensor;
-                typeMap['http://webinos.org/api/sensors.accelerometer'] = Sensor;
-                typeMap['http://webinos.org/api/sensors.gravity'] = Sensor;
-                typeMap['http://webinos.org/api/sensors.orientation'] = Sensor;
-                typeMap['http://webinos.org/api/sensors.gyro'] = Sensor;
-                typeMap['http://webinos.org/api/sensors.light'] = Sensor;
-                typeMap['http://webinos.org/api/sensors.linearacceleration'] = Sensor;      
-                typeMap['http://webinos.org/api/sensors.magneticfield'] = Sensor;
-                typeMap['http://webinos.org/api/sensors.pressure'] = Sensor;
-                typeMap['http://webinos.org/api/sensors.proximity'] = Sensor;
-                typeMap['http://webinos.org/api/sensors.rotationvector'] = Sensor;   
-                typeMap['http://webinos.org/api/sensors.temperature'] = Sensor;  
-                typeMap['http://webinos.org/api/sensors.noise'] = Sensor;                                                                                                     
+                typeMap['http://webinos.org/api/sensors.temperature'] = Sensor;
             }                       
             if (typeof PaymentManager !== 'undefined') typeMap['http://webinos.org/api/payment'] = PaymentManager;
             if (typeof UserProfileIntModule !== 'undefined') typeMap['UserProfileInt'] = UserProfileIntModule;
@@ -100,7 +90,8 @@
             if (typeof DeviceStatusManager !== 'undefined') typeMap['http://wacapps.net/api/devicestatus'] = DeviceStatusManager;
             if (typeof Contacts !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/contacts'] = Contacts;
             if (typeof Context !== 'undefined') typeMap['http://webinos.org/api/context'] = Context;
-            if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
+            //if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
+            if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/api/discovery'] = BluetoothManager;
             if (typeof AuthenticationModule !== 'undefined') typeMap['http://webinos.org/api/authentication'] = AuthenticationModule;
 
             console.log(typeMap);
