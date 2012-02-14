@@ -52,7 +52,7 @@
 		else {
 			if(res>1) {
 				if (os.platform()==='android') {
-					var message = "Requesting access to feature "+request.resourceInfo.apiFeature;
+					var message = request.subjectInfo.userId+" is requesting access to feature "+request.resourceInfo.apiFeature;
 					var choices = new Array();
 					choices[0] = "Allow";
 					choices[1] = "Deny";
