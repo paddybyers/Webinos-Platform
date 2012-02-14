@@ -126,7 +126,13 @@
 		}
 	};	
 	
-
+	var setupMessageHandler = function (pzpInstance) {
+		pzpInstance.messageHandler.setGetOwnId(pzpInstance.sessionId);
+		pzpInstance.messageHandler.setObjectRef(pzpInstance);
+		pzpInstance.messageHandler.setSendMessage(send);
+		pzpInstance.messageHandler.setSeparator("/");
+	};
+	
 	var send = function (message, address, object) {
 		"use strict";
 		object.sendMessage(message, address);
@@ -151,10 +157,7 @@
 			
 			client.socket.setKeepAlive(true, 100);
 
-			self.messageHandler.setGetOwnId(self.sessionId);
-			self.messageHandler.setObjectRef(self);
-			self.messageHandler.setSendMessage(send);
-			self.messageHandler.setSeparator("/");
+			setupMessageHandler(self);
 			
 			var msg = self.messageHandler.registerSender(self.sessionId, self.pzhId);
 			self.sendMessage(msg, self.pzhId);
@@ -168,7 +171,7 @@
 			callback.call(self, 'startedPZP');
 		}
 	};
-	
+
 	/* It is responsible for connecting with PZH and handling events.
 	 * It does JSON parsing of received message
 	 * @param config structure used for connecting with Pzh
@@ -275,6 +278,7 @@
 			if (err.code === 'ECONNREFUSED') {
 				self.pzhId = '';
 				self.sessionId = 'virgin_pzp';
+				setupMessageHandler(self);
 				log('INFO', 'PZP ('+self.sessionId+') virgin PZP mode');
 				callback('startedPZP');
 			}
