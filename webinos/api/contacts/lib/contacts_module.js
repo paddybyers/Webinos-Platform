@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2011 Istituto Superiore Mario Boella (ISMB)
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -21,7 +21,15 @@ var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
 var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
-var local_contacts = require(path.resolve(__dirname,'local_contacts.js'));
+var local_contacts = '';
+if(process.platform!=='android')
+{
+  local_contacts = require(path.resolve(__dirname,'local_contacts.js'));
+}
+else //on android
+{
+  local_contacts = require('bridge').load('org.webinos.impl.ContactManagerImpl', this);
+}
 
 var c_def_path = path.resolve(__dirname,'contacts_def.js');
 var Contact = require(c_def_path).Contact;
@@ -34,93 +42,159 @@ var ContactOrganization = require(c_def_path).ContactOrganization;
  * Instances of remote contacts and local contacts
  */
 RemoteContacts = require(path.resolve(__dirname,'google_contacts.js'));//new remote_contacts.contacts();
-LocalContacts = new local_contacts.contacts();
+if(process.platform!=='android') //TODO else JAVA_BRIDGE
+{
+  LocalContacts = new local_contacts.contacts();
+}
+else
+{
+  LocalContacts = local_contacts;
+}
+
+
+/**
+ * Ask policy manager for permission
+ */
+var askPolicyManager = function(module,params,callback)
+{
+  console.log("---contacts.askPolicyManager: Asking Policy Manager for contacts access");
+// TODO CHANGE
+  var pmlib = require(webinosRoot+'/common/manager/policy_manager/lib/policymanager.js'), policyManager, exec = require('child_process').exec; // this line should be moved in the policy manager
+
+  policyManager = new pmlib.policyManager();
+
+  var res, request = {}, subjectInfo = {}, resourceInfo = {};
+
+  subjectInfo.userId = "user1";
+  request.subjectInfo = subjectInfo;
+
+  resourceInfo.apiFeature = "http://www.w3.org/ns/api-perms/contacts.read";
+  request.resourceInfo = resourceInfo;
+
+  res = policyManager.enforceRequest(request);
+  switch (res)
+  {
+    case 0:
+      if(params[0].type === 'remote')
+      {
+	console.log("---contacts.askPolicyManager: logging in");
+	module.logIn(params[0]['usr'], params[0]['pwd'], callback);
+      }
+      else if (params[0].type === 'local')
+      {
+	console.log("---contacts.askPolicyManager: opening address book");
+	callback(module.open(params[0]['addressBookName']));
+      }
+      break;
+
+    case 1:
+      console.log("---contacts.askPolicyManager: authorization NOT granted");
+      callback(false);
+      break;
+
+    case 2:
+    case 3:
+    case 4:
+    /*var child =*/ exec("xmessage -buttons allow,deny -print 'Access request to " + resourceInfo.apiFeature + "'",
+      function(error, stdout, stderr)
+      {
+	if (stdout == "allow\n")
+	{
+	  if(params[0].type === 'remote')
+	  {
+	    console.log("---contacts.askPolicyManager: logging in");
+	    module.logIn(params[0]['usr'], params[0]['pwd'], callback);
+	  }
+	  else if (params[0].type === 'local')
+	  {
+	    console.log("---contacts.askPolicyManager: opening address book");
+	    callback(module.open(params[0]['addressBookName']));
+	  }
+	}
+	else
+	{
+	  console.log("---contacts.askPolicyManager: authorization NOT granted");
+	  callback(false);
+	}
+      });
+      break;
+
+    default:
+      console.log("---contacts.askPolicyManager: authorization NOT granted");
+      callback(false);
+      break;
+  }
+
+}
+
+
 
 /**
  * Either open a local address book or perform login into GMail account TODO
  * this method has to be removed when user profile will handle authentication
- */
-this.authenticate = function(params, callback)
+ */this.authenticate=function(params,callback)
 {
-
-  if (params[0]['type'] == "local")
+  //ACCESS TO LOCAL CONTACTS
+  if(params[0].type === 'local')
   {
-    callback(LocalContacts.open(params[0]['addressBookName']));
-  }
-  else if (params[0]['type'] == "remote")
-  {
-// TODO CHANGE
-    var pmlib = require(webinosRoot+'/common/manager/policy_manager/lib/policymanager.js'), policyManager, exec = require('child_process').exec; // this line should be moved in the policy manager
-
-    policyManager = new pmlib.policyManager();
-
-    var res, request = {}, subjectInfo = {}, resourceInfo = {};
-
-    subjectInfo.userId = "user1";
-    request.subjectInfo = subjectInfo;
-
-    resourceInfo.apiFeature = "http://www.w3.org/ns/api-perms/contacts.read";
-    request.resourceInfo = resourceInfo;
-
-    res = policyManager.enforceRequest(request);
-    switch (res)
+    if(process.platform === 'android')
     {
-      case 0:
-      RemoteContacts.logIn(params[0]['usr'], params[0]['pwd'], callback);
-        break;
-
-      case 1:
-      callback(false);
-      console.log("KO");
-        break;
-
-      case 2:
-      case 3:
-      case 4:
-      /*var child =*/ exec("xmessage -buttons allow,deny -print 'Access request to " + resourceInfo.apiFeature + "'",
-        function(error, stdout, stderr)
-        {
-          if (stdout == "allow\n")
-          {
-            RemoteContacts.logIn(params[0]['usr'], params[0]['pwd'], callback);
-          }
-          else
-          {
-            callback(false);
-            console.log("KO");
-          }
-        });
-        break;
-
-      default:
-      if (params[1] == "ALWAYS ALLOW") //TODO for standalone test only! Remove for Webinos release...
-        RemoteContacts.logIn(params[0]['usr'], params[0]['pwd'], callback);
-      else
-      {
-        callback(false);
-        console.log("KO");
-      }
+      //TODO Access to device address book always granted until P.M. get fixed
+      callback(true);
+    }
+    else //on other platforms
+    {
+      //Ask policy manager for accessing .mab file
+      askPolicyManager(LocalContacts,params,callback);
     }
   }
-};
+  //ACCESS TO REMOTE CONTACTS
+  else if (params[0].type === 'remote')
+  {
+    if(process.platform === 'android')
+    {
+      //TODO Access through device always granted until P.M. get fixed
+      RemoteContacts.logIn(params[0]['usr'], params[0]['pwd'], callback);
+    }
+    else //on other platforms
+    {
+      //Ask policy manager
+      askPolicyManager(RemoteContacts,params,callback);
+    }
+  }
+  else //wrong type
+  {
+    console.error("contacts.authenticate: wrong contact type");
+    callback(false);
+  }
+}
+
+
+
+
 
 /**
  * returns true if contacts service is already authenticated with GMail or a
  * valid address book file is aready open TODO this method has to be removed
  * when user profile will handle authentication
- * 
+ *
  */
 this.isAlreadyAuthenticated = function(params, callback)
 {
   if (params)
   {
-    if (params[0]['type'] == "local")
+    if (params[0]['type'] == "local" && process.platform!=='android')
     {
       callback(LocalContacts.isOpen());
     }
     else if (params[0]['type'] == "remote")
     {
       RemoteContacts.isLoggedIn(callback);
+    }
+    else if (params[0]['type'] == "local" && process.platform==='android')
+    {
+      //Always
+      callback(true);
     }
   }
 };
@@ -131,9 +205,27 @@ this.isAlreadyAuthenticated = function(params, callback)
  */
 this.getAllContacts = function(params, callback)
 {
-  if (params)
-  {
-    makeW3Ccontacts(params[0]['type'], callback);
+  if(params!==undefined){
+    if (process.platform!=='android')
+    {
+      	console.log("in contacts: other platform - remote");
+      makeW3Ccontacts(params[0]['type'], callback);
+    }
+    else // on android
+    {
+      if (params[0]['type']==='remote')
+      {
+	console.log("in contacts: android - remote");
+	makeW3Ccontacts(params[0]['type'], callback);
+      }
+      else //local contacts from the phone
+      {
+	console.log("in contacts: android - local");
+      var opt = new Array();
+      var fields = {};
+      LocalContacts.find(fields, callback, function(){}, opt);
+      }
+    }
   }
 };
 
@@ -228,7 +320,7 @@ function rawContact2W3CContact(rawContact)
   var _contactPhotos = new Array(rawContact.photos.length);
   for ( var j = 0; j < rawContact.photos.length; j++)
   {
-    _contactPhotos[j] = new ContactField(rawContact.photos[j]['value'], rawContact.photos[j]['type'],
+    _contactPhotos[j] = new ContactField(rawContact.photos[j]['value'].trim(), rawContact.photos[j]['type'],
       Boolean(rawContact.photos[j]['pref'] == "true"));
   }
 
@@ -237,7 +329,7 @@ function rawContact2W3CContact(rawContact)
    * _id, _displayName, _name, _nickname, _phonenumbers, _emails, _addrs, _ims,
    * _orgs, _rev, _birthday, _gender, _note, _photos, _catgories, _urls,
    * _timezone
-   * 
+   *
    */
 
   var _contact = new Contact(rawContact.id, rawContact.displayName, _contactName, rawContact.nickname,
@@ -260,7 +352,7 @@ ContactFindOptions.prototype.updatedSince = ""; //is a Date
 
 /**
  * callback used to internally retrieve some data
- * 
+ *
  * @param par
  * @returns
  */
@@ -289,6 +381,8 @@ function simpleCallback(par)
  */
 this.find = function(type, fields, successCB, errorCB, options)
 {
+  if( process.platform !== 'android')
+  {
   var cb = successCB;
   if (cb == null || cb == undefined)
     throw TypeError("Please provide a success callback");
@@ -298,15 +392,15 @@ this.find = function(type, fields, successCB, errorCB, options)
    * TODO how to do the following? If there is a task from the device task
    * source in one of the task queues (e.g. an existing find() operation is
    * still pending a response), run these substeps:
-   * 
+   *
    * If errorCallback is not null, let error be a ContactError object whose code
    * attribute has the value PENDING_OPERATION_ERROR and queue a task to invoke
    * errorCallback with error as its argument.
-   * 
+   *
    * Abort this operation. Return, and run the remaining steps asynchronously.
    */
 
-  // initialize contacs_l with all contacts 
+  // initialize contacs_l with all contacts
   //TODO should we cache the contact list somewhere in this module for speed up?
   makeW3Ccontacts(type, function(params)
   {
@@ -329,14 +423,49 @@ this.find = function(type, fields, successCB, errorCB, options)
       }
     })(params);
   });
+}
+  else //on Android
+  {
+    if(type==='remote')
+    {
+      console.log("---FIND: android, remote");
+        makeW3Ccontacts(type, function(params)
+  {
+    //var contacts_l = params;
+    (function(c_list)
+    {
+      var res = c_list;
+
+      if (res.length >0)
+      {
+        for ( var key in fields) //split key if necessary
+        {
+          res = filterContacts(key, fields[key], res);
+        }
+        cb(res);
+      }
+      else if (res.empty && eb)
+      {
+        throw new ContactError(UNKNOWN_ERROR);
+      }
+    })(params);
+  });
+    }
+    else{
+            console.log("---FIND: android, local");
+    if(!options)
+      options=new Array();
+    LocalContacts.find(fields, successCB, function(){}, options);
+  }
+  }
 };
 
 /**
  * Filter contacts by checking their attributes key and values are always string
- * 
+ *
  * c_array array of Contacts to filter key = Contact property name value = value
  * to be checked
- * 
+ *
  * returns a filtered array of Contacts or an empty array
  */
 function filterContacts(key, value, c_array)

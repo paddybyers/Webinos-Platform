@@ -46,3 +46,7 @@ RPC/node_modules/xmlhttprequest/
 #pzh logs
 demo/crash.txt
 demo/info.txt
+certificate_manager.node
+linker.lock
+*.o
+WebinosPzh_crash.txt

@@ -1,3 +1,6 @@
+/**
+ * TODO Check various "inline" TODOs.
+ */
 (function (exports) {
 	"use strict";
 

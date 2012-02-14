@@ -10,7 +10,7 @@ function help() {
     console.log('Options:');
     console.log('--host=[host]            host of the pzh (default localhost)');
     console.log('--port=[port]            port to host the pzh (default 8000)');
-    console.log('--pzh-ws-port=[port]     port to pzp web server (default 8083)');
+    console.log('--pzh-web-port=[port]    port to pzp web server (default 8083)');
     process.exit();
 }
 
@@ -26,8 +26,8 @@ process.argv.forEach(function (arg) {
 	      case '--port':
 	    	  options.port = parseInt(parts[1], 10);
 	    	  break;
-	      case '--pzh-ws-port':
-	    	  options.pzhWSPort = parseInt(parts[1], 10);
+	      case '--pzh-web-port':
+	    	  options.pzhWebPort = parseInt(parts[1], 10);
 	    	  break;
 	      default:
 	        console.log('unknown option: ' + parts[0]);
@@ -41,8 +41,9 @@ process.argv.forEach(function (arg) {
 });
 
 var pzhModules = [
-    {name: "get42", params: [99]}//,
- //   {name: "events", param: {}}
+    {name: "get42", params: [99]},
+    {name: "events", param: {}},
+    {name: "context", param: {}}
 ];
 
 if (options.host === '' || options.port <= 0) {
@@ -52,7 +53,6 @@ if (options.host === '' || options.port <= 0) {
 		var config;
 		
 		if (err) {
-			console.warn("could not load config-pzh.json\n" + err.toString());
 			config = {};
 		}
 		else {
@@ -65,8 +65,8 @@ if (options.host === '' || options.port <= 0) {
 		if (!config.port) {
 			config.port = 8000;
 		}
-		if (!config.pzhWSPort) {
-			config.pzhWSPort = 8083;
+		if (!config.pzhWebPort) {
+			config.pzhWebPort = 8083;
 		}
 		if (options.host) {
 			config.host = options.host;
@@ -74,8 +74,8 @@ if (options.host === '' || options.port <= 0) {
 		if (options.port) {
 			config.port = options.port;
 		}
-		if (options.pzhWSPort) {
-			config.pzhWSPort = options.pzhWSPort;
+		if (options.pzhWebPort) {
+			config.pzhWebPort = options.pzhWebPort;
 		}
 
 		var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzh\nemail=internal@webinos.org\ndays=180\n" ;
@@ -86,7 +86,7 @@ if (options.host === '' || options.port <= 0) {
 			var requestClientCert = false;   // Are we requesting a client certificate?
 			var httpOnly = false;           // Are we running HTTP or HTTPS?		
 			
-			PzhWebInterface.startServer(config.pzhWSPort, requestClientCert, httpOnly, instance, function(status) {
+			PzhWebInterface.startServer(config.pzhWebPort, requestClientCert, httpOnly, instance, function(status) {
 				if (status) {
 				    console.log('=== PZH WEB INTERFACE STARTED ===');
 			    } else {
