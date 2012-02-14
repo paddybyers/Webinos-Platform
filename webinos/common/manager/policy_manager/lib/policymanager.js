@@ -12,7 +12,7 @@
 		if (os.platform()==='android') {
 			this.pmNativeLib = require('pm'); 
 			this.bridge = require('bridge');
-			this.promptMan = bridge.load('org.webinos.impl.PromptImpl', this);
+			this.promptMan = this.bridge.load('org.webinos.impl.PromptImpl', this);
 		}
 		else {
 			this.pmNativeLib = (process.versions.node < "0.6.0" ) ? require('../src/build/default/pm.node') : require('../src/build/Release/pm.node');
@@ -56,7 +56,7 @@
 					var choices = new Array();
 					choices[0] = "Allow";
 					choices[1] = "Deny";
-					res = promptMan.display(message, choices);
+					res = this.promptMan.display(message, choices);
 				}
 			}
 		}
