@@ -36,7 +36,8 @@ process.argv.forEach(function (arg) {
 
 var pzhModules = [
     {name: "get42", params: [99]},
-    {name: "events", param: {}}
+    {name: "events", param: {}},
+    {name: "context", param: {}}
 ];
 
 var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=pzhFarm\nemail=internal@webinos.org\ndays=180\n"

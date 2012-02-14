@@ -59,6 +59,7 @@ farm.startFarm = function (url, contents, callback) {
 					log('INFO', '[PZHFARM] ('+conn.servername+') Pzh/Pzp  closed');
 					//var removed = utils.removeClient(self, conn);
 					//self.messageHandler.removeRoute(removed, conn.servername);
+					//self.rpcHandler.removeRemoteServiceObjects(removed);
 				} catch (err) {
 					log('ERROR', '[PZHFARM] ('+conn.servername+') Remove client from connectedPzp/connectedPzh failed' + err);
 				}

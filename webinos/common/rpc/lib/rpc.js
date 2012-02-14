@@ -67,6 +67,29 @@
 		 */
 		this.remoteServiceObjects = [];
 		
+		/**
+		 * Holds callbacks for findServices callbacks from the PZH
+		 */
+		this.remoteServicesFoundCallbacks = {};
+		
+		if (typeof this.parent !== 'undefined') {
+			var that = this;
+			
+			// add listener to pzp object, to be called when remote services
+			// are returned by the pzh
+			this.parent.addRemoteServiceListener(function (payload) {
+				var callback = that.remoteServicesFoundCallbacks[payload.id];
+				
+				if (!callback) {
+					console.log("ServiceDiscovery: no findServices callback found for id: " + payload.id);
+					return;
+				}
+				
+				delete that.remoteServicesFoundCallbacks[payload.id];
+				callback(payload.message);
+			});
+		}
+		
 		this.requesterMapping = [];
 		
 		this.messageHandler = null;
@@ -474,18 +497,28 @@
 				results[i].serviceAddress = sessionId; // This is source addres, it is used by messaging for returning back
 			}
 			
-			// add other services reported from the pzh
-			this.parent.addRemoteServiceListener(function(remoteServices) {
-				function isServiceType(el) {
-					return el.api === serviceType.api ? true : false;
-				}
-				results = results.concat(remoteServices.filter(isServiceType));
-				
+			// no connection to a PZH it seems, don't ask for remote services
+			if (!this.parent.pzhId) {
 				callback(results);
-			});
+				return;
+			}
+			
+			// store callback in map for lookup on returned remote results
+			var callbackId = Math.floor(Math.random()*101);
+			this.remoteServicesFoundCallbacks[callbackId] = (function(res) {
+				return function(remoteServices) {
+					
+					function isServiceType(el) {
+						return el.api === serviceType.api ? true : false;
+					}
+					res = res.concat(remoteServices.filter(isServiceType));
+					
+					callback(res);
+				}
+			})(results);
 			
 			// ask for remote service objects
-			this.parent.prepMsg(this.parent.sessionId, this.parent.pzhId, 'findServices');
+			this.parent.prepMsg(this.parent.sessionId, this.parent.pzhId, 'findServices', {id: callbackId});
 		}
 	};
 	
@@ -499,6 +532,23 @@
 	};
 	
 	/**
+	 * Remove services from internal array. Used by PZH.
+	 * @param address Remove all services for this address.
+	 */
+	_RPCHandler.prototype.removeRemoteServiceObjects = function(address) {
+		var oldCount = this.remoteServiceObjects.length;
+		
+		function isNotServiceFromAddress(element) {
+			return address !== element.serviceAddress;
+		}
+		
+		this.remoteServiceObjects = this.remoteServiceObjects.filter(isNotServiceFromAddress);
+		
+		var removedCount = oldCount - this.remoteServiceObjects.length;
+		console.log("removeRemoteServiceObjects: removed " + removedCount + " services from: " + address);
+	};
+	
+	/**
 	 * Return an array of all known services, including local and remote
 	 * services. Used by PZH.
 	 * @param exceptAddress Address of services that match will be excluded from
@@ -506,7 +556,6 @@
 	 */
 	_RPCHandler.prototype.getAllServices = function(exceptAddress) {
 		var results = [];
-		debugger;
 		
 		function isNotExceptAddress(el) {
 			return (el.serviceAddress !== exceptAddress) ? true : false;

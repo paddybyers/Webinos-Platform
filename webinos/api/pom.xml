@@ -20,6 +20,7 @@
     <module>context</module>
     <module>devicestatus</module>
     <module>events</module>
+    <module>applauncher</module>
     <module>file</module>
     <module>geolocation</module>
     <module>get42</module>

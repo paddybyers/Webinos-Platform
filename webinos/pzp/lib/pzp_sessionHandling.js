@@ -272,6 +272,15 @@
 
 		client.on('error', function (err) {
 			log('ERROR', '[PZP - '+self.sessionId+'] Error connecting server' + err);			
+			
+			// connection to PZH refused likely because there is no PZH
+			// go into virgin PZP mode
+			if (err.code === 'ECONNREFUSED') {
+				self.pzhId = '';
+				self.sessionId = 'virgin_pzp';
+				log('INFO', 'PZP ('+self.sessionId+') virgin PZP mode');
+				callback('startedPZP');
+			}
 		});
 
 		client.on('close', function () {
@@ -316,9 +325,9 @@
 				callback.call(self, "ERROR");
 			    
 			} else if(data2.type === 'prop' && data2.payload.status === 'foundServices') {
-				log('INFO', '[PZP - '+self.sessionId+'] Received message about available remote services.');
-				this.serviceListener && this.serviceListener(data2.payload.message);
-				this.serviceListener = undefined;
+				log('INFO', 'PZP ('+self.sessionId+') Received message about available remote services.');
+				
+				this.serviceListener && this.serviceListener(data2.payload);
 			}
 			// Forward message to message handler
 			else {

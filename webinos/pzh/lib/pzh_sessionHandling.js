@@ -134,7 +134,6 @@
 		}
 	};
 	
-	
 	Pzh.prototype.handleConnectionAuthorization = function(self, conn) {
 		if(conn.authorized === false) {
 			log('INFO', '[PZH -'+self.sessionId+'] Connection NOT authorised at PZH');
@@ -314,6 +313,7 @@
 				log('INFO', '[PZH -'+ self.sessionId+']Trying to send Webinos Services from this RPC handler to ' + parse.from + '...');
 				var services = self.rpcHandler.getAllServices(parse.from);
 				var msg = self.prepMsg(self.sessionId, parse.from, 'foundServices', services);
+				msg.payload.id = parse.payload.message.id;
 				self.sendMessage(msg, parse.from, conn);
 				log('INFO', '[PZH -'+ self.sessionId+']Sent ' + (services && services.length) || 0 + ' Webinos Services from this RPC handler.');
 			} else { // Message is forwarded to Message handler function, onMessageReceived

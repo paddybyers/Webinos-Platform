@@ -15,7 +15,8 @@
     if (typeof webinos === "undefined") { webinos = {}; }
     if (!webinos.payment) { webinos.payment = {}; }
     
-    
+     require('./bluevia_payment.js'); 
+     require('./gsma_payment.js'); 
 
     var WebinosPayment, Payment, ShoppingBasket, ShoppingItem, SuccessShoppingBasketCallback, PaymentSuccessCB, PaymentErrorCB, PendingOperation, PaymentError;
 
@@ -56,8 +57,13 @@
         this.totalBill = 0.0;
     };
     
-    function createEmptyShoppingBasket(){ return (new ShoppingBasket())};
+    function createEmptyShoppingBasket(){ 
+    return ( new ShoppingBasket())};
   
+    function setEmptyShoppingBasket(){ 
+       basket = new ShoppingBasket(); 
+    }
+
     /**
      * List of items currently in the shopping basket.
      *
@@ -145,18 +151,26 @@
 
         // error checks done, add item
         this.items[this.items.length]=item;
-        
-        // the following code adds up the items and adds 19% VAT.
-        // this is just an artifical assumption for testing
-        // and needs to replaced by a call to the actual payment
-        // service provider once we have that.
+        // calculate total bill
         this.totalBill = 0.0;
         for (var i=0;i<this.items.length;i++)
              this.totalBill = 
                  this.items[i].itemsPrice +
                   this.totalBill ;
-                  
-                  // add VAT extra
+
+        // check for GSMA type payment
+        if(implServiceProviderID=="GSMA"){
+            GSMA_Add_Item (successCallback, errorCallback, implCustomerID, implShopID,
+               item.productID, item.description, item.currency, item.itemPrice, item.itemCount, item.itemsPrice);
+           return new PendingOperation();
+         }
+        
+        // the following code adds adds 19% VAT.
+        // this is just an artifical assumption for testing
+        // and needs to replaced by a call to the actual payment
+        // service provider once we have that.
+                 
+        // add VAT extra
         this.extras = new Array();
         
         var VATextra= new ShoppingItem();
@@ -197,6 +211,14 @@
      * 
      */
     ShoppingBasket.prototype.update = function (successCallback, errorCallback) {
+
+      // check for GSMA type payment
+      // GSMA does not have an equivalent to Update, so we just return without doing anything
+        if(implServiceProviderID=="GSMA"){
+           successCallback(this);
+           return new PendingOperation();
+         }
+        
         console.log("Implementation of update called");
         // as an example, this function consolidates the list by
         // adding multiple identical entries to one item with a
@@ -264,6 +286,20 @@
      * 
      */
     ShoppingBasket.prototype.checkout = function (successCallback, errorCallback) {
+
+        // checkout for GSMA type payment
+        if(implServiceProviderID=="GSMA"){
+            if(this.items.length==0){        
+                    error.code = PaymentError.prototype.PAYMENT_CHARGE_FAILED;
+                    error.message = "No items to check out.";
+                    errorCallback(error); 
+                    return new PendingOperation();         
+            }
+
+           GSMA_Checkout ( successCallback, errorCallback, implCustomerID, implShopID,  this.totalBill, this.items[0].currency);
+           return new PendingOperation();
+         }
+        
         // we don't have any real checkout function yet - this
         // requires a service provider - so we just release the shopping basket
          console.log("Implementation of checkout called");
@@ -283,6 +319,12 @@
      */
     ShoppingBasket.prototype.release = function () {
          console.log("Implementation of release called");
+
+        // release for GSMA type payment
+        if(implServiceProviderID=="GSMA"){
+           GSMA_Release ( implCustomerID, implShopID);
+         }
+
         self=null;
         return;
     };
@@ -577,7 +619,23 @@
          return new PendingOperation();         
       }
       // Everything is fine - create the shopping basket.           
-        basket = new ShoppingBasket();
+      
+        if(implServiceProviderID=="BlueVia") {
+          // create basket for BlueVia payment
+          basket = new ShoppingBasket();
+           console.log("Implementation of BlueViaConnect calling");
+          BlueViaConnect(customerID, shopID); 
+        }
+        else if(implServiceProviderID=="GSMA") {
+          // create basket for GSMA payment
+          GSMA_Shopping_Basket(setEmptyShoppingBasket,successCallback, errorCallback, customerID, shopID);
+          return new PendingOperation();          
+        }
+        else {
+          // create local test basket
+          basket = new ShoppingBasket();
+        }
+        
         successCallback(basket);
         return new PendingOperation();
     };

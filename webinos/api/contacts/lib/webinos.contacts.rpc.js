@@ -34,7 +34,7 @@
 			displayName: 'Contacts',
 			description: 'W3C Contacts Module'
 		});
-		console.log("++++webinos contacts rpc params",params);
+
 	};
 
 	

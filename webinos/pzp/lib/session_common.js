@@ -41,6 +41,14 @@ common.webinosConfigPath = function() {
 	return webinosDemo;
 };
 
+// global exception handler, which catches all unhandled exceptions,
+// prints a trace and exits. the trace is better than the default.
+process.addListener("uncaughtException", function (err) {
+    console.log("Uncaught exception: " + err);
+    console.trace();
+    process.exit();
+});
+
 common.debug = function(num, msg) {
 	"use strict";
 	var info = true; // Change this if you want no prints from session manager
@@ -62,7 +70,7 @@ common.removeClient = function(self, conn) {
 	
 	for (i in self.connectedPzp) {
 		if(self.connectedPzp.hasOwnProperty(i)) {
-			if(conn.socket._peername.address === self.connectedPzp[i].address) {
+			if(conn === self.connectedPzp[i].socket) {
 				delId = i;
 				delete self.connectedPzp[i];
 			}
