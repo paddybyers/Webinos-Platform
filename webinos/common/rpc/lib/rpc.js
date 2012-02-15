@@ -297,10 +297,14 @@
 	 * @param msgid An id.
 	 */
 	_RPCHandler.prototype.executeRPC = function (rpc, callback, errorCB, from, msgid) {
-		//service invocation case
+		// service invocation case
 		if (typeof rpc.serviceAddress !== 'undefined') {
-			// this only happens in the web browser
-			webinos.session.message_send(rpc, rpc.serviceAddress);// TODO move the whole mmessage_send function here?
+			if (typeof module !== 'undefined') {
+				this.messageHandler.write(rpc, rpc.serviceAddress);
+			} else {
+				// this only happens in the web browser
+				webinos.session.message_send(rpc, rpc.serviceAddress);// TODO move the whole mmessage_send function here?
+			}
 			
 			if (typeof callback === 'function'){
 				var cb = {};
@@ -547,7 +551,7 @@
 			}
 			
 			// no connection to a PZH it seems, don't ask for remote services
-			if (!this.parent.pzhId) {
+			if (!this.parent || !this.parent.pzhId) {
 				callback(results);
 				return;
 			}
