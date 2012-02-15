@@ -8,7 +8,8 @@ var options = {};
 function help() {
     console.log('Usage: node startPzp.js [options]');
     console.log('Options:');
-    console.log('--pzh-host=[host]        host of the pzh (default localhost)');
+    console.log('--pzh-host=[host]        host of the pzh (default localhost/webinos)');
+    console.log('--pzp-host=[host]        host of the pzp (default localhost)');
     console.log('--pzh-port=[port]        port to host the pzh (default 8000)');
     console.log('--pzp-name=[name]        name of the pzp (default WebinosPzp)');
     console.log('--pzp-http-port=[port]   port to pzp web server (default 8080)');
@@ -31,6 +32,9 @@ process.argv.forEach(function (arg) {
 	    	  break;
 	      case '--pzp-name':
 	    	  options.pzpName = parts[1];
+	    	  break;
+	     case '--pzp-host':
+	    	  options.pzpHost = parts[1];
 	    	  break;
 	      case '--pzp-http-port':
 	    	  options.pzpHttpPort = parseInt(parts[1], 10);
@@ -83,7 +87,7 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		}
 		
 		if (!config.pzhHost) {
-			config.pzhHost = 'localhost';
+			config.pzhHost = 'localhost/webinos';
 		}
 		if (!config.pzhPort) {
 			config.pzhPort = 8000;
@@ -99,9 +103,19 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		}
 		if (!config.code) {
 			config.code = 'DEBUG';
+		}		
+		if (!config.code) {
+			config.code = 'DEBUG';
 		}
+		if (!config.pzpHost) {
+			config.pzpHost = 'localhost';
+		}
+		
 		if (options.pzhHost) {
 			config.pzhHost = options.pzhHost;
+		}
+		if (options.pzpHost) {
+			config.pzpHost = options.pzpHost;
 		}
 		if (options.pzhPort) {
 			config.pzhPort = options.pzhPort;
@@ -118,16 +132,11 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		if (options.code) {
 			config.code = options.code;
 		}
-
+		
 		var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=" + config.pzpName + "\nemail=internal@webinos.org\ndays=180\n"
-		websocket.startPzpWebSocketServer(config.pzhHost, config.pzpWebsocketPort, config.pzpHttpPort, function() {
-			pzp.startPzp('localhost/Habib', contents, config.code, pzpModules, function() {
-				console.log("=== PZP 1 started ===");
-				/* Since we support only 1 instance: contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=WebinosPzp1\nemail=internal@webinos.org\ndays=180\n"
-				pzp.startPzp('localhost/janon',contents, config.code, pzpModules, function() {
-					console.log("=== PZP 2 started ===");
-				})*/
-
+		websocket.startPzpWebSocketServer(config.pzpHost, config.pzpWebsocketPort, config.pzpHttpPort, function() {
+			pzp.startPzp(config.pzhHost, contents, config.code, pzpModules, function() {
+				console.log("=== PZP 1 started ===");	
 			});
 		});
 	});

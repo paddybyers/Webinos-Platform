@@ -223,29 +223,23 @@
 		try {
 			self.expecting.isExpectedCode(parse.payload.message.code, function(expected) {
 				if (expected) {
-					var master_key;
-					try{
-						var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
-						master_key = key.get(self.config.master.key_id);
-					} catch(err){
-						log('ERR0R','[PZH] Key fetching error' )
-						return;
-					}
-					cert.signRequest(parse.payload.message.csr, master_key, self.config.master.cert, 2, function(result, cert) {
-						if(result === "certSigned") {
-							self.expecting.unsetExpected(function() {
-								//Save this certificate locally on the PZH.
-								//pzp name: parse.payload.message.name
-								self.config.signedCert[parse.payload.message.name]=cert;
-								var payload = {'clientCert': cert, 'masterCert':self.config.master};
-								var msg = self.prepMsg(self.sessionId, parse.from, 'signedCert', payload);
-								config.storeConfig(self.config);
-								cb.call(self, null, msg);
-							});
-						} else {
-							log('ERROR ', '[PZH -'+self.sessionId+'] Error Signing Client Certificate');
-							cb.call(self, "Could not create client certificate - " + result, null);
-						}
+					cert.fetchKey(self.config.master.key_id, function(master_key) {;
+						cert.signRequest(parse.payload.message.csr, master_key, self.config.master.cert, 2, function(result, cert) {
+							if(result === "certSigned") {
+								self.expecting.unsetExpected(function() {
+									//Save this certificate locally on the PZH.
+									//pzp name: parse.payload.message.name
+									self.config.signedCert[parse.payload.message.name]=cert;
+									var payload = {'clientCert': cert, 'masterCert':self.config.master};
+									var msg = self.prepMsg(self.sessionId, parse.from, 'signedCert', payload);
+									config.storeConfig(self.config);
+									cb.call(self, null, msg);
+								});
+							} else {
+								log('ERROR ', '[PZH -'+self.sessionId+'] Error Signing Client Certificate');
+								cb.call(self, "Could not create client certificate - " + result, null);
+							}
+						});
 					});
 				} else {
 					var payload = {};
@@ -253,7 +247,7 @@
 					log('INFO', '[PZH -'+self.sessionId+'] Failed to create client certificate: not expected');
 					cb.call(self, null, msg);
 				}
-			});pzhs
+			});
 		} catch (err) {
 			log('ERROR ', '[PZH -'+self.sessionId+'] Error Signing Client Certificate' + err);
 			cb.call(self, "Could not create client certificate");
@@ -334,40 +328,52 @@
 	};
 	
 	exports.addPzh = function ( uri, contents, modules, callback) {
-		var pzh = new Pzh(modules);
-		config.setConfiguration(contents, 'Pzh', function(config, conn_key) {
-			pzh.config    = config;
-			pzh.sessionId = pzh.config.certValues.common.split(':')[0];
-			pzh.contents  = contents;
-			pzh.modules   = modules;
+		if (typeof farm.server === "undefined" || farm.server === null) {
+			console.log(farm.server);
+			log('ERROR', '[PZH] Farm is not running, please startFarm');
+			callback(false);
+		} else {
+			var pzh = new Pzh(modules);
+			var ca = [];
+			
+			config.setConfiguration(contents, 'Pzh', function(config, conn_key) {
+				pzh.config    = config;
+				pzh.sessionId = pzh.config.certValues.common;
+				pzh.contents  = contents;
+				pzh.modules   = modules;
 
-			pzh.config.servername = uri;
-			
-			farm.pzhs[uri] = pzh;
-
-			var options = {
-				key  : conn_key,
-				cert : config.conn.cert,
-				ca   : [config.master.cert],
-				crl  : config.master.crl,
-				requestCert: true,
-				rejectUnauthorized: false
-			};
-			pzh.options = options;
-			
-			pzh.messageHandler.setGetOwnId(pzh.sessionId);
-			pzh.messageHandler.setObjectRef(pzh);
-			pzh.messageHandler.setSendMessage(send);
-			pzh.messageHandler.setSeparator("/");
-			
-			if (typeof farm.server === "undefined" || farm.server === null) {
-				log('ERROR', '[PZH -'+ self.sessionId+']Farm is not running, please startFarm');
-			} else {
+				pzh.config.servername = uri;
+				
+				farm.pzhs[uri] = pzh;
+				
+				ca.push(config.master.cert);
+				
+				for (var crt in config.otherCert) {
+					ca.push(config.otherCert[crt]);
+				}
+				
+				var options = {
+					key  : conn_key,
+					cert : config.conn.cert,
+					ca   : ca,
+					crl  : config.master.crl,
+					requestCert: true,
+					rejectUnauthorized: false
+				};
+				console.log(options);
+				
+				pzh.options = options;
+				
+				pzh.messageHandler.setGetOwnId(pzh.sessionId);
+				pzh.messageHandler.setObjectRef(pzh);
+				pzh.messageHandler.setSendMessage(send);
+				pzh.messageHandler.setSeparator("/");
+				
 				farm.server.addContext(uri, options);
-			}
-			
-			callback(true, pzh);
-		});
+								
+				callback(true, pzh);
+			});
+		}
 	}
 }());
 

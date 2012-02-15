@@ -7,14 +7,15 @@ var util        = require('util');
 var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
 var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
-var webinosDemo  = path.resolve(__dirname, '../../../demo');
 
+var crypto       = require('crypto');
 var qrcode       = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_qrcode.js'));
 var log          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
 var revoker      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_revoke.js'));	
 var session      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_sessionHandling.js'));
 var configuration= require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
 var farm         = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_farm.js'));
+var pzhConnect   = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_connecting.js'));
 
 pzhapis.addPzpQR = function (pzh, callback) {
 	"use strict";
@@ -90,12 +91,6 @@ pzhapis.revoke = function(pzh, pzpid, callback) {
 	revoker.revokePzp(pzpid, pzh, callback);
 }	
 
-
-pzhapis.restartPzh = function(pzh, callback) {
-	"use strict";
-	pzhapis.restartPzh(pzh, callback);
-}
-
 // This is sending side action on PZH end
 pzhapis.addPzhCertificate = function(pzh, to, callback) {
 	"use strict";
@@ -111,17 +106,30 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 				// Store the information in other_cert
 				pzh.config.otherCert[pzh_id] = farm.pzhs[pzh_id].config.master.cert;
 				farm.pzhs[pzh_id].config.otherCert[pzh.config.servername] = pzh.config.master.cert;
+				
 				// Add in particular context of each PZH options
 				pzh.options.ca.push(pzh.config.otherCert[pzh_id]);
 				farm.pzhs[pzh_id].options.ca.push(pzh.config.master.cert);
 				
-				farm.server.addContext(pzh.config.servername, pzh.options);
-				farm.server.addContext(to, farm.pzhs[pzh_id].options);
-				// pzh.serverContext.pair.credentials.context.addCACert(pzh.config.other_cert[pzh_id]);
+				 farm.server._contexts.some(function(elem) {
+					if (to.match(elem[0]) !== null) {
+						elem[1] = crypto.createCredentials(farm.pzhs[pzh_id].options).context;
+					}
+					
+					if (pzh.config.servername.match(elem[0]) !== null) {
+						elem[1] =  crypto.createCredentials(pzh.options).context;
+					}
+				});
+				 
+				
+// 				// pzh.serverContext.pair.credentials.context.addCACert(pzh.config.other_cert[pzh_id]);
 				
 				// Store configuration
 				configuration.storeConfig(pzh.config);
 				configuration.storeConfig(farm.pzhs[pzh_id].config);
+				pzhConnect.connectOtherPZH(pzh, to, function(status) {
+					console.log('PZH are connected to each other');
+				});
 				callback(true);
 				return;
 

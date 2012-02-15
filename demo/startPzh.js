@@ -5,14 +5,13 @@ var fs = require('fs'),
 	PzhWebInterface     = require('../webinos/pzh/web/pzh_web_interface.js'),
 	PzhConnect          = require('../webinos/pzh/lib/pzh_connecting.js');
 
-var options = {};
+var host = null, name = null;
 
 function help() {
     console.log('Usage: node startPzh.js [options]');
     console.log('Options:');
-    console.log('--host=[host]            host of the pzh (default localhost)');
-    console.log('--port=[port]            port to host the pzh (default 443)');
-    console.log('--pzh-web-port=[port]    port to pzp web server (default 80)');
+    console.log('--host=[host]            host of the pzh (default localhost/webinos)');
+    console.log('--name=[identifier]      configuration name (default: PZH )');
     process.exit();
 }
 
@@ -23,9 +22,11 @@ process.argv.forEach(function (arg) {
 	    if (parts.length > 1) {
 	      switch (parts[0]) {
 	      case '--host':
-	        options.host = parts[1];
+	        host = parts[1];
 	        break;
-
+	      case '--name':
+	        name = parts[1];
+	        break;
 	      }
 	    }
 	    else if (parts[0] === '--help') {
@@ -39,16 +40,16 @@ var pzhModules = [
     {name: "events", param: {}}
 ];
 
-var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=pzhFarm\nemail=internal@webinos.org\ndays=180\n"
+if(host === null){
+	host = 'localhost/webinos';
+} 
+if (name === null) {
+	name = 'PZH';
+}
 
-PzhFarm.startFarm('localhost' , contents, function(result) {
-	var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=pzh1\nemail=internal@webinos.org\ndays=180\n"
-	Pzh.addPzh('localhost/john', contents, pzhModules, function(res,instance) {
-		console.log('******* PZH STARTED *******');
-		var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=pzh2\nemail=internal@webinos.org\ndays=180\n"
-		Pzh.addPzh('localhost/Habib',contents, pzhModules, function(res,instance) {
-			console.log('******* PZH1 STARTED *******');			
-		});
-	});
+var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon="+name+"\nemail=internal@webinos.org\ndays=180\n"
+Pzh.addPzh(host, contents, pzhModules, function(res,instance) {
+	console.log('******* PZH STARTED ******* '+res);		
 });
+
 

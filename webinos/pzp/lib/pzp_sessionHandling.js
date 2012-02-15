@@ -160,14 +160,14 @@
 			var msg = self.messageHandler.registerSender(self.sessionId, self.pzhId);
 			self.sendMessage(msg, self.pzhId);
 			
-			/*pzp_server.startServer(self, function() {
+			pzp_server.startServer(self, function() {
+				// The reason we send to PZH is because PZH acts as a point of synchronization for connecting PZP's
 				self.prepMsg(self.sessionId, self.pzhId, 'pzpDetails', self.pzpServerPort);				
-				var localServices = self.rpcHandler.getRegisteredServices();
-				self.prepMsg(self.sessionId, self.pzhId, 'registerServices', localServices);
-				
-				log('INFO', 'Sent msg to register local services with pzh');
+				//var localServices = self.rpcHandler.getRegisteredServices();
+				//self.prepMsg(self.sessionId, self.pzhId, 'registerServices', localServices);
+				//log('INFO', 'Sent msg to register local services with PZP');
 			
-			});*/
+			});
 			callback.call(self, 'startedPZP');
 		}
 	};
@@ -303,9 +303,9 @@
 							self.connectedPzp[msg[i].name] = {'address': msg[i].address, 'port': msg[i].port};
 							self.connectedPzpIds.push(msg[i].name);
 							// FIXME errors related to connectOtherPZP
-//							if(msg[i].newPzp) {
-//								self.connectOtherPZP(msg[i]);
-//							}
+							if(msg[i].newPzp) {
+								pzp_server.connectOtherPZP(self, msg[i]);
+							}
 							self.wsServerMsg("Pzp Joined " + msg[i].name);
 							self.prepMsg(self.sessionId, self.sessionWebAppId, 'update', {pzp: msg[i].name });		
 						}

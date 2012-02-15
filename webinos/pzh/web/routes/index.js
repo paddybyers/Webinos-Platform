@@ -21,7 +21,7 @@
 
 module.exports = function(app){
 "use strict";
-var path            = require('path'),
+var path        = require('path'),
 util            = require('util'),
 crypto          = require('crypto'),
 fs              = require('fs'),
@@ -30,6 +30,7 @@ webinosRoot     = path.resolve(__dirname, '../' + moduleRoot.root.location),
 dependencies    = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json')),
 pzhapis         = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_internal_apis.js')),
 utils           = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')),
+Pzh             = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_sessionHandling.js')),
 express         = require('express'),
 passport        = require('passport'),
 GoogleStrategy  = require('passport-google').Strategy,
@@ -51,6 +52,31 @@ app.get('/addpzp', ensureAuthenticated, function(req, res){
 		isMutualAuth: false,
 		qrcode: {img: qr, code: text}
 		});
+	});
+});
+
+app.get('/addpzh', function(req, res) {
+	res.render('addpzh', { user: req.user });
+});
+
+app.post('/addpzhcert', function(req, res){
+	var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon="+req.body.name+"\nemail=internal@webinos.org\ndays=180\n"
+	var pzhModules = [
+		{name: "get42", params: [99]},
+		{name: "events", param: {}}
+	];
+
+	Pzh.addPzh(req.body.host, contents, pzhModules, function(result,instance) {
+		if (result) {
+			res.render('login', {user: req.user});
+		} else {	
+			res.render('addpzh', {
+				user: req.user,
+				pzh: instance,
+				isMutualAuth: false,
+				status: result
+			});
+		}
 	});
 });
 
