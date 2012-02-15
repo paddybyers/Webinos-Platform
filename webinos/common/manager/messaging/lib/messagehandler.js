@@ -177,6 +177,7 @@
 	 * RPC writer
 	 */
 	MessageHandler.prototype.write = function(rpc, respto, msgid) {
+		//TODO calling write function from RPC does not allow to register call-backs yet
 
 	    //create response message
 	    var options = {};
@@ -185,16 +186,14 @@
 	    
 	    options.from = this.ownId;
 	    
-	    if (typeof msgid !== undefined && msgid != null){
-	    	options.id = msgid;
-	    }
-	    else{
-	    	//TODO calling write function from RPC does not allow to register call-backs yet
+	    if(!msgid) {
 	    	msgid = 1 + Math.floor(Math.random() * 1024);
 	    }
+	    options.id = msgid;
 	    	
-		if(typeof rpc.jsonrpc !== "undefined")
-		  options.type = "JSONRPC";
+		if(typeof rpc.jsonrpc !== "undefined") {
+			options.type = "JSONRPC";
+		}
 		options.payload = rpc;
 		var message = this.createMessage(options);
 		
