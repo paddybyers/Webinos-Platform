@@ -1,0 +1,21 @@
+<% if(locals.status)%>
+<p class="certexchmsg">
+<% if(locals.status) { %>
+	PZH added
+# redirect to login page
+<% } else { %>
+	PZH is not started
+<% } %>
+</p>
+
+<table>
+	<tr>
+		<td> PZH Address: </td> 
+		<form method="post" action="/addpzhcert"> 
+		<td> <input type="text" name="host"/> </td>
+		<td> <input type="text" name="name"/> </td> 
+		<td> <input type="submit" value="addPzh"/> </form> </td>
+		
+	</tr>
+
+</table>
