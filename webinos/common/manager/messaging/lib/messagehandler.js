@@ -182,7 +182,8 @@
 	    //create response message
 	    var options = {};
 	    options.to = respto;
-	    options.resp_to = respto;
+//	    options.resp_to = respto; // used to be respto... FIXME
+	    options.resp_to = this.ownId; // used to be respto... FIXME
 	    
 	    options.from = this.ownId;
 	    
@@ -194,6 +195,7 @@
 		if(typeof rpc.jsonrpc !== "undefined") {
 			options.type = "JSONRPC";
 		}
+		
 		options.payload = rpc;
 		var message = this.createMessage(options);
 		
