@@ -134,6 +134,7 @@
 		}
 	};
 	
+	
 	Pzh.prototype.handleConnectionAuthorization = function(self, conn) {
 		if(conn.authorized === false) {
 			log('INFO', '[PZH -'+self.sessionId+'] Connection NOT authorised at PZH');
@@ -150,6 +151,7 @@
 			});
 		}
 		if(conn.authorized) {
+			//conn.pair.credentials.context.addCACert(self.config.other_cert['localhost/Habib']);
 			var cn, data;
 			log('INFO', '[PZH -'+self.sessionId+'] Connection authorised at PZH');
 			try {
@@ -207,7 +209,7 @@
 				conn.resume();
 			});
 		} catch (err) {
-			log('ERROR ', '[PZH  -'+this.sessionId+'] Exception in processing recieved message ' + err);
+			log('ERROR ', '[PZH  -'+self.sessionId+'] Exception in processing recieved message ' + err);
 		}
 	}
 	
@@ -307,7 +309,6 @@
 				log('INFO', '[PZH -'+ self.sessionId+']Trying to send Webinos Services from this RPC handler to ' + parse.from + '...');
 				var services = self.rpcHandler.getAllServices(parse.from);
 				var msg = self.prepMsg(self.sessionId, parse.from, 'foundServices', services);
-				msg.payload.id = parse.payload.message.id;
 				self.sendMessage(msg, parse.from, conn);
 				log('INFO', '[PZH -'+ self.sessionId+']Sent ' + (services && services.length) || 0 + ' Webinos Services from this RPC handler.');
 			} else { // Message is forwarded to Message handler function, onMessageReceived
@@ -363,6 +364,20 @@
 				console.log(options);
 				
 				pzh.options = options;
+				
+				/*var server= tls.createServer(options, function(conn) {
+					pzh.serverContext = conn;
+					pzh.handleConnectionAuthorization(pzh, conn);
+					conn.on('data', function(data) {
+						pzh.handleData(conn, data);
+					});
+				});
+				
+				server.on('error', function(){
+					console.log('address in use');
+					server.listen(8001)
+				});
+				server.listen(8000);*/
 				
 				pzh.messageHandler.setGetOwnId(pzh.sessionId);
 				pzh.messageHandler.setObjectRef(pzh);
