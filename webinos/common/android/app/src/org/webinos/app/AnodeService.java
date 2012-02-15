@@ -106,9 +106,9 @@ public class AnodeService extends IntentService {
 			String[] opts = options == null ? null : options.split("\\s");
 			initRuntime(opts);
 			handleStart(intent);
-		} else if(AnodeReceiver.ACTION_INSTALL.equals(action)) {
+		} else if(AnodeReceiver.ACTION_MODULE_INSTALL.equals(action)) {
 			handleInstall(intent);
-		} else if(AnodeReceiver.ACTION_UNINSTALL.equals(action)) {
+		} else if(AnodeReceiver.ACTION_MODULE_UNINSTALL.equals(action)) {
 			handleUninstall(intent);
 		}
 	}

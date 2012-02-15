@@ -20,6 +20,7 @@ import org.meshpoint.anode.Isolate;
 import org.meshpoint.anode.Runtime;
 import org.meshpoint.anode.Runtime.IllegalStateException;
 import org.meshpoint.anode.Runtime.NodeException;
+import org.webinos.impl.widgetmanager.WidgetManagerActivity;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -27,13 +28,15 @@ import android.content.Intent;
 import android.util.Log;
 
 public class AnodeReceiver extends BroadcastReceiver {
-	
+
 	private static String TAG = "anode::AnodeReceiver";
-	public static final String ACTION_START = "org.meshpoint.anode.START";
-	public static final String ACTION_STOP = "org.meshpoint.anode.STOP";
-	public static final String ACTION_STOPALL = "org.meshpoint.anode.STOPALL";
-	public static final String ACTION_INSTALL = "org.meshpoint.anode.INSTALL";
-	public static final String ACTION_UNINSTALL = "org.meshpoint.anode.UNINSTALL";
+	public static final String ACTION_START = "org.webinos.app.START";
+	public static final String ACTION_STOP = "org.webinos.app.STOP";
+	public static final String ACTION_STOPALL = "org.webinos.app.STOPALL";
+	public static final String ACTION_MODULE_INSTALL = "org.webinos.app.module.INSTALL";
+	public static final String ACTION_MODULE_UNINSTALL = "org.webinos.app.module.UNINSTALL";
+	public static final String ACTION_WGT_INSTALL = "org.webinos.app.wgt.INSTALL";
+	public static final String ACTION_WGT_UNINSTALL = "org.webinos.app.wgt.UNINSTALL";
 	public static final String CMD = "cmdline";
 	public static final String INST = "instance";
 	public static final String OPTS = "options";
@@ -86,6 +89,20 @@ public class AnodeReceiver extends BroadcastReceiver {
 				ctx.startActivity(intent);
 				return;
 			}
+		}
+
+		if(ACTION_WGT_INSTALL.equals(action)) {
+			intent.setClassName(ctx, WidgetManagerActivity.class.getName());
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			ctx.startActivity(intent);
+			return;
+		}
+
+		if(ACTION_WGT_UNINSTALL.equals(action)) {
+			intent.setClassName(ctx, WidgetManagerActivity.class.getName());
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			ctx.startActivity(intent);
+			return;
 		}
 
 		/* otherwise, start service */

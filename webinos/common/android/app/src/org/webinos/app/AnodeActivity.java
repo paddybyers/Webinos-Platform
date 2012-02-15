@@ -17,7 +17,6 @@
 package org.webinos.app;
 
 import org.meshpoint.anode.Isolate;
-import org.meshpoint.anode.R;
 import org.meshpoint.anode.Runtime;
 import org.meshpoint.anode.Runtime.IllegalStateException;
 import org.meshpoint.anode.Runtime.InitialisationException;
