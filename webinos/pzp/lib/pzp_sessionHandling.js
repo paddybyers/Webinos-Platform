@@ -18,7 +18,6 @@
 		var rpc            = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js'));
 		var RPCHandler     = rpc.RPCHandler;
 		var MessageHandler = require(path.join(webinosRoot, dependencies.manager.messaging.location, 'lib/messagehandler.js')).MessageHandler;
-		var pzp_server     = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/pzp_server.js'));
 		var utils          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 		var log            = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
 		var configuration  = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
@@ -127,7 +126,13 @@
 		}
 	};	
 	
-
+	var setupMessageHandler = function (pzpInstance) {
+		pzpInstance.messageHandler.setGetOwnId(pzpInstance.sessionId);
+		pzpInstance.messageHandler.setObjectRef(pzpInstance);
+		pzpInstance.messageHandler.setSendMessage(send);
+		pzpInstance.messageHandler.setSeparator("/");
+	};
+	
 	var send = function (message, address, object) {
 		"use strict";
 		object.sendMessage(message, address);
@@ -152,10 +157,7 @@
 			
 			client.socket.setKeepAlive(true, 100);
 
-			self.messageHandler.setGetOwnId(self.sessionId);
-			self.messageHandler.setObjectRef(self);
-			self.messageHandler.setSendMessage(send);
-			self.messageHandler.setSeparator("/");
+			setupMessageHandler(self);
 			
 			var msg = self.messageHandler.registerSender(self.sessionId, self.pzhId);
 			self.sendMessage(msg, self.pzhId);
@@ -163,15 +165,15 @@
 			pzp_server.startServer(self, function() {
 				// The reason we send to PZH is because PZH acts as a point of synchronization for connecting PZP's
 				self.prepMsg(self.sessionId, self.pzhId, 'pzpDetails', self.pzpServerPort);				
-				//var localServices = self.rpcHandler.getRegisteredServices();
-				//self.prepMsg(self.sessionId, self.pzhId, 'registerServices', localServices);
-				//log('INFO', 'Sent msg to register local services with PZP');
+				var localServices = self.rpcHandler.getRegisteredServices();
+				self.prepMsg(self.sessionId, self.pzhId, 'registerServices', localServices);
+				log('INFO', 'Sent msg to register local services with pzh');
 			
 			});
 			callback.call(self, 'startedPZP');
 		}
 	};
-	
+
 	/* It is responsible for connecting with PZH and handling events.
 	 * It does JSON parsing of received message
 	 * @param config structure used for connecting with Pzh
@@ -272,6 +274,16 @@
 
 		client.on('error', function (err) {
 			log('ERROR', '[PZP - '+self.sessionId+'] Error connecting server' + err);			
+			
+			// connection to PZH refused likely because there is no PZH
+			// go into virgin PZP mode
+			if (err.code === 'ECONNREFUSED') {
+				self.pzhId = '';
+				self.sessionId = 'virgin_pzp';
+				setupMessageHandler(self);
+				log('INFO', 'PZP ('+self.sessionId+') virgin PZP mode');
+				callback('startedPZP');
+			}
 		});
 
 		client.on('close', function () {
@@ -316,9 +328,9 @@
 				callback.call(self, "ERROR");
 			    
 			} else if(data2.type === 'prop' && data2.payload.status === 'foundServices') {
-				log('INFO', '[PZP - '+self.sessionId+'] Received message about available remote services.');
-				this.serviceListener && this.serviceListener(data2.payload.message);
-				this.serviceListener = undefined;
+				log('INFO', 'PZP ('+self.sessionId+') Received message about available remote services.');
+				
+				this.serviceListener && this.serviceListener(data2.payload);
 			}
 			// Forward message to message handler
 			else {

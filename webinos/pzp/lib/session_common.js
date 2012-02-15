@@ -41,6 +41,14 @@ common.webinosConfigPath = function() {
 	return webinosDemo;
 };
 
+// global exception handler, which catches all unhandled exceptions,
+// prints a trace and exits. the trace is better than the default.
+/*process.addListener("uncaughtException", function (err) {
+    console.log("Uncaught exception: " + err);
+    console.trace();
+    process.exit();
+});*/
+
 common.debug = function(num, msg) {
 	"use strict";
 	var info = true; // Change this if you want no prints from session manager
@@ -62,7 +70,7 @@ common.removeClient = function(self, conn) {
 	
 	for (i in self.connectedPzp) {
 		if(self.connectedPzp.hasOwnProperty(i)) {
-			if(conn.socket._peername.address === self.connectedPzp[i].address) {
+			if(conn === self.connectedPzp[i].socket) {
 				delId = i;
 				delete self.connectedPzp[i];
 			}
@@ -104,32 +112,44 @@ common.removeClient = function(self, conn) {
 common.processedMsg = function(self, data, dataLen, callback) {
 	"use strict";
 	var msg = data.toString('utf8');
+
 	if(msg[0] ==='#' && msg[msg.length-dataLen] === '#') {
-		msg = msg.split('#');
-		/*if(checkSchema(msg[1]) === false) */{
-			var parse = JSON.parse(msg[1]);
+		msg = msg.split('#'); // FIXME
 
-			// BEGIN OF POLITO MODIFICATIONS
-			var valError = validation.checkSchema(parse);
-			if(valError === false) { // validation error is false, so validation is ok
-				common.debug('DEBUG','[VALIDATION] Received recognized packet ' + JSON.stringify(msg));
-			}
-			else if (valError === true) {
-				// for debug purposes, we only print a message about unrecognized packet
-				// in the final version we should throw an error
-				// Currently there is no a formal list of allowed packages and throw errors
-				// would prevent the PZH from working
-				common.debug('INFO','[VALIDATION] Received unrecognized packet ' + JSON.stringify(msg));
-				
-			}
-			else if (valError === 'failed') {
-				common.debug('ERROR','[VALIDATION] failed');
-			}
-			else {
-				common.debug('ERROR','[VALIDATION] Invalid response ' + valError);
+		// FIXME
+		// sometimes, it happens, i've seen it, you probably too, msg
+		// is actually multiple messages instead of a single one
+		// therefore call the callback MULTIPLE times, once for each msg
+		for (var i = 0; i < msg.length; i++) {
+			if (!msg[i]) {
+				// so that was an empty part of the array, skip it
+				continue;
 			}
 
-			callback.call(self, parse);
+//			if(checkSchema(msg[i]) === false) {
+				var parse = JSON.parse(msg[i]);
+
+				// BEGIN OF POLITO MODIFICATIONS
+				var valError = validation.checkSchema(parse);
+				if(valError === false) { // validation error is false, so validation is ok
+					common.debug('DEBUG','[VALIDATION] Received recognized packet ' + JSON.stringify(parse));
+				}
+				else if (valError === true) {
+					// for debug purposes, we only print a message about unrecognized packet
+					// in the final version we should throw an error
+					// Currently there is no a formal list of allowed packages and throw errors
+					// would prevent the PZH from working
+					common.debug('INFO','[VALIDATION] Received unrecognized packet ' + JSON.stringify(parse));
+				}
+				else if (valError === 'failed') {
+					common.debug('ERROR','[VALIDATION] failed');
+				}
+				else {
+					common.debug('ERROR','[VALIDATION] Invalid response ' + valError);
+				}
+
+				callback.call(self, parse);
+//			}
 		}
 	}	
 };

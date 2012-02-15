@@ -12,6 +12,7 @@ function help() {
     console.log('--pzp-host=[host]        host of the pzp (default localhost)');
     console.log('--pzh-port=[port]        port to host the pzh (default 8000)');
     console.log('--pzp-name=[name]        name of the pzp (default WebinosPzp)');
+    console.log('--pzp-host=[name]        host of the pzp (default localhost)');
     console.log('--pzp-http-port=[port]   port to pzp web server (default 8080)');
     console.log('--pzp-ws-port=[port]     port to pzp websocket server (default 8081)');
     console.log('--context-code=[code]    context debug flag (default DEBUG)');
@@ -33,7 +34,7 @@ process.argv.forEach(function (arg) {
 	      case '--pzp-name':
 	    	  options.pzpName = parts[1];
 	    	  break;
-	     case '--pzp-host':
+	      case '--pzp-host':
 	    	  options.pzpHost = parts[1];
 	    	  break;
 	      case '--pzp-http-port':
@@ -60,7 +61,8 @@ var pzpModules = [
     {name: "get42", param: {}},
     {name: "file", param: {}},
     {name: "geolocation", param: {}},
- //   {name: "events", param: {}},
+    {name: "applauncher", param: {}},
+//    {name: "events", param: {}},
     {name: "sensors", param: {}},
     {name: "payment", param: {}},
     {name: "tv", param: {}},
@@ -69,7 +71,8 @@ var pzpModules = [
     {name: "context", param: {}},
     {name: "authentication", param: {}},
     {name: "contacts", param: {}},
-    {name: "devicestatus", param: {}}
+    {name: "devicestatus", param: {}},
+    {name: "discovery", param: {}}
 ];
 
 if (options.pzhHost === '' || options.pzhPort <= 0) {
@@ -79,7 +82,6 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		var config;
 		
 		if (err) {
-			console.warn("could not load config-pzp.json\n" + err.toString());
 			config = {};
 		}
 		else {
@@ -91,6 +93,9 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		}
 		if (!config.pzhPort) {
 			config.pzhPort = 8000;
+		}
+		if (!config.pzpHost) {
+			config.pzpHost='localhost';
 		}
 		if (!config.pzpHttpPort) {
 			config.pzpHttpPort = 8080;
@@ -125,6 +130,9 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		}
 		if (options.pzpWebsocketPort) {
 			config.pzpWebsocketPort = options.pzpWebsocketPort;
+		}
+		if (options.pzpHost) {
+			config.pzpHost = options.pzpHost;
 		}
 		if (options.pzpName) {
 			config.pzpName = options.pzpName;

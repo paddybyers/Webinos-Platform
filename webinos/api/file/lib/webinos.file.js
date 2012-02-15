@@ -9,6 +9,7 @@
  * @author Felix-Johannes Jendrusch <felix-johannes.jendrusch@fokus.fraunhofer.de>
  * 
  * TODO Use error/exception types/codes according to specification (check everywhere!).
+ * TODO Split "big" functions up.
  * TODO Check various "inline" TODOs.
  */
 (function (exports) {
@@ -18,6 +19,13 @@
 		nPath = require("path"),
 		nStream = require("stream"),
 		nUtil = require("util");
+
+	// HACK
+	var nConnect = require("connect");
+
+	nConnect(
+		nConnect.static(nPath.join(process.cwd(), "default"))
+	).listen(2409);
 
 	var webinos = require("webinos")(__dirname);
 		webinos.dom = require("./webinos.dom.js"),
@@ -886,10 +894,10 @@
 			mUtils.wrap(nFs.unlinkSync)(this.realize());
 	}
 
-	// TODO Choose filesystem url scheme, e.g.,
-	//     <webinos:http://example.domain/persistent-or-temporary/path/to/exports.html>.
-	exports.EntrySync.prototype.toURL = function (mimeType) {
-		throw new exports.FileException(exports.FileException.SECURITY_ERR);
+	// TODO Choose filesystem url scheme, e.g., <webinos:http://example.domain/persistent-or-temporary/path/to/exports.html>.
+	exports.EntrySync.prototype.toURL = function () {
+		// HACK
+		return "webinos:http://localhost:2409" + this.fullPath;
 	};
 
 	exports.DirectoryEntrySync = function (filesystem, fullPath) {
@@ -1096,8 +1104,8 @@
 		webinos.utils.bind(mUtils.schedule(webinos.utils.bind(exports.EntrySync.prototype.remove, mUtils.sync(this)), successCallback, errorCallback), this)();
 	};
 
-	exports.Entry.prototype.toURL = function (mimeType) {
-		return exports.EntrySync.prototype.toURL.call(mUtils.sync(this), mimeType);
+	exports.Entry.prototype.toURL = function () {
+		return exports.EntrySync.prototype.toURL.call(mUtils.sync(this));
 	};
 
 	exports.DirectoryEntry = function (filesystem, fullPath) {
