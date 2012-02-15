@@ -1,6 +1,21 @@
 <p>ID: <%= user.identifier %></p>
 <p>Name: <%= user.displayName %></p>
 <p>Email: <%= user.emails[0].value %></p>
+<hr>
+<p>Other OpenID attributes</p>
+<table border="1">
+<tr><th>Attributes</th><th>Value</th></tr>
+<% for (var i in user) { %>
+	<% if (i !== "identifier" && i !== "displayName" && i !== "emails" && i !== "from" && i !== "name" ) { %>
+		<tr><td><%= i %></td><td><%= user[i] %>
+		<% if (i === "image") { %>
+			<img src="<%= user[i] %>"/>
+		<% } %>
+		</td></tr>
+	<% } %>
+<% } %>
+</table>
+<hr>
 
 <% if (isMutualAuth && user) { %>
 

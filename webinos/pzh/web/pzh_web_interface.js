@@ -21,7 +21,8 @@ webinosRoot     = path.resolve(__dirname, '../' + moduleRoot.root.location),
 utils           = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')),
 log             = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug,
 webCert         = require(path.join(webinosRoot, dependencies.pzh.location, 'web/pzh_web_certs.js'));
-farm            = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_farm.js'));
+farm            = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_farm.js')),
+ax              = require(path.join(webinosRoot, dependencies.pzh.location, 'web/openid-ax.js')); // ADDED BY POLITO
 
 var pzhweb          = exports;
 
@@ -160,6 +161,9 @@ function createPassport(domainName, port, isHTTP) {
 			});
 		}
 	));
+
+	ax.verificationURL(prefix + '://' + domainName + ':' + port + '/verify'); // ADDED BY POLITO
+
 	return passport;
 }
 
