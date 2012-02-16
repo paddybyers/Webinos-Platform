@@ -50,3 +50,5 @@ certificate_manager.node
 linker.lock
 *.o
 WebinosPzh_crash.txt
+node_modules
+*_crash.txt
