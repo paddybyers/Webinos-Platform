@@ -26,5 +26,6 @@ public abstract class MessagingManager extends Base {
 	public abstract int onSMS(OnIncomingMessage messageHandler) throws DeviceAPIError;
 	public abstract int onMMS(OnIncomingMessage messageHandler) throws DeviceAPIError;
 	public abstract int onEmail(OnIncomingMessage messageHandler) throws DeviceAPIError;
+	public abstract int onIM(OnIncomingMessage messageHandler) throws DeviceAPIError;
 	public abstract void unsubscribe(int subscriptionHandler) throws DeviceAPIError;
 }
