@@ -4,7 +4,9 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="icon" href="webinos.ico" type="image/x-icon">
 	<link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
-	<script type="text/javascript" src="jquery-1.6.4.min.js"></script>
+	<link type="text/css" href="css/ui-lightness/jquery-ui-1.8.17.custom.css" rel="stylesheet" />	
+	<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" src="js/jquery-ui-1.8.17.custom.min.js"></script>
 	<!-- <script src="iphone-style-checkboxes.js" type="text/javascript" charset="utf-8"></script> -->
   	<!-- <link rel="stylesheet" href="switch.css" type="text/css" media="screen" charset="utf-8" /> -->
 	<script type="text/javascript" src="/nowjs/now.js"></script>
@@ -17,13 +19,154 @@
 		$(document).ready(function() {
 		
 			 //$(':checkbox').iphoneStyle();
+			$( "#slider-pf-or" ).slider({
+			range: "min",
+			value: 255,
+			min: 10,
+			max: 255,
+			slide: function( event, ui ) {
+				$( "#pf-or" ).val(ui.value);
+				}
+			});
+			//$( "#pf-or" ).val(( "#slider-pf-or" ).slider( "value" ));
+			
+			
+			$( "#slider-pf-r" ).slider({
+			range: "min",
+			value: 255,
+			min: 10,
+			max: 255,
+			slide: function( event, ui ) {
+				$( "#pf-r" ).val(ui.value);
+				}
+			});
+			//$( "#pf-r" ).val(( "#slider-pf-r" ).slider( "value" ) );
+			
+			$( "#slider-pf-mr" ).slider({
+			range: "min",
+			value: 255,
+			min: 10,
+			max: 255,
+			slide: function( event, ui ) {
+				$( "#pf-mr" ).val(ui.value);
+				}
+			});
+			//$( "#pf-mr" ).val(( "#slider-pf-mr" ).slider( "value" ) );
 			 
+			 
+			 $( "#slider-pf-ml" ).slider({
+			range: "min",
+			value: 255,
+			min: 10,
+			max: 255,
+			slide: function( event, ui ) {
+				$( "#pf-ml" ).val(ui.value);
+				}
+			});
+			//$( "#pf-ml" ).val(( "#slider-pf-ml" ).slider( "value" ) );
+			 
+			 
+			$( "#slider-pf-l" ).slider({
+			range: "min",
+			value: 255,
+			min: 10,
+			max: 255,
+			slide: function( event, ui ) {
+				$( "#pf-l" ).val(ui.value);
+				}
+			});
+			//$( "#pf-l" ).val(( "#slider-pf-l" ).slider( "value" ) );
+			
+			
+			$( "#slider-pf-ol" ).slider({
+			range: "min",
+			value: 255,
+			min: 10,
+			max: 255,
+			slide: function( event, ui ) {
+				$( "#pf-ol" ).val(ui.value);
+				}
+			});
+			//$( "#pf-ol" ).val(( "#slider-pf-ol" ).slider( "value" ) );
+			 
+			$( "#slider-pr-or" ).slider({
+			range: "min",
+			value: 255,
+			min: 10,
+			max: 255,
+			slide: function( event, ui ) {
+				$( "#pr-or" ).val(ui.value);
+				}
+			});
+			//$( "#pr-or" ).val(( "#slider-pr-or" ).slider( "value" ));
+			
+			
+			$( "#slider-pr-r" ).slider({
+			range: "min",
+			value: 255,
+			min: 10,
+			max: 255,
+			slide: function( event, ui ) {
+				$( "#pr-r" ).val(ui.value);
+				}
+			});
+			//$( "#pr-r" ).val(( "#slider-pr-r" ).slider( "value" ) );
+			
+			$( "#slider-pr-mr" ).slider({
+			range: "min",
+			value: 255,
+			min: 10,
+			max: 255,
+			slide: function( event, ui ) {
+				$( "#pr-mr" ).val(ui.value);
+				}
+			});
+			//$( "#pr-mr" ).val(( "#slider-pr-mr" ).slider( "value" ) );
+			 
+			 
+			 $( "#slider-pr-ml" ).slider({
+			range: "min",
+			value: 255,
+			min: 10,
+			max: 255,
+			slide: function( event, ui ) {
+				$( "#pr-ml" ).val(ui.value);
+				}
+			});
+			//$( "#pr-ml" ).val(( "#slider-pr-ml" ).slider( "value" ) );
+			 
+			 
+			$( "#slider-pr-l" ).slider({
+			range: "min",
+			value: 255,
+			min: 10,
+			max: 255,
+			slide: function( event, ui ) {
+				$( "#pr-l" ).val(ui.value);
+				}
+			});
+			//$( "#pr-l" ).val(( "#slider-pr-l" ).slider( "value" ) );
+			
+			
+			$( "#slider-pr-ol" ).slider({
+			range: "min",
+			value: 255,
+			min: 10,
+			max: 255,
+			slide: function( event, ui ) {
+				$( "#pr-ol" ).val(ui.value);
+				}
+			});
+			//$( "#pr-ol" ).val(( "#slider-pr-ol" ).slider( "value" ) );
+			
 			if(navigator.geolocation){
 				$('#myLocation').removeAttr('disabled');
 			}
 			$('#inputGear').change(function(){
 				now.setGear($('#inputGear').val());	
 			});
+			
+			
 			
 			$('#setTripComputer').click(function(){
 				var tcData = new Object();
@@ -38,25 +181,12 @@
 			});
 
 			$('#setPsFront').click(function(){
-				var psData = new Object();
-				psData.ol = $('#pf-ol').val();
-				psData.l = $('#pf-l').val();
-				psData.ml = $('#pf-ml').val();
-				psData.mr = $('#pf-mr').val();
-				psData.r = $('#pf-r').val();
-				psData.or = $('#pf-or').val();
-				now.setPsFront(psData);	
+				setPsFront();
+
 			});
 
 			$('#setPsRear').click(function(){
-				var psData = new Object();
-				psData.ol = $('#pr-ol').val();
-				psData.l = $('#pr-l').val();
-				psData.ml = $('#pr-ml').val();
-				psData.mr = $('#pr-mr').val();
-				psData.r = $('#pr-r').val();
-				psData.or = $('#pr-or').val();
-				now.setPsRear(psData);	
+				setPsRear();
 			});
 			
 			$('#l-fog-front').bind('click',function(){
@@ -106,6 +236,20 @@
 				now.setDestinationChanged(getAdressData());
 			});
 			
+			$('#setLocation').click(function(){
+				setGeolocation();	
+			});
+			
+			$('#c-alt').bind('change', function(){
+				setGeolocation();
+			});
+			$('#c-speed').bind('change', function(){
+				setGeolocation();
+			});
+			$('#c-heading').bind('change', function(){
+				setGeolocation();
+			});
+			
 			
 			function getAdressData(){
 				var data = new Object();
@@ -145,9 +289,14 @@
 		
 		
 		});
-		
+
+
+	
   var centerPoint = new google.maps.LatLng(48.1794411, 11.529219399999988);
   var markerPoint = new google.maps.LatLng(48.1794411, 11.529219399999988);
+  
+  	
+  
   var marker;
   var position;
   var map;
@@ -158,6 +307,9 @@
       mapTypeId: google.maps.MapTypeId.ROADMAP,
       center: centerPoint
     };
+    
+    $('#c-lng').val(markerPoint.lng());
+	$('#c-lat').val(markerPoint.lat());
 
     map = new google.maps.Map(document.getElementById("map_canvas"),
             mapOptions);
@@ -178,6 +330,41 @@
     	geocoder.geocode({'latLng': position}, handleReversedGeocoder);
     }	
    	 
+   	 
+   	function setGeolocation(){
+   			var position = new Object();
+         	position.coords = new Object();
+			position.coords.latitude = $('#c-lat').val();
+			position.coords.longitude = $('#c-lng').val();
+    		position.coords.accuracy = 99;
+ 			position.coords.heading = $('#c-heading').val();
+			position.coords.speed = $('#c-speed').val();
+			position.coords.altitude = $('#c-alt').val();
+         	now.setGeolocation(position);
+   	}
+   	
+   	function setPsFront(){
+   		var psData = new Object();
+		psData.ol = $('#pf-ol').val();
+		psData.l = $('#pf-l').val();
+		psData.ml = $('#pf-ml').val();
+		psData.mr = $('#pf-mr').val();
+		psData.r = $('#pf-r').val();
+		psData.or = $('#pf-or').val();
+		now.setPsFront(psData);	
+	}
+   	
+   	function setPsRear(){
+   		var psData = new Object();
+		psData.ol = $('#pr-ol').val();
+		psData.l = $('#pr-l').val();
+		psData.ml = $('#pr-ml').val();
+		psData.mr = $('#pr-mr').val();
+		psData.r = $('#pr-r').val();
+		psData.or = $('#pr-or').val();
+		now.setPsRear(psData);	
+   	}
+   	
    	function updateAddress(address){
    	 		for(var i = 0; i < address.address_components.length; i++){
 				var component = address.address_components[i];
@@ -312,20 +499,84 @@
 	<input type='button' id='setTripComputer' value="Set Tripcomputer"/>
 	
 	<h3>Parksensors Front</h3>
-	<p><label>OutLeft:</label><input type='text' value='255' id='pf-ol'></p>
-	<p><label>Left:</label><input type='text' value='255' id='pf-l'></p>
-	<p><label>MidLeft:</label><input type='text' value='255' id='pf-ml'></p>
-	<p><label>MidRight:</label><input type='text' value='255' id='pf-mr'></p>
-	<p><label>Right:</label><input type='text' value='255' id='pf-r'></p>
-	<p><label>OutRight:</label><input type='text' value='255' id='pf-or'></p>
-	<input type='button' id='setPsFront' value="Set Parksensors Front"/>
+	<p>
+	<label for="pf-ol">OutLeft:</label>
+	<input type="text" id="pf-ol" value="255"/>
+	<div id="slider-pf-ol"></div>
+	</p>
+
+	<p>
+	<label for="pf-l">Left:</label>
+	<input type="text" id="pf-l" value="255"/>
+	<div id="slider-pf-l"></div>
+	</p>
+
+	
+	<p>
+	<label for="pf-ml">MidLeft:</label>
+	<input type="text" id="pf-ml" value="255"/>
+	<div id="slider-pf-ml"></div>
+	</p>
+	
+	<p>
+	<label for="pf-mr">MidRight:</label>
+	<input type="text" id="pf-mr" value="255"/>
+	<div id="slider-pf-mr"></div>
+	</p>
+	
+	<p>
+	<label for="pf-r">Right:</label>
+	<input type="text" id="pf-r" value="255"/>
+	<div id="slider-pf-r"></div>
+	</p>
+	
+	<p>
+	<label for="pf-or">OutRight:</label>
+	<input type="text" id="pf-or" value="255"/>
+	<div id="slider-pf-or"></div>
+	</p>	<input type='button' id='setPsFront' value="Set Parksensors Front"/>
 
 	<h3>Parksensors Rear</h3>
-	<p><label>OutLeft:</label><input type='text' value='255' id='pr-ol'></p>
-	<p><label>MidLeft:</label><input type='text' value='255' id='pr-ml'></p>
-	<p><label>MidRight:</label><input type='text' value='255' id='pr-mr'></p>
-	<p><label>Right:</label><input type='text' value='255' id='pr-r'></p>
-	<p><label>OutRight:</label><input type='text' value='255' id='pr-or'></p>
+	<p>
+	<label for="pr-ol">OutLeft:</label>
+	<input type="text" id="pr-ol" value="255"/>
+	<div id="slider-pr-ol"></div>
+	</p>
+
+	<p>
+	<label for="pr-l">Left:</label>
+	<input type="text" id="pr-l" value="255"/>
+	<div id="slider-pr-l"></div>
+	</p>
+
+	
+	<p>
+	<label for="pr-ml">MidLeft:</label>
+	<input type="text" id="pr-ml" value="255"/>
+	<div id="slider-pr-ml"></div>
+	</p>
+	
+	<p>
+	<label for="pr-mr">MidRight:</label>
+	<input type="text" id="pr-mr" value="255"/>
+	<div id="slider-pr-mr"></div>
+	</p>
+	
+	<p>
+	<label for="pr-r">Right:</label>
+	<input type="text" id="pr-r" value="255"/>
+	<div id="slider-pr-r"></div>
+	</p>
+	
+	<p>
+	<label for="pr-or">OutRight:</label>
+	<input type="text" id="pr-or" value="255"/>
+	<div id="slider-pr-or"></div>
+	</p>
+
+
+	
+	
 	<input type='button' id='setPsRear' value="Set Parksensors Rear"/>
 
 	<h3>Lights (in progress) </h3>
@@ -406,8 +657,10 @@
 		<p><input type='button' id='setDestinationReached' value="Destination-reached"/></p>
 		<p><input type='button' id='setDestinationChanged' value="Destination-cancelled"/></p>
 		
-		<h4>Geolocation (in progress)</h4>
-			<p><input type='button' id='setLocation' value="Set Geolocation" disabled/></p>
+		<h4>Geolocation</h4>
+		<p><input type='button' id='setLocation' value="Set Geolocation"/></p>
+		
+		<h4>Device Orientation (Aceleration)</h4>
 		
 	</div>	
 	</div>
