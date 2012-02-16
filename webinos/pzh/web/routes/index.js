@@ -336,7 +336,7 @@ if (req.clientHasCert) {
 
 				if (user.name && user.name.givenName) {
 					req.session.passport.user = user;
-					farm.getPzhInstance(ax.relyingParty.returnUrl.split(':')[1].split('//')[1] + '/' + user.name.givenName, user);
+					app.Pzh = farm.getPzhInstance(ax.relyingParty.returnUrl.split(':')[1].split('//')[1] + '/' + user.name.givenName, user);
 				}
 				else {
 					console.log("User given name is missing");
