@@ -417,10 +417,17 @@ if (typeof webinos.file === "undefined")
 	};
 
 	exports.Entry.deserialize = function (service, object) {
+		var entry;
+
 		if (object.isDirectory)
-			return new exports.DirectoryEntry(exports.FileSystem.deserialize(service, object.filesystem), object.fullPath);
+			entry = new exports.DirectoryEntry(exports.FileSystem.deserialize(service, object.filesystem), object.fullPath);
 		else if (object.isFile)
-			return new exports.FileEntry(exports.FileSystem.deserialize(service, object.filesystem), object.fullPath);
+			entry = new exports.FileEntry(exports.FileSystem.deserialize(service, object.filesystem), object.fullPath);
+
+		// HACK
+		entry._url = object._url;
+
+		return entry;
 	};
 
 	exports.Entry.prototype.isFile = false;
@@ -478,8 +485,9 @@ if (typeof webinos.file === "undefined")
 		}), this)(exports.Entry.serialize(this));
 	};
 
-	exports.Entry.prototype.toURL = function (mimeType) {
-		// TODO ...
+	exports.Entry.prototype.toURL = function () {
+		// HACK
+		return this._url;
 	};
 
 	exports.DirectoryEntry = function (filesystem, fullPath) {

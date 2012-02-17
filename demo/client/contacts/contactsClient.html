@@ -189,7 +189,6 @@ $('#btnAuthenticate').bind('click', function()
       if ($("input[@name='contactType']:checked").val() == 'remote')
       {
         parameters.type = "remote";
-        //TODO set parameters.fields!!!!
 
         //contactsService[0]
 	recentService.isAlreadyAuthenticated(parameters, function(result)
@@ -287,10 +286,17 @@ $('#btnAuthenticate').bind('click', function()
           contactString += "<b>Picture:</b><br>";
           for ( var j = 0; j < list[i].photos.length; j++)
           {
-            if(list[i].photos[j].type=="file") //is base64 string
-                contactString+="<img src=\"data:image/png;base64,"+list[i].photos[j].value+"\" alt=\"Image\"><br>";
-            else if(list[i].photos[j].type=="url") //is an URL
+            if(list[i].photos[j].type=="file") //is base64 string	
+             contactString+="<img src=\"data:image/png;base64,"+list[i].photos[j].value+"\" alt=\"Image\"><br>";
+            
+	    else if(list[i].photos[j].type=="url") //is an URL
                 contactString+="<img src=\""+list[i].photos[j].value+"\" alt=\"Image\"><br>";
+	   
+	   //TODO: quick and dirty solution for android issue. Photos arrays starts as array and get here as object
+	   else { //if (/*(list[i].photos instanceof Object) &&*/ list[i].photos.value) {
+		var photo = list[i].photos[j].value;
+		contactString+="<img alt=\"Image\" , src=\"data:image\/png;base64, "+photo+"\" /><br>";
+	   }
           }
         }
 
@@ -336,11 +342,11 @@ $('#btnAuthenticate').bind('click', function()
               Contacts (GMail) <br> <input type="radio"
                 name="contactType" value="local" id="cnt_local"">Local
               Contacts (Address Book) <br>
-              <!--<label
-                for="addressBookNameText">Local Address Book: </label>-->
+              <label
+                for="addressBookNameText">Local Address Book: </label>
               <!-- We'd better put an "open file" form -->
-              <!--<input type="text" id="addressBookNameText" size="40"
-                placeholder="<path_to_your_Thunderbird_.mab file>" />-->
+              <input type="text" id="addressBookNameText" size="40"
+                placeholder="<path_to_your_Thunderbird_.mab file>" />
               <!-- But it uses C:\fakepath :( ==> no way to get full path <input type="file" id="getAddressBook" accept=".mab">-->
               <br> <label for="usernameText">Username: </label> <input
                 type="text" id="usernameText"
@@ -359,8 +365,8 @@ $('#btnAuthenticate').bind('click', function()
 	    <!--<br>-->
             <button id="btnAuthenticate" class="button">Authenticate/Open</button>
             <br>
-            <button id="btnContacts" class="button">Get All Contacts List</button>
-            <button id="btnFindServiceContacts" class="button">Find Contact!</button>
+            <!--<button id="btnContacts" class="button">Get All Contacts List</button>-->
+            <button id="btnFindServiceContacts" class="button" title="Leave search fields empty to get the whole contacts list">Find Contact!</button>
           </div>
           <!--   </p> -->
 

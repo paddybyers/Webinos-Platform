@@ -50,14 +50,15 @@
 			</td>
 			<td>
 		</tr>
-
-
 		<tr>
 			<td>
-				<button id="getrawcontext" class="button">Get Raw Context
-					Data</button>
+				<button id="getrawcontext" class="button">Get Raw Context Data</button>
 			</td>
-
+		</tr>
+		<tr>
+			<td>
+				<button id="doquery" class="button">Do Query</button>
+			</td>
 		</tr>
 		<tr>
 			<td>
@@ -78,6 +79,8 @@
     webinos.ServiceDiscovery.findServices( 
         new ServiceType('http://webinos.org/api/context'),                         
         {onFound: function (service) {
+          console.log("Service found");
+          console.log(service);
           contextService[service.serviceAddress] = service;
             $('#ContexServices').append($('<option>' + service.serviceAddress + '</option>'));
     }});
@@ -142,67 +145,121 @@
 		
 	});
 	
-    jQuery(window).ready(function() {
-        function fillPZAddrs(data) {
-			var pzhId, connectedPzp, connectedPzh;
-			if(data.from !== "virgin_pzp") {
-				pzhId = data.payload.message.pzhId;
-				connectedPzp = data.payload.message.connectedPzp;
-				connectedPzh = data.payload.message.connectedPzh;
-			}
-			var pzpId = data.from;
+	$('#doquery').bind('click', function() {
+		$("#contextDataTblContainer").html('<img src="./ajaxloader.gif" alt=""/>');
+		var query = {};
+		query.type = "query";
+		query.data = {
+			select: '*',
+			where:[{
+				type:'and',
+				field:'MyPositions.altitude@GeolocationAPI',
+				op: 'le',
+				value:'1',
+			},{
+				type:'and',
+				field:'MyPositions.altitude',
+				op: 'le',
+				value:'1',
+			},{
+				type:'and',
+				field:'fldContextObject',
+				op: 'eq',
+				value:'MyPositions',
+				sub:[{
+					type:'and',
+					field:'fldValueName',
+					op: 'eq',
+					value:'altitude',
+					sub:[{
+						type:'and',
+						field:'fldValue',
+						op: 'le',
+						value:'1'
+					}]
+				}]
+			}]
+		};
+		recentContextService.executeQuery(query, function(result) {
+			$("#contextDataTblContainer").html("Done.");
+			console.log(result);
+		});
+	});
 
+	jQuery(window).ready(
+			function() {
+				function fillPZAddrs(data) {
+					var pzhId, connectedPzp, connectedPzh;
+					if (data.from !== "virgin_pzp") {
+						pzhId = data.payload.message.pzhId;
+						connectedPzp = data.payload.message.connectedPzp;
+						connectedPzh = data.payload.message.connectedPzh;
+					}
+					var pzpId = data.from;
 
-			if(document.getElementById('pzh_pzp_list'))
-				document.getElementById('pzh_pzp_list').innerHTML="";
+					if (document.getElementById('pzh_pzp_list'))
+						document.getElementById('pzh_pzp_list').innerHTML = "";
 
-			$("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
+					$("<optgroup label = 'PZP' id ='pzp_list' >").appendTo(
+							"#pzh_pzp_list");
 
-			var i;
-			if(typeof connectedPzp !== "undefined") {
-				for(i =0; i < connectedPzp.length; i++) {
-					$("<option value=" + connectedPzp[i] + " >" +connectedPzp[i] + "</option>").appendTo("#pzh_pzp_list");                  
+					var i;
+					if (typeof connectedPzp !== "undefined") {
+						for (i = 0; i < connectedPzp.length; i++) {
+							$(
+									"<option value=" + connectedPzp[i] + " >"
+											+ connectedPzp[i] + "</option>")
+									.appendTo("#pzh_pzp_list");
+						}
+					}
+					$("<option value="+pzpId+" >" + pzpId + "</option>")
+							.appendTo("#pzh_pzp_list");
+					$("</optgroup>").appendTo("#pzh_pzp_list");
+					$("<optgroup label = 'PZH' id ='pzh_list' >").appendTo(
+							"#pzh_pzp_list");
+					if (typeof connectedPzh !== "undefined") {
+						for (i = 0; i < connectedPzh.length; i++) {
+							$(
+									"<option value=" + connectedPzh[i] + " >"
+											+ connectedPzh[i] + "</option>")
+									.appendTo("#pzh_pzp_list");
+						}
+					}
+					$("</optgroup>").appendTo("#pzh_pzp_list");
 				}
-			}
-			$("<option value="+pzpId+" >" + pzpId+ "</option>").appendTo("#pzh_pzp_list");                      
-			$("</optgroup>").appendTo("#pzh_pzp_list");
-			$("<optgroup label = 'PZH' id ='pzh_list' >").appendTo("#pzh_pzp_list");
-			if(typeof connectedPzh !== "undefined") {
-				for(i =0; i < connectedPzh.length; i++) {
-					$("<option value=" + connectedPzh[i] + " >" +connectedPzh[i] + "</option>").appendTo("#pzh_pzp_list");                  
+				webinos.session.addListener('registeredBrowser', fillPZAddrs);
+
+				function updatePZAddrs(data) {
+					if (typeof data.payload.message.pzp !== "undefined") {
+						$(
+								"<option value=" + data.payload.message.pzp + " >"
+										+ data.payload.message.pzp
+										+ "</option>").appendTo("#pzp_list");
+					} else {
+						$(
+								"<option value=" + data.payload.message.pzh + " >"
+										+ data.payload.message.pzh
+										+ "</option>").appendTo("#pzh_list");
+					}
 				}
-			}
-			$("</optgroup>").appendTo("#pzh_pzp_list");
-        }
-        webinos.session.addListener('registeredBrowser', fillPZAddrs);
-        
-        function updatePZAddrs(data) {
-            if(typeof data.payload.message.pzp !== "undefined") {
-                $("<option value=" + data.payload.message.pzp + " >" +data.payload.message.pzp + "</option>").appendTo("#pzp_list");
-            } else {
-                $("<option value=" + data.payload.message.pzh + " >" +data.payload.message.pzh + "</option>").appendTo("#pzh_list");
-            }
-        }
-        webinos.session.addListener('update', updatePZAddrs);
-        
-        function printInfo(data) {
-            $('#message').append('<li>'+data.payload.message+'</li>');
-        }
-        webinos.session.addListener('info', printInfo);
-        
-        $(window)
-		    .scroll(UpdateTableHeaders)
-		    .trigger("scroll");
-    });
+				webinos.session.addListener('update', updatePZAddrs);
+
+				function printInfo(data) {
+					$('#message').append(
+							'<li>' + data.payload.message + '</li>');
+				}
+				webinos.session.addListener('info', printInfo);
+
+				$(window).scroll(UpdateTableHeaders).trigger("scroll");
+			});
 
 	function UpdateTableHeaders() {
-		var el = $("#contextDataTblContainer"), 
-			offset = el.offset(), 
-			scrollTop = $(window).scrollTop(), 
-			floatingHeader = $(".floatingHeader", el)
+		var el = $("#contextDataTblContainer"), offset = el.offset(), scrollTop = $(
+				window).scrollTop(), floatingHeader = $(".floatingHeader", el)
 
 		if ((scrollTop > offset.top) && (scrollTop < offset.top + el.height())) {
-			floatingHeader.css("left",  clonedHeaderRow.offset().left - $(window).scrollLeft());
+			floatingHeader.css("left", clonedHeaderRow.offset().left
+					- $(window).scrollLeft());
 			floatingHeader.css({
 				"visibility" : "visible"
 			});

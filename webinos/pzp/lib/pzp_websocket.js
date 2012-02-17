@@ -112,14 +112,6 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 			autoAcceptConnections: true
 		});
 		
-		function messageWS (msg, address) {
-			msg.from = "virgin_pzp";
-			// TODO why is "msg" a whole service object? we should only send the service info fields.
-			if(websocket.connectedApp[address]) {
-				websocket.connectedApp[address].sendUTF(JSON.stringify(msg));
-			}
-		}
-		
 		function connectedApp (connection) {			
 			if(typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
 				instance.sessionWebAppId  = instance.sessionId+ '/'+ instance.sessionWebApp;
@@ -127,12 +119,6 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 				instance.connectedWebApp[instance.sessionWebAppId] = connection;
 				payload = {'pzhId':instance.pzhId,'connectedPzp': instance.connectedPzpIds,'connectedPzh': instance.connectedPzhIds};
 				instance.prepMsg(instance.sessionId, instance.sessionWebAppId, 'registeredBrowser', payload);  
-			} else {
-				websocket.webId += 1;
-				var payload, addr = "virgin_pzp"+'/'+websocket.webId;
-				websocket.connectedApp[addr] = connection;
-				payload = {type:"prop", from:"virgin_pzp", to: addr , payload:{status:"registeredBrowser"}};
-				messageWS(payload, addr);
 			}		
 		}
 		
@@ -202,15 +188,6 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 					if( typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
 						rpc.setSessionId(instance.sessionId);
 						utils.sendMessageMessaging(instance, instance.messageHandler, msg);
-					} else {
-						rpc.setSessionId("virgin_pzp");
-						
-						// FIXME FIXME FIXME where do we get a messagehandler 
-						// instance from to call the following funcs
-//						messaging.setGetOwnId("virgin_pzp");
-//						messaging.setSendMessage(messageWS);
-//						messaging.setSeparator("/");
-//						messaging.onMessageReceived(msg, msg.to);
 					}
 				}
 			});

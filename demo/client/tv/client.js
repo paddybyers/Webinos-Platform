@@ -63,12 +63,12 @@ $(document).ready(function() {
 	var findServiceByName = function(serviceName){
 		
 	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/tv'), {onFound: function (service) {
-	    	if(!isServiceDiscovered(serviceName)){
+	    	//if(!isServiceDiscovered(serviceName)){
     			discoveredServices[serviceName] = service;
-    			log('SERVICE FOUND: '+serviceName);
-	    	}else{
-	    		console.log(serviceName+' already found.');
-	    	}
+    			log('<li>recent TV API found: ' + service.api + ' @ ' + service.serviceAddress + '</li>');
+	    	//}else{
+	    	//	console.log(serviceName+' already found.');
+	    	//}
 	    }});
 	};
 	
@@ -147,6 +147,14 @@ $(document).ready(function() {
 						console.log("ERROR: channel "+$(clickedButton).attr('name')+" not found.");
 					}
 				}
+			break;
+			
+		case 'getEPGPIC':
+			if(isServiceDiscovered('TVManager','TVManager is not discovered yet.')){
+				discoveredServices['TVManager'].display.getEPGPIC('dummychannel',function(epg){
+					console.log(epg);
+				});
+			}
 			break;
 		default:
 			console.log('DEFAULT CASE: action for the button with id '+$(el).attr('id')+' not defined.');

@@ -186,7 +186,7 @@ webinos.context.saveContext = function(dataIn, success, fail) {
               contextItem.method = method.objectName;
               contextItem.timestamp = new Date().getTime();
               contextItem.paramstolog = [];
-              findObjectsToStore(method.outputs,dataIn.result,resultstolog);
+              findObjectsToStore(method.outputs,dataIn.result,contextItem.resultstolog);
 
 
               console.log("Context Object found!");

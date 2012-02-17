@@ -14,5 +14,5 @@ public class SensorEvent implements Dictionary {
 	public int accuracy;
 	public int rate;
 	public boolean interrupt;
-	public float[] sensorValues;
+	public double[] sensorValues;
 }

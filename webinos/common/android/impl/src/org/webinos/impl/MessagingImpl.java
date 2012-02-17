@@ -148,6 +148,12 @@ public class MessagingImpl extends MessagingManager implements IModule {
 	}
 
 	@Override
+	public int onIM(OnIncomingMessage messageHandler) throws DeviceAPIError {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
 	public void unsubscribe(int subscriptionHandler) throws DeviceAPIError {
 		Log.v(LABEL, "unsubscribe - "+subscriptionHandler);
 		SmsReceiver smsReceiver = smsReceiverList.get(subscriptionHandler);
