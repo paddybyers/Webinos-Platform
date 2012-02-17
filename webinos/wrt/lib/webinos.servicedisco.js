@@ -49,7 +49,7 @@
             if (typeof TVManager !== 'undefined') typeMap['http://webinos.org/api/tv'] = TVManager;
             if (typeof DeviceStatusManager !== 'undefined') typeMap['http://wacapps.net/api/devicestatus'] = DeviceStatusManager;
             if (typeof Contacts !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/contacts'] = Contacts;
-            if (typeof Context !== 'undefined') typeMap['http://webinos.org/api/context'] = Context;
+            if (typeof webinos.Context !== 'undefined') typeMap['http://webinos.org/api/context'] = webinos.Context;
             //if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
             if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/api/discovery'] = BluetoothManager;
             if (typeof AuthenticationModule !== 'undefined') typeMap['http://webinos.org/api/authentication'] = AuthenticationModule;

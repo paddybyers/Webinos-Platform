@@ -74,6 +74,6 @@
 	if (typeof module !== 'undefined') {
 		exports.Context = Context;
 	} else {
-		this.Context = Context;
+		webinos.Context = Context;
 	}
 })();
