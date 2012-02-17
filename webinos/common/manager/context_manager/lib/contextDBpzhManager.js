@@ -1,3 +1,20 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+* 
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*  
+*     http://www.apache.org/licenses/LICENSE-2.0
+*  
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+* 
+* Copyright 2011 Impleo Ltd
+******************************************************************************/
 (function() {
   if (typeof webinos === 'undefined') {
     webinos = {};
@@ -59,33 +76,15 @@
       var data = bufferDB.query();
 
       var contextService = [];
-      var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), function(services){
-        //var message = sessionPzp.getMessageHandler();
-//      console.log(message);
-        var pzhService = null;
-        util= require('util');
-        console.log(util.inspect(services, false, null), 'white+red_bg');
-        for (var i=0; i<services.length; i++){
-          if (services[i].serviceAddress == connectedPzh){
-            pzhService = services[i];
-          }
+      var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), function(service){
+        if (service.serviceAddress == connectedPzh){
+          var query = {};
+          query.type = "DB-insert";
+          query.data = data;
+          service.executeQuery(query);
+          bufferDB.db.clear();
+          bufferDB.commit();
         }
-        pzhService.bindService({onBind:function(service) {
-          console.log("Service Bound", 'white+red_bg');
-          var query = {};
-          query.type = "DB-insert";
-          query.data = data;
-          //message.write(query, connectedPzh, 0);
-          var query = {};
-          query.type = "DB-insert";
-          query.data = data;
-          if (pzhService != null){
-            pzhService.executeQuery(query);
-            bufferDB.db.clear();
-            bufferDB.commit();
-          }
-        }});
-
       });
     }
     //success(true);
