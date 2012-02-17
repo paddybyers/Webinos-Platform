@@ -24,6 +24,7 @@
 	var pzhapis    = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_internal_apis.js'));
 	
 	
+	
 	if (typeof exports !== 'undefined') {
 		try {
 
@@ -60,7 +61,9 @@
 		/** This is used for synchronization purpose with connected PZP and PZH */	
 		this.connectedPzpIds = [];
 		
-	    this.conn = [];
+		this.conn = [];
+		this.status = true;
+		this.buffer = [];
 		this.tlsId = [];		
 		var self = this;
 		
@@ -104,30 +107,26 @@
 		var buf, self = this;
 		try{
 			/** TODO: This is a temporary solution to append message with #. This is done in order to identify whole message at receiving end */
+			helper.debug(2, 'PZH Send to '+ address + ' Message '+JSON.stringify(message));
 			buf = new Buffer('#'+JSON.stringify(message)+'#');
 			if (self.connectedPzh.hasOwnProperty(address)) {
-				helper.debug(2, 'PZH ('+self.sessionId+') Msg fwd to connected PZH ' + address);
 				self.connectedPzh[address].socket.pause();
 				self.connectedPzh[address].socket.write(buf);
-				process.nextTick(function () {
-					self.connectedPzh[address].socket.resume();
-				});
+				self.connectedPzh[address].socket.resume();
+
 			} else if (self.connectedPzp.hasOwnProperty(address)) {
 				self.connectedPzp[address].socket.pause();
-				helper.debug(2, 'PZH ('+self.sessionId+') Msg fwd to connected PZP ' + address);
 				self.connectedPzp[address].socket.write(buf);
-				process.nextTick(function () {
-					self.connectedPzp[address].socket.resume();
-				});
+				self.connectedPzp[address].socket.resume();
+
 			} else if( typeof conn !== "undefined" ) {
 				conn.pause();
 				conn.write(buf);
-				process.nextTick(function () {
-					conn.resume();
-				});
+				conn.resume();
 			} else {
 				helper.debug(2, "PZH: Client " + address + " is not connected");
-			} 
+			}
+			
 		} catch(err) {
 			helper.debug(1,'PZH ('+self.sessionId+') Exception in sending packet ' + err);
 			
@@ -390,9 +389,7 @@
 				try {
 					conn.pause();
 					self.processMsg(conn, data);
-					process.nextTick(function () {
-						conn.resume();
-					});
+					conn.resume();
 				} catch (err) {
 					helper.debug(1, 'PZH ('+self.sessionId+') Exception in processing recieved message ' + err);
 				}
@@ -429,37 +426,37 @@
 	}	
 	
 	Pzh.prototype.addNewPZPCert = function (parse, cb) {
-        "use strict";
-    	var self = this;
-	    try {
-	        self.expecting.isExpectedCode(parse.payload.message.code, function(expected) {
-	            if (expected) {
-		            cert.signRequest(self, parse.payload.message.csr, self.config.master, 2, function(result, cert) {
-			            if(result === "certSigned") {
-                            self.expecting.unsetExpected(function() {
-				                //Save this certificate locally on the PZH.
-				                //pzp name: parse.payload.message.name
-				                fs.writeFileSync(self.config.pzhSignedCertDir+'/'+ parse.payload.message.name + ".pem", cert);
-			
-				                var payload = {'clientCert': cert, 'masterCert':self.config.master.cert.value};
-				                var msg = self.prepMsg(self.sessionId, null, 'signedCert', payload);
-				                cb(null, msg);
-				            });
-			            } else {
-			                helper.debug(1, 'PZH ('+self.sessionId+') Error Signing Client Certificate');
-			                cb.call("Could not create client certificate - " + result, null);
-			            }
-		            });
-	            } else {
-                    var payload = {};
-		            var msg = self.prepMsg(self.sessionId, null, 'failedCert', payload);
-		            helper.debug(2, "Failed to create client certificate: not expected");
-		            cb.call(null, msg);
-	            }
-	        });	    	    
+		"use strict";
+		var self = this;
+		try {
+			self.expecting.isExpectedCode(parse.payload.message.code, function(expected) {
+				if (expected) {
+					cert.signRequest(self, parse.payload.message.csr, self.config.master, 2, function(result, cert) {
+						if(result === "certSigned") {
+							self.expecting.unsetExpected(function() {
+								//Save this certificate locally on the PZH.
+								//pzp name: parse.payload.message.name
+								fs.writeFileSync(self.config.pzhSignedCertDir+'/'+ parse.payload.message.name + ".pem", cert);
+
+								var payload = {'clientCert': cert, 'masterCert':self.config.master.cert.value};
+								var msg = self.prepMsg(self.sessionId, null, 'signedCert', payload);
+								cb(null, msg);
+							});
+						} else {
+							helper.debug(1, 'PZH ('+self.sessionId+') Error Signing Client Certificate');
+							cb.call("Could not create client certificate - " + result, null);
+						}
+					});
+				} else {
+					var payload = {};
+					var msg = self.prepMsg(self.sessionId, null, 'failedCert', payload);
+					helper.debug(2, "Failed to create client certificate: not expected");
+						cb.call(null, msg);
+				}
+			});
 
 		} catch (err) {
-    		helper.debug(1, 'PZH ('+self.sessionId+') Error Signing Client Certificate' + err);
+			helper.debug(1, 'PZH ('+self.sessionId+') Error Signing Client Certificate' + err);
 			cb("Could not create client certificate", null);
 		}
 	}
@@ -469,68 +466,76 @@
 	*/
 	Pzh.prototype.processMsg = function(conn, data) {
 		var self = this;
-		utils.processedMsg(self, data, 1, function(parse) {		
-			if(parse.type === 'prop' && parse.payload.status === 'clientCert' ) {
-				self.addNewPZPCert(parse, function(err, msg) {
-                    if (err !== null) {
-                        helper.debug(2, err);
-					    return;
-                    } else { 
-    				    self.sendMessage(msg,null,conn)
-				    }
-				});
-				
-			} else if (parse.type === 'prop' && parse.payload.status === 'pzpDetails') {
-				try {
-					if(self.connectedPzp.hasOwnProperty(parse.from)) {
-						self.connectedPzp[parse.from].port = parse.payload.message;
-						var otherPzp = [], newPzp = false, myKey1, myKey2, msg;
-						for( myKey1 in self.connectedPzp) {
-							if(self.connectedPzp.hasOwnProperty(myKey1)) {
-							if(myKey1 === parse.from) {
-								newPzp = true;
-							}
-						 
-							otherPzp.push({'port': self.connectedPzp[myKey1].port,
-								'name': myKey1,
-								'address': self.connectedPzp[myKey1].address,
-								'newPzp': true});
-							}
-						}
-
-						for( myKey2 in self.connectedPzp) {
-							if(self.connectedPzp.hasOwnProperty(myKey2)) {
-								msg = self.prepMsg(self.sessionId, myKey2, 'pzpUpdate', otherPzp);
-								self.sendMessage(msg, myKey2);
-							}					
-						}
-					} else {
-						helper.debug(1, 'PZH ('+self.sessionId+') Received PZP details from not registered device' + parse.from);
-					}
-				} catch (err1) {
-					helper.debug(1, 'PZH ('+self.sessionId+') Error Updating Pzh/Pzp' + err1);
-					return;
-				}				
-			} else if(parse.type === "prop" && parse.payload.status === 'registerServices') {
-				helper.debug(2, 'Receiving Webinos Services from PZP...');
-				var pzpServices = parse.payload.message;
-				self.rpcHandler.addRemoteServiceObjects(pzpServices);
-			} else if(parse.type === "prop" && parse.payload.status === 'findServices') {
-				helper.debug(2, 'Trying to send Webinos Services from this RPC handler to ' + parse.from + '...');
-				var services = self.rpcHandler.getAllServices(parse.from);
-				var msg = self.prepMsg(self.sessionId, null, 'foundServices', services);
-				msg.payload.id = parse.payload.message.id;
-				self.sendMessage(msg, null, conn);		
-		        helper.debug(2, 'Sent ' + (services && services.length) || 0 + ' Webinos Services from this RPC handler.');
-			} else { // Message is forwarded to Message handler function, onMessageReceived
-				try {			
-					rpc.setSessionId(self.sessionId);
-					utils.sendMessageMessaging(self, this.messageHandler, parse);
-				} catch (err2) {
-					helper.debug(1, 'PZH ('+self.sessionId+') Error Setting RPC Session Id/Message Sending to Messaging ' + err2);
-					return;
+		utils.processedMsg(self, data, 1, function(data3) {
+			for (var i = 1 ; i < (data3.length-1); i += 1 ) {
+				if (data3[i] === '') {
+					continue;
 				}
+				var parse= JSON.parse(data3[i]);
+
+				if(parse.type === 'prop' && parse.payload.status === 'clientCert' ) {
+					self.addNewPZPCert(parse, function(err, msg) {
+						if (err !== null) {
+							helper.debug(2, err);
+							return;
+						} else {
+							self.sendMessage(msg,null,conn)
+						}
+					});
+				} else if (parse.type === 'prop' && parse.payload.status === 'pzpDetails') {
+					try {
+						if(self.connectedPzp.hasOwnProperty(parse.from)) {
+							self.connectedPzp[parse.from].port = parse.payload.message;
+							var otherPzp = [], newPzp = false, myKey1, myKey2, msg;
+							for( myKey1 in self.connectedPzp) {
+								if(self.connectedPzp.hasOwnProperty(myKey1)) {
+								if(myKey1 === parse.from) {
+									newPzp = true;
+								}
+
+								otherPzp.push({'port': self.connectedPzp[myKey1].port,
+									'name': myKey1,
+									'address': self.connectedPzp[myKey1].address,
+									'newPzp': true});
+								}
+							}
+
+							for( myKey2 in self.connectedPzp) {
+								if(self.connectedPzp.hasOwnProperty(myKey2)) {
+									msg = self.prepMsg(self.sessionId, myKey2, 'pzpUpdate', otherPzp);
+									self.sendMessage(msg, myKey2);
+								}
+							}
+						} else {
+							helper.debug(1, 'PZH ('+self.sessionId+') Received PZP details from not registered device' + parse.from);
+						}
+					} catch (err1) {
+						helper.debug(1, 'PZH ('+self.sessionId+') Error Updating Pzh/Pzp' + err1);
+						return;
+					}
+				} else if(parse.type === "prop" && parse.payload.status === 'registerServices') {
+					helper.debug(2, 'Receiving Webinos Services from PZP...');
+					var pzpServices = parse.payload.message;
+					self.rpcHandler.addRemoteServiceObjects(pzpServices);
+				} else if(parse.type === "prop" && parse.payload.status === 'findServices') {
+					helper.debug(2, 'Trying to send Webinos Services from this RPC handler to ' + parse.from + '...');
+					var services = self.rpcHandler.getAllServices(parse.from);
+					var msg = self.prepMsg(self.sessionId, parse.from, 'foundServices', services);
+					msg.payload.id = parse.payload.message.id;
+					self.sendMessage(msg, parse.from);
+					helper.debug(2, 'Sent ' + (services && services.length) || 0 + ' Webinos Services from this RPC handler.');
+				} else { // Message is forwarded to Message handler function, onMessageReceived
+					try {
+						rpc.setSessionId(self.sessionId);
+						utils.sendMessageMessaging(self, this.messageHandler, parse);
+					} catch (err2) {
+						helper.debug(1, 'PZH ('+self.sessionId+') Error Setting RPC Session Id/Message Sending to Messaging ' + err2);
+						return;
+					}
+				}
+				
 			}
+
 		});	
 	};	
 	
