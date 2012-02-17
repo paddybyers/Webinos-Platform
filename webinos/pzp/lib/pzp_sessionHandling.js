@@ -310,10 +310,6 @@
 			try {
 				client.pause(); // This pauses socket, cannot receive messages
 				self.processMsg(data, callback);
-
-					
-				
-				
 				client.resume();// unlocks socket.
 				
 			} catch (err) {
@@ -329,7 +325,7 @@
 			delete self.connectedPzh[self.pzhId];
 			delete self.connectedPzp[self.sessionId];
 			self.pzhId = '';
-			self.sessionId = 'virgin_pzp';
+			self.sessionId = self.config.common.split(':')[0];//Not keeping virgin pzp but instead common name of pzp
 			for ( webApp in self.connectedWebApp ) {
 				if (self.connectedWebApp.hasOwnProperty(webApp)) {
 					var addr = 'virgin_pzp' + '/' + websocket.webId;
@@ -347,11 +343,11 @@
 			utils.debug(1, 'PZP ('+self.sessionId+') Error connecting to PZH ' + err);
 			
 			// connection to PZH refused likely because there is no PZH
-			// go into virgin PZP mode
+			// go into PZP mode from PZH/PZP mode
 			if (err.code === 'ECONNREFUSED') {
 				self.pzhId = '';
 				self.sessionId = 'virgin_pzp';
-				utils.debug(2, 'PZP ('+self.sessionId+') virgin PZP mode');
+				utils.debug(2, 'Virgin PZP mode');
 				callback('startedPZP');
 			}
 		});
@@ -396,10 +392,9 @@
 							if(!self.connectedPzp.hasOwnProperty(msg[i].name)) {
 								self.connectedPzp[msg[i].name] = {'address': msg[i].address, 'port': msg[i].port};
 								self.connectedPzpIds.push(msg[i].name);
-								// FIXME errors related to connectOtherPZP
-	//							if(msg[i].newPzp) {
-	//								self.connectOtherPZP(msg[i]);
-	//							}
+								if(msg[i].newPzp) {
+									pzp_server.connectOtherPZP(self, msg[i]);
+								}
 								self.wsServerMsg("Pzp Joined " + msg[i].name);
 								self.prepMsg(self.sessionId, self.sessionWebAppId, 'update', {pzp: msg[i].name });
 							}
@@ -439,7 +434,7 @@
 	 */
 	sessionPzp.startPzp = function(contents, servername, port, code, modules, callback) {
 		var client      = new Pzp(modules);
-		client.code     = code;		
+		client.code     = code;
 		client.pzhPort  = port;
 		client.modules  = modules;
 		client.contents = contents;
