@@ -85,6 +85,11 @@ this.WidgetConfigProcessor = (function() {
 		this.processListener = processListener;
 		var widgetConfig = this.widgetConfig = new WidgetConfig();
 
+		var error = function() {
+			/* throw to exit the parser */
+			throw 'WidgetConfigProcessor.processConfigurationDocument: error';
+		};
+
 		/********************
 		 * Widget DOM state
 		 ********************/
@@ -697,6 +702,7 @@ this.WidgetConfigProcessor = (function() {
 						 * as an invalid widget package.
 						 */
 						if(required) {
+							Logger.logAction(Logger.LOG_ERROR, 'ta-vOBaOcWfll', 'rejecting unsupported required feature');
 							processingResult.setError(new Artifact(
 									WidgetConfig.STATUS_CAPABILITY_ERROR,
 									Artifact.CODE_INCOMPATIBLE_FEATURE,
@@ -847,7 +853,7 @@ this.WidgetConfigProcessor = (function() {
 					 * character, then the user agent MUST prepend the U+002A ASTERISK to the access-request
 					 * list and skip all steps below.
 					 */
-					if(origin.equals("*")) {
+					if(origin == '*') {
 						Logger.logAction(Logger.LOG_MINOR, "ta-7", "adding wildcard origin");
 						accesses[origin] = AccessRequest.createWildcard();
 						elt.isValid = true;
@@ -984,8 +990,14 @@ this.WidgetConfigProcessor = (function() {
 			parser.on('endElement', endElement);
 			parser.on('endDocument', endDocument);
 			parser.on('text', text);
+			parser.on('error', error);
 
-			parser.parse(configBuffer, {isFinal:true});
+			try {
+				parser.parse(configBuffer, {isFinal:true});
+			} catch(e) {
+				if(processListener)
+					processListener(processingResult);
+			}
 		}
 	};
 
