@@ -46,8 +46,8 @@
 		);
 	}
 	
-	 function subscribeContextEvent(query, successCB,errorCB) {
-    var rpc = webinos.rpcHandler.createRPC(this, "subscribeContextEvent",  query);
+	 function RegisterAppContextEvent(query, successCB,errorCB) {
+    var rpc = webinos.rpcHandler.createRPC(this, "RegisterAppContextEvent",  query);
     webinos.rpcHandler.executeRPC(rpc,
         function (params){
           successCB(params);
