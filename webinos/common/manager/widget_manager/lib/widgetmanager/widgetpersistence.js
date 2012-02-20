@@ -259,7 +259,7 @@ this.WidgetPersistence = (function() {
 	WidgetPersistence.extractFile = function(wgtDir, resource, map, entry) {
 		var buf = resource.readFileSync(map.map(entry));
 		var dest = path.resolve(wgtDir, entry);
-		ManagerUtils.mkdirs(path.basename(dest));
+		ManagerUtils.mkdirs(path.dirname(dest));
 		fs.writeFileSync(dest, buf);
 	};
 
