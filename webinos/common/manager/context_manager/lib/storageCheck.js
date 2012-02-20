@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 * 
-* Copyright 2011 Impleo Ltd
+* Copyright 2012 EPU-National Technical University of Athens
 ******************************************************************************/
 var storageInfo = null;
 var path = require('path');
