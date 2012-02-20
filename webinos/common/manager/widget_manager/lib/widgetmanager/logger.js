@@ -29,7 +29,7 @@ this.Logger = (function() {
 
   /* public static functions */
   Logger.logAction = function(level, action, message) {
-    if(level >= logLevel) {
+    if(level <= logLevel) {
       logHandler('WidgetManager: ' + action + ': ' + message);
     }
   };
