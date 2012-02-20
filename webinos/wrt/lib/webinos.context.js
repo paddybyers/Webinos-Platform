@@ -46,6 +46,18 @@
 		);
 	}
 	
+	 function subscribeContextEvent(query, successCB,errorCB) {
+    var rpc = webinos.rpcHandler.createRPC(this, "subscribeContextEvent",  query);
+    webinos.rpcHandler.executeRPC(rpc,
+        function (params){
+          successCB(params);
+        },
+        function (error){
+          errorCB(error);
+        }
+    );
+  }
+	 
 	function executeQuery(query, successCB,errorCB) {
 	    var rpc = webinos.rpcHandler.createRPC(this, "executeQuery",  query);
 	    webinos.rpcHandler.executeRPC(rpc,
