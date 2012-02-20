@@ -22,6 +22,7 @@ this.ProcessingResult = (function() {
   ProcessingResult.prototype.setError = function(error) {
     Logger.logAction(Logger.LOG_ERROR, error.reason, error.getStatusText());
     this.error = error;
+    this.status = error.status;
   };
 
   ProcessingResult.prototype.setInvalid = function(msg) {
