@@ -140,7 +140,6 @@ this.WidgetProcessor = (function() {
   
   /* public instance methods */
   WidgetProcessor.prototype.onError = function() {
-	console.log('8888888888888888:' + this.processingResult.status);
     if(this.processListener)
       this.processListener(this.processingResult);
   };
