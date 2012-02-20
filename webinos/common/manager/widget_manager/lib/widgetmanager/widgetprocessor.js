@@ -139,11 +139,17 @@ this.WidgetProcessor = (function() {
   WidgetProcessor.isSupportedEncoding = isSupportedEncoding;
   
   /* public instance methods */
-  WidgetProcessor.prototype.setError = function(errorArtifact) {
-    Logger.logAction(Logger.LOG_ERROR, errorArtifact.reason, errorArtifact.getStatusText());
-    this.processingResult.setError(errorArtifact);
+  WidgetProcessor.prototype.onError = function() {
+	console.log('8888888888888888:' + this.processingResult.status);
     if(this.processListener)
       this.processListener(this.processingResult);
+  };
+
+  WidgetProcessor.prototype.setError = function(errorArtifact) {
+    Logger.logAction(Logger.LOG_ERROR, errorArtifact.reason, errorArtifact.getStatusText());
+    console.log('status: ' + errorArtifact.status);
+    this.processingResult.setError(errorArtifact);
+    this.onError();
   };
 
   WidgetProcessor.prototype.setInvalid = function(msg) {
@@ -311,7 +317,7 @@ this.WidgetProcessor = (function() {
       if(processingResult.status == WidgetConfig.STATUS_OK)
         process.nextTick(step8);
       else
-        that.setError(configProcessor.getError());
+        that.onError();
     };
 
     step7 = function() {
