@@ -12,7 +12,7 @@ this.ProcessingResult = (function() {
   }
 
   /* public instance methods */
-  ProcessingResult.prototype.getInstallId = function() { return this.widgetConfig.installId; };
+  ProcessingResult.prototype.getInstallId = function() { return this.widgetConfig ? this.widgetConfig.installId : undefined; };
 
   ProcessingResult.prototype.setStatus = function(status) {
   if(this.status == WidgetConfig.STATUS_OK)
