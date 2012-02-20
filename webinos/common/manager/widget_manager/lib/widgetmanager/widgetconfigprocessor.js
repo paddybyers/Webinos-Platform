@@ -482,7 +482,7 @@ this.WidgetConfigProcessor = (function() {
 						elt.isValid = false;
 						return;
 					}
-					if(!processingResult.getLocalisedFileMapping().contains(path)) {
+					if(!processingResult.localisedFileMapping.contains(path)) {
 						Logger.logAction(Logger.LOG_MINOR, "ta-iuJHnskSHq", "ignoring icon with nonexistent path");
 						elt.isValid = false;
 						return;
@@ -561,7 +561,7 @@ this.WidgetConfigProcessor = (function() {
 						elt.isValid = false;
 						return;
 					}
-					if(!processingResult.getLocalisedFileMapping().contains(path)) {
+					if(!processingResult.localisedFileMapping.contains(path)) {
 						Logger.logAction(Logger.LOG_MINOR, "ta-pIffQywZin, ta-LQcjNKBLUZ", "ignoring content with nonexistent path");
 						elt.isValid = false;
 						return;
