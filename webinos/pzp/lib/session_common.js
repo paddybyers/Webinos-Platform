@@ -112,18 +112,38 @@ exports.removeClient = function(self, conn) {
 	
 	
 };
-
+var message = '';
 exports.processedMsg = function(self, data, dataLen, callback) {
 	"use strict";
 	var msg = data.toString('utf8');
+	
+	// This part of the code is executed when message comes in chunks 
+	// First part of the message coming in
+	if (msg[0] === '#' && msg[msg.length-dataLen] !== '#') {
+		message = msg;
+		return;
+	}
+	// This is the middle of the message
+	if (msg[0] !== '#' && msg[msg.length-dataLen] !== '#') {
+		message += msg;
+		return;
+	}
+	// This is the last part of the message
+	if (msg[0] !== '#' && msg[msg.length-dataLen] === '#') {
+		message += msg;
+		msg = message;
+
+		message = '';
+	}
+	
 	if(msg[0] ==='#' && msg[msg.length-dataLen] === '#') {
 		msg = msg.split('#');
 		var parse = JSON.parse(msg[1]);
-		// TODO POLITO: It is multiple messages in a msg string, check for all of them 
+		// TODO POLITO: It is multiple messages in a msg string, check for all of them
 		// BEGIN OF POLITO MODIFICATIONS
 		var valError = validation.checkSchema(parse);
 		if(valError === false) { // validation error is false, so validation is ok
-			console.log('Received recognized packet ' + JSON.stringify(msg));			
+			console.log('Received recognized packet ' + JSON.stringify(msg));
 		} else if (valError === true) {
 			// for debug purposes, we only print a message about unrecognized packet
 			// in the final version we should throw an error
@@ -138,7 +158,7 @@ exports.processedMsg = function(self, data, dataLen, callback) {
 		}
 
 		callback.call(self, msg);
-	}	
+	}
 };
 
 /**
