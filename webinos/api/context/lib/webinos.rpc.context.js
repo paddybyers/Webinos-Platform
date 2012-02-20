@@ -26,9 +26,10 @@
 	var contextDB = require(webinosRoot
 			+ dependencies.manager.context_manager.location
 			+ 'lib/contextDBpzhManager.js');
-	 var contextDB = require(webinosRoot
+	 var appContext = require(webinosRoot
 	      + dependencies.manager.context_manager.location
-	      + 'lib/contextDBpzhManager.js');
+	      + 'lib/appContext.js');
+	 
 
 	/**
 	 * Webinos Service constructor.
@@ -46,8 +47,12 @@
 
 	RemoteContextManager.prototype = new RPCWebinosService;
 
-	//TODO: RegisterContextEvent
 
+
+	RemoteContextManager.prototype.registerAppContextObject = function(APPName, ContextObjectName, ContextFields, callback) {
+	  appContext.registerContextObject(APPName, ContextObjectName, ContextFields, function(response){callback(response);})
+	}
+	
 	RemoteContextManager.prototype.executeQuery = function(query, successCallback, errorCallback) {
 		switch (query.type) {
 		case "DB-insert":
@@ -62,6 +67,10 @@
 			contextDB.query(query.data, function(results) {
 				successCallback(results);
 			});
+		case "saveAppContext":
+		  appContext.saveAppContext(query.APPName, query.ContextObjectName, query.data function(results){
+		    successCallback(results);
+		  });
 		default:
 			errorCallback(new ContextError("Context Query Type '" + query.type + "' not found"))
 		}
