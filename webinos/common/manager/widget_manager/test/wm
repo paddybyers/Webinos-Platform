@@ -47,15 +47,21 @@ if(argv[0] == 'install') {
     process.exit(1);
   }
 
-  function handlePendingInstall(pendingInstall) {
-    var result = wm.completeInstall(pendingInstall.widgetConfig.installId, true);
+  function handlePendingInstall(processingResult) {
+    if(processingResult.status) {
+      console.log('wm: error: install: ' + processingResult.status);
+      var installId = processingResult.getInstallId();
+      if(installId)
+        wm.abortInstall(installId);
+      return;
+    }
+
+    var result = wm.completeInstall(installId, true);
     if(result)
       console.log('wm: error: install: ' + result);
   }
 
-  var result = wm.prepareInstall(wgt, {}, handlePendingInstall);
-  if(result)
-    console.log('wm: error: install: ' + result);
+  wm.prepareInstall(wgt, {}, handlePendingInstall);
 }
 
 if(argv[0] == 'uninstall') {
