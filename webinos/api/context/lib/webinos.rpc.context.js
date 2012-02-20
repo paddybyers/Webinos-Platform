@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 * 
-* Copyright 2011 Impleo Ltd
+* Copyright 2012 EPU-National Technical University of Athens
 ******************************************************************************/
 
 (function() {
@@ -26,6 +26,9 @@
 	var contextDB = require(webinosRoot
 			+ dependencies.manager.context_manager.location
 			+ 'lib/contextDBpzhManager.js');
+	 var contextDB = require(webinosRoot
+	      + dependencies.manager.context_manager.location
+	      + 'lib/contextDBpzhManager.js');
 
 	/**
 	 * Webinos Service constructor.
