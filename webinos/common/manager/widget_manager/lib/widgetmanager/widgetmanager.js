@@ -19,8 +19,12 @@ this.WidgetManager = (function() {
 			var complete = (--this.pendingAsyncCount == 0);
 			if(complete) {
 				processor.postAsync(this);
-				if(this.listener)
-					this.listener(this.processingResult);
+				if(this.listener) {
+					if(typeof(listener) == 'function')
+						this.listener(this.processingResult);
+					else if(listener.onPrepareComplete)
+						this.listener.onPrepareComplete(this.processingResult);
+				}
 			}
 		}
 	};
@@ -197,6 +201,7 @@ this.WidgetManager = (function() {
 			}
 			return WidgetConfig.STATUS_OK;
 		} catch(e) {
+			Logger.logAction(Logger.LOG_ERROR, "WidgetManager.completeInstall()", e);
 			return WidgetConfig.STATUS_IO_ERROR;
 		}
 	};
