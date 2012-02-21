@@ -4,6 +4,15 @@ this.WidgetManager = (function() {
 	var MODE_INSTALL = 0,
 	    MODE_UPDATE  = 1;
 
+	var callPrepareListener = function(listener, processingResult) {
+		if(listener) {
+			if(typeof(listener) == 'function')
+				listener(processingResult);
+			else if(listener.onPrepareComplete)
+				listener.onPrepareComplete(processingResult);
+		}
+	};
+
 	function PendingInstall(processor, resource, processingResult, widgetConfig, listener) {
 		this.processor = processor;
 		this.resource = resource;
@@ -19,12 +28,7 @@ this.WidgetManager = (function() {
 			var complete = (--this.pendingAsyncCount == 0);
 			if(complete) {
 				processor.postAsync(this);
-				if(this.listener) {
-					if(typeof(listener) == 'function')
-						this.listener(this.processingResult);
-					else if(listener.onPrepareComplete)
-						this.listener.onPrepareComplete(this.processingResult);
-				}
+				callPrepareListener(this.listener, this.processingResult);
 			}
 		}
 	};
@@ -119,8 +123,7 @@ this.WidgetManager = (function() {
 
 		var onProcess = function(processingResult) {
 			if(processingResult.status != WidgetConfig.STATUS_OK) {
-				if(listener)
-					listener(processingResult);
+				callPrepareListener(listener, processingResult);
 				return;
 			}
 
@@ -135,8 +138,7 @@ this.WidgetManager = (function() {
 					existingValidation = WidgetPersistence.readWidgetPolicy(storage, installId);
 					var comparisonResult = processor.compareTo(existingConfig, existingValidation, storage.hasUserdata(installId));
 					if(comparisonResult.getError()) {
-						if(listener)
-							listener(processingResult);
+						callPrepareListener(listener, processingResult);
 						return;
 					}
 				}
@@ -156,7 +158,7 @@ this.WidgetManager = (function() {
 
 			/* process pending async dependencies, if any */
 			var hasAsync = false;
-			if(constraints.processAsyncDependencies) {
+			if(constraints && constraints.processAsyncDependencies) {
 				var dependencies = processor.asyncDependencies;
 				if(dependencies) {
 					for(var i in dependencies) {
@@ -171,8 +173,7 @@ this.WidgetManager = (function() {
 			if(!hasAsync) {
 				/* complete now */
 				that.postAsync(pendingInstall);
-				if(listener)
-					listener(processingResult);
+				callPrepareListener(listener, processingResult);
 			}
 		};
 
