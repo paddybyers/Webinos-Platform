@@ -167,7 +167,7 @@ function updateStatus(text){
   											$(getLinkObj(active)).addClass('active');
   											
   											//updateFocus -- firefox fix for panda
-  											swicth(active){
+  											switch(active){
   												case "#drive":
   													$('#nav1').focus();
   													break;
