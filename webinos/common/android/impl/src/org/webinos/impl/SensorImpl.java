@@ -1,13 +1,31 @@
-/****************
+/*******************************************************************************
+*  Code contributed to the webinos project
+* 
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*  
+*     http://www.apache.org/licenses/LICENSE-2.0
+*  
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+* 
+* Copyright 2012 Sony Mobile Communications
+* 
+******************************************************************************/
+
+/*****************************************************************************
 * Implements SensorImpl.java
 * 
 * This module starts listening to a sensor of a given type using the Android SensorManager.
 * 
 * Note that configureSensor() is not implemented in this module. Instead it must be implemented in pure JS. The only 
-  configuration possible for Anndroid sensors is rate and this is an in-par to watchSensor()
-* 
+* configuration possible for Anndroid sensors is rate and this is an in-par to watchSensor()
 *	
-*********************/
+******************************************************************************/
 
 
 package org.webinos.impl;
