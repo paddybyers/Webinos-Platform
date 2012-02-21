@@ -13,4 +13,15 @@
     <string name="anode_receiver_description">A broadcast receiver for controlling invocations of node.js</string>
     <string name="anode_service">Anode Service</string>
     <string name="anode_service_description">A service that permits the running of node.js invocations in the background</string>
+    <string name="downloading_widget">Downloading application</string>
+    <string name="installing_widget">Installing application</string>
+    <string name="uninstalling_widget">Uninstalling application</string>
+    <string name="scanning_storage_card">Scanning storage card</string>
+    <string name="widget_icon">Widget Icon</string>
+    <string name="list_activity_title">Webinos applications</string>
+    <string name="uninstall_activity_title">Uninstalling application</string>
+    <string name="settings_activity_title">Application details</string>
+    <string name="menu_uninstall">Uninstall</string>
+    <string name="menu_check_for_updates">Check for updates</string>
+    <string name="menu_details">Details</string>
 </resources>

@@ -17,7 +17,7 @@
 <uses-permission android:name="android.permission.RECEIVE_SMS"></uses-permission>
 
     <application android:icon="@drawable/icon" android:label="@string/app_name">
-        <activity android:name="org.webinos.app.AnodeActivity"
+        <activity android:name="org.webinos.app.anode.AnodeActivity"
                   android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -32,11 +32,31 @@
             	  android:label="@string/app_name">
             
         </activity>
-        <activity android:name="org.webinos.impl.widgetmanager.WidgetManagerActivity"
+        <activity android:name=".wrt.ui.WidgetInstallActivity"
             	  android:label="@string/app_name">
-            
         </activity>
-        <receiver android:enabled="true" android:label="@string/anode_receiver" android:exported="true" android:description="@string/anode_receiver_description" android:name="org.webinos.app.AnodeReceiver">
+        <activity android:name=".wrt.ui.WidgetDownloadActivity"
+            	  android:label="@string/app_name">
+            <intent-filter>
+				<action android:name="org.webinos.app.wgt.INSTALL" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<data android:scheme="http" />
+				<data android:scheme="https" />
+				<data android:scheme="file" />
+			</intent-filter>
+        </activity>
+        <activity android:name="org.webinos.app.wrt.ui.WidgetUninstallActivity" android:label="@string/uninstall_activity_title"/>
+        <activity android:name="org.webinos.app.wrt.ui.WidgetSettingsActivity" android:label="@string/settings_activity_title"/>
+        <activity android:name="org.webinos.app.wrt.ui.WidgetListActivity" 
+            	  android:label="@string/list_activity_title"
+                  android:exported="true"
+                  android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <receiver android:enabled="true" android:label="@string/anode_receiver" android:exported="true" android:description="@string/anode_receiver_description" android:name=".anode.AnodeReceiver">
             <intent-filter>
                 <action android:name="org.webinos.app.START" />
             </intent-filter>
@@ -59,12 +79,13 @@
                 <action android:name="org.webinos.app.wgt.UNINSTALL" />
             </intent-filter>
             </receiver>
-        <service android:exported="true" android:enabled="true" android:name=".AnodeService" android:description="@string/anode_service_description" android:label="@string/anode_service"></service>
-        <service android:name="org.webinos.impl.wrtchannel.WebinosSocketService">
+        <service android:exported="true" android:enabled="true" android:name=".anode.AnodeService" android:description="@string/anode_service_description" android:label="@string/anode_service"></service>
+        <service android:name=".wrt.channel.WebinosSocketService">
             <intent-filter>
                 <action android:name="org.webinos.wrt.channel.SERVER" />
             </intent-filter>
         </service>
+        <provider android:name=".wrt.provider.WidgetContentProvider" android:authorities="org.webinos.wrt"></provider>
         
     </application>
 </manifest>

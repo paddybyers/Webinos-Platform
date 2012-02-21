@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package org.webinos.app;
+package org.webinos.app.anode;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,9 +29,10 @@ import org.meshpoint.anode.Runtime.IllegalStateException;
 import org.meshpoint.anode.Runtime.InitialisationException;
 import org.meshpoint.anode.Runtime.NodeException;
 import org.meshpoint.anode.Runtime.StateListener;
-import org.webinos.app.util.ArgProcessor;
-import org.webinos.app.util.ModuleUtils;
-import org.webinos.app.util.ModuleUtils.ModuleType;
+import org.webinos.util.ArgProcessor;
+import org.webinos.util.Constants;
+import org.webinos.util.ModuleUtils;
+import org.webinos.util.ModuleUtils.ModuleType;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -81,6 +82,7 @@ public class AnodeService extends IntentService {
 		(new File(Constants.APP_DIR)).mkdirs();
 		(new File(Constants.MODULE_DIR)).mkdirs();
 		(new File(Constants.RESOURCE_DIR)).mkdirs();
+		(new File(Constants.WRT_DIR)).mkdirs();
 	}
 
     private void initRuntime(String[] opts) {
@@ -112,7 +114,7 @@ public class AnodeService extends IntentService {
 			handleUninstall(intent);
 		}
 	}
-	
+
 	private void handleStart(Intent intent) {
 
 		/* get the launch commandline */

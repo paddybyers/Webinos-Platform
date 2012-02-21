@@ -14,7 +14,9 @@
  *   limitations under the License.
  */
 
-package org.webinos.app;
+package org.webinos.app.anode;
+
+import org.webinos.app.R;
 
 import org.meshpoint.anode.Isolate;
 import org.meshpoint.anode.Runtime;

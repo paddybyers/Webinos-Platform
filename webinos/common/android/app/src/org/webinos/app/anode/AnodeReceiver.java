@@ -14,13 +14,14 @@
  *   limitations under the License.
  */
 
-package org.webinos.app;
+package org.webinos.app.anode;
 
 import org.meshpoint.anode.Isolate;
 import org.meshpoint.anode.Runtime;
 import org.meshpoint.anode.Runtime.IllegalStateException;
 import org.meshpoint.anode.Runtime.NodeException;
-import org.webinos.impl.widgetmanager.WidgetManagerActivity;
+import org.webinos.app.wrt.ui.WidgetInstallActivity;
+import org.webinos.app.wrt.ui.WidgetUninstallActivity;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -92,14 +93,14 @@ public class AnodeReceiver extends BroadcastReceiver {
 		}
 
 		if(ACTION_WGT_INSTALL.equals(action)) {
-			intent.setClassName(ctx, WidgetManagerActivity.class.getName());
+			intent.setClassName(ctx, WidgetInstallActivity.class.getName());
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			ctx.startActivity(intent);
 			return;
 		}
 
 		if(ACTION_WGT_UNINSTALL.equals(action)) {
-			intent.setClassName(ctx, WidgetManagerActivity.class.getName());
+			intent.setClassName(ctx, WidgetUninstallActivity.class.getName());
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			ctx.startActivity(intent);
 			return;
