@@ -35,8 +35,13 @@ this.Config = (function() {
   };
   
   var wrtHome = process.env.WRT_HOME;
-  if(!wrtHome)
-    throw new Error('widgetmanager.Config: FATAL ERROR: WRT_HOME not configured');
+  if(!wrtHome) {
+	  /* FIXME: remove nasty hack */
+	  if(process.platform == 'android')
+		  wrtHome = '/data/data/org.webinos.app/wrt';
+	  else
+		  throw new Error('widgetmanager.Config: FATAL ERROR: WRT_HOME not configured');
+  }
 
   /* public constructor */
   function Config(args) {
