@@ -12,6 +12,7 @@ html, body{
 	height: 100%;
 	float: left;
 	position: relative;
+	z-index: 1;
 }
 
 #bc-nav{
@@ -405,11 +406,12 @@ html, body{
 	position: fixed;
 	top: 0;
 	left: 0;
-	z-index: 500;
+	z-index: 300;
 	height: 100%;
-	width: 100%;
+	width: 60%;
 	background-color: #1f1f1f;
 	display: none;
+	z-index: 2;
 }
 
 #pdcApp{

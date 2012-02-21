@@ -26,7 +26,10 @@
 			max: 255,
 			slide: function( event, ui ) {
 				$( "#pf-or" ).val(ui.value);
-				}
+				},
+			stop:function(event, ui){
+				setPsFront();
+			}
 			});
 			//$( "#pf-or" ).val(( "#slider-pf-or" ).slider( "value" ));
 			
@@ -38,7 +41,10 @@
 			max: 255,
 			slide: function( event, ui ) {
 				$( "#pf-r" ).val(ui.value);
-				}
+				},
+			stop:function(event, ui){
+				setPsFront();
+			}
 			});
 			//$( "#pf-r" ).val(( "#slider-pf-r" ).slider( "value" ) );
 			
@@ -49,7 +55,10 @@
 			max: 255,
 			slide: function( event, ui ) {
 				$( "#pf-mr" ).val(ui.value);
-				}
+				},
+			stop:function(event, ui){
+				setPsFront();
+			}
 			});
 			//$( "#pf-mr" ).val(( "#slider-pf-mr" ).slider( "value" ) );
 			 
@@ -61,7 +70,10 @@
 			max: 255,
 			slide: function( event, ui ) {
 				$( "#pf-ml" ).val(ui.value);
-				}
+				},
+			stop:function(event, ui){
+				setPsFront();
+			}
 			});
 			//$( "#pf-ml" ).val(( "#slider-pf-ml" ).slider( "value" ) );
 			 
@@ -73,7 +85,10 @@
 			max: 255,
 			slide: function( event, ui ) {
 				$( "#pf-l" ).val(ui.value);
-				}
+				},
+			stop:function(event, ui){
+				setPsFront();
+			}
 			});
 			//$( "#pf-l" ).val(( "#slider-pf-l" ).slider( "value" ) );
 			
@@ -85,7 +100,10 @@
 			max: 255,
 			slide: function( event, ui ) {
 				$( "#pf-ol" ).val(ui.value);
-				}
+				},
+			stop:function(event, ui){
+				setPsFront();
+			}
 			});
 			//$( "#pf-ol" ).val(( "#slider-pf-ol" ).slider( "value" ) );
 			 
@@ -96,7 +114,10 @@
 			max: 255,
 			slide: function( event, ui ) {
 				$( "#pr-or" ).val(ui.value);
-				}
+			},
+			stop:function(event, ui){
+				setPsRear();
+			}
 			});
 			//$( "#pr-or" ).val(( "#slider-pr-or" ).slider( "value" ));
 			
@@ -108,7 +129,10 @@
 			max: 255,
 			slide: function( event, ui ) {
 				$( "#pr-r" ).val(ui.value);
-				}
+			},
+			stop:function(event, ui){
+				setPsRear();
+			}
 			});
 			//$( "#pr-r" ).val(( "#slider-pr-r" ).slider( "value" ) );
 			
@@ -119,7 +143,10 @@
 			max: 255,
 			slide: function( event, ui ) {
 				$( "#pr-mr" ).val(ui.value);
-				}
+			},
+			stop:function(event, ui){
+				setPsRear();
+			}
 			});
 			//$( "#pr-mr" ).val(( "#slider-pr-mr" ).slider( "value" ) );
 			 
@@ -131,7 +158,10 @@
 			max: 255,
 			slide: function( event, ui ) {
 				$( "#pr-ml" ).val(ui.value);
-				}
+			},
+			stop:function(event, ui){
+				setPsRear();
+			}
 			});
 			//$( "#pr-ml" ).val(( "#slider-pr-ml" ).slider( "value" ) );
 			 
@@ -143,7 +173,10 @@
 			max: 255,
 			slide: function( event, ui ) {
 				$( "#pr-l" ).val(ui.value);
-				}
+			},
+			stop:function(event, ui){
+				setPsRear();
+			}
 			});
 			//$( "#pr-l" ).val(( "#slider-pr-l" ).slider( "value" ) );
 			
@@ -155,8 +188,52 @@
 			max: 255,
 			slide: function( event, ui ) {
 				$( "#pr-ol" ).val(ui.value);
-				}
+			},
+			stop:function(event, ui){
+				setPsRear();
+			}
 			});
+			
+			
+			$( "#slider-da-x" ).slider({
+			range: "min",
+			value: 0,
+			min: 0,
+			max: 100,
+			slide: function( event, ui ) {
+				$( "#da-x" ).val(ui.value);
+			},
+			stop:function(event, ui){
+				
+			}
+			});
+			$( "#slider-da-y" ).slider({
+			range: "min",
+			value: 0,
+			min: 0,
+			max: 100,
+			slide: function( event, ui ) {
+				$( "#da-y" ).val(ui.value);
+			},
+			stop:function(event, ui){
+				
+			}
+			});
+			
+			$( "#slider-da-z" ).slider({
+			range: "min",
+			value: 0,
+			min: 0,
+			max: 100,
+			slide: function( event, ui ) {
+				$( "#da-z" ).val(ui.value);
+			},
+			stop:function(event, ui){
+				
+			}
+			});
+			
+			
 			//$( "#pr-ol" ).val(( "#slider-pr-ol" ).slider( "value" ) );
 			
 			if(navigator.geolocation){
@@ -166,7 +243,46 @@
 				now.setGear($('#inputGear').val());	
 			});
 			
-			
+			$('#pr-or').change(function(){
+				setPsRear();
+			});
+			$('#pr-r').change(function(){
+				setPsRear();
+			});
+			$('#pr-mr').change(function(){
+				setPsRear();
+			});
+			$('#pr-ml').change(function(){
+				setPsRear();
+			});
+			$('#pr-l').change(function(){
+				setPsRear();
+			});
+			$('#pr-ol').change(function(){
+				setPsRear();
+			});
+
+			$('#pf-or').change(function(){
+				setPsFront();
+			});
+			$('#pf-r').change(function(){
+				setPsFront();
+			});
+			$('#pf-mr').change(function(){
+				setPsFront();
+			});
+			$('#pf-ml').change(function(){
+				setPsFront();
+			});
+			$('#pf-l').change(function(){
+				setPsFront();
+			});
+			$('#pf-ol').change(function(){
+				setPsFront();
+			});
+
+
+
 			
 			$('#setTripComputer').click(function(){
 				var tcData = new Object();
@@ -187,6 +303,10 @@
 
 			$('#setPsRear').click(function(){
 				setPsRear();
+			});
+			
+			$('#setDeviceMotion').click(function(){
+				setDeviceMotion();
 			});
 			
 			$('#l-fog-front').bind('click',function(){
@@ -365,6 +485,20 @@
 		now.setPsRear(psData);	
    	}
    	
+   	function setDeviceMotion(){
+   		var dmData = new Object();
+   		dmData.acceleration = new Object();
+   		dmData.acceleration.x = $('#da-x').val();
+   		dmData.acceleration.y = $('#da-y').val();
+   		dmData.acceleration.z = $('#da-z').val();
+   		dmData.rotationRate = new Object();
+   		dmData.rotationRate.alpha = $('da-ra').val();
+   		dmData.rotationRate.beta = $('da-rb').val();;
+   		dmData.rotationRate.gamma = $('da-rg').val(); ;
+   		dmData.interval = $('#da-i').val();
+  		now.setMotion(dmData);
+   	}
+   	
    	function updateAddress(address){
    	 		for(var i = 0; i < address.address_components.length; i++){
 				var component = address.address_components[i];
@@ -478,7 +612,7 @@
 				<option value=''></option>
 				<option value='0'>R</option>
 				<option value='10'>P</option>
-				<option value='11'>N</option>
+				<option value='11' selected>N</option>
 				<option value='1'>1</option>
 				<option value='2'>2</option>
 				<option value='3'>3</option>
@@ -534,7 +668,8 @@
 	<label for="pf-or">OutRight:</label>
 	<input type="text" id="pf-or" value="255"/>
 	<div id="slider-pf-or"></div>
-	</p>	<input type='button' id='setPsFront' value="Set Parksensors Front"/>
+	</p>	
+	<input type='button' id='setPsFront' value="Set Parksensors Front"/>
 
 	<h3>Parksensors Rear</h3>
 	<p>
@@ -578,7 +713,47 @@
 	
 	
 	<input type='button' id='setPsRear' value="Set Parksensors Rear"/>
+	
+	<h3>Device Motion </h3>
+		<p>
+			<label >x-Motion (lateral):</label><input type='text' value='' id='da-x'>
+			
+		</p>
+		<div id="slider-da-x"></div>
+		<p>
+			<label >y-Motion (lng):</label><input type='text' value='0' id='da-y'>
+			<div id="slider-da-y"></div>
+		</p>
+		<p>
+			<label >z-Motion</label><input type='text' value='0' id='da-z'>
+			<div id="slider-da-z"></div>
+		</p>
+		<p>
+			<label >Interval</label><input type='text' value='500' id='da-i'>
+		</p>
+		
+		<p>
+			<label >Rotation alpha</label><input type='text' value='' id='da-ra'>
+			
+		</p>
+		<div id="slider-da-ra"></div>
+		<p>
+			<label >Rotation beta</label><input type='text' value='' id='da-rb'>
+			<div id="slider-da-rb"></div>
+		</p>
+		<p>
+			<label >Rotation gamma</label><input type='text' value='0' id='da-rg'>
+			<div id="slider-da-rg"></div>
+		</p>
+		<p>
+			<label >Interval (ms)</label><input type='text' value='500' id='da-i'>
+		</p>
+	<input type='button' id='setDeviceMotion' value="Fire DeviceMotion"/>
+		
+	<h3>Device Orientation Event</h3>
 
+
+<!--
 	<h3>Lights (in progress) </h3>
 	<p><label class='box'>Signal left: </label><input type="checkbox" id="l-signal-left" /></p>
 	<p><label class='box'>Signal right: </label><input type="checkbox" id="l-signal-right" /></p>
@@ -620,7 +795,7 @@
 	
 	<input type='button' id='setClimate' value="Set Climate" disabled/>
 	</p>
-
+-->
 
 	</div>
 	<div id="info">
@@ -630,9 +805,9 @@
 			<h4>Coordinates</h4>
 			<p><label >Latitude:</label><input type='text' value='' id='c-lat'></p>
 			<p><label >Longitude:</label><input type='text' value='' id='c-lng'></p>
-			<p><label >Altitude:</label><input type='text' value='0' id='c-alt'></p>
-			<p><label >Speed:</label><input type='text' value='0' id='c-speed'></p>
-			<p><label >Heading:</label><input type='text' value='0' id='c-heading'></p>
+			<p><label >Altitude:</label><input type='text' value='12' id='c-alt'></p>
+			<p><label >Speed:</label><input type='text' value='0.0' id='c-speed'></p>
+			<p><label >Heading:</label><input type='text' value='90.0' id='c-heading'></p>
 			
 			<h4>Address</h4>
 			<p><label >Country:</label><input type='text' value='Deutschland' id='d-country'></p>
@@ -660,7 +835,7 @@
 		<h4>Geolocation</h4>
 		<p><input type='button' id='setLocation' value="Set Geolocation"/></p>
 		
-		<h4>Device Orientation (Aceleration)</h4>
+		
 		
 	</div>	
 	</div>
