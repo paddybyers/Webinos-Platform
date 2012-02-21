@@ -68,7 +68,7 @@
 				successCallback(results);
 			});
 		case "saveAppContext":
-		  appContext.saveAppContext(query.APPName, query.ContextObjectName, query.data function(results){
+		  appContext.saveAppContext(query.APPName, query.ContextObjectName, query.data, function(results){
 		    successCallback(results);
 		  });
 		default:
