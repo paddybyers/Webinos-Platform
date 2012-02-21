@@ -702,7 +702,7 @@ this.WidgetConfigProcessor = (function() {
 						 * as an invalid widget package.
 						 */
 						if(required) {
-							Logger.logAction(Logger.LOG_ERROR, 'ta-vOBaOcWfll', 'rejecting unsupported required feature');
+							Logger.logAction(Logger.LOG_ERROR, 'ta-vOBaOcWfll', 'rejecting unsupported required feature: ' + name);
 							processingResult.setError(new Artifact(
 									WidgetConfig.STATUS_CAPABILITY_ERROR,
 									Artifact.CODE_INCOMPATIBLE_FEATURE,
