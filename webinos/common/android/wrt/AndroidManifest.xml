@@ -21,22 +21,7 @@
             <intent-filter>
                 <action android:name="org.webinos.wrt.STOPALL" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="org.webinos.wrt.INSTALL" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="org.webinos.wrt.UNINSTALL" />
-            </intent-filter>
         </receiver>
-        <activity android:name=".ui.WidgetListActivity" 
-                  android:label="@string/list_activity_title" 
-                  android:exported="true"
-                  android:enabled="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
         <service android:name=".core.WrtManager" android:enabled="true"></service>
         </application>
 </manifest>

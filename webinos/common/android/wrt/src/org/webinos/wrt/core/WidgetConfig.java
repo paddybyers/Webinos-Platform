@@ -1,8 +1,11 @@
 package org.webinos.wrt.core;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
+
+import android.content.ContentResolver;
+import android.net.Uri;
 
 public class WidgetConfig {
 	
@@ -11,19 +14,19 @@ public class WidgetConfig {
 	private Properties config;
 	private String startUrl;
 
-	public WidgetConfig(String installId) throws IOException {
+	public WidgetConfig(ContentResolver resolver, String installId) throws IOException {
 		this.installId = installId;
 		String installDir = WrtManager.getInstance().getWrtDir() + '/' + installId;
 		wgtDir = installDir + "/wgt";
 		config = new Properties();
-		FileInputStream fis = null;
+		InputStream is = null;
 		try {
-			config.load(fis = new FileInputStream(installDir + "/.config"));
+			config.load(is = resolver.openInputStream(Uri.parse("content://org.webinos.wrt/" + installId + "/.config")));
 		} finally {
-			if(fis != null) fis.close();
+			if(is != null) is.close();
 		}
 		String startFile = config.getProperty("widget.startFile.path");
-		startUrl = "file://" + wgtDir + '/' + startFile;
+		startUrl = "content://org.webinos.wrt/" + installId + "/wgt/" + startFile;
 	}
 	
 	public String getInstallId()  { return installId; }

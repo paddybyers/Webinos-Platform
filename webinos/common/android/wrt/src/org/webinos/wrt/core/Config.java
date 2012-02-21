@@ -25,16 +25,16 @@ public class Config extends Properties {
 	private Config(Context ctx) {
 		InputStream is = null;
 		try {
-			System.out.println(Log.v(TAG, "Attempting to load config file from assets"));
+			Log.v(TAG, "Attempting to load config file from assets");
 			load(is = ctx.getAssets().open(CONFIG_FILE));
 		} catch(IOException e) {
-			System.out.println(Log.v(TAG, "Attempting to load config file from filesystem"));
+			Log.v(TAG, "Attempting to load config file from filesystem");
 			try {
 				is.close();
 				String resourcePath = "/data/data/" + this.getClass().getPackage().getName();
 				load(is = new FileInputStream(resourcePath + '/' + CONFIG_FILE));
 			} catch(IOException ioe) {
-				System.out.println(Log.v(TAG, "Unable to load config file", e));
+				Log.v(TAG, "Unable to load config file", e);
 			}
 		} finally {
 			if(is != null)

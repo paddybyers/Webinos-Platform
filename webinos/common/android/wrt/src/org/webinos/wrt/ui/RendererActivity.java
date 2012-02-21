@@ -10,6 +10,7 @@ import org.webinos.wrt.renderer.WebViewClient;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 
 public class RendererActivity extends Activity implements WrtManager.LaunchListener {
 	
@@ -40,6 +41,7 @@ public class RendererActivity extends Activity implements WrtManager.LaunchListe
 			throw new IllegalArgumentException("WrtActivity.onCreate(): missing installId");
 
 		installId = id;
+		Log.v("Wrt", id);
 		WidgetConfig widgetConfig = WrtManager.getInstance().getWidgetConfig(installId);
 		if(widgetConfig == null)
 			throw new RuntimeException("WrtActivity.onCreate(): unable to get widget config");

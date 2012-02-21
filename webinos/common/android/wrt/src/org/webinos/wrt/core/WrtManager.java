@@ -98,11 +98,11 @@ public class WrtManager extends Service implements Iterable<RendererActivity> {
 
 	public WidgetConfig getWidgetConfig(String installId) {
 		try {
-			return new WidgetConfig(installId);
+			return new WidgetConfig(getContentResolver(), installId);
 		} catch(FileNotFoundException e) {
-			Log.v(TAG, "WrtManager.getWidgetConfig(): requested widget not found: " + installId);
+			Log.v(TAG, "WrtManager.getWidgetConfig(): requested widget not found: " + installId, e);
 		} catch(IOException ioe) {
-			Log.v(TAG, "WrtManager.getWidgetConfig(): unexpected exception reading widget configuration: " + ioe.getMessage());
+			Log.v(TAG, "WrtManager.getWidgetConfig(): unexpected exception reading widget configuration: ", ioe);
 		}
 		return null;
 	}
