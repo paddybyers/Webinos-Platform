@@ -1,3 +1,22 @@
+
+/*******************************************************************************
+*  Code contributed to the webinos project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+*     http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+*******************************************************************************/
+
+
 /* 
  *   webinos Personal Zone Hub web interface routes file
  *   
@@ -5,7 +24,6 @@
  *   for managing the personal zone hub.  E.g. adding new devices, revocation,
  *   showing device status, etc.
  *
- *   Original author: John Lyle (john.lyle@cs.ox.ac.uk)
  *
  *
  * TODO - Integrate with a real strategy for managing user identity.  
@@ -164,22 +182,14 @@ module.exports = function(app){
       res.render('login', { user: req.user });
     });
 
-    // GET /auth/google
-    //   Use passport.authenticate() as route middleware to authenticate the
-    //   request.  The first step in Google authentication will involve redirecting
-    //   the user to google.com.  After authenticating, Google will redirect the
-    //   user back to this application at /auth/google/return
+
     app.get('/auth/google', 
       passport.authenticate('google', { failureRedirect: '/login' }),
       function(req, res) {
         res.redirect('/');
-      });
+    });
 
-    // GET /auth/google/return
-    //   Use passport.authenticate() as route middleware to authenticate the
-    //   request.  If authentication fails, the user will be redirected back to the
-    //   login page.  Otherwise, the primary route function function will be called,
-    //   which, in this example, will redirect the user to the home page.
+
     app.get('/auth/google/return', 
       passport.authenticate('google', { failureRedirect: '/login' }),
       function(req, res) {
@@ -194,23 +204,15 @@ module.exports = function(app){
     app.get('/auth/yahoo',
       passport.authenticate('yahoo'),
       function(req, res){
-        // The request will be redirected to Yahoo for authentication, so
-        // this function will not be called.
+        // never called
       });
 
     app.get('/auth/yahoo/return', 
       passport.authenticate('yahoo', { failureRedirect: '/login' }),
       function(req, res) {
-        // Successful authentication, redirect home.
         res.redirect('/');
       });
     
-    
-    // Simple route middleware to ensure user is authenticated.
-    //   Use this route middleware on any resource that needs to be protected.  If
-    //   the request is authenticated (typically via a persistent login session),
-    //   the request will proceed.  Otherwise, the user will be redirected to the
-    //   login page.
     function ensureAuthenticated(req, res, next) {
       if (req.isAuthenticated()) { return next(); }
       res.redirect('/login');
