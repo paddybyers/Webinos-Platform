@@ -165,6 +165,25 @@ function updateStatus(text){
   											active = window.location.hash;
   											$(active).fadeIn(500);
   											$(getLinkObj(active)).addClass('active');
+  											
+  											//updateFocus -- firefox fix for panda
+  											swicth(active){
+  												case "#drive":
+  													$('#nav1').focus();
+  													break;
+  												case "#travel":
+  													$('#nav2').focus();
+  													break;
+  												case "#check":
+  													$('#nav3').focus();
+  													break;
+  												case "#geek":
+  													$('#nav4').focus();  												
+  													break;
+  												default:
+  													break;
+  											}
+  										
   										}
   										
   										if(window.location.hash == '#geek' && selecterOn){
