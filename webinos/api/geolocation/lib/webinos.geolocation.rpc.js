@@ -45,6 +45,7 @@ function GeolocationModule(rpcHandler) {
             console.log(e);
         }
     }
+  vehicleSimulatorAvailable = false;
 
 	
 	if(vehicleBusAvailable){
@@ -58,6 +59,7 @@ function GeolocationModule(rpcHandler) {
         implFile = 'geoip';
 		console.log('using geo ip');
     }
+  implFile = 'geoip';
     
 	var implModule = require('./webinos.geolocation.' + implFile + '.js');
 

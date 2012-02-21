@@ -47,7 +47,7 @@
 =======
   var ServiceDiscovery = require(path.join(webinosRoot, dependencies.wrt.location, 'lib/webinos.servicedisco.js')).ServiceDiscovery;
   var webinosServiceDiscovery = null;
-  
+
   var sqlite3 = require('node-sqlite3').verbose();
 >>>>>>> Context manager code now talks to the pzh.
 
@@ -83,25 +83,26 @@
       var service = webinosServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), {onFound:function(service) {
         var pzhService = null;
         util= require('util');
-        console.log(util.inspect(service, false, null), 'white+red_bg');
+        //console.log(util.inspect(service, false, null), 'white+red_bg');
         if (service.serviceAddress == connectedPzh){
-          pzhService = service;
-        }
-        pzhService.bindService({onBind:function(service) {
-          console.log("Service Bound", 'white+red_bg');
-          var query = {};
-          query.type = "DB-insert";
-          query.data = data;
-          //message.write(query, connectedPzh, 0);
-          var query = {};
-          query.type = "DB-insert";
-          query.data = data;
-          if (pzhService != null){
-            pzhService.executeQuery(query);
+
+          service.bindService({onBind:function(service) {
+            console.log("Service Bound", 'white+red_bg');
+            var query = {};
+            query.type = "DB-insert";
+            query.data = data;
+            //message.write(query, connectedPzh, 0);
+            var query = {};
+            query.type = "DB-insert";
+            query.data = data;
+
+            service.executeQuery(query);
             bufferDB.db.clear();
             bufferDB.commit();
+
           }
-        }});
+          });
+      }
       }});
     }
     //success(true);
@@ -174,6 +175,6 @@
     );
   }
   exports.query = function(data, callback){
-	  require(moduleRoot + '/lib/contextQueryDB.js')(db, data, callback);
+    require(moduleRoot + '/lib/contextQueryDB.js')(db, data, callback);
   }
 })();
