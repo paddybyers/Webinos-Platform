@@ -72,7 +72,8 @@ string glob2regexp (const string& glob) {
 	    else
 		result+=glob[i];
     }
-    result[glob.size()] = 0;
+	// ABOT Commented the following line because I was getting an xstring assert fail "string subscript out of range"
+    //result[glob.size()] = 0;
 //    cout  << "\n Converted " << glob << " to " << result << endl;
     return result;
 }
