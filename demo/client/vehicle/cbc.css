@@ -252,12 +252,12 @@ html, body{
 	font-weight: normal;
 	text-shadow: #313131 1px 1px 2px;
 }
-#bc-nav ul li a:link, a:visited{
+#bc-nav ul li a,, #bc-nav ul li a:link, #bc-nav ul li a:visited{
 	position: relative;
 	text-decoration:none;
 	height: 100%;
 	width: 100%;
-	color:#fff;
+	color: #fff;
 	display: block;
 	font-size: 18px;
 }
