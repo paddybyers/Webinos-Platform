@@ -46,6 +46,18 @@
 		);
 	}
 	
+	 function registerAppContextObject(APPName, ContextObjectName, ContextFields, callback) {
+    var rpc = webinos.rpcHandler.createRPC(this, "registerAppContextObject",  query);
+    webinos.rpcHandler.executeRPC(rpc,
+        function (params){
+      callback(params);
+        },
+        function (error){
+          callback(error);
+        }
+    );
+  }
+	 
 	function executeQuery(query, successCB,errorCB) {
 	    var rpc = webinos.rpcHandler.createRPC(this, "executeQuery",  query);
 	    webinos.rpcHandler.executeRPC(rpc,

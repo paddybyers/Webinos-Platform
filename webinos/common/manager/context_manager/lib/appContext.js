@@ -73,7 +73,7 @@ console.log("Log DB Initialized");
       }
 }
  */
-webinos.context.app.registerContextObject = function(APPName, ContextObjectName, ContextFields) {
+webinos.context.app.registerContextObject = function(APPName, ContextObjectName, ContextFields, callback) {
   //Check if Object Exists
 
   var addFields = function (fields){
@@ -101,11 +101,13 @@ webinos.context.app.registerContextObject = function(APPName, ContextObjectName,
     if(retObject){
       webinos.context.app.replaceContextObject(cObject, function(success){
         console.log("Replaced Context Object " + cObject.ContextObjectName + " in application context vocabulary.");
+        callback({success:true, msg:"Replaced Context Object " + cObject.ContextObjectName + " of Application " + APPName + "  in Application Context Vocabulary"});
       });      
     }
     else {
       webinos.context.app.addContextObject(cObject, function(success){
         console.log("New Application Context Object added!");
+        callback({success:true, msg:"Created new Context Object " + cObject.ContextObjectName + " of Application " + APPName + "  in Application Context Vocabulary"});
       }); 
     }
   });
@@ -113,7 +115,7 @@ webinos.context.app.registerContextObject = function(APPName, ContextObjectName,
 
 //Method to get an Application context Object 
 webinos.context.app.getContextObjectVoc = function(appName, contextObjectName, callback) {
-  webinos.context.app.appVocDB 
+  //webinos.context.app.appVocDB 
 
   var where = {join: "and" , terms:[
                                     {field: "APPname", compare: "equals", value: appName},
