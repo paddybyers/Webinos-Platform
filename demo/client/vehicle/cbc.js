@@ -7,8 +7,8 @@ var geocoder;
 
 var allServices = {};
 var vehicle;
-
 var geolocation;
+var deviceorientation;
 var ps;
 
 var gear;
@@ -276,16 +276,32 @@ function updateStatus(text){
                             updateStatus('geolocation service found');
                             geolocation = service;
             				bindToGeolocation();
-            				$('#loading').addClass('disabled');
                     }});
 		}
+
+			function findDeviceOrientation(){
+				updateStatus('Looking for a Deviceorientation provider');
+			            allServices = {};
+                		deviceorientation = null;
+                		
+                		webinos.ServiceDiscovery.findServices( 
+                        new ServiceType('http://webinos.org/api/deviceorientation'),                         
+                        {onFound: function (service) {
+                            updateStatus('deviceorientation service found');
+                            deviceorientation = service;
+            				bindToDeviceOrientation();
+            				
+                    }});
+		}
+
+
 		
 		function bindToVehicle(){
 			updateStatus('Binding to Vehicle');
 			vehicle.bindService({onBind:function(service) {
 						updateStatus('Bound to Vehicle');
                         logMessage('API ' + service.api + ' bound.');
-            			registerVehicleListeners()
+            			registerVehicleListeners();
             }});
 		}
 		
@@ -293,8 +309,18 @@ function updateStatus(text){
 			updateStatus('Binding to Geolocation');
 			geolocation.bindService({onBind:function(service) {
 						updateStatus('Bound to Geolocation service');
-                        logMessage('API ' + service.api + ' bound.');
-            			registerGeoListener()
+   //                     logMessage('API ' + service.api + ' bound.');
+            			registerGeoListener();
+            			findDeviceOrientation();
+            }});
+		}
+		function bindToDeviceOrientation(){
+			updateStatus('Binding to Deviceorientation');
+			deviceorientation.bindService({onBind:function(service) {
+						updateStatus('Bound to Deviceorientation service');
+ //                       logMessage('API ' + service.api + ' bound.');
+            			registerDoListener();
+            			$('#loading').addClass('disabled');
             }});
 		}
 		
@@ -307,19 +333,19 @@ function updateStatus(text){
 			
 			vehicle.get('tripcomputer', handleAverageData, errorCB);
 			vehicle.addEventListener('tripcomputer', handleAverageData, false);
-			
 			findGeolocation();
-			
-			
-			
 		}
 		
 		function registerGeoListener(){
 			var params = {};
-				geolocation.getCurrentPosition(handlePosition, errorCB, params);
+			geolocation.getCurrentPosition(handlePosition, errorCB, params);
 			ps = geolocation.watchPosition(handlePosition,errorCB, params);
 		}
 		
+		function registerDoListener(){
+			var params = {}
+			deviceorientation.addEventListener('devicemotion',handleDeviceMotion, false);
+		}
 		
 
 
@@ -433,8 +459,9 @@ function handlePosition(data){
 	if(dataModel[1].customField != null){
 		$('#' + dataModel[1].customField).find('.value').html(data.coords.speed);
 	}
+}
 
-	
+function handleDeviceMotion(){
 	
 }
 
