@@ -14,6 +14,7 @@
 * limitations under the License.
 *
 * Copyright 2012 BMW AG
+* Copyright 2011 Alexander Futasz, Fraunhofer FOKUS
 *******************************************************************************/
 
 // implemenation using geoip
