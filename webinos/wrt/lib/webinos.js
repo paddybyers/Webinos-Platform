@@ -17,7 +17,12 @@
 	            if (isNaN(port)) {
 	                port = 81;
 	            }
-	            channel  = new WebSocket('ws://'+window.location.hostname+':'+port);                
+	            var host = window.location.hostname;
+	            if(!host) {
+	            	host = 'localhost';
+	            	port = 8081;
+	            }
+	            channel = new WebSocket("ws://" + host + ":" + port);
 	        } catch(e2) {
 	            channel  = new MozWebSocket('ws://'+window.location.hostname+':'+port);
 	        }
