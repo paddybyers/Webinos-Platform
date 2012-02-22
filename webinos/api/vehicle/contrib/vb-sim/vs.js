@@ -1,3 +1,21 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+*     http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+* Copyright 2012 BMW AG
+******************************************************************************/
+
 (function() {
 
 WDomEvent = function(type, target, currentTarget, eventPhase, bubbles, cancelable, timestamp){
@@ -134,6 +152,53 @@ ControlEvent.prototype.initControlEvent = function(controlId, active){
 	ControlEvent.parent.initEvent.call(this, 'control-event', null, null, null, false, false, stamp);
 }
 
+
+DeviceOrientationEvent = function(alpha, beta, gamma){
+	this.initDeviceOrientationEvent(alpha, beta, gamma);
+}
+
+DeviceOrientationEvent.prototype = new WDomEvent();
+DeviceOrientationEvent.prototype.constructor = DeviceOrientationEvent;
+DeviceOrientationEvent.parent = WDomEvent.prototype; // our "super" property
+
+DeviceOrientationEvent.prototype.initDeviceOrientationEvent = function(alpha, beta, gamma){
+	this.alpha = alpha;
+	this.beta = beta;
+	this.gamma = gamma;
+    
+    var d = new Date();
+    var stamp = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
+    var stamp = stamp + d.getUTCMilliseconds();
+    
+	DeviceOrientationEvent.parent.initEvent.call(this,'deviceorientation', null, null, null, false, false, stamp);
+}
+Acceleration = function(x,y,z){
+	this.x = x;
+	this.y = y;
+	this.z = z;
+}
+RotationRate = function(alpha, beta, gamma){
+	this.alpha = alpha;
+	this.beta = beta;
+	this.gamma = gamma;
+}
+DeviceMotionEvent = function(data){
+	this.initDeviceMotionEvent(data);
+}
+DeviceMotionEvent.prototype = new WDomEvent();
+DeviceMotionEvent.prototype.constructor = DeviceOrientationEvent;
+DeviceMotionEvent.parent = WDomEvent.prototype; // our "super" property
+
+DeviceMotionEvent.prototype.initDeviceMotionEvent = function(data){
+	this.acceleration = data.acceleration;
+	this.accelerationIncludingGravity = null;
+	this.rotationRate = data.rotationRate;
+	this.interval = data.interval;
+ 
+	DeviceOrientationEvent.parent.initEvent.call(this,'devicemotion', null, null, null, false, false, data.stamp);
+}
+
+
 var fs = require('fs'), url = require('url'), path = require('path');
 
 		function getContentType(uri) {
@@ -221,7 +286,12 @@ var lheadData = false;
 //GEOLOCATION
 var gData = false;
 
-    everyone.now.setGear = function(val){
+//DEVICE ORIENTATION & MOTION
+var dmData = new Object();
+var doData = new Object();
+var cnData = new Object();
+
+	everyone.now.setGear = function(val){
         gear = val;
         console.log(gear);
         if(typeof _listeners.gear != 'undefined'){
@@ -337,20 +407,32 @@ var gData = false;
     }
     
     everyone.now.setGeolocation = function(data){
-    	
-    	console.log('setting geolocation');
+ 	   	console.log('setting geolocation');
     	gData = data;
    		var d = new Date();
 		var stamp = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
 		var stamp = stamp + d.getUTCMilliseconds();
 		gData.timestamp = stamp;
-		if(typeof _listeners.lightsSignalWarn != 'undefined'){
+		if(typeof _listeners.geolocation != 'undefined'){
             _listeners.geolocation(gData);
         }
-        
+    }
+    
+    everyone.now.setMotion = function(data){
+    	console.log('setting DeviceMotion');
+    	dmData = data;
+   		var d = new Date();
+		var stamp = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
+		var stamp = stamp + d.getUTCMilliseconds();
+		dmData.timestamp = stamp;
+		if(typeof _listeners.devicemotion != 'undefined'){
+            _listeners.devicemotion(dmData);
+        }
+		
+    }
         
     	
-    }
+    
     
     
     
@@ -398,7 +480,7 @@ var gData = false;
  			case 'geolocation':
             	return gData;
             	break;
- 			default:
+			default:
                 console.log('nothing found...');
             
         }
@@ -457,6 +539,16 @@ var gData = false;
             case 'geolocation':
             	_listeners.geolocation = listener;
             	break;
+			case 'devicemotion':
+            	_listeners.devicemotion = listener;
+            	break;
+			case 'deviceorientation':
+            	_listeners.deviceorientation = listener;
+            	break;
+			case 'compassneedscalibration':
+            	_listeners.compassneedscalibration = listener;
+            	break;
+
             default:
                 console.log('type ' + type + ' undefined.');
         }
