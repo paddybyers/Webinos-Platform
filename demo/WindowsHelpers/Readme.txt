@@ -5,11 +5,12 @@ In order to setup a dev environment for windows you will need the following:
 
 - Python: Download from http://python.org/download/, install and make sure that you add python folder in the path.
 - Visual Studio with C++ support: You may download the express edition from http://www.microsoft.com/visualstudio/en-us/products/2010-editions/visual-cpp-express.
-- apache-ant: Download binaries from http://ant.apache.org/bindownload.cgi, extract them and add the bin folder to your path.
-- source code of node:  
+- Apache-ant: Download binaries from http://ant.apache.org/bindownload.cgi, extract them and add the bin folder to your path.
+- Source code of node:  
 	1) Clone repo https://github.com/joyent/node.git. 
 	2) Execute vcbuild.bat that is located in the root of the repo. 
 	3) Add an environment variable named "NODE_ROOT" to point to that directory (e.g. C:\DEVELOPMENT\Webinos\Node).
+- OpenSSL-Win32: Download from http://www.slproweb.com/products/Win32OpenSSL.html. Don't use the "Light" installer and install it on the default path (e.g. C:\OpenSSL-Win32).
 - Google Chrome: Download and install from https://www.google.com/chrome
 
 If you want to run the XMPP support, you must read the wiki for a list of required modules (http://dev.webinos.org/redmine/projects/wp4/wiki/Windows_Build_Instructions).
