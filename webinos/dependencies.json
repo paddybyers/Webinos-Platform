@@ -52,6 +52,10 @@
       "name": "TV",
       "location": "api/tv/"
     },
+    "oauth": {
+      "name": "oAuth",
+      "location": "api/oauth/"
+    },
     "vehicle": {
       "name": "Vehicle",
       "location": "api/vehicle/"
