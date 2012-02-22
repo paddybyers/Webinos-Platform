@@ -259,7 +259,7 @@
 
 					//this.awaitingResponse[myObject.id] == null;
 					//this.awaitingResponse.splice(myObject.id,1);
-					delete this.awaitingResponse[myObject.id];
+					//delete this.awaitingResponse[myObject.id];
 				}
 			}
 		}
