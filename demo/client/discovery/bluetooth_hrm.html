@@ -11,7 +11,6 @@
 </head>
 
 <body>
-		
 		<div id="numbers">
 			<div id="nmbrmain"><span id="nmbrmainspan">123</span><p>BPM</p></div>
 		</div>
@@ -20,6 +19,7 @@
 			<div><span id="h">00</span>:<span id="m">00</span>:<span id="s">00</span>.<span id="ms">0</span></div>
 		</div>
 		
+		<div id="loader"></div>
 		<div id="graph"><img src="img/median.png" class="graphbckgr" id="pulseMed">
 			<canvas id="canvas" height="100" width="400">
 				<p>
@@ -111,6 +111,8 @@
 		
 		function onFound(service){
 				
+			document.getElementById("loader").innerHTML = "";
+				
 			console.log("onFound callback: found service."); 
 			
 			nmbrmainspan = document.getElementById('nmbrmainspan');
@@ -127,6 +129,13 @@
 		
 		function startHRM()
 		{
+		try {
+				$('#loader').html("<img src='img/ajaxloader.gif'>");
+			}
+			catch(e) {
+			console.log("startHRM - loader: "+e.message);
+			}
+			
 		    var servicetype = {
 			api: 0x00200000
 			} 
