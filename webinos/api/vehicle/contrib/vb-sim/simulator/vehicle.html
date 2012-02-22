@@ -300,20 +300,16 @@
 			$('#pf-ol').change(function(){
 				setPsFront();
 			});
+			
+			$('input[id*="tc-"]').change(function(){
+				setTripComputer();
+			});
 
 
 
 			
 			$('#setTripComputer').click(function(){
-				var tcData = new Object();
-				tcData.c1 = $('#tc-c1').val();
-				tcData.c2 = $('#tc-c2').val();
-				tcData.s1 = $('#tc-s1').val();
-				tcData.s2 = $('#tc-s2').val();
-				tcData.d = $('#tc-d').val();
-				tcData.m = $('#tc-m').val();
-				tcData.r = $('#tc-r').val();
-				now.setTripComputer(tcData);	
+				setTripComputer();
 			});
 
 			$('#setPsFront').click(function(){
@@ -432,8 +428,8 @@
 
 
 	
-  var centerPoint = new google.maps.LatLng(48.1794411, 11.529219399999988);
-  var markerPoint = new google.maps.LatLng(48.1794411, 11.529219399999988);
+  var centerPoint = new google.maps.LatLng(41.38765942141657, 2.1694680888855373);
+  var markerPoint = new google.maps.LatLng(41.38765942141657, 2.1694680888855373);
   
   	
   
@@ -517,8 +513,18 @@
    		dmData.rotationRate.gamma = $('#da-rg').val(); ;
    		dmData.interval = $('#da-i').val();
   		now.setMotion(dmData);
-  		
-  		
+   	}
+   	
+   	function setTripComputer(){
+   		var tcData = new Object();
+		tcData.c1 = $('#tc-c1').val();
+		tcData.c2 = $('#tc-c2').val();
+		tcData.s1 = $('#tc-s1').val();
+		tcData.s2 = $('#tc-s2').val();
+		tcData.d = $('#tc-d').val();
+		tcData.m = $('#tc-m').val();
+		tcData.r = $('#tc-r').val();
+		now.setTripComputer(tcData);	
    	}
    	
    	function updateAddress(address){
@@ -642,7 +648,7 @@
 	<p><label>Avg. Consumption 1:</label><input type='text' value='5.7' id='tc-c1'></p>
 	<p><label>Avg. Consumption 2:</label><input type='text' value='6.1' id='tc-c2'></p>
 	<p><label>Mileage:</label><input type='text' value='11298' id='tc-m'></p>
-	<p><label>Range:</label><input type='text' value='1230.2' id='tc-r'></p>
+	<p><label>Range:</label><input type='text' value='456' id='tc-r'></p>
 	<p><label>Distance:</label><input class='input' type='text' value='33.3' id='tc-d'></p>
 	<input type='button' id='setTripComputer' value="Set Tripcomputer"/>
 	
