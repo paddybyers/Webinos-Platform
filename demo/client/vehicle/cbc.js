@@ -35,8 +35,7 @@ dataModel = [{id: 'selecter-gear', desc:'Gear' , unit: '', defaultV:'N', customF
 {id: 'selecter-avg-speed', desc:'Average Speed' , unit: 'kmh', defaultV:'00.0', customField: null},
 {id: 'selecter-mileage', desc:'Mileage' , unit: 'km', defaultV:'0000.0', customField: null},
 {id: 'selecter-distance', desc:'Trip Distance' , unit: 'km', defaultV:'0.0', customField: null},
-{id: 'selecter-range', desc:'Range' , unit: 'km', defaultV:'0.0', customField: null},
-{id: 'selecter-time', desc:'Time' , unit: 'hh:mm', defaultV:'00:00', customField: null}];
+{id: 'selecter-range', desc:'Range' , unit: 'km', defaultV:'0.0', customField: null}];
 
 
 function initializeMap() {
@@ -452,6 +451,7 @@ function handlePosition(data){
 	$('#v-heading').html(data.coords.heading);
 	$('#v-heading2').html(data.coords.heading);
 	$('#v-speed').html(data.coords.speed);
+	$('#v-speed2').html(data.coords.speed);
 	
 	
 	dataModel[5].defaultV = Math.floor(data.coords.latitude * 10000)/10000;
@@ -480,8 +480,18 @@ function handlePosition(data){
 	}
 }
 
-function handleDeviceMotion(){
+function handleDeviceMotion(data){
+	$('#v-lat-acc').html(data.acceleration.x);
+	$('#v-lng-acc').html(data.acceleration.y);
 	
+	//Lateral
+	if(dataModel[3].customField != null){
+		$('#' + dataModel[3].customField).find('.value').html(data.acceleration.x);
+	}
+	//Longitudinal
+	if(dataModel[4].customField != null){
+		$('#' + dataModel[4].customField).find('.value').html(data.acceleration.y);
+	}
 }
 
 function handleError(error){
