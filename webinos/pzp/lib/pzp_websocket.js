@@ -45,6 +45,11 @@ var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
 	rpc = require(path.join(webinosRoot, dependencies.rpc.location)),
 	validation = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_schema.js')), // ADDED BY POLITO
 	pzp_session = require(path.join(webinosRoot, dependencies.pzp.location));
+
+var wrtServer;
+if(process.platform == 'android') {
+	wrtServer = require('bridge').load('org.webinos.app.wrt.channel.WebinosSocketServerImpl', exports);
+}
 		
 websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort, callback) {		
 		function getContentType(uri) {
@@ -129,11 +134,6 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 
 		});
 
-		var wsServer = new WebSocketServer({
-			httpServer: httpserver,
-			autoAcceptConnections: true
-		});
-		
 		function connectedApp (connection) {			
 			if(typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
 				instance.sessionWebAppId  = instance.sessionId+ '/'+ instance.sessionWebApp;
@@ -144,78 +144,100 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 			}		
 		}
 		
-		wsServer.on('connect', function(connection) {
-			utils.debug(2, "PZP WSServer: Connection accepted.");
-			connectedApp(connection);
+		function wsMessage(connection, utf8Data) {
+			//schema validation
+			var msg;
+			//if(utils.checkSchema(message.utf8Data) === false){
+				msg = JSON.parse(utf8Data);
+			//}else {
+			//	throw new Error('Unrecognized packet');	
+			//}
 			
-			connection.on('message', function(message) {
-				//schema validation
-				var msg;
-				//if(utils.checkSchema(message.utf8Data) === false){
-					msg = JSON.parse(message.utf8Data);
-				//}else {
-				//	throw new Error('Unrecognized packet');	
-				//}
-				
-				// BEGIN OF POLITO MODIFICATIONS
-				var valError = validation.checkSchema(msg);
-				if(valError === false) { // validation error is false, so validation is ok
-					utils.debug(2, 'PZP WSServer: Received recognized packet ' + JSON.stringify(msg));
-				}
-				else if (valError === true) {
-					// For debug purposes, we only print a message about unrecognized packet, 
-					// in the final version we should throw an error.
-					// Currently there is no a formal list of allowed packages and throw errors
-					// would prevent the PZP from working
-					utils.debug(2, 'PZP WSServer: Received unrecognized packet ' + JSON.stringify(msg));
-					console.log(msg);
-				}
-				else if (valError === 'failed') {
-					utils.debug(2, 'PZP WSServer: Validation failed');
-				}
-				else {
-					utils.debug(2, 'PZP WSServer: Invalid validation response ' + valError);
-				}
+			// BEGIN OF POLITO MODIFICATIONS
+			var valError = validation.checkSchema(msg);
+			if(valError === false) { // validation error is false, so validation is ok
+				utils.debug(2, 'PZP WSServer: Received recognized packet ' + JSON.stringify(msg));
+			}
+			else if (valError === true) {
+				// For debug purposes, we only print a message about unrecognized packet, 
+				// in the final version we should throw an error.
+				// Currently there is no a formal list of allowed packages and throw errors
+				// would prevent the PZP from working
+				utils.debug(2, 'PZP WSServer: Received unrecognized packet ' + JSON.stringify(msg));
+				console.log(msg);
+			}
+			else if (valError === 'failed') {
+				utils.debug(2, 'PZP WSServer: Validation failed');
+			}
+			else {
+				utils.debug(2, 'PZP WSServer: Invalid validation response ' + valError);
+			}
 
-				//utils.debug(2, 'PZP WSServer: Received packet ' + JSON.stringify(msg));
+			//utils.debug(2, 'PZP WSServer: Received packet ' + JSON.stringify(msg));
 
-				// END OF POLITO MODIFICATIONS
+			// END OF POLITO MODIFICATIONS
 
-				// Each message is forwarded back to Message Handler to forward rpc message
-				if(msg.type === 'prop' ) {
-					if( msg.payload.status === 'startPzp' ) {
-						instance = pzp_session.startPzp(msg.payload.value, 
-						msg.payload.servername, 
-						msg.payload.serverport,
-						msg.payload.code,
-						msg.payload.modules,
-						function(status) {
-							if(typeof status !== "undefined") {
-								connectedApp(connection);
-								instance.wsServerMsg("Pzp " + instance.sessionId+ " started");
-							}
-						});
-					} else if(msg.payload.status === 'disconnectPzp') {
-						if( typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
-							if(instance.connectedPzp.hasOwnProperty(instance.sessionId)) {
-								instance.connectedPzp[instance.sessionId].socket.end();
-								instance.wsServerMsg("Pzp "+instance.sessionId+" closed");
-							}
+			// Each message is forwarded back to Message Handler to forward rpc message
+			if(msg.type === 'prop' ) {
+				if( msg.payload.status === 'startPzp' ) {
+					instance = pzp_session.startPzp(msg.payload.value, 
+					msg.payload.servername, 
+					msg.payload.serverport,
+					msg.payload.code,
+					msg.payload.modules,
+					function(status) {
+						if(typeof status !== "undefined") {
+							connectedApp(connection);
+							instance.wsServerMsg("Pzp " + instance.sessionId+ " started");
+						}
+					});
+				} else if(msg.payload.status === 'disconnectPzp') {
+					if( typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
+						if(instance.connectedPzp.hasOwnProperty(instance.sessionId)) {
+							instance.connectedPzp[instance.sessionId].socket.end();
+							instance.wsServerMsg("Pzp "+instance.sessionId+" closed");
 						}
 					}
-					else if(msg.payload.status === 'registerBrowser') {
-						connectedApp(connection);
-					}
-				} else {
-					if( typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
-						rpc.setSessionId(instance.sessionId);
-						utils.sendMessageMessaging(instance, instance.messageHandler, msg);
-					}
 				}
+				else if(msg.payload.status === 'registerBrowser') {
+					connectedApp(connection);
+				}
+			} else {
+				if( typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
+					rpc.setSessionId(instance.sessionId);
+					utils.sendMessageMessaging(instance, instance.messageHandler, msg);
+				}
+			}
+		}
+
+		function wsClose(connection) {
+			utils.debug(2, "PZP WSServer: Peer " + connection.remoteAddress + " disconnected.");
+		}
+
+		if(wrtServer) {
+			wrtServer.listener = function(connection) {
+				utils.debug(2, "PZP WRTServer: Connection accepted.");
+				connectedApp(connection);
+
+				connection.listener = {
+					onMessage: function(ev) { wsMessage(connection, ev.data); },
+					onClose: function() { wsClose(connection); },
+					onError: function(reason) { utils.debug(2, "PZP WRTServer: onError(): " + reason); }
+				};
+			};
+		} else {
+			var wsServer = new WebSocketServer({
+				httpServer: httpserver,
+				autoAcceptConnections: true
 			});
-			connection.on('close', function(connection) {
-				utils.debug(2, "PZP WSServer: Peer " + connection.remoteAddress + " disconnected.");
-			});	
-		});
-		
+
+			wsServer.on('connect', function(connection) {
+				utils.debug(2, "PZP WSServer: Connection accepted.");
+				connectedApp(connection);
+
+				connection.on('message', function(message) { wsMessage(connection, message.utf8Data); });
+				connection.on('close', wsClose);	
+			});
+		}
+
 	};
