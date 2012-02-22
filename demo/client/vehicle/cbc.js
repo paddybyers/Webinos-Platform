@@ -1,5 +1,5 @@
-var centerPoint = new google.maps.LatLng(48.1794411, 11.529219399999988);
-var markerPoint = new google.maps.LatLng(48.1794411, 11.529219399999988);
+var centerPoint = new google.maps.LatLng(41.38765942141657, 2.1694680888855373);
+var markerPoint = new google.maps.LatLng(41.38765942141657, 2.1694680888855373);
 var marker;
 var position;
 var map;
@@ -23,19 +23,19 @@ var currentCustomField = '';
 
 
 
-dataModel = [{id: 'selecter-gear', desc:'Gear' , unit: '', defaultV:'N', customField: 'customfield1'}, 
-{id: 'selecter-speed', desc:'Speed' , unit: 'kmph', defaultV:'00.0', customField: 'customfield2'}, 
-{id: 'selecter-heading', desc:'Heading' , unit: '&deg;', defaultV:'00.0', customField: null},
+dataModel = [{id: 'selecter-gear', desc:'Gear' , unit: '', defaultV:'10', customField: 'customfield1'}, 
+{id: 'selecter-speed', desc:'Speed' , unit: 'kmph', defaultV:'0.0', customField: 'customfield2'}, 
+{id: 'selecter-heading', desc:'Heading' , unit: '&deg;', defaultV:'90', customField: null},
 {id: 'selecter-lateral', desc:'Lateral Acceleration' , unit: 'm/s<sup>2</sup>', defaultV:'00.0', customField: null}, 
 {id: 'selecter-longitudinal', desc:'Longitudinal Acceleration' , unit: 'm/s<sup>2</sup>', defaultV:'00.0', customField: null}, 
-{id: 'selecter-lat', desc:'Latitude' , unit: '&deg;', defaultV:'00.00.00', customField: 'customfield3'},
-{id: 'selecter-lng', desc:'Longitude' , unit: '&deg;', defaultV:'00.00.00', customField: 'customfield4'},
+{id: 'selecter-lat', desc:'Latitude' , unit: '&deg;', defaultV:'41.387659', customField: 'customfield3'},
+{id: 'selecter-lng', desc:'Longitude' , unit: '&deg;', defaultV:'2.169468', customField: 'customfield4'},
 {id: 'selecter-alt', desc:'Altitude' , unit: 'm', defaultV:'0', customField: 'customfield5'},
-{id: 'selecter-consumption', desc:'Average Consumption' , unit: 'l/100km', defaultV:'0.0', customField: null},
-{id: 'selecter-avg-speed', desc:'Average Speed' , unit: 'kmh', defaultV:'00.0', customField: null},
-{id: 'selecter-mileage', desc:'Mileage' , unit: 'km', defaultV:'0000.0', customField: null},
-{id: 'selecter-distance', desc:'Trip Distance' , unit: 'km', defaultV:'0.0', customField: null},
-{id: 'selecter-range', desc:'Range' , unit: 'km', defaultV:'0.0', customField: null}];
+{id: 'selecter-consumption', desc:'Average Consumption' , unit: 'l/100km', defaultV:'5.4', customField: null},
+{id: 'selecter-avg-speed', desc:'Average Speed' , unit: 'kmh', defaultV:'47.5', customField: null},
+{id: 'selecter-mileage', desc:'Mileage' , unit: 'km', defaultV:'4351', customField: null},
+{id: 'selecter-distance', desc:'Trip Distance' , unit: 'km', defaultV:'33.3', customField: null},
+{id: 'selecter-range', desc:'Range' , unit: 'km', defaultV:'547', customField: null}];
 
 
 function initializeMap() {
@@ -205,7 +205,6 @@ function updateStatus(text){
                                       pzhId = data.payload.message.pzhId;                                     
                                       connectedPzp = data.payload.message.connectedPzp; // all connected pzp
                                       connectedPzh = data.payload.message.connectedPzh; // all connected pzh
-                                      updateStatus('2: Application registered');
                                       	findVehicle();
 										
                                     }
@@ -220,45 +219,7 @@ function updateStatus(text){
                                     }
                                 }
                                 webinos.session.addListener('update', updatePZAddrs);
-                   				
-                   				
-                   
-                                function printInfo(data) {
-                                	logMessage(data.payload.message);
-                                }
-                                webinos.session.addListener('info', printInfo);
-								
-				$('#registerBrowser').bind('click', function() {
-                                
-                });
-				
-                $('#findService').bind('click', function() {
-                		allServices = {};
-                		vehicle = null;
-                		$('#vehicles').empty();
-                		
-                        webinos.ServiceDiscovery.findServices( 
-                        new ServiceType('http://webinos.org/api/vehicle'),                         
-                        {onFound: function (service) {
-                            vehicle = service;
-                            allServices[service.serviceAddress] = service;
-                            $('#vehicles').append($('<option>' + service.serviceAddress + '</option>'));
-                    		
-                    }});
-                });
-                
- 			$('#bind').bind('click', function() {
-                	//vehicle = allServices[$('#vehicles').attr('recent')];
-                	//console.log(allServices);
-                	vehicle.bindService({onBind:function(service) {
-                        logMessage('API ' + service.api + ' bound.');
-                    }});
-                });
-            $('#getGear').bind('click', function(){
-            	vehicle.get('shift', handleGear, handleError);
-            });
- 
-		startUp();
+        startUp();
 		
 		
 		function startUp(){
@@ -404,6 +365,7 @@ function handleGear(data){
 }
 
 function handleAverageData(data){
+
 	$('#v-avg-speed').html(data.averageSpeed1);
 	$('#v-consumption').html(data.averageConsumption1);
 	$('#v-distance').html(data.tripDistance);
