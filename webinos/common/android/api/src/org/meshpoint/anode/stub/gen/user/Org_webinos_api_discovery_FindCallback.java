@@ -12,19 +12,9 @@ public class Org_webinos_api_discovery_FindCallback extends org.meshpoint.anode.
 
 	private static Object[] __args = new Object[1];
 
-	public void onError(org.webinos.api.discovery.DiscoveryError arg0) {
-		__args[0] = arg0;
-		__invoke(classId, 0, __args);
-	}
-
 	public void onFound(org.webinos.api.discovery.Service arg0) {
 		__args[0] = arg0;
-		__invoke(classId, 1, __args);
-	}
-
-	public void onLost(org.webinos.api.discovery.Service arg0) {
-		__args[0] = arg0;
-		__invoke(classId, 2, __args);
+		__invoke(classId, 0, __args);
 	}
 
 }

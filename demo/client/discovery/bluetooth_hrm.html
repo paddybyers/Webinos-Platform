@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en-US">
+<head>
+<title>Webinos HRM demo</title>
+<link href='http://fonts.googleapis.com/css?family=Bowlby+One+SC' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="./hrm.css">
+<meta name="viewport" content="format-detection=no,initial-scale=1.0,maximum-scale=1.0,user-scalable=0,width=device-width" />
+<script type="text/javascript" src="../webinos.js"></script>
+<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="hrm.js"></script>
+</head>
+
+<body>
+		
+		<div id="numbers">
+			<div id="nmbrmain"><span id="nmbrmainspan">123</span><p>BPM</p></div>
+		</div>
+		<div id="timer">
+			<a href="#" id="timerstart">Start/Pause Clock</a>
+			<div><span id="h">00</span>:<span id="m">00</span>:<span id="s">00</span>.<span id="ms">0</span></div>
+		</div>
+		
+		<div id="graph"><img src="img/median.png" class="graphbckgr" id="pulseMed">
+			<canvas id="canvas" height="100" width="400">
+				<p>
+				YOU YOU ARE NOT USING A BROWSER THAT SUPPORTS THE
+				<a href="http://www.w3.org/html/wg/html5/">HTML5</a>
+				&lt;canvas&gt; FEATURE.
+				</p>
+			</canvas>
+		</div>
+		
+		<!--<div class="connectbuttons"><a href="javascript:startHRM()">StartHRM</a><a href="javascript:stopHRM()">StopHRM</a></div>-->
+		<div class="connectbuttons"><a href="javascript:connectWebinos()">Connect to PZP</a><a href="javascript:startHRM()">StartHRM</a></div>
+		<!--	<INPUT TYPE="submit" onclick="connectWebinos()" VALUE="Find Service" class="button" /><br />-->
+		
+		<img id="imgbckgr" src="img/darkoverlay.png">
+		
+		<!--<div> PZH PZP LIST : <select id="pzh_pzp_list"> <option> </option> </select> <br>
+		
+		</div>--> 
+				
+		<!--	<INPUT TYPE="submit" onclick="connectWebinos()" VALUE="Find Service" class="button" /><br /> --> 
+		
+<script type="text/javascript">
+	
+	jQuery(window).ready(function() {
+            function fillPZAddrs(data) {
+            	var pzhId, connectedPzp, connectedPzh;
+	            if(data.from !== "virgin_pzp") {
+	                pzhId = data.payload.message.pzhId;
+	                connectedPzp = data.payload.message.connectedPzp;
+                    connectedPzh = data.payload.message.connectedPzh;
+	            }
+                var pzpId = data.from;
+               
+                
+                if(document.getElementById('pzh_pzp_list'))
+                    document.getElementById('pzh_pzp_list').innerHTML="";
+        
+                $("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
+                
+                var i;
+                if(typeof connectedPzp !== "undefined") {
+		            for(i =0; i < connectedPzp.length; i++) {
+		                $("<option value=" + connectedPzp[i] + " >" +connectedPzp[i] + "</option>").appendTo("#pzh_pzp_list");                  
+		            }
+		        }
+                $("<option value="+pzpId+" >" + pzpId+ "</option>").appendTo("#pzh_pzp_list");                      
+                $("</optgroup>").appendTo("#pzh_pzp_list");
+                $("<optgroup label = 'PZH' id ='pzh_list' >").appendTo("#pzh_pzp_list");
+                if(typeof connectedPzh !== "undefined") {
+		            for(i =0; i < connectedPzh.length; i++) {
+		                $("<option value=" + connectedPzh[i] + " >" +connectedPzh[i] + "</option>").appendTo("#pzh_pzp_list");                  
+		            }
+		        }
+                $("</optgroup>").appendTo("#pzh_pzp_list");
+            }
+            webinos.session.addListener('registeredBrowser', fillPZAddrs);
+            
+            function updatePZAddrs(data) {
+                if(typeof data.payload.message.pzp !== "undefined") {
+                    $("<option value=" + data.payload.message.pzp + " >" +data.payload.message.pzp + "</option>").appendTo("#pzp_list");
+                } else {
+                    $("<option value=" + data.payload.message.pzh + " >" +data.payload.message.pzh + "</option>").appendTo("#pzh_list");
+                }
+            }
+            webinos.session.addListener('update', updatePZAddrs);
+            
+            function printInfo(data) {
+                $('#message').append('<li>'+data.payload.message+'</li>');
+            }
+            webinos.session.addListener('info', printInfo);
+		});
+	
+</script>
+<script>
+		var bluetoothService = null;
+				
+		function connectWebinos()
+  		{	
+  			//start popup PZP list
+  			
+			webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/discovery'), {onFound: function (service) {
+		
+			alert("Connected to PZP");
+			bluetoothService = service;
+			console.log("bluetoothService:" + bluetoothService);
+			}});
+		} 
+		
+		function onFound(service){
+				
+			console.log("onFound callback: found service."); 
+			
+			nmbrmainspan = document.getElementById('nmbrmainspan');
+			/*nmbr1 = document.getElementById('nmbr1span');
+			nmbr2 = document.getElementById('nmbr2span');
+			nmbr3 = document.getElementById("nmbr3span"); */
+						
+			nmbrmainspan.innerHTML = service.values[0];
+			/*nmbr1.innerHTML = service.values[1];
+			nmbr2.innerHTML = service.values[2];
+			nmbr3.innerHTML = service.values[3]; */
+			
+		}	
+		
+		function startHRM()
+		{
+		    var servicetype = {
+			api: 0x00200000
+			} 
+			try {
+				bluetoothService.findHRM(servicetype, onFound);				 	
+				console.log("findMessagesTests - END");
+			}
+			catch(e) {
+			console.log("findMessagesTests - error: "+e.message);
+			}
+		}
+		
+		function stoptHRM()
+		{
+			console.log("stopHRM");
+		}
+		
+		
+	</script>
+
+	</html>
