@@ -268,9 +268,20 @@ try{
 }catch(e){
     console.log('The Vehicle Simulator requires the node-module now. You can install it by the following command: npm install now.');
 }
-var gear = null;
+var gear = '11';
+
 var tcData = new Object();
+tcData.c1 = 48.5;
+tcData.c2 = 46.5;
+tcData.s1 = 5.7;
+tcData.s2 = 6.1;
+tcData.d = 33.3;
+tcData.m = 11298;
+tcData.r = 456;
+
+
 var psrData = new Object();
+
 var psfData = new Object();
 
 //LIGHTS
@@ -284,10 +295,29 @@ var lswData = false;
 var lheadData = false;
 
 //GEOLOCATION
-var gData = false;
+var gData = new Object();
+gData.coords = new Object();
+gData.coords.latitude = 41.38765942141657;
+gData.coords.longitude = 2.1694680888855373;
+gData.coords.accuracy = 99;
+gData.coords.heading = 90;
+gData.coords.speed = 0.0;
+gData.coords.altitude = 12;
+
 
 //DEVICE ORIENTATION & MOTION
 var dmData = new Object();
+
+dmData.acceleration = new Object();
+dmData.acceleration.x = 0.0;
+dmData.acceleration.y = 0.0;
+dmData.acceleration.z = 0.0;
+dmData.rotationRate = new Object();
+dmData.rotationRate.alpha = 0;
+dmData.rotationRate.beta = 0;
+dmData.rotationRate.gamma = 0;
+dmData.interval = 500;
+
 var doData = new Object();
 var cnData = new Object();
 
