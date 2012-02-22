@@ -18,7 +18,7 @@ this.WidgetConfig = (function() {
   WidgetConfig.serialize = {
     author            : { name : LocalisableString, email: 'string', href: 'string' },
     prefIcon          : 'string',
-    icons             : [ 'string' ],
+    icons             : [ Icon ],
     startFile         : { path: 'string', encoding: 'string', contentType: 'string' },
     description       : LocalisableString,
     height            : 'number',

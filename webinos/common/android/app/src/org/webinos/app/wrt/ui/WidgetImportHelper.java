@@ -18,6 +18,7 @@ import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -49,7 +50,7 @@ public class WidgetImportHelper {
 		}
 	}
 	
-	ListAdapter getListAdapter() {
+	ImportListAdapter getListAdapter() {
 		return new ImportListAdapter();
 	}
 
@@ -132,9 +133,6 @@ public class WidgetImportHelper {
 			return builder.create();
 		}
 		if(id == WidgetListActivity.FOUND_WIDGETS_DIALOG) {
-			ListView foundList = new ListView(activity);
-			final ListAdapter adapter = getListAdapter();
-			foundList.setAdapter(adapter);
 			AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 			builder.setMessage("Available widgets")
 			.setCancelable(false)
@@ -158,10 +156,17 @@ public class WidgetImportHelper {
 				public void onClick(DialogInterface dialog, int id) {
 					dialog.cancel();
 				}
-			})
-			.setView(foundList);
-			return builder.create();
+			});
+			ListView foundList = new ListView(activity);
+			final ListAdapter adapter = getListAdapter();
+			foundList.setAdapter(adapter);
+			builder.setView(foundList);
+			return builder.create(); 
 		}
 		return null;
 	}
+
+	public void onPrepareDialog(int id, Dialog dialog) {
+	}
+
 }

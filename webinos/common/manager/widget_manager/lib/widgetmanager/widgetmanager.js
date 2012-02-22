@@ -150,7 +150,7 @@ this.WidgetManager = (function() {
 			/* extract icon */
 			var widgetConfig = processingResult.widgetConfig;
 			if(widgetConfig.prefIcon)
-				WidgetPersistence.extractFile(this.storage, installId, processingResult.widgetResource, processingResult.localisedFileMapping, widgetConfig.prefIcon.path);
+				WidgetPersistence.extractFile(that.storage.getWidgetDir(installId), processingResult.widgetResource, processingResult.localisedFileMapping, widgetConfig.prefIcon);
 
 			/* if all OK, this pending install is ready for async dependencies */
 			var pendingInstall = new PendingInstall(processor, processor.getWidgetResource(), processingResult, widgetConfig, listener);

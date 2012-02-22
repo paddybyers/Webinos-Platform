@@ -130,6 +130,12 @@ public class WidgetListActivity extends ListActivity implements WidgetManagerSer
 	}
 
 	@Override
+	public void onPrepareDialog(int id, Dialog dialog) {
+		scanner.onPrepareDialog(id, dialog);
+		super.onPrepareDialog(id, dialog);
+	}
+
+	@Override
 	public void onWidgetChanged(String installId, int event) {
 		asyncRefreshHandler.sendEmptyMessage(0);
 	}

@@ -75,7 +75,8 @@ public class WidgetListAdapter extends ArrayAdapter<String> {
 		if(prefIcon == null || prefIcon.isEmpty()) {
 			imageView.setImageResource(R.drawable.widget_icon);
 		} else {
-			imageView.setImageDrawable(Drawable.createFromPath(WidgetManagerService.getInstance().getWidgetDir(installId) + "/.wgt/" + prefIcon));
+			String iconPath = WidgetManagerService.getInstance().getWidgetDir(installId) + '/' + prefIcon;
+			imageView.setImageDrawable(Drawable.createFromPath(iconPath));
 		}
 
 		return rowView;

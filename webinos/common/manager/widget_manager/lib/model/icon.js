@@ -9,5 +9,11 @@ this.Icon = (function() {
     this.height = -1;
   }
 
+  Icon.serialize = {
+    path: 'string',
+    width: 'number',
+    height: 'number'
+  };
+
   return Icon;
 })();
