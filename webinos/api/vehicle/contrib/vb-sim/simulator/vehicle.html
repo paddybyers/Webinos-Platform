@@ -200,11 +200,12 @@
 			value: 0,
 			min: 0,
 			max: 100,
+			step: 0.1,
 			slide: function( event, ui ) {
 				$( "#da-x" ).val(ui.value);
 			},
 			stop:function(event, ui){
-				
+				setDeviceMotion();
 			}
 			});
 			$( "#slider-da-y" ).slider({
@@ -212,11 +213,12 @@
 			value: 0,
 			min: 0,
 			max: 100,
+			step: 0.1,
 			slide: function( event, ui ) {
 				$( "#da-y" ).val(ui.value);
 			},
 			stop:function(event, ui){
-				
+				setDeviceMotion();
 			}
 			});
 			
@@ -225,11 +227,12 @@
 			value: 0,
 			min: 0,
 			max: 100,
+			step: 0.1,
 			slide: function( event, ui ) {
 				$( "#da-z" ).val(ui.value);
 			},
 			stop:function(event, ui){
-				
+				setDeviceMotion();
 			}
 			});
 			
@@ -492,11 +495,13 @@
    		dmData.acceleration.y = $('#da-y').val();
    		dmData.acceleration.z = $('#da-z').val();
    		dmData.rotationRate = new Object();
-   		dmData.rotationRate.alpha = $('da-ra').val();
-   		dmData.rotationRate.beta = $('da-rb').val();;
-   		dmData.rotationRate.gamma = $('da-rg').val(); ;
+   		dmData.rotationRate.alpha = $('#da-ra').val();
+   		dmData.rotationRate.beta = $('#da-rb').val();;
+   		dmData.rotationRate.gamma = $('#da-rg').val(); ;
    		dmData.interval = $('#da-i').val();
   		now.setMotion(dmData);
+  		
+  		
    	}
    	
    	function updateAddress(address){
@@ -518,23 +523,15 @@
 					case 'postal_code':
 						$('#d-postalcode').val(component.long_name);
 						break;
-						
 					case 'administrative_area_level_1': //STATES
 						$('#d-region').val(component.long_name);
 						break;
-
-			
 					case 'administrative_area_level_3': //COUNTIES				
 						$('#d-county').val(component.long_name);
 						break;
-					
-							
 					case 'administrative_area_level_2': //COUNTIES				
 						$('#d-county').val(component.long_name);
 						break;
-
-
-						
 					case 'locality': //CITY				
 						$('#d-city').val(component.long_name);
 						break;
@@ -716,7 +713,7 @@
 	
 	<h3>Device Motion </h3>
 		<p>
-			<label >x-Motion (lateral):</label><input type='text' value='' id='da-x'>
+			<label >x-Motion (lateral):</label><input type='text' value='0' id='da-x'>
 			
 		</p>
 		<div id="slider-da-x"></div>
@@ -729,16 +726,12 @@
 			<div id="slider-da-z"></div>
 		</p>
 		<p>
-			<label >Interval</label><input type='text' value='500' id='da-i'>
-		</p>
-		
-		<p>
-			<label >Rotation alpha</label><input type='text' value='' id='da-ra'>
+			<label >Rotation alpha</label><input type='text' value='0' id='da-ra'>
 			
 		</p>
 		<div id="slider-da-ra"></div>
 		<p>
-			<label >Rotation beta</label><input type='text' value='' id='da-rb'>
+			<label >Rotation beta</label><input type='text' value='0' id='da-rb'>
 			<div id="slider-da-rb"></div>
 		</p>
 		<p>

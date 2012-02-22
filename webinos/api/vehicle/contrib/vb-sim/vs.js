@@ -389,8 +389,7 @@ var cnData = new Object();
     }
     
     everyone.now.setGeolocation = function(data){
- 	   	
-    	console.log('setting geolocation');
+ 	   	console.log('setting geolocation');
     	gData = data;
    		var d = new Date();
 		var stamp = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
@@ -399,6 +398,7 @@ var cnData = new Object();
 		if(typeof _listeners.geolocation != 'undefined'){
             _listeners.geolocation(gData);
         }
+    }
     
     everyone.now.setMotion = function(data){
     	console.log('setting DeviceMotion');
@@ -414,7 +414,7 @@ var cnData = new Object();
     }
         
     	
-    }
+    
     
     
     

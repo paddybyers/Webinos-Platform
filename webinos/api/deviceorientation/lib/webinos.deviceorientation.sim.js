@@ -84,11 +84,11 @@ function setRPCHandler(rpcHdlr) {
 	rpcHandler = rpcHdlr;
 }
 
-function handleDeviceMotion(doData){
+function handleDeviceMotion(doEvent){
 	if(listeningToDeviceMotion){
         for(i = 0; i < objectRefsDo.length; i++){
 			if(objectRefsDo[i][1] == "devicemotion"){
-   				json = rpcHandler.createRPC(objectRefs[i][0], "onEvent", doEvent);
+   				json = rpcHandler.createRPC(objectRefsDo[i][0], "onEvent", doEvent);
                 rpcHandler.executeRPC(json);
 			}
 		}

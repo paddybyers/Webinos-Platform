@@ -10,9 +10,32 @@ function DeviceOrientationModule(rpcHandler) {
 		var vehicleBusAvailable = false;
 		var car = null;
 	}
+	if(!vehicleBusAvailable){
+    	try{
+            //try to getSimulator
+            car = require('../../vehicle/contrib/vb-sim/vs.js');
+            vehicleSimulatorAvailable = true;
+        }catch(e){
+            vehicleSimulatorAvailable = false;
+            console.log(e);
+        }
+    }
+
 	
-	var implFile = vehicleBusAvailable ? 'vehicle' : 'fake';
+	if(vehicleBusAvailable){
+        implFile = 'vehicle';
+        console.log('connecting to vehicle');
+    }else if(vehicleSimulatorAvailable){
+        implFile = 'sim';
+        console.log('connecting to simulator');
+        console.log('simulator available at http://localhost:9898/simulator/vehicle.html');
+    }else{
+        implFile = 'fake';
+		console.log('using fake events');
+    }
+
 	var implModule = require('./webinos.deviceorientation.' + implFile + '.js');
+
 
 	implModule.setRPCHandler(rpcHandler);
 	implModule.setRequired(car);
