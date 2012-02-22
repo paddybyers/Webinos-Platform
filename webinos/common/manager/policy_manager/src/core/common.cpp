@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright 2010 Telecom Italia SpA
- *  
+ *  Code contributed to the webinos project
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,7 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * Copyright 2011 Telecom Italia SpA
+ * 
  ******************************************************************************/
+
 #include <cstdio>
 #include <cstring>
 #include <cassert>
@@ -68,7 +72,8 @@ string glob2regexp (const string& glob) {
 	    else
 		result+=glob[i];
     }
-    result[glob.size()] = 0;
+	// ABOT Commented the following line because I was getting an xstring assert fail "string subscript out of range"
+    //result[glob.size()] = 0;
 //    cout  << "\n Converted " << glob << " to " << result << endl;
     return result;
 }

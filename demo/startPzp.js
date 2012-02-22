@@ -1,3 +1,21 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+*******************************************************************************/
+
+
 var pzp = require('../webinos/pzp/lib/pzp_sessionHandling.js'),
 	websocket = require('../webinos/pzp/lib/pzp_websocket.js'),
 	fs = require('fs'),
@@ -61,7 +79,7 @@ var pzpModules = [
     {name: "file", param: {}},
     {name: "geolocation", param: {}},
     {name: "applauncher", param: {}},
-//    {name: "events", param: {}},
+    {name: "events", param: {}},
     {name: "sensors", param: {}},
     {name: "payment", param: {}},
     {name: "tv", param: {}},
@@ -70,7 +88,8 @@ var pzpModules = [
     {name: "context", param: {}},
     {name: "authentication", param: {}},
     {name: "contacts", param: {}},
-    {name: "devicestatus", param: {}}
+    {name: "devicestatus", param: {}},
+    {name: "discovery", param: {}}
 ];
 
 if (options.pzhHost === '' || options.pzhPort <= 0) {
@@ -80,7 +99,6 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		var config;
 		
 		if (err) {
-			console.warn("could not load config-pzp.json\n" + err.toString());
 			config = {};
 		}
 		else {
@@ -97,10 +115,10 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 			config.pzpHost='localhost';
 		}
 		if (!config.pzpHttpPort) {
-			config.pzpHttpPort = 8081;
+			config.pzpHttpPort = 8080;
 		}
 		if (!config.pzpWebsocketPort) {
-			config.pzpWebsocketPort = 8082;
+			config.pzpWebsocketPort = 8081;
 		}
 		if (!config.pzpName) {
 			config.pzpName = 'WebinosPzp';

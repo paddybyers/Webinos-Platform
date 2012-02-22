@@ -71,6 +71,10 @@
     "payment": {
       "name": "Payment",
       "location": "api/payment/"
+    },
+    "discovery": {
+      "name": "Discovery",
+      "location": "api/discovery/"
     }
   },
   "manager": {

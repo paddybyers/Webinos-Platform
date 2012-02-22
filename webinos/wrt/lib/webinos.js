@@ -1,3 +1,20 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+* 
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*  
+*     http://www.apache.org/licenses/LICENSE-2.0
+*  
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+* 
+* Copyright 2011 Alexander Futasz, Fraunhofer FOKUS
+******************************************************************************/
 (function() {
     if (typeof webinos === "undefined") webinos = {};
     var channel = null;
@@ -90,7 +107,8 @@
             if (typeof DeviceStatusManager !== 'undefined') typeMap['http://wacapps.net/api/devicestatus'] = DeviceStatusManager;
             if (typeof Contacts !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/contacts'] = Contacts;
             if (typeof Context !== 'undefined') typeMap['http://webinos.org/api/context'] = Context;
-            if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
+            //if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/manager/discovery/bluetooth'] = BluetoothManager;
+            if (typeof BluetoothManager !== 'undefined') typeMap['http://webinos.org/api/discovery'] = BluetoothManager;
             if (typeof AuthenticationModule !== 'undefined') typeMap['http://webinos.org/api/authentication'] = AuthenticationModule;
 
             console.log(typeMap);

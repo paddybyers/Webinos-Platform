@@ -1,8 +1,24 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+*     http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+*******************************************************************************/
+
 /*
  * This is an Express web server designed to provide an interface to the
  * PZH. This file configures the web server.
  * 
- * Author: John Lyle
  *
  */
 
@@ -76,7 +92,6 @@ function createApp(options, passport) {
       "use strict";
       app.set('views', __dirname + '/views');
       app.set('view engine', 'ejs');
-//      app.use(express.logger()); // turn on express logging for every page
       app.use(express.bodyParser());
       app.use(express.methodOverride());
       app.use(express.cookieParser());
@@ -88,15 +103,10 @@ function createApp(options, passport) {
       app.use(express.static(__dirname + '/public'));
     });
 
-    // An environment variable will switch between these two, but we don't yet.
     app.configure('development', function(){
       app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
     });
 
-    app.configure('production', function(){
-      app.use(express.errorHandler()); 
-    });
-    
     return app;
 }
 
@@ -127,13 +137,8 @@ function createPassport(domainName, port, isHTTP) {
       },
       function(identifier, profile, done) {
         "use strict";
-        // asynchronous verification, for effect...
         process.nextTick(function () {
-          
-          // To keep the example simple, the user's Google profile is returned to
-          // represent the logged-in user.  In a typical application, you would want
-          // to associate the Google account with a user record in your database,
-          // and return that user instead.
+         
           profile.from = "google";
           profile.identifier = identifier;
           return done(null, profile);

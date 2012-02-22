@@ -1,27 +1,44 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+* 
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*  
+*     http://www.apache.org/licenses/LICENSE-2.0
+*  
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+* 
+* Copyright 2012 EPU-National Technical University of Athens
+******************************************************************************/
 (function() {
-	if (typeof webinos === 'undefined') {
-	  webinos = {};
-	  console.log("webinos not found");
-	}
-	if (typeof webinos.context === 'undefined')
-	  webinos.context = {};
+  if (typeof webinos === 'undefined') {
+    webinos = {};
+    console.log("webinos not found");
+  }
+  if (typeof webinos.context === 'undefined')
+    webinos.context = {};
 
-//	console.log("CONTEXT contextDBpzhManager.js LOADED");
-	
-	var path = require('path');
-	var moduleRoot = path.resolve(__dirname, '../') + '/';
+//console.log("CONTEXT contextDBpzhManager.js LOADED");
 
-	require(moduleRoot +'/lib/AsciiArt.js')
+  var path = require('path');
+  var moduleRoot = path.resolve(__dirname, '../') + '/';
 
-	var commonPaths = require(moduleRoot + '/lib/commonPaths.js');
-	if (commonPaths.storage === null){
-		console.log('[ERROR] User Storage Path not found.\nContext Manager disabled.', 'yellow+black_bg');
-		return;
-	}
-	require(moduleRoot + '/lib/storageCheck.js')(commonPaths, require(moduleRoot + '/data/storage.json'));
-	
-	
-	var moduleDependencies = require(moduleRoot + '/dependencies.json');
+  require(moduleRoot +'/lib/AsciiArt.js')
+
+  var commonPaths = require(moduleRoot + '/lib/commonPaths.js');
+  if (commonPaths.storage === null){
+    console.log('[ERROR] User Storage Path not found.\nContext Manager disabled.', 'yellow+black_bg');
+    return;
+  }
+  require(moduleRoot + '/lib/storageCheck.js')(commonPaths, require(moduleRoot + '/data/storage.json'));
+
+
+  var moduleDependencies = require(moduleRoot + '/dependencies.json');
   var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
   var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
 
@@ -32,18 +49,18 @@
   var db =  new sqlite3.Database(dbpath);
   var databasehelper = require('JSORMDB');
   bufferDB = new databasehelper.JSONDatabase({path : bufferpath, transactional : false});
-  
+
   sessionPzp = require(webinosRoot + '/pzp/lib/pzp_sessionHandling.js');
   var sessionInstance =null;
-  
+
 
   ////////////////////////////////////////////////////////////////////////////////////////
   //Running on the PZP
   //////////////////////////////////////////////////////////////////////////////////////
   exports.handleContextData = function(contextData){
-  
-  	
-    
+
+
+
     var connectedPzh = sessionPzp.getPzhId();
     if (connectedPzh == "null" || connectedPzh == "undefined"){
       bufferDB.insert(contextData)
@@ -59,25 +76,15 @@
       var data = bufferDB.query();
 
       var contextService = [];
-      var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), function(services){
-      //var message = sessionPzp.getMessageHandler();
-      //console.log(message);
-      //util= require('util');
-        //console.log(util.inspect(services, false, null), 'white+red_bg');
-        services[0].serviceAddress = connectedPzh
-        
-      var query = {};
-      query.type = "DB-insert";
-      query.data = data;
-      //message.write(query, connectedPzh, 0);
+      var service = webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), function(service){
+        if (service.serviceAddress == connectedPzh){
           var query = {};
           query.type = "DB-insert";
           query.data = data;
-          if (services.length == 1){
-            services[0].executeQuery(query);
-            bufferDB.db.clear();
-            bufferDB.commit();
-          }
+          service.executeQuery(query);
+          bufferDB.db.clear();
+          bufferDB.commit();
+        }
       });
     }
     //success(true);
@@ -148,5 +155,8 @@
           success(result);
         }
     );
+  }
+  exports.query = function(data, callback){
+	  require(moduleRoot + '/lib/contextQueryDB.js')(db, data, callback);
   }
 })();

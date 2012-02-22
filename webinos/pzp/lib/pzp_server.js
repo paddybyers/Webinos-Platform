@@ -1,3 +1,24 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+* Copyright 2011 Samsung Electronics Research Institute
+*******************************************************************************/
+
+/**
+ * Handles connection with other PZP and starts PZP
+ */
 var pzp_server = exports;
 
 var tls   = require('tls');
@@ -7,10 +28,11 @@ var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
 var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
 var utils        = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
+var rpc          = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js'));
 
-pzp_server.connectOtherPZP = function (msg) {
+pzp_server.connectOtherPZP = function (pzp, msg) {
 	var self, client;
-	self = this;
+	self = pzp;
 	var options = {	key: self.config.conn.key.value,
 			cert: self.config.conn.cert.value,
 			crl: self.config.master.crl.value,
@@ -21,7 +43,7 @@ pzp_server.connectOtherPZP = function (msg) {
 		if (client.authorized) {
 			utils.debug(2, "PZP (" + self.sessionId + ") Client: Authorized & Connected to PZP: " + msg.address );
 			self.connectedPzp[msg.name] = {socket: client};
-			var msg1 = messaging.registerSender(self.sessionId, msg.name);
+			var msg1 = self.messageHandler.registerSender(self.sessionId, msg.name);
 			self.sendMessage(msg1, msg.name); 
 		} else {
 			utils.debug(2, "PZP (" + self.sessionId +") Client: Connection failed, first connect with PZH to download certificated");
@@ -32,10 +54,15 @@ pzp_server.connectOtherPZP = function (msg) {
 		try {
 			client.pause();
 			utils.processedMsg(self, data, 1, function(data1) {
-				utils.sendMessageMessaging(self, data1);
-				process.nextTick(function () {
-					client.resume();
-				});
+				for(var i = 1; i < data1.length-1; i += 1) {
+					if (data1[i] === '') {
+						continue
+					}
+					var parse = JSON.parse(data1[i]);
+					utils.sendMessageMessaging(self, self.messageHandler, parse);
+				}
+
+				client.resume();
 			});
 		} catch (err) {
 			utils.debug(1, 'PZP (' + self.sessionId + ') Client: Exception' + err);
@@ -51,8 +78,6 @@ pzp_server.connectOtherPZP = function (msg) {
 
 	client.on('error', function (err) {
 		utils.debug(1, "PZP (" + self.sessionId +") Client:  " + err);
-		utils.debug(1, err.code);
-		utils.debug(1, err.stack);	
 	});
 
 	client.on('close', function () {
@@ -88,8 +113,6 @@ pzp_server.startServer = function (self, callback) {
 			if(self.connectedPzp[sessionId]) {
 				self.connectedPzp[sessionId]= {socket: conn};
 			} else {
-			console.log(conn.socket);
-			console.log(conn.socket.peerAddress);
 				self.connectedPzp[sessionId]= {socket: conn, address: conn.socket.peerAddress.address, port: ''};
 			}
 		} 
@@ -100,23 +123,28 @@ pzp_server.startServer = function (self, callback) {
 	
 		conn.on('data', function (data) {
 			try{
-			utils.processedMsg(self, data, 1, function(parse) {
-				if (parse.type === 'prop' && parse.payload.status === 'pzpDetails') {
-					if(self.connectedPzp[parse.from]) {
-						self.connectedPzp[parse.from].port = parse.payload.message;
-					} else {
-						utils.debug(2, "PZP (" + self.sessionId +") Server: Received PZP"+
-						"details from entity which is not registered : " + parse.from);
+				utils.processedMsg(self, data, 1, function(data2) {
+					for(var i = 1; i < data2.length-1; i += 1) {
+						if (data2[i] === '') {
+							continue
+						}
+						var parse = JSON.parse(data2[i]);
+						if (parse.type === 'prop' && parse.payload.status === 'pzpDetails') {
+							if(self.connectedPzp[parse.from]) {
+								self.connectedPzp[parse.from].port = parse.payload.message;
+							} else {
+								utils.debug(2, "PZP (" + self.sessionId +") Server: Received PZP"+
+								"details from entity which is not registered : " + parse.from);
+							}
+						} else {
+							rpc.setSessionId(self.sessionId);
+							utils.sendMessageMessaging(self, self.messageHandler, parse);
+						}
 					}
-				} else {
-					rpc.SetSessionId(self.sessionId);
-					utils.sendMessageMessaging(self, parse);
-				}
-			});
+				});
 			} catch(err) {
 				utils.debug(1, 'PZP (' + self.sessionId + ' Server: Exception' + err);
-				utils.debug(1, err.code);
-				utils.debug(1, err.stack);
+
 			}
 		
 		});
@@ -132,7 +160,7 @@ pzp_server.startServer = function (self, callback) {
 
 		conn.on('error', function(err) {
 			utils.debug(1, "PZP Server ("+self.sessionId+")"  + err.code);
-			utils.debug(1, err.stack);
+			
 		});
 	});
 

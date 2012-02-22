@@ -1,3 +1,20 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+* 
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*  
+*     http://www.apache.org/licenses/LICENSE-2.0
+*  
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+* 
+* Copyright 2011 Alexander Futasz, Fraunhofer FOKUS
+******************************************************************************/
 (function() {
 	webinos.session = {};
 	var sessionid = null;
@@ -15,7 +32,9 @@
 	}
 	
 	webinos.session.message_send = function(rpc, to) {
-		var type, id = 0;	
+		var type,
+			id = Math.floor(Math.random() * 101);
+		
 		if(rpc.type !== undefined && rpc.type === "prop") {
 			type = "prop";
 			rpc = rpc.payload;	
@@ -37,12 +56,12 @@
 			console.log(rpc);
 			channel.send(JSON.stringify(rpc));
 		} else {
-            		console.log('creating callback');
+			console.log('creating callback');
 			console.log('WebSocket Client: Message Sent');
 			console.log(message)
 			channel.send(JSON.stringify(message));
 		}
-	}
+	};
 	
 	webinos.session.setServiceLocation = function (loc) {
 		serviceLocation = loc;

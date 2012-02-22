@@ -1,6 +1,23 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+* 
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*  
+*     http://www.apache.org/licenses/LICENSE-2.0
+*  
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+* 
+* Copyright 2011 Alexander Futasz, Fraunhofer FOKUS
+******************************************************************************/
+
 //This RPC implementation should be compliant to JSON RPC 2.0
 //as specified @ http://jsonrpc.org/spec.html
-
 (function () {
 	if (typeof webinos === 'undefined')
 		webinos = {};
@@ -66,6 +83,29 @@
 		 * PZH.
 		 */
 		this.remoteServiceObjects = [];
+		
+		/**
+		 * Holds callbacks for findServices callbacks from the PZH
+		 */
+		this.remoteServicesFoundCallbacks = {};
+		
+		if (typeof this.parent !== 'undefined') {
+			var that = this;
+			
+			// add listener to pzp object, to be called when remote services
+			// are returned by the pzh
+			this.parent.addRemoteServiceListener(function (payload) {
+				var callback = that.remoteServicesFoundCallbacks[payload.id];
+				
+				if (!callback) {
+					console.log("ServiceDiscovery: no findServices callback found for id: " + payload.id);
+					return;
+				}
+				
+				delete that.remoteServicesFoundCallbacks[payload.id];
+				callback(payload.message);
+			});
+		}
 		
 		this.requesterMapping = [];
 		
@@ -474,18 +514,28 @@
 				results[i].serviceAddress = sessionId; // This is source addres, it is used by messaging for returning back
 			}
 			
-			// add other services reported from the pzh
-			this.parent.addRemoteServiceListener(function(remoteServices) {
-				function isServiceType(el) {
-					return el.api === serviceType.api ? true : false;
-				}
-				results = results.concat(remoteServices.filter(isServiceType));
-				
+			// no connection to a PZH it seems, don't ask for remote services
+			if (!this.parent.pzhId) {
 				callback(results);
-			});
+				return;
+			}
+			
+			// store callback in map for lookup on returned remote results
+			var callbackId = Math.floor(Math.random()*101);
+			this.remoteServicesFoundCallbacks[callbackId] = (function(res) {
+				return function(remoteServices) {
+					
+					function isServiceType(el) {
+						return el.api === serviceType.api ? true : false;
+					}
+					res = res.concat(remoteServices.filter(isServiceType));
+					
+					callback(res);
+				}
+			})(results);
 			
 			// ask for remote service objects
-			this.parent.prepMsg(this.parent.sessionId, this.parent.pzhId, 'findServices');
+			this.parent.prepMsg(this.parent.sessionId, this.parent.pzhId, 'findServices', {id: callbackId});
 		}
 	};
 	
