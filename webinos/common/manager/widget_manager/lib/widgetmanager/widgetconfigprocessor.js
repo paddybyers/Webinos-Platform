@@ -83,6 +83,7 @@ this.WidgetConfigProcessor = (function() {
 		this.userAgentLocales = userAgentLocales;
 		this.processingResult = processingResult;
 		this.processListener = processListener;
+		var that = this;
 		var widgetConfig = this.widgetConfig = new WidgetConfig();
 
 		var error = function() {
@@ -304,6 +305,7 @@ this.WidgetConfigProcessor = (function() {
 			};
 
 			var startElement = function(elt) {
+				/* console.log('startElement: name: ' + elt.nsName); */
 				var isWidget = elt.isWidget = (elt.nsUri == WIDGETS_NS);
 				var eltName = elt.nsName;
 				var attrs = elt.attrs;
@@ -492,7 +494,7 @@ this.WidgetConfigProcessor = (function() {
 						elt.isValid = false;
 						return;
 					}
-					if(!WidgetProcessor.isSupportedIconType(WidgetProcessor.getFileType(path))) {
+					if(!WidgetProcessor.isSupportedIconType(WidgetProcessor.getFileType(that.processor.res, path))) {
 						Logger.logAction(Logger.LOG_MINOR, "ta-iuJHnskSHq", "ignoring icon of unsupported type");
 						elt.isValid = false;
 						return;
@@ -905,7 +907,7 @@ this.WidgetConfigProcessor = (function() {
 			};
 
 			var endElement = function(elt) {
-				/* console.log('endElement: ' + name); */
+				/* console.log('endElement: ' + elt.nsName); */
 				var name = elt.nsName;
 				var dir = elt.nsAttrs.dir ?  elt.nsAttrs.dir.value : BidiUtil.DIR_NONE;
 				var parent = elt.parent;
@@ -953,6 +955,7 @@ this.WidgetConfigProcessor = (function() {
 			};
 
 			var endDocument = function() {
+				/* console.log('end document'); */
 				if(processingResult.status == WidgetConfig.STATUS_OK) {
 					/* choose name element */
 					var nameElt = chooseLocalisedElement(nameElements);
