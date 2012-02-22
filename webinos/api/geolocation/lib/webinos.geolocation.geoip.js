@@ -1,4 +1,3 @@
-// implemenation using geoip
 (function() {
 	
 // rpcHandler set be setRPCHandler
