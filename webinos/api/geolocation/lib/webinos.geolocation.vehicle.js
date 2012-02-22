@@ -17,6 +17,7 @@
 * Copyright 2012 BMW AG
 ******************************************************************************/
 
+(function() {
 // rpcHandler set be setRPCHandler
 var rpcHandler = null;
 
