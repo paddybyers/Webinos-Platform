@@ -54,6 +54,7 @@ public class WidgetListActivity extends ListActivity implements WidgetManagerSer
 			mgr.addEventListener(this);
 			initList();
 		}
+		scanner = new WidgetImportHelper(this);
 	}
 
 	@Override
@@ -96,7 +97,7 @@ public class WidgetListActivity extends ListActivity implements WidgetManagerSer
 		if(item.getItemId() != SCAN_MENUITEM_ID)
 			return false;
 
-		(scanner = new WidgetImportHelper(this)).scan();
+		scanner.scan();
 		return true;    
 	}
 
