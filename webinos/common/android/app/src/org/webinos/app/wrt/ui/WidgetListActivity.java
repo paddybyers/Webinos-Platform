@@ -40,6 +40,7 @@ public class WidgetListActivity extends ListActivity implements WidgetManagerSer
 	private Handler asyncRefreshHandler;
 	private String[] ids;
 
+	@Override
 	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
 		registerForContextMenu(getListView());
@@ -55,6 +56,16 @@ public class WidgetListActivity extends ListActivity implements WidgetManagerSer
 			initList();
 		}
 		scanner = new WidgetImportHelper(this);
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
 	}
 
 	@Override
