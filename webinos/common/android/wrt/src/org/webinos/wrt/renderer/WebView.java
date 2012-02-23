@@ -13,7 +13,7 @@ public class WebView extends android.webkit.WebView {
 
     public void injectScript(String script) {
     	try {
-    		loadUrl("javascript:(function(){var s=document.createElement('script');s.text=" + script + ";document.head.appendChild(s);})()");
+    		loadUrl("javascript:(function(){var s=document.createElement('script');s.text=" + script + ";var target = document.head || document; target.appendChild(s);})()");
     	} catch(Throwable t) {
     		Log.v("org.webinos.wrt.renderer.WebView", "Error in injecting script", t);
     	}
