@@ -48,9 +48,13 @@ var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
 
 var wrtServer;
 if(process.platform == 'android') {
-	wrtServer = require('bridge').load('org.webinos.app.wrt.channel.WebinosSocketServerImpl', exports);
+	try {
+		wrtServer = require('bridge').load('org.webinos.app.wrt.channel.WebinosSocketServerImpl', exports);
+	} catch(e) {
+		utils.debug(2, "PZP pzp_websocket.js: exception attempting to open wrt server " + e);
+	}
 }
-		
+
 websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort, callback) {		
 		function getContentType(uri) {
 			var contentType = 'text/plain';
@@ -217,6 +221,11 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 		if(wrtServer) {
 			wrtServer.listener = function(connection) {
 				utils.debug(2, "PZP WRTServer: Connection accepted.");
+				/* FIXME: add proxy methods to mimic the websocket API */
+				utils.debug(2, "PZP WRTServer: adding proxy connection methods.");
+				connection.socket = { pause: function(){}, resume: function(){} };
+				connection.sendUTF = connection.send;
+
 				connectedApp(connection);
 
 				connection.listener = {
@@ -225,19 +234,17 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 					onError: function(reason) { utils.debug(2, "PZP WRTServer: onError(): " + reason); }
 				};
 			};
-		} else {
-			var wsServer = new WebSocketServer({
-				httpServer: httpserver,
-				autoAcceptConnections: true
-			});
-
-			wsServer.on('connect', function(connection) {
-				utils.debug(2, "PZP WSServer: Connection accepted.");
-				connectedApp(connection);
-
-				connection.on('message', function(message) { wsMessage(connection, message.utf8Data); });
-				connection.on('close', wsClose);	
-			});
 		}
+		var wsServer = new WebSocketServer({
+			httpServer: httpserver,
+			autoAcceptConnections: true
+		});
 
+		wsServer.on('connect', function(connection) {
+			utils.debug(2, "PZP WSServer: Connection accepted.");
+			connectedApp(connection);
+
+			connection.on('message', function(message) { wsMessage(connection, message.utf8Data); });
+			connection.on('close', wsClose);
+		});
 	};
