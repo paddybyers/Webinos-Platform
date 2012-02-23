@@ -15,6 +15,8 @@ var $name,
 	$head,
 	$header;
 	
+var statusSendID;
+	
 var config = $.deparam.querystring();
 var events = {
 	service: undefined,
@@ -45,58 +47,74 @@ var events = {
 						case ".mp3":
 						case ".m4a":
 							$head = $('<center><h1 id="name">webinos audio player</h1><center>');
-							$media = $('<div height="100%"><center><audio src="' + event.payload.url.substring(8) + '" controls="controls"></audio><img height="400px" width="400px" src="/client/webinosFS/img/back.jpg"></img></center></div>');
+							$media = $('<div height="100%"><center><audio id ="player" src="' + event.payload.url.substring(8) + '" controls="controls"></audio><img height="400px" width="400px" src="/client/webinosFS/img/back.jpg"></img></center></div>');
 							break;
 						case ".ogg":
 						case ".m4v":
 							$head = $('');
-							$media = $('<video src="' + event.payload.url.substring(8) + '" controls="controls" height="100%"></video>');
+							$media = $('<video id ="player" src="' + event.payload.url.substring(8) + '" controls="controls" height="100%"></video>');
 							break;
 					}
 
 					$content.html($media);
 					$header.html($head);
 					
-					$media.attr("autoplay", "autoplay");
-					$media.on("play", function (event) {
+					$("#player").attr("autoplay", "autoplay");
+					$("#player").on("play", function (event) {
 						var play = events.service.createWebinosEvent("play", {
 		    				type: "browser"
 		    			}, {
 		    				type: "player",
 		    				id: config.id,
-		    				name: config.name
+		    				name: config.name,
+		    				time: $("#player")[0].currentTime,
+		    				duration: $("#player")[0].duration
 		    			});
 
 						play.dispatchWebinosEvent();
+						
+						window.clearInterval(statusSendID);
+						statusSendID = window.setInterval("sendStatus()", 800);
 					});
 					
-					$media.on("pause", function (event) {
+					$("#player").on("pause", function (event) {
 						var pause = events.service.createWebinosEvent("pause", {
 		    				type: "browser"
 		    			}, {
 		    				type: "player",
 		    				id: config.id,
-		    				name: config.name
+		    				name: config.name,
+		    				time: $("#player")[0].currentTime,
+		    				duration: $("#player")[0].duration
 		    			});
 
+						window.clearInterval(statusSendID);
+						
 						pause.dispatchWebinosEvent();
 					});
 				}
 				
 				break;
 			case "play":
-				if (event.addressing.id == config.id && typeof $media !== "undefined")
-					$media.trigger("play");
+				if (event.addressing.id == config.id && typeof $media !== "undefined") {
+					$("#player").trigger("play");
+				}
+					
 				
 				break;
 			case "pause":
-				if (event.addressing.id == config.id && typeof $media !== "undefined")
-					$media.trigger("pause");
+				if (event.addressing.id == config.id && typeof $media !== "undefined"){
+					window.clearInterval(statusSendID);
+					$("#player").trigger("pause");
+				}
+					
 				
 				break;
 			case "clear":
-				if (event.addressing.id == config.id)
+				if (event.addressing.id == config.id){
 					$content.empty();
+				}
+					
 				
 				break;
 		}
@@ -124,6 +142,22 @@ webinos.session.addListener("registeredBrowser", function (event) {
     	}
 	});
 });
+
+sendStatus = function(){
+	if ($("#player")[0].currentTime === 'NaN') return;
+	
+	var status = events.service.createWebinosEvent("status", {
+		type: "browser"
+	}, {
+		type: "player",
+		id: config.id,
+		name: config.name,
+		time: $("#player")[0].currentTime,
+		duration: $("#player")[0].duration
+	});
+	
+	status.dispatchWebinosEvent();
+}
 
 $(document).ready(function () {
 	$name = $("#name");
