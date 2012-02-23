@@ -35,10 +35,17 @@ public class WidgetListAdapter extends ArrayAdapter<String> {
 		String installId = values[position];
 		
 		/* decide what to show as the main label text */
+		String labelText = null;
 		WidgetConfig widgetConfig = WidgetManagerService.getInstance().getWidgetConfig(installId);
-		String labelText = widgetConfig.name.visual;
+		if(widgetConfig == null) {
+			labelText = "widgetConfig is null - widget not properly installed";
+			return rowView;
+		}
+		if(widgetConfig.name != null)
+			labelText = widgetConfig.name.visual;
 		if(labelText == null || labelText.isEmpty()) {
-			labelText = widgetConfig.shortName.visual;
+			if(widgetConfig.shortName != null)
+				labelText = widgetConfig.shortName.visual;
 			if(labelText == null || labelText.isEmpty()) {
 				labelText = widgetConfig.id;
 				if(labelText == null || labelText.isEmpty()) {
@@ -49,14 +56,22 @@ public class WidgetListAdapter extends ArrayAdapter<String> {
 		labelView.setText(labelText);
 
 		/* decide what to show as the detail label text */
-		String descriptionText = widgetConfig.description.visual;
+		String descriptionText = null;
+		if(widgetConfig.description != null)
+			descriptionText = widgetConfig.description.visual;
 		if(descriptionText == null) descriptionText = "";
-		String authorText = widgetConfig.author.name.visual;
-		if(authorText == null || authorText.isEmpty()) {
-			authorText = widgetConfig.author.href;
-			if(authorText == null) authorText = "";
+		String authorText = null;
+		if(widgetConfig.author != null) {
+			if(widgetConfig.author.name != null)
+				authorText = widgetConfig.author.name.visual;
+			if(authorText == null || authorText.isEmpty()) {
+				authorText = widgetConfig.author.href;
+				if(authorText == null) authorText = "";
+			}
 		}
-		String versionText = widgetConfig.version.visual;
+		String versionText = null;
+		if(widgetConfig.version != null)
+			versionText = widgetConfig.version.visual;
 		if(versionText == null) versionText = "";
 
 		String detailText = authorText;
