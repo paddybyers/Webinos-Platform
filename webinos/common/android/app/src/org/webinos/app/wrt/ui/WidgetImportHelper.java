@@ -42,16 +42,18 @@ public class WidgetImportHelper {
 			File file = new File(dir, entry);
 			if(file.isDirectory()) {
 				addWgtFilesFromDir(file, wgtFiles);
-				return;
-			}
-			if(file.isFile() && entry.endsWith(".wgt"))
+			} else if(file.isFile() && entry.endsWith(".wgt")) {
 				wgtFiles.add(file.getAbsolutePath());
+			}
 		}
 	}
 	
 	ImportListAdapter getListAdapter() {
-		return new ImportListAdapter();
-	}
+		ImportListAdapter result = null;
+		if(wgtNames != null)
+			result = new ImportListAdapter();
+		return result;
+}
 
 	private class ImportListAdapter extends ArrayAdapter<String> implements OnCheckedChangeListener {
 		public ImportListAdapter() {
