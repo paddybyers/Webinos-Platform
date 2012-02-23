@@ -14,8 +14,8 @@ import android.os.RemoteException;
 import android.util.Log;
 
 public class WebinosSocketService extends Service {
-	
-	private static final String TAG = "org.meshpoint.webinos.WebinosSocketServer";
+
+	private static final String TAG = "org.webinos.app.wrt.channel.WebinosSocketServer";
 
     private static WebinosSocketService theService;
     private static ArrayList<LaunchListener> listeners = new ArrayList<LaunchListener>();
