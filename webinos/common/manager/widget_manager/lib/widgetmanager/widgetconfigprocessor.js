@@ -385,7 +385,7 @@ this.WidgetConfigProcessor = (function() {
 					if(elt.isValid) {
 						var email, href;
 						if('href' in attrs)
-							href = processUriAttr(attrs.href);
+							href = processUriAttr(attrs.href).href;
 						if('email' in attrs)
 							href = processTextAttr(attrs.email);
 						widgetConfig.author = {href: href, email: email};
