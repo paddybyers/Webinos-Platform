@@ -83,6 +83,7 @@ var pzpModules = [
     {name: "sensors", param: {}},
     {name: "payment", param: {}},
     {name: "tv", param: {}},
+    {name: "oauth", param: {}},
     {name: "deviceorientation", param: {}},
     {name: "vehicle", param: {}},
     {name: "context", param: {}},
