@@ -1,7 +1,36 @@
-    /**
+   /*******************************************************************************
+    *  Code contributed to the webinos project
+    *
+    * Licensed under the Apache License, Version 2.0 (the "License");
+    * you may not use this file except in compliance with the License.
+    * You may obtain a copy of the License at
+    *
+    *     http://www.apache.org/licenses/LICENSE-2.0
+    *
+    * Unless required by applicable law or agreed to in writing, software
+    * distributed under the License is distributed on an "AS IS" BASIS,
+    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    * See the License for the specific language governing permissions and
+    * limitations under the License.
+    *
+    * Copyright 2012 Christian Fuhrhop, Fraunhofer FOKUS
+    * 
+    ******************************************************************************/
+     /**
      * The Payment connector to BlueVia Payment API: https://bluevia.com/en/knowledge/APIs.API-Guides.Payment
      *
      */
+
+     /**
+        IMPORTANT: This doesn't to anything yet, it's just an incomplete experimental stub!
+    **/
+                
+     BlueVia_Host = 'api.bluevia.com';
+     BlueVia_Port = '443';
+     BlueVia_RequestPath = '/services/REST/Oauth/getRequestToken';
+
+
+
     BlueViaConnect = function (customerID, shopID) {
       /* retrieving request token  from BlueVia Payment API */
       // built 
@@ -10,47 +39,58 @@
       https= require('https');
            
       now = new Date();
-      
+
+      // collect parameters needed for oauth signature      
       var oauthParameters= {
        "oauth_callback": "oob",
        "oauth_consumer_key": "kn12011684494805",
        "oauth_nonce": BlueVia_nonce(32),
        "oauth_signature_method": "HMAC-SHA1",
        "oauth_timestamp": ""+Math.floor(now.getTime()/1000),
-       "xoauth_apiName": "Payment"
+       "xoauth_apiName": "Payment_Sandbox"
       };
-
-     var paymentBody = "paymentInfo.amount=199&paymentInfo.currency=EUR&serviceInfo.name=webinosPaymentTest1&serviceInfo.serviceID=cc9171216b9854493e488191b988c3f0";
       
+      //collect parameters for payment body 
+      var bodyParameters= {
+       "paymentInfo.amount": "1",
+       "paymentInfo.currency": "EUR",
+       "serviceInfo.name":  "webinosPaymentTest1item",
+       "serviceInfo.serviceID": "cc9171216b9854493e488191b988c3f0"
+      };
+    
       // form initial signature base
-      signatureBase="POST&"+BlueVia_percentEncode("https://api.bluevia.com/services/REST/Oauth/getRequestToken")+"&";
+      signatureBase="POST&"+BlueVia_percentEncode("https://"+BlueVia_Host+BlueVia_RequestPath)+"&";
 
       var oauthParameters_fullset = new Array();
       
       // copy all parameters from oauthParameters header set
       for(var key in oauthParameters) 
          oauthParameters_fullset[key]=oauthParameters[key];
+
+      // copy all parameters from bodyParameters  set
+      for(var key in bodyParameters) 
+         oauthParameters_fullset[key]=bodyParameters[key];
          
-      // add all parameters from pseudo-URL parameter string
-       oauthParameters_fullset["paymentInfo.amount"]="199";
-       oauthParameters_fullset["paymentInfo.currency"]= "EUR";
-       oauthParameters_fullset["serviceInfo.name"]= "webinosPaymentTest1";
-       oauthParameters_fullset["serviceInfo.serviceID"]= "cc9171216b9854493e488191b988c3f0";
- 
+      // create payment body string
+      var paymentBody="";
+      for(var key in bodyParameters){
+        if( paymentBody!="")paymentBody=paymentBody+"&";
+         paymentBody=paymentBody+key+"="+bodyParameters[key];
+         }
       
       // sort oauth parameters for signature base
       paramkeyarray = new Array();
       ind=0;
       for(var key in oauthParameters_fullset ) paramkeyarray[ind++]=key;
        paramkeyarray.sort();
+       
       // add oauth parameters to signature base
       for(var i=0; i<paramkeyarray.length;i++) {
              var value= oauthParameters_fullset[paramkeyarray[i]];             
           console.log("Signature base line is " + paramkeyarray[i] + " : "+value);
              signatureBase=signatureBase+ BlueVia_percentEncode(paramkeyarray[i]+"="+value);
              
-             if(i!=paramkeyarray.length-1)signatureBase=signatureBase+ BlueVia_percentEncode("&");
-             //else signatureBase=signatureBase+ "&";
+             if(i!=paramkeyarray.length-1) signatureBase=signatureBase+ BlueVia_percentEncode("&");
           }
 
        console.log("Signature base is now:" + signatureBase);
@@ -60,26 +100,21 @@
        oauthParameters["oauth_signature"]=signature;
 
        console.log("Signature is" + signature);
+      // console.log("Payment Body" + paymentBody);
 
-       //var signatureTest = BlueVia_createSignature("1291818661092&",
-      //"POST&https%3A%2F%2Fapi.bluevia.com%2Fservices%2FREST%2FOauth%2FgetRequestToken&oauth_callback%3Dhttps%253A%252F%252Fmydomain.com%252FOAuthCallback%26oauth_consumer_key%3DGjqq11099SE%26oauth_nonce%3D1291896949558-2241715991997156337%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1291896949");
-      // console.log("SignatureTest is" + signatureTest);
-
-
-
-      var headers1 = {
+      var headers = {
         'Authorization' : BlueVia_makeOAuth (oauthParameters),
-        'Host': 'api.bluevia.com:443',
+        'Host': BlueVia_Host+BlueVia_Port,
         'Content-Type': 'application/x-www-form-urlencoded'
      };
          
         var options = {
-    host:'api.bluevia.com',
-    port:'443',
-    path: '/services/REST/Oauth/getRequestToken',
-    method: 'POST',
-    headers: headers1
-  };
+                host: BlueVia_Host,
+                port: BlueVia_Port,
+                path: BlueVia_RequestPath,
+                method: 'POST',
+                headers: headers
+          };
 
        var request = https.request(options, function (response) {
     response.on("data", function (chunk) {
@@ -103,26 +138,7 @@
   
    request.write(paymentBody);
    request.end();
-            
-       /*                 
-        var site = https.createClient(443, 'api.bluevia.com', "POST", "/services/REST/Oauth/getRequestToken", headers, true);
-        var request = site.request("POST", "/services/REST/Oauth/getRequestToken", headers)
-        
-        request.write(paymentBody);
-        request.end();
-     
-
-        request.on('response', function(response) {
-                    response.setEncoding('utf8');
-                    console.log('STATUS: ' + response.statusCode);
-                    response.on('data', function(chunk) {
-                            console.log("DATA: " + chunk);
-                    });
-            });
-            
-       */     
-     
-    };
+  };
     
      BlueVia_nonce = function(nsize) {
       var result_nonce = "";
@@ -169,5 +185,5 @@
  }
 
      BlueVia_createSignature = function(key, instring){
-       return   sha1.HMACSHA1(key, instring);  
+       return  "not done yet"; // sha1.HMACSHA1(key, instring);  
      }

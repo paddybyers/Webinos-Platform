@@ -14,6 +14,7 @@
 * limitations under the License.
 *
 * Copyright 2011 Samsung Electronics Research Institute
+* Copyright 2011 Alexander Futasz, Fraunhofer FOKUS
 *******************************************************************************/
 /**
 * @author <a href="mailto:habib.virji@samsung.com">Habib Virji</a>

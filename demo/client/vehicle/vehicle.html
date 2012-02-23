@@ -24,9 +24,10 @@
 			var _vehicleDataIds;
 			var _deviceOrientationTypes;
 			
-			
+
 			$(document).ready(function() {
-		        function fillPZAddrs(data) {
+		        
+			function fillPZAddrs(data) {
 		            var pzhId, connectedPzp, connectedPzh;
 			        if(data.from !== "virgin_pzp") {
 			            pzhId = data.payload.message.pzhId;
@@ -57,9 +58,10 @@
 				    }
 		            $("</optgroup>").appendTo("#pzh_pzp_list");
 		        }
-		        webinos.session.addListener('registeredBrowser', fillPZAddrs);
-		        
-		        function updatePZAddrs(data) {
+			
+			webinos.session.addListener('registeredBrowser', fillPZAddrs);
+			
+			function updatePZAddrs(data) {
 		            if(typeof data.payload.message.pzp !== "undefined") {
 		                $("<option value=" + data.payload.message.pzp + " >" +data.payload.message.pzp + "</option>").appendTo("#pzp_list");
 		            } else {
@@ -72,6 +74,8 @@
 		            $('#message').append('<li>'+data.payload.message+'</li>');
 		        }
 		        webinos.session.addListener('info', printInfo);
+
+				
 		        
 				$('#init').removeAttr('disabled'); // FIXME wasn't really enabled otherwise
 				
@@ -225,6 +229,14 @@
 						
 					});
 					
+					$('#registerBrowser').bind('click', function() {
+                        var options = {type: 'prop', payload: {status:'registerBrowser'}};
+                        webinos.session.message_send(options);                
+                		
+                		$('#initVehicle').removeAttr('disabled');
+                	
+                	});
+					
 					$('#deviceorientationType').change(function(){
 						var listenerRegistered = false;
 						for(i=0; i < listenersDeviceOrientation.length; i++){
@@ -326,6 +338,9 @@
 								disableInit('Geolocation API',$('#initGeolocation'), $('#pzh_pzp_list').val());
 						}});
                     });
+
+
+
 					
 					var disableInit = function(name,btnId, pzx){
 						btnId.val(name + ' connected to ' + pzx);
@@ -962,6 +977,8 @@
      </div>
      <div id="functions">
 		<h2>Testfunctions:</h2>
+		<input type="button" id="registerBrowser" value="Register Browser" class="button" /><br />
+
         <select id="pzh_pzp_list"> <option> </option> </select><br />
             <input type="button" id="initVehicle" value="Use Vehicle API" class="button" disabled/><br />
             <input type="button" id="initOrientation" value="Use Device Orientation" class="button" disabled/><br />
@@ -991,6 +1008,7 @@
 <!-- <input type="button" id="clear" value="clear Log"  class="button"/> -->
 <a href="#pdcApp"  id="pdcLauncher" title="Parkdistance App">Inline</a>
 		</p>
+	<a href='javascript:initMe()'>init</a>
     </div>
 <div id="info"></div>
 
