@@ -39,12 +39,7 @@
 		<link>
 			<name>bridge_src</name>
 			<type>2</type>
-			<location>/Users/paddy/data/work/dev/android/anode/bridge-java/src</location>
-		</link>
-		<link>
-			<name>impl_gen</name>
-			<type>2</type>
-			<locationURI>PARENT-1-PROJECT_LOC/impl/gen</locationURI>
+			<location>ANODE_ROOT/bridge-java/src</location>
 		</link>
 		<link>
 			<name>impl_src</name>
