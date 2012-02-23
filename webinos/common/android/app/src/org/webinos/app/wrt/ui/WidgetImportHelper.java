@@ -15,6 +15,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,12 +39,14 @@ public class WidgetImportHelper {
 
 	private void addWgtFilesFromDir(File dir, ArrayList<String> wgtFiles) {
 		String[] dirEntries = dir.list();
-		for(String entry : dirEntries) {
-			File file = new File(dir, entry);
-			if(file.isDirectory()) {
-				addWgtFilesFromDir(file, wgtFiles);
-			} else if(file.isFile() && entry.endsWith(".wgt")) {
-				wgtFiles.add(file.getAbsolutePath());
+		if(dirEntries != null) {
+			for(String entry : dirEntries) {
+				File file = new File(dir, entry);
+				if(file.isDirectory()) {
+					addWgtFilesFromDir(file, wgtFiles);
+				} else if(file.isFile() && entry.endsWith(".wgt")) {
+					wgtFiles.add(file.getAbsolutePath());
+				}
 			}
 		}
 	}
