@@ -32,10 +32,10 @@
 		if (typeof bindCB.onBind === 'function') {
 			bindCB.onBind(this);
 		};
-	}
+	};
 
 	//function listenerForHRM(listener, options) {
-	BluetoothManager.prototype.listenerForHRM(listener, options){
+	BluetoothManager.prototype.listenerForHRM = function(listener, options){
 		var rpc = webinos.rpcHandler.createRPC(this, "listenAttr.listenForHRM", [options]);
 		rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
 
@@ -48,7 +48,7 @@
 
 		webinos.rpcHandler.executeRPC(rpc);
 	
-	}
+	};
 
 	BluetoothManager.prototype.findHRM = function(data, success){
 		console.log("HRM find HRM");
