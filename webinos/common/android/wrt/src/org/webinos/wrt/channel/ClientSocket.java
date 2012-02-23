@@ -1,21 +1,18 @@
 package org.webinos.wrt.channel;
 
-import java.io.IOException;
 import java.util.HashSet;
 
 import org.webinos.wrt.core.WidgetConfig;
 import org.webinos.wrt.core.WrtManager;
 import org.webinos.wrt.renderer.WebView;
-import org.webinos.wrt.util.AssetUtils;
-
 
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
@@ -23,7 +20,8 @@ import android.util.Log;
 
 public class ClientSocket {
 	
-    private static final String SOCKETJS_ASSET = "js/webinossocket.js";
+    public static final String SOCKETJS_ASSET = "js/webinossocket.js";
+    public static final String WEBINOSJS_ASSET = "js/webinos.js";
     private static final String SERVICE_ID = "org.webinos.wrt.channel.SERVER";
     private static final String TAG = "org.webinos.wrt.channel.ClientSocket";
 
@@ -72,6 +70,7 @@ public class ClientSocket {
     	connection = new ServiceConnection() {
             public void onServiceConnected(ComponentName className, IBinder service) {
             	remoteService = new Messenger(service);
+            	Log.v(TAG, "Clientsocket: onServiceConnected");
 
                 try {
                     Message msg = Message.obtain(null, ProtocolConstants.toWhat(ProtocolConstants.MSG_REGISTER));
@@ -118,11 +117,6 @@ public class ClientSocket {
 		this.webView = webView;
 		this.widgetConfig = widgetConfig;
 		this.instanceId = instanceId;
-		try {
-			webView.injectScript(AssetUtils.getAssetAsString(WrtManager.getInstance(), SOCKETJS_ASSET));
-		} catch(IOException ioe) {
-			Log.v(TAG, "Unable to inject " + SOCKETJS_ASSET + "; exception: ", ioe);
-		}
 	}
 
 	public void dispose() {

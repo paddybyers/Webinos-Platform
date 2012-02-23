@@ -5,6 +5,7 @@ import org.webinos.wrt.channel.ClientSocket;
 import org.webinos.wrt.core.WidgetConfig;
 import org.webinos.wrt.core.WrtManager;
 import org.webinos.wrt.core.WrtReceiver;
+import org.webinos.wrt.renderer.WebChromeClient;
 import org.webinos.wrt.renderer.WebView;
 import org.webinos.wrt.renderer.WebViewClient;
 
@@ -13,7 +14,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 public class RendererActivity extends Activity implements WrtManager.LaunchListener {
-	
+
 	private static int nextId = 0;
 
 	private WebView webView;
@@ -56,10 +57,16 @@ public class RendererActivity extends Activity implements WrtManager.LaunchListe
 
 		webView = (WebView) findViewById(R.id.webview);
 		webView.setWebViewClient(new WebViewClient(this));
-        webView.addJavascriptInterface(socket = new ClientSocket(webView, widgetConfig, instanceId), "__webinos");
+		webView.setWebChromeClient(new WebChromeClient(this));
+		socket = new ClientSocket(webView, widgetConfig, instanceId);
+        webView.addJavascriptInterface(socket, "__webinos");
 		webView.loadUrl(widgetConfig.getStartUrl());		
 
 		WrtManager.getInstance().put(instanceId, this);
+	}
+
+	public ClientSocket getClientSocket() {
+		return socket;
 	}
 
 	@Override
