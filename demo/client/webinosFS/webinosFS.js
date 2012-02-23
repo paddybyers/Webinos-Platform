@@ -357,13 +357,14 @@
 						pause.dispatchWebinosEvent();
 					});
 
-					browse.$playing.html(exports.remote.playing.entry.name + ' @ ' + exports.remote.playing.player.name + ' ');
+					browse.$playing.html(exports.remote.playing.entry.name + ' @ ' + exports.remote.playing.player.name + ' <br>Time: <span id="timer">' + Math.floor(event.payload.time) + '/' +  Math.floor(event.payload.duration) + '</span> ');
 					browse.$playing.append($pause);
 					
 					$pause.button();
 				}
 				
 				break;
+				
 			case "pause":
 				if (event.payload.id == exports.remote.playing.player.id) {
 					var $play = $('<a>Play</a>');
@@ -376,10 +377,17 @@
 						play.dispatchWebinosEvent();
 					});
 
-					browse.$playing.html(exports.remote.playing.entry.name + ' @ ' + exports.remote.playing.player.name + ' ');
+					browse.$playing.html(exports.remote.playing.entry.name + ' @ ' + exports.remote.playing.player.name + ' <br>Time: <span id="timer">' + Math.floor(event.payload.time) + '/' +  Math.floor(event.payload.duration) + '</span> ');
 					browse.$playing.append($play);
 					
 					$play.button();
+				}
+				
+				break;
+				
+			case "status":
+				if (event.payload.id == exports.remote.playing.player.id) {
+					$("#timer").html(Math.floor(event.payload.time) + '/' +  Math.floor(event.payload.duration));
 				}
 				
 				break;
