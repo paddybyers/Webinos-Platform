@@ -96,7 +96,6 @@
                 });
                 
                 $('#bind').bind('click', function() {
-                	alert('recentService: ' + recentService);
                 	test[window.recentService].bindService({onBind:function(service) {
                         logMessage('TEST API ' + service.api + ' bound.');
                     }});
