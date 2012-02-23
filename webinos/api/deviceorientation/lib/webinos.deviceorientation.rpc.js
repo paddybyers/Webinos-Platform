@@ -42,6 +42,9 @@ function DeviceOrientationModule(rpcHandler) {
 	if(vehicleBusAvailable){
         implFile = 'vehicle';
         console.log('connecting to vehicle');
+    }else if(process.platform === 'android'){
+        implFile = 'android';
+        console.log('connecting to a android device');
     }else if(vehicleSimulatorAvailable){
         implFile = 'sim';
         console.log('connecting to simulator');
