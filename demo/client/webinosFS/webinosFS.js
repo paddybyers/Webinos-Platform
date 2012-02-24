@@ -2,9 +2,18 @@
  * TODO On webinos update event, add new shard(s) and update the current page.
  * TODO Check various "inline" TODOs.
  */
+
+	en = null;
+	ev = null;
+	paintPlayers = null;
 (function (exports) {
 	"use strict";
 
+	//ADAPT THIS TO YOUR MACHINE!
+	var playerApp = "C:\\Users\\apa\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
+	var startOptions = "\"http://localhost:8080/client/webinosFS/player.html?id=1&name=MyTV\" --kiosk --new-window";
+	
+	
 	var browse = {},
 		select = {},
 		view = {},
@@ -311,11 +320,50 @@
 		});
 	};
 
+
+	
 	$(exports).on("remote", function (event, entry) {
+
+
+		
+		if (exports.remote.players.length < 1){
+			
+			var appID = playerApp;
+        	var startParams = [];
+        	startParams.push(startOptions);
+			
+        	en = entry;
+        	ev = event;
+        	paintPlayers = paintPlayerList;	
+			exports.applauncher.service.launchApplication(
+        			function (){
+        				//$('#messages').append('<li> App launched </li>');
+        				console.log("Player App Launched");
+        				//setTimeout("paintPlayers(ev, en)",5000);
+        			},
+        			function (){
+        				//$('#messages').append('<li> Error while launching App</li>');
+        				console.log("Error while launching Player App");
+        			},
+        			appID,
+        			startParams
+            );
+			
+		}
+		else {
+			paintPlayerList(event, entry);
+		}
+		
+
+	});
+	
+	var paintPlayerList = function (event, entry) {
+		console.log("Painting Player List");
+		
 		remote.$name.text(entry.name);
 
 		remote.$players.empty();
-
+		
 		exports.remote.players.forEach(function (player) {
 			var $html = $('<li class="player"><a href="#play?' + $.param({
 					player: player.id,
@@ -329,7 +377,7 @@
 		});
 
 		remote.$players.listview("refresh");
-	});
+	}
 
 	exports.events = {};
 	exports.events.service = undefined;
@@ -339,10 +387,29 @@
 		
 		switch (event.type) {
 			case "hello":
+				
+				var currentSecs = new Date().getTime();
+				
+				var i;
+				var pl;
+				for (i = 0; i < exports.remote.players.length; i++){
+					pl = exports.remote.players[i];
+					
+					if (pl.id == event.payload.id){
+						pl.time = currentSecs;
+						break;
+					}
+				}
+				
+				
 				exports.remote.players.add({
 					id: event.payload.id,
-					name: event.payload.name
+					name: event.payload.name,
+					time: currentSecs
 				});
+				
+				
+				paintPlayers(ev, en);
 				
 				break;
 			case "play":
@@ -357,13 +424,14 @@
 						pause.dispatchWebinosEvent();
 					});
 
-					browse.$playing.html(exports.remote.playing.entry.name + ' @ ' + exports.remote.playing.player.name + ' ');
+					browse.$playing.html(exports.remote.playing.entry.name + ' @ ' + exports.remote.playing.player.name + ' <br>Time: <span id="timer">' + Math.floor(event.payload.time) + '/' +  Math.floor(event.payload.duration) + '</span> ');
 					browse.$playing.append($pause);
 					
 					$pause.button();
 				}
 				
 				break;
+				
 			case "pause":
 				if (event.payload.id == exports.remote.playing.player.id) {
 					var $play = $('<a>Play</a>');
@@ -376,15 +444,26 @@
 						play.dispatchWebinosEvent();
 					});
 
-					browse.$playing.html(exports.remote.playing.entry.name + ' @ ' + exports.remote.playing.player.name + ' ');
+					browse.$playing.html(exports.remote.playing.entry.name + ' @ ' + exports.remote.playing.player.name + ' <br>Time: <span id="timer">' + Math.floor(event.payload.time) + '/' +  Math.floor(event.payload.duration) + '</span> ');
 					browse.$playing.append($play);
 					
 					$play.button();
 				}
 				
 				break;
+				
+			case "status":
+				if (event.payload.id == exports.remote.playing.player.id) {
+					$("#timer").html(Math.floor(event.payload.time) + '/' +  Math.floor(event.payload.duration));
+				}
+				
+				break;
 		}
 	};
+	
+	
+	exports.applauncher = {};
+	exports.applauncher.service = undefined;
 
 	$(document).ready(function () {
 		browse.$page = $("#browse");
@@ -515,6 +594,8 @@
 	    		service.bind(function () {
 	    			service.addWebinosEventListener(exports.events.handler);
 	    			
+	    			
+	    			
 	    			var hello = service.createWebinosEvent("hello", {
 	    				type: "player"
 	    			}, {
@@ -522,6 +603,45 @@
 	    			});
 	    			
 	    			hello.dispatchWebinosEvent();
+	    			
+	    			
+	    			window.setInterval(function () { 
+	    				
+	    				console.log("Checking players. Available: " + exports.remote.players.length);
+	    				
+	    				var hello = service.createWebinosEvent("hello", {
+		    				type: "player"
+		    			}, {
+		    				type: "browser"
+		    			});
+		    			
+		    			hello.dispatchWebinosEvent();
+	    				
+		    			
+		    			//ceck player timeouts
+		    			
+		    			var i;
+		    			var pl;
+		    			var cur = new Date().getTime();
+						for (i = 0; i < exports.remote.players.length; i++){
+							pl = exports.remote.players[i];
+							
+							if (typeof pl === 'undefined') continue;
+							if (typeof pl.time === 'undefined') continue;
+							
+							if (cur - pl.time > 10000){
+								console.log("Deleted player "  + pl.id + " " + pl.name);
+								
+								exports.remote.players.splice(i);
+								//delete exports.remote.players[i];
+								paintPlayers(ev, en);
+							}
+						}
+	    				
+	    				
+	    			}, 5000);
+	    			
+	    			
 	    		});
 	    	}
 		});
@@ -534,6 +654,14 @@
 				}
 			});
 		}, 250);
+		
+		
+		 webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/applauncher'), 
+					{onFound: function (service) {
+						exports.applauncher.service = service;
+         	    }});
+		
+		
 	});
 
 	$(exports).on("service.found", function (event, service) {
