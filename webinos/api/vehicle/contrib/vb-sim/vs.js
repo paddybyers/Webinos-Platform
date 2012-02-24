@@ -271,10 +271,10 @@ try{
 var gear = '11';
 
 var tcData = new Object();
-tcData.c1 = 48.5;
-tcData.c2 = 46.5;
-tcData.s1 = 5.7;
-tcData.s2 = 6.1;
+tcData.s1 = 48.5;
+tcData.s2 = 46.5;
+tcData.c1 = 5.7;
+tcData.c2 = 6.1;
 tcData.d = 33.3;
 tcData.m = 11298;
 tcData.r = 456;
