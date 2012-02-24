@@ -11,7 +11,9 @@
 	<script type="text/javascript">
 var $name,
 	$content,
-	$media;
+	$media,
+	$head,
+	$header;
 	
 var statusSendID;
 	
@@ -55,6 +57,7 @@ var events = {
 					}
 
 					$content.html($media);
+					$header.html($head);
 					
 					$("#player").attr("autoplay", "autoplay");
 					$("#player").on("play", function (event) {
@@ -159,15 +162,16 @@ sendStatus = function(){
 $(document).ready(function () {
 	$name = $("#name");
 	$content = $("#content");
+	$header = $("#header");
 });
 	</script>
 </head>
-<body>
-<div data-role="page">
-	<div data-role="header">
-		<h1 id="name">Player</h1>
+<body style="background-color:#000000; overflow:hidden;">
+<div data-role="page" >
+	<div id="header" data-role="header">
+		<h1 id="name">webinos web player</h1>
 	</div>
-	<div id="content" data-role="content">
+	<div id="content" data-role="content" style="top:0; bottom:0; right:0; left:0; padding:0px; background-color:#000000;">
 	</div>
 </div>
 </body>
