@@ -48,11 +48,13 @@ var events = {
 					switch (extname) {
 						case ".mp3":
 						case ".m4a":
+						case ".ogg":
 							$head = $('<center><h1 id="name">webinos audio player</h1><center>');
 							$media = $('<div height="100%"><center><img height="400px" width="400px" src="/client/webinosFS/img/back.jpg"></img><br><audio id ="player" src="' + event.payload.url.substring(8) + '" controls="controls"></audio></center></div>');
 							break;
-						case ".ogg":
 						case ".m4v":
+						case ".ogv":
+						case ".webm":
 						case ".mp4":
 							$head = $('');
 							$media = $('<video id ="player" src="' + event.payload.url.substring(8) + '" controls="controls" width="100%"></video>');

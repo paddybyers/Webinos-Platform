@@ -11,8 +11,8 @@
 	"use strict";
 
 	//ADAPT THIS TO YOUR MACHINE!
-	var playerApp = "C:\\Users\\apa\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
-	var startOptions = "\"http://localhost:8080/client/webinosFS/player.html?id=1&name=MyTV\" --kiosk --new-window";
+	var playerApp = "C:\\Users\\alf\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
+	var startOptions = "\"http://10.147.175.184:8080/client/webinosFS/player.html?id=1&name=MyTV\" --kiosk --new-window";
 	
 	
 	var browse = {},
@@ -258,9 +258,11 @@
 		switch (extname) {
 			case ".mp3":
 			case ".m4a":
+			case ".ogg":
 				$html = $('<center><audio id ="player" src="' + entry.toURL().substring(8) + '" controls></audio></center>');
 				break;
-			case ".ogg":
+			case ".ogv":
+			case ".webm":
 			case ".m4v":
 			case ".mp4":
 				$html = $('<center><video id ="player"  src="' + entry.toURL().substring(8) + '" controls></video></center>');
