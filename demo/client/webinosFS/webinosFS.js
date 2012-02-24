@@ -257,11 +257,11 @@
 		switch (extname) {
 			case ".mp3":
 			case ".m4a":
-				$html = $('<audio src="' + entry.toURL().substring(8) + '" controls></audio>');
+				$html = $('<center><audio src="' + entry.toURL().substring(8) + '" controls></audio></center>');
 				break;
 			case ".ogg":
 			case ".m4v":
-				$html = $('<video src="' + entry.toURL().substring(8) + '" controls></video>');
+				$html = $('<center><video src="' + entry.toURL().substring(8) + '" controls></video></center>');
 				break;
 		}
 
