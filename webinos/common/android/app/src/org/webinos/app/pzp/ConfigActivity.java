@@ -1,5 +1,10 @@
 package org.webinos.app.pzp;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.HashMap;
 
 import org.meshpoint.anode.Isolate;
@@ -26,6 +31,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 public class ConfigActivity extends Activity implements StateListener {
+	private static final String LASTCONFIG = "lastconfig";
 	private static String TAG = "org.webinos.app.pzp.ConfigActivity";
 	private Context ctx;
 	private Button startButton;
@@ -48,7 +54,37 @@ public class ConfigActivity extends Activity implements StateListener {
 		initUI();
 		uiThread = viewHandler.getLooper().getThread().getId();
 	}
-
+	
+	private String readLastConfig() {
+		String pzhHost = null;
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(openFileInput(LASTCONFIG)));
+			pzhHost = reader.readLine();
+		} catch (IOException e) {
+		} finally {
+			try {
+				if(reader != null)
+					reader.close();
+			} catch (IOException e) {}
+		}
+		return pzhHost;
+	}
+	
+	private void writeLastConfig(String config) {
+		BufferedWriter writer = null;
+		try {
+			writer = new BufferedWriter(new OutputStreamWriter(openFileOutput(LASTCONFIG, MODE_PRIVATE)));
+			writer.write(config);
+		} catch (IOException e) {
+		} finally {
+			try {
+				if(writer != null)
+					writer.close();
+			} catch (IOException e) {}
+		}
+	}
+	
 	private void initUI() {
 		Config config = Config.getInstance();
 		startButton = (Button)findViewById(R.id.start_button);
@@ -58,7 +94,9 @@ public class ConfigActivity extends Activity implements StateListener {
 		stopButton.setOnClickListener(new StopClickListener());
 
 		pzhText = (EditText)findViewById(R.id.args_pzhText);
-		String pzh = config.getProperty("pzh.default");
+		String pzh = readLastConfig();
+		if(pzh == null)
+			pzh = config.getProperty("pzh.default");
 		if(pzh != null)
 			pzhText.setText(pzh);
 
@@ -72,6 +110,7 @@ public class ConfigActivity extends Activity implements StateListener {
 	}
 
 	private void startAction() {
+		writeLastConfig(pzhText.getText().toString());
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("pzh", pzhText.getText().toString());
 		args.put("pzp", pzpText.getText().toString());
