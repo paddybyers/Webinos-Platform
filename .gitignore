@@ -39,8 +39,6 @@ node_modules/xmlhttprequest/
 RPC/node_modules/dojo-node/
 RPC/node_modules/prototype/
 RPC/node_modules/xmlhttprequest/
-# they are local to your development branch .. see package.json to add node module
-node_modules/
 #node_modules
 /.metadata/
 
