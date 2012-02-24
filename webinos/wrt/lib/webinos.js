@@ -26,14 +26,23 @@
      * messaging/eventing system will be used
      */
     function createCommChannel(successCB) {
-        try{
-            var port = parseInt(location.port) + 1;
-            if (isNaN(port)) {
-                port = 81;
-            }
-            channel  = new WebSocket('ws://'+window.location.hostname+':'+port);                    
-        } catch(e) {
-            channel  = new MozWebSocket('ws://'+window.location.hostname+':'+port);                         
+        try {
+            channel = new WebinosSocket();
+        } catch(e1) {
+	        try {
+	            var port = parseInt(location.port) + 1;
+	            if (isNaN(port)) {
+	                port = 81;
+	            }
+	            var host = window.location.hostname;
+	            if(!host) {
+	            	host = 'localhost';
+	            	port = 8081;
+	            }
+	            channel = new WebSocket("ws://" + host + ":" + port);
+	        } catch(e2) {
+	            channel  = new MozWebSocket('ws://'+window.location.hostname+':'+port);
+	        }
         }
         webinos.session.setChannel(channel);
 
