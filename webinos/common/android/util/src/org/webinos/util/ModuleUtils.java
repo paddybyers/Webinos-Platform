@@ -75,8 +75,9 @@ public class ModuleUtils {
 	/* cache dir for tmp and downloaded resources */
 	private static File resourceDir = new File(Constants.RESOURCE_DIR);
 	private static File moduleDir = new File(Constants.MODULE_DIR);
-	
+
 	public static void install(Context ctx, String module, String path) {
+		moduleDir.mkdirs();
 		File moduleResource;
 		boolean remove_tmp_resource = false;
 		
