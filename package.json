@@ -1,0 +1,26 @@
+{
+  "name": "webinos",
+  "description": "Web runtime platform for running Webinos specification",
+  "version": "0.0.1",
+  "dependencies": {
+    "schema": "0.2.0",
+    "sax": "0.3.4", 
+    "seq": "0.3.5", 
+    "xml2js": "0.1.12",
+    "crypt": "0.0.1",
+    "sqlite3":"2.1.1",
+    "zipfile":"0.3.0",
+    "ejs":"0.6.1",
+    "express":"2.5.6",
+    "openid":"0.3.2",
+    "passport":"0.1.5",
+    "passport-google":"0.1.0",
+    "passport-yahoo":"0.1.0",
+    "qrcode":"0.1.1",
+    "connect":"1.8.5",
+    "websocket":"1.0.2"   
+  },
+  "keywords": ["webinos", "api"],
+  "repository": "git://github.com/webinos",
+  "engines": { "node":">= 0.5.0 < 0.7.0" }
+}
