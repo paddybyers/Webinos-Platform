@@ -46,12 +46,15 @@
             	  android:label="@string/app_name">
             <intent-filter>
 				<action android:name="org.webinos.app.wgt.INSTALL" />
-				<category android:name="android.intent.category.DEFAULT" />
-				<data android:scheme="http" />
-				<data android:scheme="https" />
-				<data android:scheme="file" />
 			</intent-filter>
-        </activity>
+            <intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<data android:scheme="http" android:mimeType="application/widget" />
+				<data android:scheme="https" android:mimeType="application/widget" />
+				<data android:scheme="file" android:mimeType="application/widget" />
+			</intent-filter>
+            </activity>
         <activity android:name="org.webinos.app.wrt.ui.WidgetUninstallActivity" android:label="@string/uninstall_activity_title"/>
         <activity android:name="org.webinos.app.wrt.ui.WidgetSettingsActivity" android:label="@string/settings_activity_title"/>
         <activity android:name="org.webinos.app.wrt.ui.WidgetListActivity" 

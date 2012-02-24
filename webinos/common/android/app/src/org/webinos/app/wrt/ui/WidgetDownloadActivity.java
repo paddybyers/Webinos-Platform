@@ -67,7 +67,7 @@ public class WidgetDownloadActivity extends Activity {
 	private void installFromFile(String path) {
 		Intent installIntent = new Intent();
 		installIntent.setClass(this, WidgetInstallActivity.class);
-		installIntent.putExtra("path", path);
+		installIntent.putExtra("path", new String[]{path});
 		startActivityForResult(installIntent, 0);
 	}
 
