@@ -177,7 +177,7 @@
               this.awaitingResponse[myObject.id].onError()
             }
           }
-          delete this.awaitingResponse[myObject.id]
+        //  delete this.awaitingResponse[myObject.id]
         }
       }
     }

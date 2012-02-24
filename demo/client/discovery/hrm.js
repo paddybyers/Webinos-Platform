@@ -7,6 +7,7 @@ $(document).ready(function() {
 	distUnit = document.getElementById('nmbr2p');
 	distUnitChFlag = false;
 	
+	document.getElementById("loader").innerHTML = "";
 	//tmp, something else will have to push data
 	graphData.id = 0;
 	pushGraphData = setInterval("generatePoints()", 1000);
