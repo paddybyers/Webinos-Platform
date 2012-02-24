@@ -4,6 +4,7 @@ import org.webinos.wrt.ui.RendererActivity;
 
 import android.app.AlertDialog;
 import android.util.Log;
+import android.webkit.ConsoleMessage;
 import android.webkit.JsResult;
 import android.webkit.WebView;
 
@@ -31,4 +32,9 @@ public class WebChromeClient extends android.webkit.WebChromeClient{
 			activity.setTitle(title);
 	}
 
+	@Override
+	public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+		Log.v(consoleMessage.sourceId() + ':' + consoleMessage.lineNumber(), consoleMessage.message());
+		return true;
+	}
 }
