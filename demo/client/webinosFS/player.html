@@ -49,12 +49,13 @@ var events = {
 						case ".mp3":
 						case ".m4a":
 							$head = $('<center><h1 id="name">webinos audio player</h1><center>');
-							$media = $('<div height="100%"><center><audio id ="player" src="' + event.payload.url.substring(8) + '" controls="controls"></audio><img height="400px" width="400px" src="/client/webinosFS/img/back.jpg"></img></center></div>');
+							$media = $('<div height="100%"><center><img height="400px" width="400px" src="/client/webinosFS/img/back.jpg"></img><br><audio id ="player" src="' + event.payload.url.substring(8) + '" controls="controls"></audio></center></div>');
 							break;
 						case ".ogg":
 						case ".m4v":
+						case ".mp4":
 							$head = $('');
-							$media = $('<video id ="player" src="' + event.payload.url.substring(8) + '" controls="controls" height="100%"></video>');
+							$media = $('<video id ="player" src="' + event.payload.url.substring(8) + '" controls="controls" width="100%"></video>');
 							break;
 					}
 
@@ -187,18 +188,20 @@ sendStatus = function(){
 
 $(document).ready(function () {
 	$name = $("#name");
-	$content = $("#content");
+	$content = $("#realcontent");
 	$header = $("#header");
 });
 	</script>
 </head>
-<body style="background-color:#000000; overflow:hidden;">
-<div data-role="page" >
+<body style="background-color:black; overflow:hidden;">
+<div data-role="page" style="background-color:black">
 	<div id="header" data-role="header">
 		<h1 id="name">webinos web player</h1>
 	</div>
 	<div id="content" data-role="content" style="top:0; bottom:0; right:0; left:0; padding:0px; background-color:#000000;">
+		<div id="realcontent" style="width: 100%; height:2000px; background-color: black;"></div>
 	</div>
+	<!-- <video id ="player" src="http://localhost:2409/big_buck_bunny.mp4" controls="controls" ></video> -->
 </div>
 </body>
 </html>

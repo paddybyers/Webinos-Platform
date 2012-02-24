@@ -262,6 +262,7 @@
 				break;
 			case ".ogg":
 			case ".m4v":
+			case ".mp4":
 				$html = $('<center><video id ="player"  src="' + entry.toURL().substring(8) + '" controls></video></center>');
 				break;
 		}
