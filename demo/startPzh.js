@@ -59,7 +59,7 @@ process.argv.forEach(function (arg) {
 
 var pzhModules = [
     {name: "get42", params: [99]},
-//    {name: "events", param: {}},
+    {name: "events", param: {}},
     {name: "context", param: {}}
 ];
 

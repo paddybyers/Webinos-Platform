@@ -4,15 +4,10 @@
 	<link rel="icon" href="webinos.ico" type="image/x-icon">
 	<link rel="stylesheet" type="text/css" href="cbc.css" media="screen"/>
 	<script type="text/javascript" src="../jquery-1.6.4.min.js"></script>
-	<script type="text/javascript" src="./fancybox/jquery.mousewheel-3.0.4.pack.js"></script>
-	<script type="text/javascript" src="./fancybox/jquery.fancybox-1.3.4.pack.js"></script>
 	<script type="text/javascript" src="jcanvas.min.js"></script>
 	<script type="text/javascript" src="/client/webinos.js"></script>
 	<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
 	<script type="text/javascript" src="cbc.js"></script>
-	
-	<link rel="stylesheet" type="text/css" href="./fancybox/jquery.fancybox-1.3.4.css" media="screen" />
-		
 </head>
 
 
@@ -146,7 +141,7 @@
 			</li>
 		</ul>
 
-
+		<a  tabindex='29' id='geek-start'/></a>
 		<ul id='geek' class='disabled'>
 			<li>
 				<a href='#selecter' tabindex='30' id='customfield1'>
@@ -213,10 +208,13 @@
 	</div>
 	-->
 	<div id='loading'>
-		<div id='loadingimage'><img src='cbcloader.gif'></div>
-		<div id='loadingstatus'>Loading...</div>
+		<div id='loading-bg'></div>
+		<div id='loading-message'>
+			<div id='loadingimage'><img src='cbcloader.gif'></div>
+			<div id='loadingstatus'>Loading...</div>
+		</div>
 	</div>
-	<div id='selection'>
+	<div id='selection' class='disabled'>
 		<div id='selection-overlay'></div>
 		<div id='selection-content'>
 			<h1>Please select a property</h1>
@@ -225,15 +223,15 @@
 				<li><a href='#geek' id='selecter-speed' tabindex='10'>Speed</a></li>
 				<li><a href='#geek' id='selecter-gear' tabindex='11'>Gear</a></li>
 				<li><a href='#geek' id='selecter-heading' tabindex='12'>Heading</a></li>
-				<li><a href='#geek' id='selecter-lateral' tabindex='13'>Lateral Acceleration</a></li>
-				<li><a href='#geek' id='selecter-longitudinal' tabindex='14'>Longitudinal Acceleration</a></li>
+				<li><a href='#geek' id='selecter-lateral' tabindex='13'>Lateral<br/> Acceleration</a></li>
+				<li><a href='#geek' id='selecter-longitudinal' tabindex='14'>Longitudinal<br/> Acceleration</a></li>
 				<li><a href='#geek' id='selecter-lat' tabindex='15'>Latitude</a></li>
 				<li><a href='#geek' id='selecter-lng' tabindex='16'>Longitude</a></li>
 				<li><a href='#geek' id='selecter-alt'tabindex='17'>Altitude</a></li>
-				<li><a href='#geek' id='selecter-consumption' tabindex='18'>Average Consumption</a></li>
+				<li><a href='#geek' id='selecter-consumption' tabindex='18'>Average<br/> Consumption</a></li>
 				<li><a href='#geek' id='selecter-avg-speed' tabindex='19'>Average Speed</a></li>
 				<li><a href='#geek' id='selecter-mileage' tabindex='20'>Mileage</a></li>
-				<li><a href='#geek' id='selecter-distance' tabindex='21'>Trip distance</a></li>
+				<li><a href='#geek' id='selecter-distance' tabindex='21'>Trip<br/> distance</a></li>
 				<li><a href='#geek' id='selecter-range' tabindex='22'>Range</a></li>
 			</ul>
 			<a tabindex='24' id='selection-end'/></a>
