@@ -61,7 +61,7 @@ public class ArgProcessor {
 	private String text;
 	private Map<String, URI> uriMap;
 	private Map<String, String> filenameMap;
-
+	
 	/**
 	 * Constructs an instance of ArgProcessor
 	 * @param extras an optional bundle containing the mapping parameters

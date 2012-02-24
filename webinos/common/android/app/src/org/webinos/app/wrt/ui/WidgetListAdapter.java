@@ -88,7 +88,7 @@ public class WidgetListAdapter extends ArrayAdapter<String> {
 		/* decide what to show as the icon */
 		String prefIcon = widgetConfig.prefIcon;
 		if(prefIcon == null || prefIcon.isEmpty()) {
-			imageView.setImageResource(R.drawable.widget_icon);
+			imageView.setImageResource(R.drawable.webinos_icon);
 		} else {
 			String iconPath = WidgetManagerService.getInstance().getWidgetDir(installId) + '/' + prefIcon;
 			imageView.setImageDrawable(Drawable.createFromPath(iconPath));

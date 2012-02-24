@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.meshpoint.anode.bridge.Env;
 import org.webinos.app.anode.AnodeReceiver;
 import org.webinos.app.anode.AnodeService;
+import org.webinos.app.platform.PlatformInit;
 import org.webinos.util.AssetUtils;
 import org.webinos.util.Constants;
 
@@ -24,6 +25,7 @@ public class WidgetManagerService {
 	
 	private static void startInstance(Context ctx) {
 		try {
+			PlatformInit.init(ctx);
 			String launchScript = Constants.RESOURCE_DIR + "/widgetmanager.js";
 			AssetUtils.writeAssetToFile(ctx,"js/widgetmanager.js", launchScript);
 			Intent intent = new Intent(ctx, AnodeService.class);

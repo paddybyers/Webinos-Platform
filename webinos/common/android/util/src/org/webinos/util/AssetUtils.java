@@ -8,6 +8,9 @@ import java.io.InputStream;
 import android.content.Context;
 
 public class AssetUtils {
+	
+	public static final String ASSET_URI = "asset://";
+
 	public static byte[] getAssetAsBuffer(Context ctx, String assetName) throws IOException {
 		InputStream is = ctx.getAssets().open(assetName);
 		int read, available, offset = 0;
@@ -32,19 +35,28 @@ public class AssetUtils {
 		return new String(getAssetAsBuffer(ctx, assetName), encoding);
 	}
 
-	public static void writeAssetToFile(Context ctx, String assetName, String destinationFile) throws IOException {
-		byte[] data = getAssetAsBuffer(ctx, assetName);
+	public static File writeAssetToFile(Context ctx, String assetName, String destinationFile) throws IOException {
 		File destination = new File(destinationFile);
 		if(!destination.getParentFile().exists())
 			destination.getParentFile().mkdirs();
 		if(destination.exists())
 			destination.delete();
+		InputStream is = null;
 		FileOutputStream fos = null;
 		try {
-			(fos = new FileOutputStream(destination)).write(data);
+			is = ctx.getAssets().open(assetName);
+			fos = new FileOutputStream(destination);
+			int read;
+			byte[] buf = new byte[65536];
+			while((read = is.read(buf, 0, buf.length)) != -1) {
+				fos.write(buf, 0, read);
+			}
 		} finally {
+			if(is != null)
+				is.close();
 			if(fos != null)
 				fos.close();
 		}
+		return destination;
 	}
 }

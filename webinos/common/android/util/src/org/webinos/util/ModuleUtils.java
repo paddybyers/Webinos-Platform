@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.MessageDigest;
 
 import org.apache.http.HttpEntity;
@@ -30,6 +31,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.webinos.util.Constants;
 
+import android.content.Context;
 import android.util.Log;
 
 public class ModuleUtils {
@@ -74,6 +76,111 @@ public class ModuleUtils {
 	private static File resourceDir = new File(Constants.RESOURCE_DIR);
 	private static File moduleDir = new File(Constants.MODULE_DIR);
 	
+	public static void install(Context ctx, String module, String path) {
+		File moduleResource;
+		boolean remove_tmp_resource = false;
+		
+		/* if no path was specified, it is an error */
+		if(path == null || path.isEmpty()) {
+			Log.v(TAG, "install: no path specified");
+			return;
+		}
+		
+		/* resolve expected module type from path */
+		ModuleType modType = guessModuleType(path);
+		if(modType == null) {
+			Log.v(TAG, "install: unable to determine module type: path = " + path);
+			return;
+		}
+		
+		/* guess the module name, if not already specified */
+		if(module == null || module.isEmpty()) {
+			module = guessModuleName(path, modType);
+		}
+
+		/* download module if http or https */
+		if(path.startsWith("http://") || path.startsWith("https://")) {
+			String filename = ModuleUtils.getResourceUriHash(path);
+			try {
+				moduleResource = getResource(new URI(path), filename);
+				remove_tmp_resource = true;
+			} catch(IOException e) {
+				Log.v(TAG, "install: aborting (unable to download resource); exception: " + e + "; resource = " + path);
+				return;
+			} catch(URISyntaxException e) {
+				Log.v(TAG, "install: aborting (invalid URI specified for resource); exception: " + e + "; resource = " + path);
+				return;
+			}
+		
+		/* extract to temp file if an asset */
+		} else if(path.startsWith(AssetUtils.ASSET_URI)) {
+			try {
+				String filename = ModuleUtils.getResourceUriHash(path);
+				String destination = new File(resourceDir, filename).getAbsolutePath();
+				moduleResource = AssetUtils.writeAssetToFile(ctx, path.substring(AssetUtils.ASSET_URI.length()), destination);
+				remove_tmp_resource = true;
+			} catch(IOException e) {
+				Log.v(TAG, "install: aborting (unable to extract resource); exception: " + e + "; resource = " + path);
+				return;
+			}
+
+		} else {
+			moduleResource = new File(path);
+		}
+		
+		/* unpack if necessary */
+		if(modType.unpacker != null) {
+			try {
+				moduleResource = unpack(moduleResource, module, modType);
+				remove_tmp_resource = true;
+			} catch(IOException e) {
+				Log.v(TAG, "install: aborting (unable to unpack resource); exception: " + e + "; resource = " + path);
+				return;
+			}
+		}
+
+		/* copy processed package to modules dir */
+		File installLocation = getModuleFile(module, modType);
+		if(installLocation.exists()) {
+			if(!deleteFile(installLocation)) {
+				Log.v(TAG, "install: aborting (unable to delete old module version); resource = " + path + ", destination = " + installLocation.toString());
+				return;
+			}
+		}
+		if(copyFile(moduleResource, installLocation)) {
+			if(remove_tmp_resource)
+				deleteFile(moduleResource);
+			Log.v(TAG, "install: success; resource = " + path + ", destination = " + installLocation.toString());
+			return;
+		}
+		Log.v(TAG, "install: aborting (unable to copy resource); resource = " + path + ", destination = " + installLocation.toString());
+	}
+
+	public static void uninstall(String module) {
+		
+		/* if no module was specified, it is an error */
+		if(module == null || module.isEmpty()) {
+			Log.v(TAG, "uninstall: no module specified");
+			return;
+		}
+
+		File moduleLocation = locateModule(module, null);
+		if(moduleLocation == null) {
+			Log.v(TAG, "uninstall: specified module does not exist: " + module);
+			return;
+		}
+		if(!deleteFile(moduleLocation)) {
+			Log.v(TAG, "uninstall: unable to delete: " + module + "; attempting to delete " + moduleLocation.toString());
+			return;
+		}
+		Log.v(TAG, "uninstall: success; module = " + module + ", location = " + moduleLocation.toString());
+	}
+	
+	public static String guessModuleName(String path, ModuleType type) {
+		int pathEnd = path.lastIndexOf('/') + 1;
+		return path.substring(pathEnd, path.length()-type.extension.length());
+	}
+
 	public static ModuleType guessModuleType(String filename) {
 		/* guess by extension first */
 		for(ModuleType modType : modTypes) {
