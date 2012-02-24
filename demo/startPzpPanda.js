@@ -75,21 +75,21 @@ process.argv.forEach(function (arg) {
 });
 
 var pzpModules = [
-    {name: "get42", param: {}},
-    {name: "file", param: {}},
+//    {name: "get42", param: {}},
+//   {name: "file", param: {}},
     {name: "geolocation", param: {}},
-    {name: "applauncher", param: {}},
-    {name: "sensors", param: {}},
-    {name: "payment", param: {}},
-    {name: "tv", param: {}},
-    {name: "oauth", param: {}},
+//    {name: "applauncher", param: {}},
+//    {name: "events", param: {}},
+//    {name: "sensors", param: {}},
+//    {name: "payment", param: {}},
+//    {name: "tv", param: {}},
     {name: "deviceorientation", param: {}},
-    {name: "vehicle", param: {}},
-    {name: "context", param: {}},
-    {name: "authentication", param: {}},
-    {name: "contacts", param: {}},
-    {name: "devicestatus", param: {}},
-    {name: "discovery", param: {}}
+    {name: "vehicle", param: {}} //,
+//    {name: "context", param: {}},
+//    {name: "authentication", param: {}},
+//    {name: "contacts", param: {}},
+//    {name: "devicestatus", param: {}},
+//    {name: "discovery", param: {}}
 ];
 
 if (options.pzhHost === '' || options.pzhPort <= 0) {
