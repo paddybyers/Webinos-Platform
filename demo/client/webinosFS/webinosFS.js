@@ -335,27 +335,28 @@
 
 		
 		if (exports.remote.players.length < 1){
-			
 			var appID = playerApp;
         	var startParams = [];
         	startParams.push(startOptions);
 			
         	en = entry;
         	ev = event;
-        	paintPlayers = paintPlayerList;	
-			exports.applauncher.service.launchApplication(
-        			function (){
-        				//$('#messages').append('<li> App launched </li>');
-        				console.log("Player App Launched");
-        				//setTimeout("paintPlayers(ev, en)",5000);
-        			},
-        			function (){
-        				//$('#messages').append('<li> Error while launching App</li>');
-        				console.log("Error while launching Player App");
-        			},
-        			appID,
-        			startParams
-            );
+        	paintPlayers = paintPlayerList;
+        	for (var i=0; i<exports.applauncher.services.length; i++) {
+        		exports.applauncher.services[i].launchApplication(
+        				function (){
+        					//$('#messages').append('<li> App launched </li>');
+        					console.log("Player App Launched");
+        					//setTimeout("paintPlayers(ev, en)",5000);
+        				},
+        				function (){
+        					//$('#messages').append('<li> Error while launching App</li>');
+        					console.log("Error while launching Player App");
+        				},
+        				appID,
+        				startParams
+        		);
+        	}
 			
 		}
 		else {
@@ -471,7 +472,7 @@
 	
 	
 	exports.applauncher = {};
-	exports.applauncher.service = undefined;
+	exports.applauncher.servicess = [];
 
 	$(document).ready(function () {
 		browse.$page = $("#browse");
@@ -671,7 +672,7 @@
 		
 		 webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/applauncher'), 
 					{onFound: function (service) {
-						exports.applauncher.service = service;
+						exports.applauncher.services.push(service);
          	    }});
 		
 		
