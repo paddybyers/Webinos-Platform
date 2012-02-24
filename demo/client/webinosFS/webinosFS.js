@@ -11,8 +11,8 @@
 	"use strict";
 
 	//ADAPT THIS TO YOUR MACHINE!
-	var playerApp = "C:\\Users\\apa\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
-	var startOptions = "\"http://localhost:8080/client/webinosFS/player.html?id=1&name=MyTV\" --kiosk --new-window";
+	var playerApp = "C:\\Users\\alf\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
+	var startOptions = "\"http://10.147.175.184:8080/client/webinosFS/player.html?id=1&name=MyTV\" --kiosk --new-window";
 	
 	
 	var browse = {},
@@ -258,9 +258,11 @@
 		switch (extname) {
 			case ".mp3":
 			case ".m4a":
+			case ".ogg":
 				$html = $('<center><audio id ="player" src="' + entry.toURL().substring(8) + '" controls></audio></center>');
 				break;
-			case ".ogg":
+			case ".ogv":
+			case ".webm":
 			case ".m4v":
 			case ".mp4":
 				$html = $('<center><video id ="player"  src="' + entry.toURL().substring(8) + '" controls></video></center>');
@@ -333,27 +335,28 @@
 
 		
 		if (exports.remote.players.length < 1){
-			
 			var appID = playerApp;
         	var startParams = [];
         	startParams.push(startOptions);
 			
         	en = entry;
         	ev = event;
-        	paintPlayers = paintPlayerList;	
-			exports.applauncher.service.launchApplication(
-        			function (){
-        				//$('#messages').append('<li> App launched </li>');
-        				console.log("Player App Launched");
-        				//setTimeout("paintPlayers(ev, en)",5000);
-        			},
-        			function (){
-        				//$('#messages').append('<li> Error while launching App</li>');
-        				console.log("Error while launching Player App");
-        			},
-        			appID,
-        			startParams
-            );
+        	paintPlayers = paintPlayerList;
+        	for (var i=0; i<exports.applauncher.services.length; i++) {
+        		exports.applauncher.services[i].launchApplication(
+        				function (){
+        					//$('#messages').append('<li> App launched </li>');
+        					console.log("Player App Launched");
+        					//setTimeout("paintPlayers(ev, en)",5000);
+        				},
+        				function (){
+        					//$('#messages').append('<li> Error while launching App</li>');
+        					console.log("Error while launching Player App");
+        				},
+        				appID,
+        				startParams
+        		);
+        	}
 			
 		}
 		else {
@@ -469,7 +472,7 @@
 	
 	
 	exports.applauncher = {};
-	exports.applauncher.service = undefined;
+	exports.applauncher.services = [];
 
 	$(document).ready(function () {
 		browse.$page = $("#browse");
@@ -669,7 +672,7 @@
 		
 		 webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/applauncher'), 
 					{onFound: function (service) {
-						exports.applauncher.service = service;
+						exports.applauncher.services.push(service);
          	    }});
 		
 		
