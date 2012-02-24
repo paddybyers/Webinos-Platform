@@ -472,7 +472,7 @@
 	
 	
 	exports.applauncher = {};
-	exports.applauncher.servicess = [];
+	exports.applauncher.services = [];
 
 	$(document).ready(function () {
 		browse.$page = $("#browse");
