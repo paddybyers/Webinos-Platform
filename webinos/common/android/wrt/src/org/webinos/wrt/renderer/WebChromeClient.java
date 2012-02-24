@@ -34,7 +34,7 @@ public class WebChromeClient extends android.webkit.WebChromeClient{
 
 	@Override
 	public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
-		Log.v(consoleMessage.sourceId() + ':' + consoleMessage.lineNumber(), consoleMessage.message());
+		Log.v(TAG, consoleMessage.sourceId() + ':' + consoleMessage.lineNumber() + " " + consoleMessage.message());
 		return true;
 	}
 }
