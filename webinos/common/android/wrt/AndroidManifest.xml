@@ -10,6 +10,10 @@
         <activity android:name=".ui.RendererActivity"
                   android:label="@string/renderer_activity_title"
                   android:configChanges="orientation|keyboardHidden">
+            <intent-filter>
+                <action android:name="org.webinos.wrt.START" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <receiver android:enabled="true" android:label="@string/wrt_receiver" android:exported="true" android:description="@string/wrt_receiver_description" android:name=".core.WrtReceiver">
