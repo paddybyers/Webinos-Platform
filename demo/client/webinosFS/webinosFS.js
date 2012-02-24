@@ -6,6 +6,7 @@
 	en = null;
 	ev = null;
 	paintPlayers = null;
+	lastTime = 0;
 (function (exports) {
 	"use strict";
 
@@ -257,11 +258,11 @@
 		switch (extname) {
 			case ".mp3":
 			case ".m4a":
-				$html = $('<center><audio src="' + entry.toURL().substring(8) + '" controls></audio></center>');
+				$html = $('<center><audio id ="player" src="' + entry.toURL().substring(8) + '" controls></audio></center>');
 				break;
 			case ".ogg":
 			case ".m4v":
-				$html = $('<center><video src="' + entry.toURL().substring(8) + '" controls></video></center>');
+				$html = $('<center><video id ="player"  src="' + entry.toURL().substring(8) + '" controls></video></center>');
 				break;
 		}
 
@@ -290,6 +291,9 @@
 
 	exports.remote.playing = undefined;
 	exports.remote.play = function (player, entry) {
+		
+		
+		
 		if (typeof exports.remote.playing !== "undefined") {
 			var clear = exports.events.service.createWebinosEvent("clear", {
 				type: "player",
@@ -306,10 +310,11 @@
 		
 		var init = exports.events.service.createWebinosEvent("init", {
 			type: "player",
-			id: player.id
+			id: player.id,
 		}, {
 			name: entry.name,
-			url: entry.toURL()
+			url: entry.toURL(),
+			time: lastTime
 		});
 
 		init.dispatchWebinosEvent();
@@ -535,6 +540,11 @@
 
 		view.$page = $("#view");
 		view.$page.on("pagehide", function (event) {
+			lastTime = $("#player")[0].currentTime;
+			
+			console.log("Set lastTime to " + lastTime); 
+			
+			
 			view.$content.empty();
 		});
 
