@@ -339,6 +339,7 @@
         	var startParams = [];
         	startParams.push(startOptions);
 			
+        	remote.$name.text(entry.name);
         	en = entry;
         	ev = event;
         	paintPlayers = paintPlayerList;
@@ -360,17 +361,19 @@
 			
 		}
 		else {
-			paintPlayerList(event, entry);
+			paintPlayerList(event, entry, true);
 		}
 		
 
 	});
 	
-	var paintPlayerList = function (event, entry) {
+	var paintPlayerList = function (event, entry, mode) {
 		console.log("Painting Player List");
+		
 		
 		remote.$name.text(entry.name);
 
+		
 		remote.$players.empty();
 		
 		exports.remote.players.forEach(function (player) {
@@ -401,25 +404,26 @@
 				
 				var i;
 				var pl;
+				var known = false;
 				for (i = 0; i < exports.remote.players.length; i++){
 					pl = exports.remote.players[i];
 					
 					if (pl.id == event.payload.id){
 						pl.time = currentSecs;
-						break;
+						known = true;
 					}
 				}
 				
+				if (!known){
+					exports.remote.players.add({
+						id: event.payload.id,
+						name: event.payload.name,
+						time: currentSecs
+					});
 				
-				exports.remote.players.add({
-					id: event.payload.id,
-					name: event.payload.name,
-					time: currentSecs
-				});
 				
-				
-				paintPlayers(ev, en);
-				
+					paintPlayers(ev, en, true);
+				}
 				break;
 			case "play":
 				if (event.payload.id == exports.remote.playing.player.id) {
@@ -648,7 +652,7 @@
 								
 								exports.remote.players.splice(i);
 								//delete exports.remote.players[i];
-								paintPlayers(ev, en);
+								paintPlayers(ev, en, false);
 							}
 						}
 	    				
