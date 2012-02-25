@@ -11,8 +11,8 @@
 	"use strict";
 
 	//ADAPT THIS TO YOUR MACHINE!
-	var playerApp = "C:\\Users\\alf\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
-	var startOptions = "\"http://10.147.175.184:8080/client/webinosFS/player.html?id=1&name=MyTV\" --kiosk --new-window";
+	var playerApp = "C:\\Users\\apa\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
+	var startOptions = "\"http://192.168.2.113:8080/client/webinosFS/player.html?id=1&name=MyTV\" --kiosk --new-window";
 	
 	
 	var browse = {},
