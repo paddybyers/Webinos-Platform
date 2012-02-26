@@ -391,7 +391,7 @@ this.WidgetProcessor = (function() {
        */
       var widgetConfig = processingResult.widgetConfig;
       var icons = {};
-      var configIcons = widgetConfig.icons;
+      var configIcons = widgetConfig.icons || [];
       if(configIcons) {
         for(var i in configIcons){
           icons[configIcons[i].path] = configIcons[i];
