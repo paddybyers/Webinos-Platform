@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import org.webinos.wrt.channel.ClientSocket;
+import org.webinos.wrt.channel.Session;
 import org.webinos.wrt.ui.RendererActivity;
 
 import android.app.Service;
@@ -60,7 +60,6 @@ public class WrtManager extends Service implements Iterable<RendererActivity> {
 		theService = this;
 		Config.init(this);
 		try {
-			ClientSocket.bind();
 	        synchronized(listeners) {
 	        	theService = this;
 	        	for(LaunchListener listener : listeners) {
@@ -77,7 +76,7 @@ public class WrtManager extends Service implements Iterable<RendererActivity> {
     @Override
     public void onDestroy() {
 		try {
-			ClientSocket.unbind();
+			Session.dispose();
 		} catch(Throwable t) {
 			Log.v(TAG, "WrtManager.finalize: exception thrown", t);
 		}
