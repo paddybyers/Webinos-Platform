@@ -94,7 +94,6 @@
 		function connectWebinos()
   		{	
   			//start popup PZP list
-  			
 			webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/discovery'), {onFound: function (service) {
 		
 			alert("Connected to PZP");
@@ -109,15 +108,18 @@
 				
 			console.log("onFound callback: found service."); 
 			
-			nmbrmainspan = document.getElementById('nmbrmainspan');
-			/*nmbr1 = document.getElementById('nmbr1span');
-			nmbr2 = document.getElementById('nmbr2span');
-			nmbr3 = document.getElementById("nmbr3span"); */
-						
-			nmbrmainspan.innerHTML = service.values[0];
-			/*nmbr1.innerHTML = service.values[1];
-			nmbr2.innerHTML = service.values[2];
-			nmbr3.innerHTML = service.values[3]; */
+			//human's maximum pulse is 220
+			if(service.values[0] > 300)
+			{
+				alert("HRM is not connected");
+				var text = document.getElementById("HRM");
+				$('#HRM').text('StartHRM');
+			}
+			else
+			{
+				nmbrmainspan = document.getElementById('nmbrmainspan');
+				nmbrmainspan.innerHTML = service.values[0];
+			}
 			
 		}	
 		

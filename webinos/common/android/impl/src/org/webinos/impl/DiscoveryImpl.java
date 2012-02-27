@@ -321,7 +321,11 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
 											 // This is a blocking call and will only return on a successful connection or an exception
 											 mmSocket.connect();
 										} catch (IOException e) {
-										   //  connectionFailed();
+										   	  //inform widget that socket is not connected
+										   	  //srv.values[0]=1001;
+										   	  long[] values = {1000, 0 , 0, 0, 0, 0};
+                  							  srv.values = values;
+										   	  findCallback.onFound(srv);
 											  Log.d(TAG, "END connectionFailed");
 										     // Close the socket
 										     try {
