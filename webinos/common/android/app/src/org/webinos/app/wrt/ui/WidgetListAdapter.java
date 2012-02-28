@@ -1,0 +1,83 @@
+package org.webinos.app.wrt.ui;
+
+import org.webinos.app.R;
+import org.webinos.app.wrt.mgr.WidgetConfig;
+import org.webinos.app.wrt.mgr.WidgetManagerService;
+
+import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+public class WidgetListAdapter extends ArrayAdapter<String> {
+	private final Context context;
+	private final String[] values;
+
+	public WidgetListAdapter(Context context, String[] values) {
+		super(context, R.layout.rowlayout, values);
+		this.context = context;
+		this.values = values;
+	}
+
+	@Override
+	public View getView(int position, View convertView, ViewGroup parent) {
+		LayoutInflater inflater = (LayoutInflater) context
+				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		View rowView = inflater.inflate(R.layout.rowlayout, parent, false);
+		TextView labelView = (TextView) rowView.findViewById(R.id.label);
+		TextView detailView = (TextView) rowView.findViewById(R.id.detail);
+		ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);
+		
+		String installId = values[position];
+		
+		/* decide what to show as the main label text */
+		WidgetConfig widgetConfig = WidgetManagerService.getInstance().getWidgetConfig(installId);
+		String labelText = widgetConfig.name.visual;
+		if(labelText == null || labelText.isEmpty()) {
+			labelText = widgetConfig.shortName.visual;
+			if(labelText == null || labelText.isEmpty()) {
+				labelText = widgetConfig.id;
+				if(labelText == null || labelText.isEmpty()) {
+					labelText = "Untitled";	
+				}
+			}
+		}
+		labelView.setText(labelText);
+
+		/* decide what to show as the detail label text */
+		String descriptionText = widgetConfig.description.visual;
+		if(descriptionText == null) descriptionText = "";
+		String authorText = widgetConfig.author.name.visual;
+		if(authorText == null || authorText.isEmpty()) {
+			authorText = widgetConfig.author.href;
+			if(authorText == null) authorText = "";
+		}
+		String versionText = widgetConfig.version.visual;
+		if(versionText == null) versionText = "";
+
+		String detailText = authorText;
+		if(!versionText.isEmpty()) {
+			if(!detailText.isEmpty()) detailText += " ";
+			detailText += versionText;
+		}
+		if(!descriptionText.isEmpty()) {
+			if(!detailText.isEmpty()) detailText += " ";
+			detailText += descriptionText;
+		}
+		detailView.setText(detailText);
+
+		/* decide what to show as the icon */
+		String prefIcon = widgetConfig.prefIcon;
+		if(prefIcon == null || prefIcon.isEmpty()) {
+			imageView.setImageResource(R.drawable.widget_icon);
+		} else {
+			imageView.setImageDrawable(Drawable.createFromPath(WidgetManagerService.getInstance().getWidgetDir(installId) + "/.wgt/" + prefIcon));
+		}
+
+		return rowView;
+	}
+}

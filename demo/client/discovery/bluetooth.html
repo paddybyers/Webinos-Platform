@@ -4,20 +4,22 @@
 		<title>Webinos Local Discovery Prototype</title>
 		<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
 		<script type="text/javascript" src="../jquery-1.6.4.min.js"></script>
-<!--		<script type="text/javascript" src="/client/webinos.js"></script> -->
 		<script type="text/javascript" src="../webinos.js"></script>
-		<script type="text/javascript" src="./bluetooth_module/bluetooth.rpc.client.js"></script>
 	</head>
 	<body>	
 	<div id="content">	
 		<div id="header">
 		<!--<h1><img src="discovery_logo.png"> 	</h1> -->
 		</div>
+		
+		<div> PZH PZP LIST : <select id="pzh_pzp_list"> <option> </option> </select> <br> </div>
+		
 		<div id="functions">	
 		<h2>Testfunctions:</h2>
 	    <h3> Discover Device and Service </h3>
 		<p>
- 			<INPUT TYPE="submit" onclick="connectWebinos()" VALUE="Connect to webinos" class="button" /><br />
+			<!--<INPUT TYPE="submit" onclick="connectWebinos()" VALUE="Connect to webinos" class="button" /><br />-->
+			<INPUT TYPE="submit" onclick="connectWebinos()" VALUE="Find Service" class="button" /><br />
 			<select id='servicelist'>
 				<option>Pull down and select a service </option>
 				<OPTION VALUE="0x1106"          >FileService
@@ -65,6 +67,56 @@
 	
 	<script type="text/javascript">
 	
+	jQuery(window).ready(function() {
+            function fillPZAddrs(data) {
+            	var pzhId, connectedPzp, connectedPzh;
+	            if(data.from !== "virgin_pzp") {
+	                pzhId = data.payload.message.pzhId;
+	                connectedPzp = data.payload.message.connectedPzp;
+                    connectedPzh = data.payload.message.connectedPzh;
+	            }
+                var pzpId = data.from;
+               
+                
+                if(document.getElementById('pzh_pzp_list'))
+                    document.getElementById('pzh_pzp_list').innerHTML="";
+        
+                $("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
+                
+                var i;
+                if(typeof connectedPzp !== "undefined") {
+		            for(i =0; i < connectedPzp.length; i++) {
+		                $("<option value=" + connectedPzp[i] + " >" +connectedPzp[i] + "</option>").appendTo("#pzh_pzp_list");                  
+		            }
+		        }
+                $("<option value="+pzpId+" >" + pzpId+ "</option>").appendTo("#pzh_pzp_list");                      
+                $("</optgroup>").appendTo("#pzh_pzp_list");
+                $("<optgroup label = 'PZH' id ='pzh_list' >").appendTo("#pzh_pzp_list");
+                if(typeof connectedPzh !== "undefined") {
+		            for(i =0; i < connectedPzh.length; i++) {
+		                $("<option value=" + connectedPzh[i] + " >" +connectedPzh[i] + "</option>").appendTo("#pzh_pzp_list");                  
+		            }
+		        }
+                $("</optgroup>").appendTo("#pzh_pzp_list");
+            }
+            webinos.session.addListener('registeredBrowser', fillPZAddrs);
+            
+            function updatePZAddrs(data) {
+                if(typeof data.payload.message.pzp !== "undefined") {
+                    $("<option value=" + data.payload.message.pzp + " >" +data.payload.message.pzp + "</option>").appendTo("#pzp_list");
+                } else {
+                    $("<option value=" + data.payload.message.pzh + " >" +data.payload.message.pzh + "</option>").appendTo("#pzh_list");
+                }
+            }
+            webinos.session.addListener('update', updatePZAddrs);
+            
+            function printInfo(data) {
+                $('#message').append('<li>'+data.payload.message+'</li>');
+            }
+            webinos.session.addListener('info', printInfo);
+		});
+	
+
 		var bluetoothService = null;
 
 		function emptyList( box ) {
@@ -165,7 +217,7 @@
 			var serviceType = document.getElementById('servicelist').value;
 			console.log("serviceType:" + serviceType); 
 			
-			$('#loader').html("<img src='vehicle/ajaxloader.gif'>");
+			$('#loader').html("<img src='../vehicle/ajaxloader.gif'>");
 	
 			//webinos.rpc.findServices(serviceType, {onFound: function (results) {		
 			bluetoothService.findservices(serviceType,function (results){
@@ -207,7 +259,8 @@
 			addresses[1] = addresses[1] +'';
 			
 		    //connect the device
-		    bluetoothService.binddevice(addresses[1], function (results){
+		    //bluetoothService.binddevice(addresses[1], function (results){
+		    bluetoothService.bindservice(addresses[1], function (results){
 				document.getElementById("loader").innerHTML = "";
 				console.log("folder-response results:" + results);
 		
@@ -428,13 +481,15 @@
 		  
 		  	newwindow = window.open(str1.concat(filetransferred),'name','height=400,width=300');
 		  	if (window.focus) {newwindow.focus()}
-        }
+        	}
 
 		function connectWebinos()
-      	{
-			webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/manager/discovery/bluetooth'), {onFound: function (service) {
-			alert("done");
+      		{	
+  			webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/discovery'), {onFound: function (service) {
+			
+			alert("Found DiscoveryService");
 			bluetoothService = service;
+			console.log("bluetoothService:" + bluetoothService);
 			}});
 		}
 		

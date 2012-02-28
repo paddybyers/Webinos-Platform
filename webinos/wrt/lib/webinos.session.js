@@ -15,7 +15,9 @@
 	}
 	
 	webinos.session.message_send = function(rpc, to) {
-		var type, id = 0;	
+		var type,
+			id = Math.floor(Math.random() * 101);
+		
 		if(rpc.type !== undefined && rpc.type === "prop") {
 			type = "prop";
 			rpc = rpc.payload;	
@@ -37,12 +39,12 @@
 			console.log(rpc);
 			channel.send(JSON.stringify(rpc));
 		} else {
-            		console.log('creating callback');
+			console.log('creating callback');
 			console.log('WebSocket Client: Message Sent');
 			console.log(message)
 			channel.send(JSON.stringify(message));
 		}
-	}
+	};
 	
 	webinos.session.setServiceLocation = function (loc) {
 		serviceLocation = loc;

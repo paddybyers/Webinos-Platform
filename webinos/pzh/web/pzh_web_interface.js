@@ -1,10 +1,36 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+*     http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+*******************************************************************************/
+
 /*
+<<<<<<< HEAD
 * This is an Express web server designed to provide an interface to the
 * PZH. This file configures the web server.
 *
 * Author: John Lyle
 *
 */
+=======
+ * This is an Express web server designed to provide an interface to the
+ * PZH. This file configures the web server.
+ * 
+ *
+ */
+
+>>>>>>> master
 
 var express         = require('express'),
 util            = require('util'),
@@ -72,6 +98,7 @@ function createServer(port, checkLocalCert, isHTTP, config, options, next) {
 }
 
 function createApp(options, passport) {
+<<<<<<< HEAD
 	"use strict";
 	var app = express.createServer(options);
 
@@ -161,6 +188,83 @@ function createPassport(domainName, port, isHTTP) {
 		}
 	));
 	return passport;
+=======
+    "use strict";
+    var app = express.createServer(options);
+
+    app.configure(function(){
+      "use strict";
+      app.set('views', __dirname + '/views');
+      app.set('view engine', 'ejs');
+      app.use(express.bodyParser());
+      app.use(express.methodOverride());
+      app.use(express.cookieParser());
+      var sessionSecret = crypto.randomBytes(40).toString("base64");
+      app.use(express.session({ secret: sessionSecret }));
+      app.use(passport.initialize());
+      app.use(passport.session());    
+      app.use(app.router);
+      app.use(express.static(__dirname + '/public'));
+    });
+
+    app.configure('development', function(){
+      app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
+    });
+
+    return app;
+}
+
+function createPassport(domainName, port, isHTTP) {
+    "use strict";
+    /* No clever user handling here yet */
+    passport.serializeUser(function(user, done) {
+      done(null, user);
+    });
+
+    passport.deserializeUser(function(obj, done) {
+      done(null, obj);
+    });
+
+    if (isHTTP) {
+        var prefix = "http";
+    } else {
+        var prefix = "https";
+    }
+    
+    // Use the GoogleStrategy within Passport.
+    //   Strategies in passport require a `validate` function, which accept
+    //   credentials (in this case, an OpenID identifier and profile), and invoke a
+    //   callback with a user object.
+    passport.use(new GoogleStrategy({
+        returnURL: prefix + '://' + domainName + ':' + port + '/auth/google/return',
+        realm: prefix + '://' + domainName + ':' + port + '/'
+      },
+      function(identifier, profile, done) {
+        "use strict";
+        process.nextTick(function () {
+         
+          profile.from = "google";
+          profile.identifier = identifier;
+          return done(null, profile);
+        });
+      }
+    ));
+
+    passport.use(new YahooStrategy({
+        returnURL: prefix + '://' + domainName + ':' + port + '/auth/yahoo/return',
+        realm: prefix + '://' + domainName + ':' + port + '/'
+      },
+      function(identifier, profile, done) {
+        "use strict";
+        process.nextTick(function () {
+          profile.from = "yahoo";
+          profile.identifier = identifier;
+          return done(null, profile);
+        });
+      }
+    ));
+    return passport;
+>>>>>>> master
 }
 
 

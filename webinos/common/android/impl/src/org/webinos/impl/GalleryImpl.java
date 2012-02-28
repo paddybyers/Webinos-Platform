@@ -1,3 +1,22 @@
+/*******************************************************************************
+ *  Code contributed to the webinos project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *  
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *  
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ * Copyright 2011 Telecom Italia SpA
+ * 
+ ******************************************************************************/
+
 package org.webinos.impl;
 
 import java.io.File;
@@ -139,13 +158,94 @@ public class GalleryImpl extends GalleryManager implements IModule {
 			MediaObject result = new MediaObject();
 			result.id = 0; //TODO implement
 			result.gallery = null;	//TODO implement
-			result.locator = file.getAbsolutePath();
-			
+			result.locator = "file://"+file.getAbsolutePath(); //TODO what should this be?
+
+			MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+
+			try {
+				retriever.setDataSource(file.getAbsolutePath());
+				Log.v(LABEL, "filename is "+result.locator);
+				result.title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+				Log.v(LABEL, "title is "+result.title);
+
+				result.language = null; //TODO not available?
+				result.contributor = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST);
+				result.Creator = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_AUTHOR);
+				String dateTmp = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE);
+				Log.v(LABEL, "date is "+dateTmp);
+				result.CreateDate = null; //TODO implement - available DATE and YEAR
+				result.location = null; //TODO not available?
+				result.description = null; //TODO not available?
+				result.keyword = null; //TODO not available?
+				result.genre = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE);
+				result.rating = null; //TODO not available?
+				result.relation = null; //TODO ???
+				result.collection = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
+				result.copyright = null; //TODO not available?
+				result.policy = null; //TODO not available?
+				result.publisher = null; //TODO not available?
+				result.targetAudience = null; //TODO not available?
+				result.fragment = null; //TODO not available?
+				result.namedFragment = null; //TODO not available?
+				result.frameSize = null; //TODO not available?
+				result.compression = null; //TODO not available?
+				result.duration = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+				result.format = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE); //TODO implement
+				result.samplingRate = null; //TODO not available?
+				result.framerate = null; //TODO not available?
+				result.averageBitRate = null; //TODO not available?
+				result.numTracks = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_NUM_TRACKS));
+				
+			}
+			catch(IllegalArgumentException e) {
+				Log.v(LABEL, "Error in processing file metadata (IllegalArgumentException)");
+			}
+			catch(Exception e) {
+				Log.v(LABEL, "Error in processing file metadata "+e.getMessage());
+				try {
+					ExifInterface exifRetriever = new ExifInterface(file.getAbsolutePath());
+	
+					result.title = null; //TODO not available?
+					result.language = null; //TODO not available?
+					result.contributor = null; //TODO not available?
+					result.Creator = null; //TODO not available?
+					String dateTmp = exifRetriever.getAttribute(ExifInterface.TAG_DATETIME);
+					Log.v(LABEL, "date is "+dateTmp);
+					result.CreateDate = null;
+					result.location = null; //TODO not available?
+					result.description = null; //TODO not available?
+					result.keyword = null; //TODO not available?
+					result.genre = null; //TODO not available?
+					result.rating = null; //TODO not available?
+					result.relation = null; //TODO not available?
+					result.collection = null; //TODO not available?
+					result.copyright = null; //TODO not available?
+					result.policy = null; //TODO not available?
+					result.publisher = null; //TODO not available?
+					result.targetAudience = null; //TODO not available?
+					result.fragment = null; //TODO not available?
+					result.namedFragment = null; //TODO not available?
+					result.frameSize = Integer.getInteger(exifRetriever.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)); //TODO no sense: width, heigth, ???
+					result.compression = null; //TODO not available?
+					result.duration = null; //TODO not available?
+					result.format = null; //TODO not available?
+					result.samplingRate = null; //TODO not available?
+					result.framerate = null; //TODO not available?
+					result.averageBitRate = null; //TODO not available?
+					result.numTracks = null; //TODO not available?
+				}
+				catch(Exception e1) {
+					Log.v(LABEL, "Error in processing file metadata "+e1.getMessage());
+				}
+
+			}
+
+			retriever.release();
 			return result;
 		}
 		
 		private List<MediaObject> searchMediaFiles(File dir, List<MediaObject> inList) {
-			Log.v(LABEL, "searchMediaFiles - dir "+dir.getAbsolutePath());
+			//Log.v(LABEL, "searchMediaFiles - dir "+dir.getAbsolutePath());
 			List<MediaObject> result = inList;
 			try {
 				File[] dirFiles = dir.listFiles();
@@ -200,105 +300,8 @@ public class GalleryImpl extends GalleryManager implements IModule {
 					File rootDir = new File(dirName);
 					result = searchMediaFiles(rootDir, result);
 				}
-
 				Log.v(LABEL, "GalleryFinder run - 06 - "+result.size()+" results found");
-				/*
-				List<MediaObject> result = new ArrayList<MediaObject>();
-				MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-				for(int i=0; i<galleryPaths.length; i++) {
-					Log.v(LABEL, "GalleryFinder run - 04");
-					if(searchGallery(i)) {
-						File folder	= new File (galleryPaths[i]);
-						File[] dirFiles = folder.listFiles();
-						for(int j=0; j<dirFiles.length; j++) {
-							//TODO check if this is a media file
-							MediaObject tmp = new MediaObject();
-							Log.v(LABEL, "GalleryFinder run - 044 - "+dirFiles[j].getAbsolutePath());
-							tmp.id = 0; //TODO implement
-							tmp.gallery = null;
-							tmp.locator = dirFiles[j].getAbsolutePath();
-							try {
-								retriever.setDataSource(dirFiles[j].getAbsolutePath());
-								Log.v(LABEL, "GalleryFinder run - 045");
-								Log.v(LABEL, "filename is "+tmp.locator);
-								tmp.title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-								Log.v(LABEL, "title is "+tmp.title);
-	
-								tmp.language = null; //TODO implement
-								tmp.contributor = null; //TODO implement
-								tmp.Creator = null; //TODO implement
-								String dateTmp = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE);
-								Log.v(LABEL, "date is "+dateTmp);
-								tmp.CreateDate = null; //TODO implement
-								tmp.location = null; //TODO implement
-								tmp.description = null; //TODO implement
-								tmp.keyword = null; //TODO implement
-								tmp.genre = null; //TODO implement
-								tmp.rating = null; //TODO implement
-								tmp.relation = null; //TODO implement
-								tmp.collection = null; //TODO implement
-								tmp.copyright = null; //TODO implement
-								tmp.policy = null; //TODO implement
-								tmp.publisher = null; //TODO implement
-								tmp.targetAudience = null; //TODO implement
-								tmp.fragment = null; //TODO implement
-								tmp.namedFragment = null; //TODO implement
-								tmp.frameSize = null; //TODO implement
-								tmp.compression = null; //TODO implement
-								tmp.duration = null; //TODO implement
-								tmp.format = null; //TODO implement
-								tmp.samplingRate = null; //TODO implement
-								tmp.framerate = null; //TODO implement
-								tmp.averageBitRate = null; //TODO implement
-								tmp.numTracks = null; //TODO implement
-								
-							}
-							catch(IllegalArgumentException e) {
-								Log.v(LABEL, "Error in processing file metadata (IllegalArgumentException)");
-							}
-							catch(Exception e) {
-								Log.v(LABEL, "Error in processing file metadata");
-								ExifInterface exifRetriever = new ExifInterface(dirFiles[j].getAbsolutePath());
 
-								tmp.title = null;
-								tmp.language = null; //TODO implement
-								tmp.contributor = null; //TODO implement
-								tmp.Creator = null; //TODO implement
-								String dateTmp = exifRetriever.getAttribute(ExifInterface.TAG_DATETIME);
-								Log.v(LABEL, "date is "+dateTmp);
-								tmp.CreateDate = null;
-								tmp.location = null; //TODO implement
-								tmp.description = null; //TODO implement
-								tmp.keyword = null; //TODO implement
-								tmp.genre = null; //TODO implement
-								tmp.rating = null; //TODO implement
-								tmp.relation = null; //TODO implement
-								tmp.collection = null; //TODO implement
-								tmp.copyright = null; //TODO implement
-								tmp.policy = null; //TODO implement
-								tmp.publisher = null; //TODO implement
-								tmp.targetAudience = null; //TODO implement
-								tmp.fragment = null; //TODO implement
-								tmp.namedFragment = null; //TODO implement
-								tmp.frameSize = null; //TODO implement
-								tmp.compression = null; //TODO implement
-								tmp.duration = null; //TODO implement
-								tmp.format = null; //TODO implement
-								tmp.samplingRate = null; //TODO implement
-								tmp.framerate = null; //TODO implement
-								tmp.averageBitRate = null; //TODO implement
-								tmp.numTracks = null; //TODO implement
-
-							}
-							result.add(tmp);
-						}
-					}
-				}
-				
-				retriever.release();
-				//search results
-				 */
-				Log.v(LABEL, "GalleryFinder run - 07");
 				successCallback.onSuccess(result.toArray(new MediaObject[result.size()]));
 				Log.v(LABEL, "GalleryFinder run - 08");
 				setSearchInProgress(false);

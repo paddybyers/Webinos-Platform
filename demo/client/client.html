@@ -61,7 +61,11 @@
                                 servername: document.getElementById('pzpservername').value,
                                 serverport: document.getElementById('pzpserverport').value,
                                 code:  document.getElementById('pzpcode').value,
-                                modules: [{name:'get42', params: [23]}], // FIXME just for testing, need gui to configure modules
+                                modules: [{name:'get42', params: [23]},
+				      {name:'contacts', params:[0]},
+				      {name:'context', params:[0]},
+				      {name:'geolocation', params:[0]}
+				], // FIXME just for testing, need gui to configure modules
                                 value: config}; 
                         
                         var options = {type: 'prop', payload: payload};
@@ -115,11 +119,9 @@
                 });
 
                 $('#listen42').bind('click', function() {
-                    for (var i=0; i<test.length; i++) {
-                        test[i].listenerFor42(function(result) {
-                            alert(result.msg);
-                        }, {opts: "unused"});
-                    }
+                    recentService.listenerFor42(function(result) {
+                        alert(result.msg);
+                    }, {opts: "unused"});
                 });
         
         });
@@ -133,11 +135,13 @@
                 <li> <a href="#get42_example"> Get42 Example </a> </li>
                 <li> <a href="#contact"> Contact </a> </li>
                 <li> <a href="#geolocation"> GeoLocation </a> </li>
-                <li> <a href="#discovery"> Discovery </a> </li>
+                <li> <a href="#discovery_UI"> Discovery UI </a> </li>
+                <li> <a href="#discovery_BT"> Discovery Bluetooth </a> </li>
                 <li> <a href="#sensor"> Sensor </a> </li>
                 <li> <a href="#payment"> Payment </a> </li>
                 <li> <a href="#file"> File API </a> </li>
                 <li> <a href="#events"> Event API </a> </li>
+                <li> <a href="#applauncher"> AppLauncher API </a> </li>
                 <li> <a href="#tv"> TV API </a> </li>
                 <li><a href="#context"> Context </a></li>
                 <li> <a href="#authentication"> Authentication </a> </li>
@@ -225,6 +229,12 @@
                 <iframe src="geolocation.html" width="100%" height="100%">
                 </iframe>
         </div>
+        
+        <div id="discovery_BT" style="background-color:#0879a9">
+                <iframe src="discovery/bluetooth.html" width="100%" height="100%">
+                </iframe>
+        </div>
+        
         <div id="sensor" style="background-color:#0879a9">
                 <iframe src="sensor.html" width="100%" height="100%">
                 </iframe>
@@ -233,7 +243,7 @@
                 <iframe src="payment/payment.html" width="100%" height="100%">
                 </iframe>
         </div>
-        <div id="discovery" style="background-color:#0879a9">
+        <div id="discovery_UI" style="background-color:#0879a9">
                 <iframe src="discoveryUI.html" width="100%" height="100%">
                 </iframe>               
         </div>
@@ -243,6 +253,10 @@
         </div>
         <div id="events" style="background-color:#0879a9">
                 <iframe src="events/events.html" width="100%" height="100%">
+                </iframe>
+        </div>
+        <div id="applauncher" style="background-color:#0879a9">
+                <iframe src="applauncher/applauncher.html" width="100%" height="100%">
                 </iframe>
         </div>
         <div id="tv" style="background-color:#0879a9">

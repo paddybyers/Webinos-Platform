@@ -28,24 +28,29 @@ public class Org_webinos_api_messaging_MessagingManager {
 				(org.webinos.api.messaging.OnIncomingMessage)args[0]
 			));
 			break;
-		case 3: /* onMMS */
+		case 3: /* onIM */
+			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.onIM(
+				(org.webinos.api.messaging.OnIncomingMessage)args[0]
+			));
+			break;
+		case 4: /* onMMS */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.onMMS(
 				(org.webinos.api.messaging.OnIncomingMessage)args[0]
 			));
 			break;
-		case 4: /* onSMS */
+		case 5: /* onSMS */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.onSMS(
 				(org.webinos.api.messaging.OnIncomingMessage)args[0]
 			));
 			break;
-		case 5: /* sendMessage */
+		case 6: /* sendMessage */
 			result = inst.sendMessage(
 				(org.webinos.api.messaging.MessageSendCallback)args[0],
 				(org.webinos.api.ErrorCallback)args[1],
 				(org.webinos.api.messaging.Message)args[2]
 			);
 			break;
-		case 6: /* unsubscribe */
+		case 7: /* unsubscribe */
 			inst.unsubscribe(
 				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue
 			);
@@ -73,10 +78,13 @@ public class Org_webinos_api_messaging_MessagingManager {
 		case 4: /* TYPE_EMAIL */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)org.webinos.api.messaging.MessagingManager.TYPE_EMAIL);
 			break;
-		case 5: /* TYPE_MMS */
+		case 5: /* TYPE_IM */
+			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)org.webinos.api.messaging.MessagingManager.TYPE_IM);
+			break;
+		case 6: /* TYPE_MMS */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)org.webinos.api.messaging.MessagingManager.TYPE_MMS);
 			break;
-		case 6: /* TYPE_SMS */
+		case 7: /* TYPE_SMS */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)org.webinos.api.messaging.MessagingManager.TYPE_SMS);
 			break;
 		default:

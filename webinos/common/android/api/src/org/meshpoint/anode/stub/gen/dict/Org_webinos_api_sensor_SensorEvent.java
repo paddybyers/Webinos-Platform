@@ -4,7 +4,7 @@ package org.meshpoint.anode.stub.gen.dict;
 
 public class Org_webinos_api_sensor_SensorEvent {
 
-	private static Object[] __args = new Object[10];
+	private static Object[] __args = new Object[11];
 
 	public static Object[] __getArgs() { return __args; }
 
@@ -14,6 +14,7 @@ public class Org_webinos_api_sensor_SensorEvent {
 		ob.rate = (int)((org.meshpoint.anode.js.JSValue)vals[7]).longValue;
 		ob.sensorId = (String)vals[8];
 		ob.sensorType = (String)vals[9];
+		ob.sensorValues = (double[])vals[10];
 	}
 
 	public static Object[] __export(org.webinos.api.sensor.SensorEvent ob) {
@@ -22,6 +23,7 @@ public class Org_webinos_api_sensor_SensorEvent {
 		__args[7] = org.meshpoint.anode.js.JSValue.asJSNumber((long)ob.rate);
 		__args[8] = ob.sensorId;
 		__args[9] = ob.sensorType;
+		__args[10] = ob.sensorValues;
 		return __args;
 	}
 

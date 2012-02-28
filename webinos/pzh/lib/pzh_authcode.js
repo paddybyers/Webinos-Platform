@@ -1,3 +1,19 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+*     http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+*******************************************************************************/
 
 var tokenAuth = exports;
 
@@ -34,15 +50,15 @@ tokenAuth.createAuthCounter = function(callback) {
 	        //We don't unset if we're allowing debug additions.
 	    } else {
 	        utils.debug(2,"No longer expecting PZP with code " + self.code);
-    	    self.status = false;
+		self.status = false;
 	        self.code = null;
-    	    self.timeout = null;
-    	    self.guesses = 8;
+		self.timeout = null;
+		self.guesses = 8;
 	    }
 	    cb();
 	}
 
-    authCounter.isExpected = function(cb) {
+	authCounter.isExpected = function(cb) {
 	    "use strict";
 	    var self = this;
 	    

@@ -1,3 +1,21 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+* Copyright 2011 Samsung Electronics Research Institute
+*******************************************************************************/
+
 /**
 * @description Session common has functions that are used by both Pzh and Pzp
 * @author <a href="mailto:habib.virji@samsung.com">Habib Virji</a>
@@ -41,6 +59,14 @@ common.webinosConfigPath = function() {
 	return webinosDemo;
 };
 
+// global exception handler, which catches all unhandled exceptions,
+// prints a trace and exits. the trace is better than the default.
+/*process.addListener("uncaughtException", function (err) {
+    console.log("Uncaught exception: " + err);
+    console.trace();
+    process.exit();
+});*/
+
 common.debug = function(num, msg) {
 	"use strict";
 	var info = true; // Change this if you want no prints from session manager
@@ -62,7 +88,7 @@ common.removeClient = function(self, conn) {
 	
 	for (i in self.connectedPzp) {
 		if(self.connectedPzp.hasOwnProperty(i)) {
-			if(conn.socket._peername.address === self.connectedPzp[i].address) {
+			if(conn === self.connectedPzp[i].socket) {
 				delId = i;
 				delete self.connectedPzp[i];
 			}
@@ -101,37 +127,53 @@ common.removeClient = function(self, conn) {
 	
 };
 
+var message = '';
 common.processedMsg = function(self, data, dataLen, callback) {
 	"use strict";
 	var msg = data.toString('utf8');
+	
+	// This part of the code is executed when message comes in chunks 
+	// First part of the message coming in
+	if (msg[0] === '#' && msg[msg.length-dataLen] !== '#') {
+		message = msg;
+		return;
+	}
+	// This is the middle of the message
+	if (msg[0] !== '#' && msg[msg.length-dataLen] !== '#') {
+		message += msg;
+		return;
+	}
+	// This is the last part of the message
+	if (msg[0] !== '#' && msg[msg.length-dataLen] === '#') {
+		message += msg;
+		msg = message;
+
+		message = '';
+	}
+	
 	if(msg[0] ==='#' && msg[msg.length-dataLen] === '#') {
 		msg = msg.split('#');
-		/*if(checkSchema(msg[1]) === false) */{
-			var parse = JSON.parse(msg[1]);
-
-			// BEGIN OF POLITO MODIFICATIONS
-			var valError = validation.checkSchema(parse);
-			if(valError === false) { // validation error is false, so validation is ok
-				common.debug('DEBUG','[VALIDATION] Received recognized packet ' + JSON.stringify(msg));
-			}
-			else if (valError === true) {
-				// for debug purposes, we only print a message about unrecognized packet
-				// in the final version we should throw an error
-				// Currently there is no a formal list of allowed packages and throw errors
-				// would prevent the PZH from working
-				common.debug('INFO','[VALIDATION] Received unrecognized packet ' + JSON.stringify(msg));
-				
-			}
-			else if (valError === 'failed') {
-				common.debug('ERROR','[VALIDATION] failed');
-			}
-			else {
-				common.debug('ERROR','[VALIDATION] Invalid response ' + valError);
-			}
-
-			callback.call(self, parse);
+		
+		var parse = JSON.parse(msg[1]);
+		// TODO POLITO: It is multiple messages in a msg string, check for all of them
+		// BEGIN OF POLITO MODIFICATIONS
+		var valError = validation.checkSchema(parse);
+		if(valError === false) { // validation error is false, so validation is ok
+			common.debug('DEBUG','[VALIDATION] Received recognized packet ' + JSON.stringify(msg));
+		} else if (valError === true) {
+			// for debug purposes, we only print a message about unrecognized packet
+			// in the final version we should throw an error
+			// Currently there is no a formal list of allowed packages and throw errors
+			// would prevent the PZH from working
+			common.debug('INFO','[VALIDATION] Received unrecognized packet ' + JSON.stringify(msg));
+		} else if (valError === 'failed') {
+			common.debug('ERROR','[VALIDATION] failed');
+		} else {
+			common.debug('ERROR','[VALIDATION] Invalid response ' + valError);
 		}
-	}	
+		callback.call(self, parse);
+	}
+
 };
 
 common.resolveIP = function(serverName, callback) {

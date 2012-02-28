@@ -66,20 +66,13 @@ configure.setConfiguration = function (contents, type, callback) {
 												config.conn.cert   = cert;
 												
 												// This works only for Linux and MAC
-												if (os.type().toLowerCase()=== 'linux' || os.type().toLowerCase() === 'darwin') {
-													try {
-														var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
-														key.put(config.master.key_id, master_key);
-														key.put(config.conn.key_id,   conn_key);
-													} catch (err) {
-														log('ERROR', '[CONFIG] Storing keys in key store' + err);
-														callback("undefined");
-														return;
-													}
-												} else {
-													// TODO: FIXME: TEMP SOLUTION FOR ANDROID AND WINDOWS
-													config.master.key = master_key;
-													config.conn.key   = conn_key;
+												try {
+													fs.writeFileSync(config.master.key_id, master_key);
+													fs.writeFileSync(config.conn.key_id, conn_key);
+												} catch (err) {
+													log('ERROR', '[CONFIG] Storing keys in key store' + err);
+													callback("undefined");
+													return;
 												}
 											} catch (err1) {
 												log('ERROR','[CONFIG] Error setting paramerters' + err1) ;
@@ -106,21 +99,16 @@ configure.setConfiguration = function (contents, type, callback) {
 						} else {
 							// PZP SECTION
 							try {
-								if (os.type().toLowerCase() === 'linux' || os.type().toLowerCase() === 'darwin') {
-									try{
-										var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
-										key.put(config.conn.key_id, conn_key);
-									} catch (err) {
-										log('ERROR', '[CONFIG] Error storing key in key store '+ err);
-										return;
-									}
-								} else {
-									// TODO: FIXME: TEMP SOLUTION FOR ANDROID AND WINDOWS
-									config.conn.key = conn_key;
-								}
-								config.conn.cert = conn_cert.cert;
-								configure.storeConfig(config);
-								callback(config, conn_key, csr);
+								try{
+									fs.readFile(config.conn.key_id, function(conn_key){
+										config.conn.cert = conn_cert.cert;
+										configure.storeConfig(config);
+										callback(config, conn_key, csr);
+									});
+								} catch (err) {
+									log('ERROR', '[CONFIG] Error storing key in key store '+ err);
+									return;
+								}	
 
 							} catch (err) {
 								log('ERROR',' [CONFIG] Error writing configuration file');
@@ -144,19 +132,17 @@ configure.setConfiguration = function (contents, type, callback) {
 				config = JSON.parse(data1);
 				var master_key = null, conn_key;
 				// TODO: FIXME:  This works fine for linux and mac. Requires implementation on Android and Windows
-				if (os.type().toLowerCase() === 'linux' || os.type().toLowerCase() === 'darwin') {
-					try{
-						var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
-						conn_key   = key.get(config.conn.key_id);
-					} catch(err){
-						log('ERR0R','[CONFIG] Key fetching error' )
-						return;
-					}
-					callback(config, conn_key);
-				} else {
-					// TEMP SOLUTION FOR ANDROID AND WINDOWS
-					callback(config);
+				
+				try{
+					fs.readFile(config.conn.key_id, function(conn_key){
+						callback(config, conn_key);
+					});
+				} catch(err){
+					log('ERR0R','[CONFIG] Key fetching error' )
+					return;
 				}
+				
+				
 			}
 		});
 	});

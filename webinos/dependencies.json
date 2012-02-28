@@ -12,6 +12,10 @@
       "name": "Test module",
       "location": "api/test-module/"
     },
+     "applauncher": {
+      "name": "Applauncher module",
+      "location": "api/applauncher/"
+    },
     "attestation": {
       "name": "Attestation",
       "location": "api/attestation/"
@@ -67,6 +71,10 @@
     "payment": {
       "name": "Payment",
       "location": "api/payment/"
+    },
+    "discovery": {
+      "name": "Discovery",
+      "location": "api/discovery/"
     }
   },
   "manager": {

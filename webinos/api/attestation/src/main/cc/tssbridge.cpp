@@ -1,3 +1,20 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+*     http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+*******************************************************************************/
+
 /*
  *  tssbridge.cpp
  *
@@ -105,7 +122,7 @@ static char* stringToChar(Local<String> str) {
  * Entirely inefficient.
  *
  * Will throw an exception if the Quote fails.
- * Currently doing NO INPUT VALIDATION WHATSOEVER!
+ * Currently doing NO INPUT VALIDATION
  *
  * Arguments: srkpwd, aikfile, pcrs[], nonce
  *
@@ -148,7 +165,7 @@ static Handle<Value> getQuote(const Arguments& args) {
 				Exception::Error(String::New("Error producing TPM Quote")));
 	}
 
-	// turn all these stupid TSS structs into stupid JSON structures!
+	// turn all these stupid TSS structs into JSON structures!
 	Local<Object> validData = Object::New();
 
 	validData->Set(String::New("rgbData"),

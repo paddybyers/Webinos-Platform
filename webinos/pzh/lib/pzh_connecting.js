@@ -1,3 +1,25 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+* Copyright 2011 Samsung Electronics Research Institute
+*******************************************************************************/
+
+/*
+ * Handles connection with other PZH
+ */
+
 var pzhConnecting = exports;
 
 var path      = require('path');
@@ -12,50 +34,14 @@ var utils        = require(path.join(webinosRoot, dependencies.pzp.location, 'li
 var log          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
 var config       = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
 
-pzhConnecting.downloadCertificate = function(pzh, servername, callback) {
-	var self = pzh;	
-	var agent = new http.Agent({maxSockets: 1});
-	var headers = {'connection': 'keep-alive'};
-	
-	var options = {
-		headers: headers,
-		port: config.port,
-		host: servername,
-		agent: agent,
-		method: 'POST'
-	};
+var rpc          = require(path.resolve(__dirname, dependencies.rpc.location));
 
-	var req = http.request(options, function(res) {		
-		res.on('data', function(data) {
-			utils.processedMsg(data, 2, function(parse) {	
-				try {
-					fs.writeFile(self.config.pzhOtherCertDir+'/'+parse.payload.message.name, parse.payload.message.cert, function() {
-						callback("downloadCertificate");
-						pzhConnecting.connectOtherPZH(pzh, servername, '443');
-					});
-				} catch (err) {
-					log('ERROR', 'PZH ('+self.sessionId+') Error storing other Pzh cert ' + err);
-					return;
-				}
-			});
-		});			
-	});
-	try {
-		var msg = {name: self.config.master.cert.name , cert: self.config.master.cert.value};
-		var msg = self.prepMsg(null, null,'getMasterCert', msg);
-		req.write('#'+JSON.stringify(msg)+'#\n');
-		req.end();
-	} catch (err) {
-		log('ERROR', 'PZH Error sending master cert to Pzh' + err);
-		return;
-	}
-};
-
-//sessionPzh.connectOtherPZH = function(server, port) {
 pzhConnecting.connectOtherPZH = function(pzh, server, port) {
 	var self = pzh, options;
 	log('INFO', 'PZH ('+self.sessionId+') Connect Other PZH');
 	try {
+		var ca = [self.config.master.cert.value];
+		
 		//No CRL support yet, as this is out-of-zone communication.  TBC.
 		options = {key: self.config.conn.key,
 			cert: self.config.conn.cert,

@@ -1,54 +1,599 @@
-if (typeof webinos === "undefined")
-	webinos = {};
-
+/**
+ * TODO On webinos update event, add new shard(s) and update the current page.
+ * TODO Check various "inline" TODOs.
+ */
 (function (exports) {
 	"use strict";
 
-	// On filesystem request success, queue a task to update #list with entries for the current directory from the new
-	// filesystem.
-	// On directory change, queue tasks to update #list with entries for the new directory from all known filesystems.
-	// Make sure that updates only happen as long as the current directory isn't changed, i.e., clear the task queue on
-	// directory change.
-	var queue = async.queue(function (task, callback) {
-		task(callback);
+	var browse = {},
+		select = {},
+		view = {},
+		remote = {};
+
+	exports.state = "browse";
+
+	// TODO Check token on push and clear tasks array on clear.
+	exports.queue = async.queue(function (data, callback) {
+		try {
+			if (data.token >= exports.queue.token)
+				data.fun();
+		} finally {
+			callback();
+		}
 	}, 1);
 
-	// Remember filesystems along with their service.
-	var filesystems = [];
+	exports.queue.token = 0;
+	exports.queue.clear = function () {
+		exports.queue.token++;
+	};
 
-	// On file entry conflict, remember involved PZPs and enable user selection.
+	exports.shards = [];
+	exports.shards.add = function (shard) {
+		var newLength = this.push(shard);
 
-	exports.session = {};
-	exports.session.onregisteredBrowser = function (event) {
-		webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/file"), {
-			onFound: function (service) {
-				service.bindService({
-					onBind: function () {
-						service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 1024, function (filesystem) {
-							filesystems.push(filesystem);
+		$(exports).triggerHandler("add.shard", [shard, newLength - 1, this]);
+	};
+
+	$(exports).on("add.shard", function (event, shard) {
+		if (exports.state == "browse")
+			shard.browse(exports.browse.path, exports.queue.token);
+	});
+
+	exports.Shard = function (service, filesystem) {
+		this.service = service;
+		this.filesystem = filesystem;
+	};
+
+	exports.Shard.prototype.browse = function (path, token) {
+		var shard = this;
+
+		this.filesystem.root.getDirectory(path, { create: false }, function (entry) {
+			var reader = entry.createReader();
+
+			var successCallback = function (entries) {
+				if (entries.length == 0)
+					return;
+
+				exports.queue.push({
+					token: token,
+					fun: function () {
+						entries.forEach(function (entry) {
+							var sentry;
+
+							if (entry.isFile)
+								sentry = new exports.FileSentry(entry.fullPath);
+							else if (entry.isDirectory)
+								sentry = new exports.DirectorySentry(entry.fullPath);
+
+							sentry.shards.add(shard, entry);
+
+							exports.browse.sentries.add(sentry);
 						});
 					}
 				});
-			}
+
+				reader.readEntries(successCallback);
+			};
+
+			reader.readEntries(successCallback);
 		});
 	};
-	
-	exports.session.onupdate = function (event) {
+
+	exports.Sentry = function (fullPath) {
+		this.shards = [];
+		this.shards.add = function (shard, entry) {
+			this.push({ shard: shard, entry: entry });
+		};
+
+		this.name = webinos.path.basename(fullPath);
+		this.fullPath = fullPath;
+
+		this.$html = this.htmlify();
 	};
-})(webinosFS = {});
 
-$(document).ready(function () {
-	webinos.session.addListener("registeredBrowser", webinosFS.session.onregisteredBrowser);
-	webinos.session.addListener("update", webinosFS.session.onupdate);
-});
+	exports.Sentry.prototype.isFile = false;
+	exports.Sentry.prototype.isDirectory = false;
 
-$(document).bind("pagebeforechange", function (event, data) {
-	if (typeof data.toPage === "string") {
-		var url = $.mobile.path.parseUrl(data.toPage);
+	exports.DirectorySentry = function (fullPath) {
+		exports.Sentry.call(this, fullPath);
+	};
 
-		if (url.hash.search(/^#browse/) !== -1) {
-			data.options.allowSamePageTransition = true;
-			data.options.transition = "none";
+	webinos.utils.inherits(exports.DirectorySentry, exports.Sentry);
+
+	exports.DirectorySentry.prototype.isDirectory = true;
+	exports.DirectorySentry.prototype.htmlify = function () {
+		var $html = $('<li class="directory"><a href="#browse?' + $.param({
+				path: this.fullPath
+			}) + '">' + this.name + '</a></li>');
+
+		$html.jqmData("sentry", this);
+
+		return $html;
+	};
+
+	exports.FileSentry = function (fullPath) {
+		exports.Sentry.call(this, fullPath);
+	};
+
+	webinos.utils.inherits(exports.FileSentry, exports.Sentry);
+
+	exports.FileSentry.prototype.isFile = true;
+	exports.FileSentry.prototype.htmlify = function () {
+		var $html = $('<li class="file"><a href="#select?' + $.param({
+				path: this.fullPath
+			}) + '">' + this.name + '</a></li>');
+
+		$html.jqmData("sentry", this);
+
+		return $html;
+	};
+
+	exports.browse = function (path, changePage, options) {
+		exports.state = "browse";
+		exports.queue.clear();
+
+		exports.browse.path = path;
+		exports.browse.sentries.clear();
+
+		exports.shards.forEach(function (shard) {
+			shard.browse(exports.browse.path, exports.queue.token);
+		});
+
+		if (changePage) {
+			var defaultOptions = {
+				allowSamePageTransition: true,
+				transition: "none"
+			};
+
+			$.mobile.changePage("#browse", $.extend(defaultOptions, options));
 		}
-	}
-});
+
+		$(exports).triggerHandler("browse", path);
+	};
+
+	$(exports).on("browse", function (event, path) {
+		if (path == "/")
+			browse.$parent.hide();
+		else
+			browse.$parent.show();
+
+		browse.$current.text(webinos.path.basename(path) || "webinosFS");
+	});
+
+	exports.browse.path = "/";
+	exports.browse.sentries = [];
+	exports.browse.sentries.add = function (sentry) {
+		var i;
+		for (i = 0; i < this.length; i++)
+			if (this[i].fullPath == sentry.fullPath && (this[i].isFile && sentry.isFile || this[i].isDirectory && sentry.isDirectory)) {
+				sentry.shards.forEach(function (shard) {
+					this[i].shards.add(shard.shard, shard.entry);
+				});
+
+				return;
+			} else if (this[i].fullPath > sentry.fullPath)
+				break;
+
+		this.splice(i, 0, sentry);
+
+		$(exports).triggerHandler("add.sentry", [sentry, i, this]);
+	};
+
+	$(exports).on("add.sentry", function (event, sentry, i, sentries) {
+		if (i == 0)
+			sentry.$html.prependTo(browse.$sentries);
+		else
+			sentry.$html.insertAfter(sentries[i - 1].$html);
+
+		browse.$sentries.listview("refresh");
+	});
+
+	exports.browse.sentries.clear = function () {
+		this.splice(0, this.length);
+
+		$(exports).triggerHandler("clear.sentry");
+	};
+
+	$(exports).on("clear.sentry", function (event) {
+		browse.$sentries.empty();
+	});
+
+	exports.select = function (sentry) {
+		exports.state = "select";
+		exports.queue.clear();
+
+		exports.select.sentry = sentry;
+
+		$.mobile.changePage("#select", { changeHash: false });
+
+		$(exports).triggerHandler("select", sentry);
+	};
+
+	$(exports).on("select", function (event, sentry) {
+		select.$name.text(sentry.name);
+
+		select.$shards.empty();
+
+		sentry.shards.forEach(function (shard) {
+			var $html = $('<li class="shard"><a href="#view?' + $.param({
+					shard: shard.shard.service.serviceAddress,
+					path: sentry.fullPath
+				}) + '">' + shard.shard.service.serviceAddress + '</a></li>');
+
+			$html.jqmData("entry", shard.entry);
+
+			$html.appendTo(select.$shards);
+		});
+
+		select.$shards.listview("refresh");
+	});
+
+	exports.view = function (entry) {
+		exports.state = "view";
+		exports.queue.clear();
+
+		exports.view.entry = entry;
+
+		$.mobile.changePage("#view", { changeHash: false });
+
+		$(exports).triggerHandler("view", entry);
+	};
+
+	$(exports).on("view", function (event, entry) {
+		view.$name.text(entry.name);
+
+		var extname = webinos.path.extname(entry.name);
+		var $html;
+
+		switch (extname) {
+			case ".mp3":
+			case ".m4a":
+				$html = $('<audio src="' + entry.toURL().substring(8) + '" controls></audio>');
+				break;
+			case ".ogg":
+			case ".m4v":
+				$html = $('<video src="' + entry.toURL().substring(8) + '" controls></video>');
+				break;
+		}
+
+		$html.appendTo(view.$content);
+	});
+
+	exports.remote = function (entry) {
+		exports.state = "remote";
+		exports.queue.clear();
+
+		exports.remote.entry = entry;
+
+		$.mobile.changePage("#remote", { changeHash: false });
+
+		$(exports).triggerHandler("remote", entry);
+	};
+
+	exports.remote.players = [];
+	exports.remote.players.add = function (player) {
+		for (var i = 0; i < this.length; i++)
+			if (this[i].id == player.id)
+				return;
+
+		this.push(player);
+	};
+
+	exports.remote.playing = undefined;
+	exports.remote.play = function (player, entry) {
+		if (typeof exports.remote.playing !== "undefined") {
+			var clear = exports.events.service.createWebinosEvent("clear", {
+				type: "player",
+				id: exports.remote.playing.player.id
+			});
+
+			clear.dispatchWebinosEvent();
+		}
+		
+		exports.remote.playing = {
+			player: player,
+			entry: entry
+		};
+		
+		var init = exports.events.service.createWebinosEvent("init", {
+			type: "player",
+			id: player.id
+		}, {
+			name: entry.name,
+			url: entry.toURL()
+		});
+
+		init.dispatchWebinosEvent();
+		
+		exports.browse(webinos.path.dirname(entry.fullPath), true, {
+			transition: "slide",
+			reverse: true
+		});
+	};
+
+	$(exports).on("remote", function (event, entry) {
+		remote.$name.text(entry.name);
+
+		remote.$players.empty();
+
+		exports.remote.players.forEach(function (player) {
+			var $html = $('<li class="player"><a href="#play?' + $.param({
+					player: player.id,
+					path: entry.fullPath
+				}) + '">' + player.name + '</a></li>');
+
+			$html.jqmData("player", player);
+			$html.jqmData("entry", entry);
+
+			$html.appendTo(remote.$players);
+		});
+
+		remote.$players.listview("refresh");
+	});
+
+	exports.events = {};
+	exports.events.service = undefined;
+	exports.events.handler = function (event) {
+		if (event.addressing.type != "browser")
+			return;
+		
+		switch (event.type) {
+			case "hello":
+				exports.remote.players.add({
+					id: event.payload.id,
+					name: event.payload.name
+				});
+				
+				break;
+			case "play":
+				if (event.payload.id == exports.remote.playing.player.id) {
+					var $pause = $('<a>Pause</a>');
+					$pause.click(function () {
+						var pause = exports.events.service.createWebinosEvent("pause", {
+							type: "player",
+							id: event.payload.id
+						});
+	
+						pause.dispatchWebinosEvent();
+					});
+
+					browse.$playing.html(exports.remote.playing.entry.name + ' @ ' + exports.remote.playing.player.name + ' ');
+					browse.$playing.append($pause);
+					
+					$pause.button();
+				}
+				
+				break;
+			case "pause":
+				if (event.payload.id == exports.remote.playing.player.id) {
+					var $play = $('<a>Play</a>');
+					$play.click(function () {
+						var play = exports.events.service.createWebinosEvent("play", {
+							type: "player",
+							id: event.payload.id
+						});
+	
+						play.dispatchWebinosEvent();
+					});
+
+					browse.$playing.html(exports.remote.playing.entry.name + ' @ ' + exports.remote.playing.player.name + ' ');
+					browse.$playing.append($play);
+					
+					$play.button();
+				}
+				
+				break;
+		}
+	};
+
+	$(document).ready(function () {
+		browse.$page = $("#browse");
+		browse.$header = $("div:jqmData(role='header')", browse.$page);
+		browse.$content = $("div:jqmData(role='content')", browse.$page);
+		browse.$footer = $("div:jqmData(role='footer')", browse.$page);
+
+		browse.$parent = $("#parent\\.browse", browse.$header);
+		browse.$parent.click(function (event) {
+			exports.browse(webinos.path.dirname(exports.browse.path));
+
+			return false;
+		});
+
+		browse.$current = $("#current\\.browse", browse.$header);
+		browse.$refresh = $("#refresh\\.browse", browse.$header);
+		browse.$refresh.click(function (event) {
+			exports.browse(exports.browse.path);
+
+			return false;
+		});
+
+		browse.$sentries = $("#sentries\\.browse", browse.$content);
+		browse.$sentries.on("click", ".directory", function (event) {
+			var sentry = $(this).jqmData("sentry");
+
+			exports.browse(sentry.fullPath);
+
+			return false;
+		});
+
+		browse.$sentries.on("click", ".file", function (event) {
+			var sentry = $(this).jqmData("sentry");
+
+			if (sentry.shards.length > 1)
+				exports.select(sentry);
+			else
+				exports.view(sentry.shards[0].entry);
+
+			return false;
+		});
+		
+		browse.$playing = $("#playing\\.browse", browse.$footer);
+
+		select.$page = $("#select");
+		select.$header = $("div:jqmData(role='header')", select.$page);
+		select.$content = $("div:jqmData(role='content')", select.$page);
+
+		select.$parent = $("#parent\\.select", select.$header);
+		select.$parent.click(function (event) {
+			exports.browse(webinos.path.dirname(exports.select.sentry.fullPath), true, {
+				transition: "slide",
+				reverse: true
+			});
+
+			return false;
+		});
+
+		select.$name = $("#name\\.select", select.$header);
+
+		select.$shards = $("#shards\\.select", select.$content);
+		select.$shards.on("click", ".shard", function (event) {
+			var entry = $(this).jqmData("entry");
+
+			exports.view(entry);
+
+			return false;
+		});
+
+		view.$page = $("#view");
+		view.$page.on("pagehide", function (event) {
+			view.$content.empty();
+		});
+
+		view.$header = $("div:jqmData(role='header')", view.$page);
+		view.$content = $("div:jqmData(role='content')", view.$page);
+		view.$footer = $("div:jqmData(role='footer')", view.$page);
+
+		view.$parent = $("#parent\\.view", view.$header);
+		view.$parent.click(function (event) {
+			exports.browse(webinos.path.dirname(exports.view.entry.fullPath), true, {
+				transition: "slide",
+				reverse: true
+			});
+
+			return false;
+		});
+
+		view.$name = $("#name\\.view", view.$header);
+
+		view.$remote = $("#remote\\.view", view.$footer);
+		view.$remote.click(function (event) {
+			exports.remote(exports.view.entry);
+
+			return false;
+		});
+
+		remote.$page = $("#remote");
+
+		remote.$header = $("div:jqmData(role='header')", remote.$page);
+		remote.$content = $("div:jqmData(role='content')", remote.$page);
+
+		remote.$view = $("#view\\.remote", remote.$header);
+		remote.$view.click(function (event) {
+			exports.view(exports.remote.entry);
+
+			return false;
+		});
+
+		remote.$name = $("#name\\.remote", remote.$header);
+
+		remote.$players = $("#players\\.remote", remote.$content);
+		remote.$players.on("click", ".player", function (event) {
+			var player = $(this).jqmData("player"),
+				entry = $(this).jqmData("entry");
+
+			exports.remote.play(player, entry);
+
+			return false;
+		});
+	});
+
+	webinos.session.addListener("registeredBrowser", function (event) {
+		webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/events"), {
+			onFound: function (service) {
+				exports.events.service = service;
+
+	    		service.bind(function () {
+	    			service.addWebinosEventListener(exports.events.handler);
+	    			
+	    			var hello = service.createWebinosEvent("hello", {
+	    				type: "player"
+	    			}, {
+	    				type: "browser"
+	    			});
+	    			
+	    			hello.dispatchWebinosEvent();
+	    		});
+	    	}
+		});
+
+		// TODO Fix pseudo-sequentialization of service discovery.
+		setTimeout(function () {
+			webinos.ServiceDiscovery.findServices(new ServiceType("http://webinos.org/api/file"), {
+				onFound: function (service) {
+					$(exports).triggerHandler("service.found", service);
+				}
+			});
+		}, 250);
+	});
+
+	$(exports).on("service.found", function (event, service) {
+		service.bindService({
+			onBind: function () {
+				$(exports).triggerHandler("service.bound", service);
+			}
+		});
+	});
+
+	$(exports).on("service.bound", function (event, service) {
+		service.requestFileSystem(webinos.file.LocalFileSystem.PERSISTENT, 0, function (filesystem) {
+			exports.shards.add(new exports.Shard(service, filesystem));
+		});
+	});
+
+//	$(document).on("pagebeforechange", function (event, data) {
+//		if (typeof data.toPage === "string") {
+//			var operation = "browse";
+//
+//			var url = $.mobile.path.parseUrl(data.toPage);
+//			var matches = url.hash.match(/^#([^\?]+)(?:\?.*)?$/);
+//
+//			if (matches !== null)
+//				operation = matches[1];
+//
+//			if (operation == "browse") {
+//				data.options.allowSamePageTransition = true;
+//
+//				switch (exports.state) {
+//					case "browse":
+//						data.options.transition = "none";
+//						break;
+//					case "view":
+//						data.options.reverse = true;
+//						break;
+//				}
+//			}
+//		}
+//	});
+
+//	$(document).on("pageshow", function (event, data) {
+//		var operation = "browse",
+//			params = { path: "/" };
+//
+//		var url = $.mobile.path.parseUrl(window.location.href);
+//		var matches = url.hash.match(/^#([^\?]+)(?:\?(.*))?$/);
+//
+//		if (matches !== null) {
+//			operation = matches[1];
+//
+//			if (typeof matches[2] !== "undefined")
+//				$.extend(params, $.deparam(matches[2]));
+//		}
+//
+//		switch (operation) {
+//			case "browse":
+//				return exports.browse(params.path);
+//			case "view":
+//				return exports.view(params.path);
+//		}
+//	});
+})(webinosFS = {});
