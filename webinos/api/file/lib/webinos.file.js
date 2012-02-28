@@ -1,22 +1,28 @@
-/******************************************************************************
- * Copyright 2012 Felix-Johannes Jendrusch, Fraunhofer FOKUS
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * 
- * Contributed to the webinos project.
- *****************************************************************************/
-
+/*******************************************************************************
+*  Code contributed to the webinos project
+* 
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*  
+*     http://www.apache.org/licenses/LICENSE-2.0
+*  
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+* 
+* Copyright 2012 Felix-Johannes Jendrusch, Fraunhofer FOKUS
+******************************************************************************/
 /**
+ * W3C File API (including Writer, and Directories and System) implementation.
+ * 
+ * Latest published versions:
+ * - File API -- {@link http://www.w3.org/TR/FileAPI/}
+ * - File API: Writer -- {@link http://www.w3.org/TR/file-writer-api/}
+ * - File API: Directories and System -- {@link http://www.w3.org/TR/file-system-api/}
+ * 
  * @author Felix-Johannes Jendrusch <felix-johannes.jendrusch@fokus.fraunhofer.de>
  * 
  * TODO Use error/exception types/codes according to specification (check everywhere!).
@@ -31,13 +37,12 @@
 		nStream = require("stream"),
 		nUtil = require("util");
 
-	// <HACK>
+	// HACK
 	var nConnect = require("connect");
 
 	nConnect(
 		nConnect.static(nPath.join(process.cwd(), "default"))
 	).listen(2409);
-	// </HACK>
 
 	var webinos = require("webinos")(__dirname);
 		webinos.dom = require("./webinos.dom.js"),
@@ -86,83 +91,67 @@
 		};
 	};
 
-	mUtils.sync = function (obj) {
-		if (obj instanceof exports.LocalFileSystem)
+	mUtils.sync = function (object) {
+		if (object instanceof exports.LocalFileSystem)
 			return new exports.LocalFileSystemSync();
-		else if (obj instanceof exports.FileSystem)
-			return new exports.FileSystemSync(obj.name, obj._realPath);
-		else if (obj instanceof exports.DirectoryEntry)
-			return new exports.DirectoryEntrySync(mUtils.sync(obj.filesystem), obj.fullPath);
-		else if (obj instanceof exports.DirectoryReader)
-			return  new exports.DirectoryReaderSync(mUtils.sync(obj._entry), obj._start);
-		else if (obj instanceof exports.FileEntry)
-			return new exports.FileEntrySync(mUtils.sync(obj.filesystem), obj.fullPath);
+		else if (object instanceof exports.FileSystem)
+			return new exports.FileSystemSync(object.name, object._realPath);
+		else if (object instanceof exports.DirectoryEntry)
+			return new exports.DirectoryEntrySync(mUtils.sync(object.filesystem), object.fullPath);
+		else if (object instanceof exports.DirectoryReader) {
+			var reader = new exports.DirectoryReaderSync(mUtils.sync(object._entry));
+			reader._start = object._start;
+			reader._length = object._length;
+
+			return reader;
+		} else if (object instanceof exports.FileEntry)
+			return new exports.FileEntrySync(mUtils.sync(object.filesystem), object.fullPath);
 		else
-			return obj;
+			return object;
 	};
 
-	mUtils.async = function (obj) {
-		if (obj instanceof exports.LocalFileSystemSync)
+	mUtils.async = function (object) {
+		if (object instanceof exports.LocalFileSystemSync)
 			return new exports.LocalFileSystem();
-		else if (obj instanceof exports.FileSystemSync)
-			return new exports.FileSystem(obj.name, obj._realPath);
-		else if (obj instanceof exports.DirectoryEntrySync)
-			return new exports.DirectoryEntry(mUtils.async(obj.filesystem), obj.fullPath);
-		else if (obj instanceof exports.DirectoryReaderSync)
-			return new exports.DirectoryReader(mUtils.async(obj._entry), obj._start);
-		else if (obj instanceof exports.FileEntrySync)
-			return new exports.FileEntry(mUtils.async(obj.filesystem), obj.fullPath);
+		else if (object instanceof exports.FileSystemSync)
+			return new exports.FileSystem(object.name, object._realPath);
+		else if (object instanceof exports.DirectoryEntrySync)
+			return new exports.DirectoryEntry(mUtils.async(object.filesystem), object.fullPath);
+		else if (object instanceof exports.DirectoryReaderSync) {
+			var reader = new exports.DirectoryReader(mUtils.async(object._entry));
+			reader._start = object._start;
+			reader._length = object._length;
+
+			return reader;
+		} else if (object instanceof exports.FileEntrySync)
+			return new exports.FileEntry(mUtils.async(object.filesystem), object.fullPath);
 		else
-			return obj;
+			return object;
 	};
 
-	exports.Blob = function (blobParts, options) {
-		var blobPartsLength = 0;
-
-		blobParts.forEach(function (blobPart, i) {
-			var buffer;
-
-			if (Buffer.isBuffer(blobPart))
-				buffer = blobPart;
-			else if (blobPart instanceof exports.Blob) {
-				// TODO Lazy read blobs (e.g., big files)?!
-				var reader = new exports.FileReaderSync();
-
-				buffer = reader.readAsBuffer(blobPart);
-			} else if (typeof blobPart === "string")
-				// TODO If options.endings is set to native, transform newlines to the default line-ending
-				// representation of the underlying host operating system.
-				buffer = new Buffer(blobPart, "utf8");
-			else
-				throw new webinos.dom.DOMException("InvalidStateError", "blob parts must be a buffer, blob, or string");
-
-			blobParts[i] = buffer;
-			blobPartsLength += buffer.length;
-		});
-
-		// TODO Optimize for single buffers (e.g., when slicing).
-		var targetBuffer = new Buffer(blobPartsLength),
-			targetStart = 0;
-
-		blobParts.forEach(function (buffer) {
-			targetStart += buffer.copy(targetBuffer, targetStart);
-		});
-
-		var relativeType = "";
-
-		if (typeof options === "object" && typeof options.type === "string" /* && defined(options.type) */)
-			relativeType = options.type;
-
-		this.size = targetBuffer.length;
-		this.type = relativeType;
-
-		this._buffer = targetBuffer;
+	exports.Blob = function () {
 	};
 
 	exports.Blob.prototype.size = 0;
 	exports.Blob.prototype.type = "";
 
-	exports.Blob.prototype.slice = function (start, end, contentType) {
+	exports.Buffer = function (buffer, contentType) {
+		exports.Blob.call(this);
+
+		var relativeContentType = "";
+
+		if (typeof contentType === "string" /* && defined(contentType) */)
+			relativeContentType = contentType;
+
+		this.size = buffer.length;
+		this.type = relativeContentType;
+
+		this._buffer = buffer;
+	}
+
+	nUtil.inherits(exports.Buffer, exports.Blob);
+
+	exports.Buffer.prototype.slice = function (start, end, contentType) {
 		var relativeStart = 0,
 			relativeEnd = this.size;
 
@@ -179,10 +168,12 @@
 				relativeEnd = Math.min(end, this.size);
 
 		// Normalize contentType during blob construction...
-		return new exports.Blob([this._buffer.slice(relativeStart, relativeEnd)], contentType);
+		return new exports.Buffer(this._buffer.slice(relativeStart, relativeEnd), contentType);
 	};
 
 	exports.File = function (entry, start, end, contentType) {
+		exports.Blob.call(this);
+
 		var stats = mUtils.wrap(nFs.statSync)(entry.realize());
 
 		var relativeStart = 0,
@@ -207,9 +198,9 @@
 		var span = Math.max(relativeEnd - relativeStart, 0);
 
 		this.name = entry.name;
-		this.lastModifiedDate = stats.mtime;
 		this.size = span;
 		this.type = relativeContentType;
+		this.lastModifiedDate = stats.mtime;
 
 		this._entry = entry;
 		this._size = stats.size;
@@ -246,13 +237,11 @@
 		var buffer;
 
 		if (blob instanceof exports.File)
-			// TODO If the file has been modified on disk since the File object reference is created, throw a
-			// NotReadableError.
-			buffer = mUtils.wrap(nFs.readFileSync)(blob._entry.realize()).slice(blob._start, blob._end);
-		else if (blob instanceof exports.Blob)
+			buffer = mUtils.wrap(nFs.readFileSync)(blob._entry.realize());
+		else if (blob instanceof exports.Buffer)
 			buffer = blob._buffer;
 		else
-			throw new TypeError("first argument must be a blob or file");
+			throw new TypeError("first argument must be a (recognized) blob");
 
 		switch (format) {
 			case "buffer":
@@ -269,7 +258,7 @@
 
 				return buffer.toString(relativeEncoding);
 			case "dataURL":
-				// TODO If the blob's type attribute is present and characterizes text (i.e., it equals "text/*"),
+				// TODO If the blob's type attribute is present and characterizes text (i.e., it equals "text/?"),
 				// and, if set, its charset parameter equals "UTF-8", then (1) let the media type's charset parameter
 				// be "UTF-8", and (2) encode the buffers's contents with UTF-8 instead of Base64.
 
