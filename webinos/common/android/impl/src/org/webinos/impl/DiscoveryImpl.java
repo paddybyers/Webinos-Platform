@@ -92,7 +92,6 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
 	 }
 	
 	public Service createService(){
-	//	Service srv = new DiscoveryServiceImpl();
 		DiscoveryServiceImpl srv = new DiscoveryServiceImpl();
 		return srv;
 	}
@@ -228,12 +227,16 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
         if(stopped)
         	return;
         
+        /*
         IntentFilter ifilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         androidContext.registerReceiver(mReceiver, ifilter);
-
-        // Register for broadcasts when discovery has finished
+        
         ifilter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        androidContext.registerReceiver(mReceiver, ifilter); */
+        
+        IntentFilter ifilter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
         androidContext.registerReceiver(mReceiver, ifilter);
+        
 		}
 		public void discoveryFinished() {
 			System.out.println("discoveryfinished");
@@ -261,13 +264,14 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
            String action = intent.getAction();
            
            // When discovery finds a device
-           if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-        	   // Get the BluetoothDevice object from the Intent
+        /*   if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                devicesAvailable.add(device);  
-           }
+           } */
         // When device discovery is finished, query services
-           else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+          // else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+           if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
+           
 				//unregister receiver
 				bluetoothFindService.discoveryFinished();
 
