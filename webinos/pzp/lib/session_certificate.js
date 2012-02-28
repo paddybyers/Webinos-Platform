@@ -23,7 +23,7 @@ var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
 var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
-
+var uniqueID     = require(path.join(webinosRoot, dependencies.uniqueID.location, 'lib/uniqueID.js'));
 var log =  require(path.resolve(webinosRoot,dependencies.pzp.location, 'lib/session_common.js')).debug;
 
 /* @description Create private key, certificate request, self signed certificate and empty crl. This is crypto sensitive function
@@ -60,7 +60,7 @@ certificate.selfSigned = function(name, certValues,  callback) {
 		return;
 	}
 
-	var cn = name+':'+certValues.common;
+	var cn = name+':'+certValues.common+':DeviceId('+uniqueID.getUUID_40.substring(0,10)+')';
 
 	if (  name === 'PzhFarmCA' ||  name === 'PzhCA') {
 		certType = 0;
@@ -145,4 +145,15 @@ certificate.revokeClientCert = function(master_key, master_crl, pzpCert, callbac
 		callback("failed", err1);
 		return;
 	}
+}
+
+certificate.fetchKey = function (key_id, callback) {
+	try{
+		var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
+		var fetchkey = key.get(key_id);
+		callback(fetchkey);
+	} catch(err){
+		log('ERR0R','Key fetching error' )
+		return;
+	}	
 }

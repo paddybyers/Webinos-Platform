@@ -169,7 +169,7 @@
 		}
 		
 		/**
-		 * This part is accepted when PZP/PZH has proper certificate at both ends
+		 * PZP/PZH connecting with proper certificate at both ends
 		 */
 		if(conn.authorized) {
 			var cn, data;
@@ -394,6 +394,10 @@
 	 * @param {function} callback: returns instance of PZH 
 	 */ 
 	exports.addPzh = function ( uri, contents, modules, callback) {
+		if (typeof farm.server === "undefined" || farm.server === null) {
+			log('ERROR', '[PZH] Farm is not running, please startFarm');
+			callback(false);
+		} else {
 		var pzh = new Pzh(modules);
 		config.setConfiguration(contents, 'Pzh', function(config, conn_key) {
 			pzh.config    = config;
@@ -434,10 +438,10 @@
 			} else {
 				// This adds SNI context to existing running PZH server
 				farm.server.addContext(uri, options);
-			}
-			
-			callback(true, pzh);
-		});
+			}			
+				callback(true, pzh);
+			});
+		}
 	}
 }());
 

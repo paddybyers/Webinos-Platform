@@ -22,7 +22,7 @@
 
 module.exports = function(app){
 "use strict";
-var path            = require('path'),
+var path        = require('path'),
 util            = require('util'),
 crypto          = require('crypto'),
 fs              = require('fs'),
@@ -31,10 +31,13 @@ webinosRoot     = path.resolve(__dirname, '../' + moduleRoot.root.location),
 dependencies    = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json')),
 pzhapis         = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_internal_apis.js')),
 utils           = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')),
+Pzh             = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_sessionHandling.js')),
 express         = require('express'),
 passport        = require('passport'),
 GoogleStrategy  = require('passport-google').Strategy,
-YahooStrategy   = require('passport-yahoo').Strategy;
+YahooStrategy   = require('passport-yahoo').Strategy,
+ax              = require(path.join(webinosRoot, dependencies.pzh.location, 'web/openid-ax.js')), // ADDED BY POLITO
+farm			= require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_farm.js')); // ADDED BY POLITO
 
 app.get('/', function(req, res){
 	res.render('index', { user: req.user, isMutualAuth: false });
@@ -52,6 +55,31 @@ app.get('/addpzp', ensureAuthenticated, function(req, res){
 		isMutualAuth: false,
 		qrcode: {img: qr, code: text}
 		});
+	});
+});
+
+app.get('/addpzh', function(req, res) {
+	res.render('addpzh', { user: req.user });
+});
+
+app.post('/addpzhcert', function(req, res){
+	var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon="+req.body.name+"\nemail=internal@webinos.org\ndays=180\n"
+	var pzhModules = [
+		{name: "get42", params: [99]},
+		{name: "events", param: {}}
+	];
+
+	Pzh.addPzh(req.body.host, contents, pzhModules, function(result,instance) {
+		if (result) {
+			res.render('login', {user: req.user});
+		} else {	
+			res.render('addpzh', {
+				user: req.user,
+				pzh: instance,
+				isMutualAuth: false,
+				status: result
+			});
+		}
 	});
 });
 
@@ -444,6 +472,102 @@ if (req.clientHasCert) {
 }
 }
 */
+
+// BEGIN OF POLITO MODIFICATIONS
+    app.get('/auth/google-ax', function(req, res) {
+		console.log(ax.relyingParty);
+		ax.relyingParty.authenticate("http://www.google.com/accounts/o8/id", false, function(error, authUrl) {
+			if(error || !authUrl) {
+				res.redirect('/');
+            }
+            else {
+				res.redirect(authUrl);
+            }
+		});
+	});
+
+    app.get('/auth/yahoo-ax', function(req, res) {
+		console.log(ax.relyingParty);
+		ax.relyingParty.authenticate("https://me.yahoo.com/", false, function(error, authUrl) {
+			if(error || !authUrl) {
+				res.redirect('/');
+            }
+            else {
+				res.redirect(authUrl);
+            }
+		});
+	});
+
+    app.get('/verify', function(req, res) {
+		ax.relyingParty.verifyAssertion(req, function(error, result) {
+			var user = {};
+
+			console.log(result);
+			if (!error && result.authenticated === true) {
+				user.identifier = result.claimedIdentifier;
+				if (result.claimedIdentifier.search("google") > -1) {
+					user.from = 'google';
+				}
+				else if (result.claimedIdentifier.search("yahoo") > -1) {
+					user.from = 'yahoo';
+				}
+
+				if (result.fullname) {
+					user.fullname = result.fullname;
+					if (user.from === 'yahoo') {
+						// Yahoo attribute exchange returns the full name
+						user.displayName = result.fullname;
+						user.name = {
+							givenName: result.fullname.split(' ')[0],
+							familyName: result.fullname.split(' ')[1]
+						};
+					}
+				}
+				if (result.firstname) {
+					user.firstname = result.firstname;
+				}
+				if (result.lastname) {
+					user.lastname = result.lastname;
+				}
+				if (result.firstname && result.lastname && user.from === 'google') {
+					user.name = {
+						givenName: result.firstname,
+						familyName: result.lastname
+					};
+					// Google attribute exchange returns first name and lastname
+					user.displayName = result.firstname + ' ' + result.lastname;
+				}
+				if (result.country) {
+					user.country = result.country;
+				}
+				if (result.language) {
+					user.language = result.language;
+				}
+				if (result.email) {
+					user.emails = [{value: result.email}];
+				}
+				if (result.nickname) {
+					user.nickname = result.nickname;
+				}
+				if (result.image) {
+					user.image = result.image;
+				}
+				if (result.gender) {
+					user.country = result.gender;
+				}
+
+				if (user.name && user.name.givenName) {
+					req.session.passport.user = user;
+					app.Pzh = farm.getPzhInstance(ax.relyingParty.returnUrl.split(':')[1].split('//')[1] + '/' + user.name.givenName, user);
+				}
+				else {
+					console.log("User given name is missing");
+				}
+			}
+			res.redirect('/');
+		});
+	});
+// END OF POLITO MODIFICATIONS
 
 };
 

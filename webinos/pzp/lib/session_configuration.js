@@ -11,8 +11,6 @@ var webinosRoot   = path.resolve(__dirname, '../' + moduleRoot.root.location);
 var cert          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
 var log           = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
 var common        = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
-var uniqueID      = require(path.join(webinosRoot, dependencies.uniqueID.location, 'lib/uniqueID.js'));
-
 
 configure.pzhPort    = 8000; 
 configure.pzhWebPort = 8083;
@@ -220,7 +218,7 @@ function setCertValue(contents, callback) {
 		} else if(data[i][0] === 'organizationUnit') {
 			certValues.orgunit = data[i][1];
 		} else if(data[i][0] === 'common') {
-			certValues.common  = data[i][1] +':DeviceId('+uniqueID.getUUID_40.substring(0,10)+')';
+			certValues.common  = data[i][1];
 		} else if(data[i][0] === 'email') {
 			certValues.email    = data[i][1];
 		} else if(data[i][0] === 'days') {
