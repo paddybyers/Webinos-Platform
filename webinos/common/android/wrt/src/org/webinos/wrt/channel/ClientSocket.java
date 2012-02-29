@@ -3,16 +3,10 @@ package org.webinos.wrt.channel;
 import java.util.HashSet;
 
 import org.webinos.wrt.core.WidgetConfig;
-import org.webinos.wrt.core.WrtManager;
 import org.webinos.wrt.renderer.WebView;
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
@@ -22,20 +16,15 @@ public class ClientSocket {
 	
     public static final String SOCKETJS_ASSET = "js/webinossocket.js";
     public static final String WEBINOSJS_ASSET = "js/webinos.js";
-    private static final String SERVICE_ID = "org.webinos.wrt.channel.SERVER";
     private static final String TAG = "org.webinos.wrt.channel.ClientSocket";
 
     private final WebView webView;
 	private WidgetConfig widgetConfig;
 	private String instanceId;
+	private Session session;
     private Messenger incomingHandler = null;
     private HashSet<String> ids = new HashSet<String>();
 
-    private static Messenger remoteService = null;
-    private static ServiceConnection connection = null;
-    private static boolean bound = false;
-    private static boolean registered = false;
-    
     private static String escapeString(String text) {
     	StringBuffer buf = new StringBuffer();
     	for(int i = 0; i < text.length(); i++) {
@@ -66,57 +55,11 @@ public class ClientSocket {
     	return buf.toString();
     }
     
-    public static void bind() {
-    	connection = new ServiceConnection() {
-            public void onServiceConnected(ComponentName className, IBinder service) {
-            	remoteService = new Messenger(service);
-            	Log.v(TAG, "Clientsocket: onServiceConnected");
-
-                try {
-                    Message msg = Message.obtain(null, ProtocolConstants.toWhat(ProtocolConstants.MSG_REGISTER));
-                    remoteService.send(msg);
-                    registered = true;
-                } catch (RemoteException e) {
-                    /* In this case the service has crashed before we could even
-                     * do anything with it; we can count on soon being
-                     * disconnected (and then reconnected if it can be restarted)
-                     * so there is no need to do anything here. */
-                }
-            }
-
-            public void onServiceDisconnected(ComponentName className) {
-            	remoteService = null;
-                bound = false;
-            }
-        };
-        WrtManager.getInstance().bindService(new Intent(SERVICE_ID), connection, Context.BIND_AUTO_CREATE);
-        bound = true;
-    }
-
-    public static void unbind() {
-		if(bound) {
-            if (remoteService != null) {
-                try {
-                    Message msg = Message.obtain(null, ProtocolConstants.toWhat(ProtocolConstants.MSG_UNREGISTER));
-                    remoteService.send(msg);
-                } catch (RemoteException e) {
-                    /* There is nothing special we need to do if the service
-                     * has crashed. */
-                } finally {
-                	registered = false;
-                	remoteService = null;
-                }
-            }
-
-            WrtManager.getInstance().unbindService(connection);
-            bound = false;
-		}
-    }
-
 	public ClientSocket(WebView webView, WidgetConfig widgetConfig, String instanceId) {
 		this.webView = webView;
 		this.widgetConfig = widgetConfig;
 		this.instanceId = instanceId;
+		session = Session.getSession();
 	}
 
 	public void dispose() {
@@ -124,18 +67,9 @@ public class ClientSocket {
 			closeSocket(Integer.parseInt(id));
 	}
 
-	private void checkState() {
-		if(!bound) {
-			throw new RuntimeException("Attempt to use socket before bind");
-		}
-		if(!registered) {
-			throw new RuntimeException("Attempt to use socket before registered");
-		}
-	}
-
 	public void openSocket(final int id) {
     	Log.v(TAG, "openSocket()");
-    	checkState();
+    	session.checkState();
     	incomingHandler = new Messenger(new Handler() {
             @Override
             public void handleMessage(Message msg) {
@@ -164,8 +98,7 @@ public class ClientSocket {
         	clientDetails.putString("instanceId", instanceId);
         	clientDetails.putString("installId", widgetConfig.getInstallId());
             Message msg = Message.obtain(null, ProtocolConstants.toWhat(ProtocolConstants.MSG_CONNECT, id), clientDetails);
-            msg.replyTo = incomingHandler;
-            remoteService.send(msg);
+            session.send(msg, incomingHandler);
             ids.add(String.valueOf(id));
             webView.callScript("WebinosSocket.handleConnect(" + id + ");");
         } catch (RemoteException e) {
@@ -174,23 +107,22 @@ public class ClientSocket {
 	}
 
 	public void closeSocket(int id) {
-    	checkState();
+		session.checkState();
         try {
             Message msg = Message.obtain(null, ProtocolConstants.toWhat(ProtocolConstants.MSG_DISCONNECT, id));
-            msg.replyTo = remoteService;
-            remoteService.send(msg);
+            session.send(msg, null);
         } catch (RemoteException e) {
         	throw new RuntimeException("Exception closing socket", e);
         }
 	}
 
 	public void send(int id, String message) {
-    	checkState();
+		session.checkState();
         try {
         	Bundle messageBundle = new Bundle();
         	messageBundle.putString("data", message);
             Message msg = Message.obtain(null, ProtocolConstants.toWhat(ProtocolConstants.MSG_DATA, id), messageBundle);
-            remoteService.send(msg);
+            session.send(msg, null);
         } catch (RemoteException e) {
         	throw new RuntimeException("Exception sending on socket", e);
         }

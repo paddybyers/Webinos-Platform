@@ -12,7 +12,7 @@
 
 	//ADAPT THIS TO YOUR MACHINE!
 	var playerApp = "C:\\Users\\apa\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
-	var startOptions = "\"http://localhost:8080/client/webinosFS/player.html?id=1&name=MyTV\" --kiosk --new-window";
+	var startOptions = "\"http://192.168.2.113:8080/client/webinosFS/player.html?id=1&name=MyTV\" --kiosk --new-window";
 	
 	
 	var browse = {},
@@ -258,9 +258,11 @@
 		switch (extname) {
 			case ".mp3":
 			case ".m4a":
+			case ".ogg":
 				$html = $('<center><audio id ="player" src="' + entry.toURL().substring(8) + '" controls></audio></center>');
 				break;
-			case ".ogg":
+			case ".ogv":
+			case ".webm":
 			case ".m4v":
 			case ".mp4":
 				$html = $('<center><video id ="player"  src="' + entry.toURL().substring(8) + '" controls></video></center>');
@@ -333,41 +335,45 @@
 
 		
 		if (exports.remote.players.length < 1){
-			
 			var appID = playerApp;
         	var startParams = [];
         	startParams.push(startOptions);
 			
+        	remote.$name.text(entry.name);
         	en = entry;
         	ev = event;
-        	paintPlayers = paintPlayerList;	
-			exports.applauncher.service.launchApplication(
-        			function (){
-        				//$('#messages').append('<li> App launched </li>');
-        				console.log("Player App Launched");
-        				//setTimeout("paintPlayers(ev, en)",5000);
-        			},
-        			function (){
-        				//$('#messages').append('<li> Error while launching App</li>');
-        				console.log("Error while launching Player App");
-        			},
-        			appID,
-        			startParams
-            );
+        	paintPlayers = paintPlayerList;
+        	for (var i=0; i<exports.applauncher.services.length; i++) {
+        		exports.applauncher.services[i].launchApplication(
+        				function (){
+        					//$('#messages').append('<li> App launched </li>');
+        					console.log("Player App Launched");
+        					//setTimeout("paintPlayers(ev, en)",5000);
+        				},
+        				function (){
+        					//$('#messages').append('<li> Error while launching App</li>');
+        					console.log("Error while launching Player App");
+        				},
+        				appID,
+        				startParams
+        		);
+        	}
 			
 		}
 		else {
-			paintPlayerList(event, entry);
+			paintPlayerList(event, entry, true);
 		}
 		
 
 	});
 	
-	var paintPlayerList = function (event, entry) {
+	var paintPlayerList = function (event, entry, mode) {
 		console.log("Painting Player List");
+		
 		
 		remote.$name.text(entry.name);
 
+		
 		remote.$players.empty();
 		
 		exports.remote.players.forEach(function (player) {
@@ -398,25 +404,26 @@
 				
 				var i;
 				var pl;
+				var known = false;
 				for (i = 0; i < exports.remote.players.length; i++){
 					pl = exports.remote.players[i];
 					
 					if (pl.id == event.payload.id){
 						pl.time = currentSecs;
-						break;
+						known = true;
 					}
 				}
 				
+				if (!known){
+					exports.remote.players.add({
+						id: event.payload.id,
+						name: event.payload.name,
+						time: currentSecs
+					});
 				
-				exports.remote.players.add({
-					id: event.payload.id,
-					name: event.payload.name,
-					time: currentSecs
-				});
 				
-				
-				paintPlayers(ev, en);
-				
+					paintPlayers(ev, en, true);
+				}
 				break;
 			case "play":
 				if (event.payload.id == exports.remote.playing.player.id) {
@@ -469,7 +476,7 @@
 	
 	
 	exports.applauncher = {};
-	exports.applauncher.service = undefined;
+	exports.applauncher.services = [];
 
 	$(document).ready(function () {
 		browse.$page = $("#browse");
@@ -645,7 +652,7 @@
 								
 								exports.remote.players.splice(i);
 								//delete exports.remote.players[i];
-								paintPlayers(ev, en);
+								paintPlayers(ev, en, false);
 							}
 						}
 	    				
@@ -669,7 +676,7 @@
 		
 		 webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/applauncher'), 
 					{onFound: function (service) {
-						exports.applauncher.service = service;
+						exports.applauncher.services.push(service);
          	    }});
 		
 		

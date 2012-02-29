@@ -117,9 +117,9 @@ public class WidgetListActivity extends ListActivity implements WidgetManagerSer
 		String item = (String) getListAdapter().getItem(position);
 		Context ctx = getApplicationContext();
 		Intent wrtIntent = new Intent(ACTION_START);
-		wrtIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | 2); /* Intent.FLAG_INCLUDE_STOPPED_PACKAGES */
+		wrtIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); /* Intent.FLAG_INCLUDE_STOPPED_PACKAGES */
 		wrtIntent.putExtra(ID, item);
-		ctx.sendBroadcast(wrtIntent);
+		ctx.startActivity(wrtIntent);
 	}
 
 	public void onLaunch(final WidgetManagerImpl mgr) {
