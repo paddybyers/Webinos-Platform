@@ -35,23 +35,7 @@ var certificate  = require(path.join(webinosRoot, dependencies.pzp.location, 'li
 var log          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
 var config       = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
 
-<<<<<<< HEAD
-var rpc          = require(path.resolve(__dirname, dependencies.rpc.location));
-
-pzhConnecting.connectOtherPZH = function(pzh, server, port) {
-	var self = pzh, options;
-	log('INFO', 'PZH ('+self.sessionId+') Connect Other PZH');
-	try {
-		var ca = [self.config.master.cert.value];
-		
-		//No CRL support yet, as this is out-of-zone communication.  TBC.
-		options = {key: self.config.conn.key,
-			cert: self.config.conn.cert,
-			ca: [self.config.master.cert]};
-	} catch (err) {
-		log('ERROR', 'PZH ('+self.sessionId+') Options setting failed while connecting other Pzh ' + err);
-		return;
-=======
+var rpc          = require(path.join(webinosRoot, dependencies.rpc.location));
 
 // this is for connecting when PZH is not in same farm
 pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
@@ -61,7 +45,6 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 		serverName = server.split('/')[0];
 	} else {
 		serverName = server;		
->>>>>>> 37a03573cc92e571dc492a392fd6ab0a2429ad92
 	}
 	
 	log('INFO', '[PZH -'+self.sessionId+'] Connect Other PZH');

@@ -51,9 +51,10 @@ pzhapis.listZoneDevices = function(pzh, callback) {
 	for (var myKey in pzh.config.otherCert){
 		result.pzhs.push(getPzhInfoSync(pzh, myKey));
 	}
-
-	var err3 = { };
-	callback(err3, result);
+	result.pzhs.push(getPzhInfoSync(pzh, pzh.sessionId));
+	
+	var payload = {cmd:'listDevices', payload:result};
+	callback(payload);
 }
 	
 function getPzpInfoSync(pzh, pzpId) {
@@ -62,13 +63,13 @@ function getPzpInfoSync(pzh, pzpId) {
 	//find out whether we have this PZP in a session somewhere.
 	var pzpConnected = false;
 	var pzpName = pzpId;
-	for (var i=0; i< pzh.connectedPzpIds.length; i++) {
+	for ( var id in pzh.connectedPzp ){
 		//session IDs append the PZH to the front of the PZP ID.
-		var splitId = pzh.connectedPzpIds[i].split("/");
+		var splitId = id.split("/");
 		if (splitId.length > 1 && splitId[1] !== null) {
 			if (splitId[1] === pzpId) {
 				pzpConnected = true;
-				pzpName = pzh.connectedPzpIds[i];
+				pzpName = id;
 			}
 		}
 	}
@@ -183,7 +184,6 @@ pzhapis.restartPzh = function(instance, callback) {
 		if ((typeof instance.conn.end) === 'undefined' ) {
 			callback.call(instance, "Failed - no open connections to close");
 		} else {
-			instance.
 			instance.socket.close();
 			session.addPzh(instance.config.servername, instance.contents, instance.modules,  function(result){
 				callback.call(instance, result);

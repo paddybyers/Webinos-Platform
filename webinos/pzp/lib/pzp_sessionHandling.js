@@ -14,6 +14,7 @@
 * limitations under the License.
 *
 * Copyright 2011 Samsung Electronics Research Institute
+* 
 *******************************************************************************/
 
 /**
@@ -119,7 +120,7 @@
 			if (self.connectedWebApp[address]) { // it should be for the one of the apps connected.
 				self.connectedWebApp[address].socket.pause();
 				self.connectedWebApp[address].sendUTF(JSON.stringify(message));
-				self.connectedWebApp[address].socket.resume();				
+				self.connectedWebApp[address].socket.resume();
 			} else if (self.connectedPzp[address]) {
 				self.connectedPzp[address].socket.pause();
 				self.connectedPzp[address].socket.write(buf);
@@ -127,7 +128,7 @@
 			} else if(self.connectedPzh[address]){
 				self.connectedPzh[address].socket.pause();
 				self.connectedPzh[address].socket.write(buf);
-				self.connectedPzh[address].socket.resume();				
+				self.connectedPzh[address].socket.resume();
 			} 
 		} catch (err) {
 			log('ERROR', '[PZP -'+ self.sessionId+']Error in sending send message' + err);
@@ -198,11 +199,10 @@
 		var self = this;
 		if(!self.connectedPzp.hasOwnProperty(self.sessionId)) {
 			log('INFO','[PZP -'+ self.sessionId+'] Connected to PZH & Authenticated');
-			self.pzhId = cn;				
+			self.pzhId = cn;
 			
 			self.sessionId = self.pzhId + "/" + self.config.certValues.common.split(':')[0];
-			rpc.setSessionId(self.sessionId);
-		
+			self.rpcHandler.setSessionId(self.sessionId);
 			self.connectedPzh[self.pzhId] = {socket: client};
 			self.connectedPzhIds.push(self.pzhId);
 			
@@ -252,9 +252,11 @@
 				config = {
 					key : conn_key, 
 					cert: self.config.conn.cert,
-					servername: self.config.servername};
+ 					servername: self.config.servername
+				};
 			}
-			
+
+
 			client = tls.connect(configuration.pzhPort, self.address, config,
 			function(conn) {
 				log('INFO','[PZP -'+ self.sessionId+'] Connection to PZH status: ' + client.authorized );
@@ -266,7 +268,7 @@
 				} else {
 					log('INFO','[PZP -'+ self.sessionId+']: Not Authenticated ' );
 					if (typeof conn_csr !== "undefined" && conn_csr !== null) {
-						self.pzhId = client.getPeerCertificate().subject.CN.split(':')[1];//data2.from;
+						self.pzhId = client.getPeerCertificate().subject.CN.split(':')[1];//parseMsg.from;
 						self.connectedPzh[self.pzhId] = {socket: client};
 						self.prepMsg(self.sessionId, self.pzhId,
 						'clientCert',
@@ -292,13 +294,13 @@
 				self.processMsg(data, callback);
 				client.resume();// unlocks socket.
 			} catch (err) {
-				log('ERROR', '[PZP -'+ self.sessionId+'] Exception ' + err);
+				log('ERROR', '[PZP] Exception ' + err);
 			
-			}			
+			}
 		});
 		
 		client.on('end', function () {
-			var webApp;			
+			var webApp;
 			var self = this;
 			log('INFO', '[PZP -'+ self.sessionId+'] Connection terminated');
 			if (typeof self.sessionId !== "undefined") {
@@ -309,6 +311,7 @@
 	
 				self.pzhId     = '';
 				self.sessionId = self.config.certValues.common.split(':')[0];
+				self.rpcHandler.setSessionId(self.sessionId);
 
 				websocket.updateInstance(instance);
 
@@ -331,7 +334,8 @@
 			// go into PZP mode from PZH/PZP mode
 			if (err.code === 'ECONNREFUSED') {
 				self.pzhId = '';
-				self.sessionId = 'virgin_pzp';
+				self.sessionId = self.config.certValues.common.split(':')[0];
+				self.rpcHandler.setSessionId(self.sessionId);
 				setupMessageHandler(self);
 				log('INFO', 'PZP ('+self.sessionId+') virgin PZP mode');
 				callback('startedPZP');
@@ -344,35 +348,35 @@
 		
 	};
 	
-	Pzp.prototype.processMsg = function(data, client, callback) {
+	Pzp.prototype.processMsg = function(data, callback) {
 		var self = this;
-		var  msg, i ;		
-		utils.processedMsg(self, data, 1, function(data2) { // 1 is for #
-			for (var i = 1 ; i < (data3.length-1); i += 1 ) {
-				if (data3[i] === '') {
+		var  msg, i ;
+		utils.processedMsg(self, data, function(message) { // 1 is for #
+			for (var j = 1 ; j < (message.length-1); j += 1 ) {
+				if (message[j] === '') {
 					continue;
 				}
 
-				var data2 = JSON.parse(data3[i]);
-				if(data2.type === 'prop' && data2.payload.status === 'signedCert') {
-					log('INFO', '[PZP - '+self.sessionId+']PZP Writing certificates data ');
-					self.config.conn.cert   = data2.payload.message.clientCert;
-					self.config.master.cert = data2.payload.message.masterCert.cert;
-					self.config.master.crl  = data2.payload.message.masterCert.crl;
+				var parseMsg = JSON.parse(message[j]);
+				if(parseMsg.type === 'prop' && parseMsg.payload.status === 'signedCert') {
+					log('INFO', '[PZP - '+self.sessionId+'] PZP Writing certificates data ');
+					self.config.conn.cert   = parseMsg.payload.message.clientCert;
+					self.config.master.cert = parseMsg.payload.message.masterCert.cert;
+					self.config.master.crl  = parseMsg.payload.message.masterCert.crl;
 
 					configuration.storeConfig(self.config);
 					callback.call(self, 'startPZPAgain');
 
 				} // This is update message about other connected PZP
-				else if(data2.type === 'prop' && data2.payload.status === 'pzpUpdate') {
-					log('INFO', '[PZP - '+self.sessionId+'] Update PZPs details') ;
-					msg = data2.payload.message;
+				else if(parseMsg.type === 'prop' && parseMsg.payload.status === 'pzpUpdate') {
+					log('INFO', '[PZP -'+self.sessionId+'] Update PZPs details') ;
+					msg = parseMsg.payload.message;
 					for ( i = 0; i < msg.length; i += 1) {
 						if(self.sessionId !== msg[i].name) {
 							if(!self.connectedPzp.hasOwnProperty(msg[i].name)) {
 								self.connectedPzp[msg[i].name] = {'address': msg[i].address, 'port': msg[i].port};
 								self.connectedPzpIds.push(msg[i].name);
-								// FIXME errors related to connectOtherPZP
+
 								if(msg[i].newPzp) {
 									pzp_server.connectOtherPZP(self, msg[i]);
 								}
@@ -381,19 +385,18 @@
 							}
 						}
 					}
-				} else if(data2.type === 'prop' && data2.payload.status === 'failedCert') {
+				} else if(parseMsg.type === 'prop' && parseMsg.payload.status === 'failedCert') {
 					log('ERROR', '[PZP -'+ self.sessionId+']Failed to get certificate from PZH');
 					callback.call(self, "ERROR");
 
-				} else if(data2.type === 'prop' && data2.payload.status === 'foundServices') {
-					log('INFO', '[PZP - '+self.sessionId+'] Received message about available remote services.');
-					this.serviceListener && this.serviceListener(data2.payload.message);
+				} else if(parseMsg.type === 'prop' && parseMsg.payload.status === 'foundServices') {
+					log('INFO', '[PZP -'+self.sessionId+'] Received message about available remote services.');
+					this.serviceListener && this.serviceListener(parseMsg.payload);
 					this.serviceListener = undefined;
 				}
 				// Forward message to message handler
 				else {
-					rpc.setSessionId(self.sessionId);
-					self.messageHandler.onMessageReceived( data2, data2.to);
+					self.messageHandler.onMessageReceived( parseMsg, parseMsg.to);
 				}
 			}
 		});

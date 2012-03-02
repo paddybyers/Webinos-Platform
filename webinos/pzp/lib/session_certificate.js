@@ -64,12 +64,12 @@ certificate.selfSigned = function(name, certValues,  callback) {
 
 	if (  name === 'PzhFarmCA' ||  name === 'PzhCA') {
 		certType = 0;
-	} else if(name === 'Pzh' || name === 'PzhFarm') {
+	} else if(name === 'Pzh' || name === 'PzhFarm' || name === 'PzhWebServer' || name === 'PzhWebSocketServer') {
 		certType = 1;
 	} else {
 		certType = 2;
 	}
-
+	
 	try {
 		csr = certman.createCertificateRequest(key,
 			certValues.country,
@@ -90,14 +90,13 @@ certificate.selfSigned = function(name, certValues,  callback) {
 		callback("failed", e1);
 		return;
 	}
-
+	
 	try {
 		obj.crl = certman.createEmptyCRL(key, obj.cert, 180, 0);
 	} catch (e2) {
 		callback("failed", e2);
 		return;
 	}
-
 	callback("certGenerated", null, key, obj, csr);
 };
 

@@ -87,13 +87,10 @@ webinosqr.addPzpQRAgain = function(pzh, next) {
     var code = generateRandomCode();
 
     pzh.expecting.setExpectedCode(code,function() {
-        pzh.getMyUrl(function(url) { 
+        pzh.getMyUrl(function(url) {
             create(url, code, function(err, qrimg) {
-                if (err === null) {
-                    next(err, qrimg, code);
-                } else {
-                    next(err);
-                }
+		    next({cmd: 'addPzpQR', payload:{err: err, img: qrimg, code: code}});
+
             });
         });	    
     }); 

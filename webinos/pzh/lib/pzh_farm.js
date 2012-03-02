@@ -23,6 +23,7 @@
 var tls         = require('tls');
 var path        = require('path');
 var util        = require('util');
+var fs          = require('fs');
 
 var moduleRoot      = require(path.resolve(__dirname, '../dependencies.json'));
 var dependencies    = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
@@ -32,34 +33,36 @@ var cert            = require(path.join(webinosRoot, dependencies.pzp.location, 
 var utils           = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 var log             = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
 var configuration   = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
-var PzhWebInterface = require(path.join(webinosRoot, dependencies.pzh.location, 'web/pzh_web_interface.js'));
+var pzhWebInterface = require(path.join(webinosRoot, dependencies.pzh.location, 'web/pzh_webserver.js'));
+var pzh             = require(path.join(webinosRoot, dependencies.pzh.location));
 
 var farm = exports;
 farm.pzhs =[];
-
+farm.config = {};
 /**
  * @description: Starts farm.
  * @param {string} url: pzh farm url for e.g. pzh.webinos.org
  * @param {function} callback: true in case successful or else false in case unsuccessful
  */
-farm.startFarm = function (url, callback) {
+farm.startFarm = function (url, contents, callback) {
 	// The directory structure which farms needs for putting in files 
 	configuration.createDirectoryStructure();
 	// Configuration setting for pzh, returns set values and connection key
-	configuration.setConfiguration('PzhFarm', function (config, conn_key) {
+	configuration.setConfiguration(contents,'PzhFarm', function (config, conn_key) {
 		// Connection parameters for PZH farm TLS server.
-		// Note this is the main server, pzh started are SNIContext to this server
+		// Note this is the main server, pzh started are stored as SNIContext to this server
+		farm.config = config;
 		var options = {
 			key  : conn_key,
-			cert : config.conn.cert,
-			ca   : config.master.cert,
+			cert : farm.config.conn.cert,
+			ca   : farm.config.master.cert,
 			requestCert       : true,
 			rejectUnauthorised: false
 		};
 		// Farm URL
-		config.servername = url;
+		farm.config.servername = url;
 		// Start web interface, this webinterface will adapt depending on user who logins
-		startWebInterface (config);
+		pzhWebInterface.start(url);
 		// Main farm TLS server
 		farm.server = tls.createServer (options, function (conn) {
 			// if servername existes in conn and farm.pzhs has details about pzh instance, message will be routed to respective PZH authorization function
@@ -81,7 +84,7 @@ farm.startFarm = function (url, callback) {
 			});
 			// In case of error
 			conn.on('end', function(err) {
-				log('INFO', '[PZHFARM] ' +conn.servername+' connection end' + err);
+				log('INFO', '[PZHFARM] Client of ' +conn.servername+' ended connection');
 			});
 
 			// It calls removeClient to remove PZH from list.
@@ -91,8 +94,10 @@ farm.startFarm = function (url, callback) {
 					if(conn.servername && farm.pzhs[conn.servername]) {
 							var cl = farm.pzhs[conn.servername];
 							var removed = utils.removeClient(cl, conn);
-							cl.messageHandler.removeRoute(removed, conn.servername);
-							cl.rpcHandler.removeRemoteServiceObjects(removed);
+							if (removed !== null && typeof removed !== "undefined"){
+								cl.messageHandler.removeRoute(removed, conn.servername);
+								cl.rpcHandler.removeRemoteServiceObjects(removed);
+							}
 						}
 				} catch (err) {
 					log('ERROR', '[PZHFARM] ('+conn.servername+') Remove client from connectedPzp/connectedPzh failed' + err);
@@ -107,10 +112,12 @@ farm.startFarm = function (url, callback) {
 		
 		farm.server.on('listening', function(){
 			log('INFO', '[PZHFARM] Intialized *********** ');
+			// Load PZH's that we already have registered ...
+			loadPzhs(farm.config);
 			callback(true);
 		});
 		
-		farm.server.listen(configuration.farmPort);
+		farm.server.listen(configuration.farmPort, 'localhost');
 	});
 };
 
@@ -119,61 +126,40 @@ farm.startFarm = function (url, callback) {
  * @param {string} url: pzh url
  * @param {object} user: details fetched from openid about user
  */
-
-farm.getPzhInstance = function (url, user) {
-	// Check for if user details are stored 
-	for (var myKey in farm.pzhs)	{
-		if ( myKey === url && (farm.pzhs[myKey].config.userDetails && farm.pzhs[myKey].config.userDetails.displayName === user.displayName)) {
-			return farm.pzhs[myKey];
-		}		
-	}
-
-	// User Details has not been added in PZH
-	if(farm.pzhs[url]) {
-		farm.pzhs[url].config.userDetails = user;
-		configuration.storeConfig(farm.pzhs[url].config);
-		return farm.pzhs[url];
-	}
-	
-	// PZH is not started, call addPZH but how to get parameters, redirect back to user to get cert details??
-	// Pzh.addPzh();
-}
-
-/**
- * @description: Starts web interface for PZH farm
- * @param {config} certificate configuration parameters
- * */
-function startWebInterface (config) {
-	// WEB INTERFACE INITIALIZATION
-	var requestClientCert = false;   // Are we requesting a client certificate?
-	var httpOnly          = false;           // Are we running HTTP or HTTPS?
-	var webinosDemo       = utils.webinosConfigPath();
-	var pzh               = 1;
-	
-	if (!path.exists(path.join(webinosDemo+'/config/',config.certValues.common.split(':')[0]))) {
-		cert.selfSigned( 'PzhWeb', config.certValues, function(status, selfSignErr, ws_key, ws_cert, csr ) {
-			if(status === 'certGenerated') {
-				fs.readFile(config.master.key_id, function(master_key) {
-					cert.signRequest(csr, master_key.toString(),  config.master.cert, pzh, function(result, cert) {
-						if(result === 'certSigned') {
-							config.webServer.cert = cert;
-							fs.writeFileSync(config.webServer.key_id, ws_key);
-							configuration.storeConfig(config);
-						}
-					});
-				});
-			} else {
-				log('ERROR', '[PZH WEB INTERFACE] Certificate generation error')
-			}
+farm.getPzhInstance = function (host, user, callback) {
+	// Check for if user already existed and is stored
+	var myKey = host+'/'+user.firstname;
+	// This PZH 
+	if ( farm.pzhs[myKey] && farm.pzhs[myKey].config.userDetails.firstname === user.firstname ) {
+		log('INFO', '[PZHFARM] User already registered');
+		callback(farm.pzhs[myKey]);
+		return;
+	} else if(farm.pzhs[myKey]) { // Cannot think of this case, but still might be useful
+		log('INFO', '[PZHFARM] User first time login');
+		farm.pzhs[myKey].config.userDetails = user;
+		configuration.storeConfig(farm.pzhs[myKey].config);
+		callback(farm.pzhs[myKey]);
+		return;
+	} else {
+		log('INFO', '[PZHFARM] Adding new PZH');
+		var contents="country="+user.country+
+			"\nstate=\'\'\ncity=\'\'\norganization=\'\'\norganizationUnit=\'\'"+
+			"\ncommon="+user.firstname+user.lastname+"_pzh"+"\nemail="+user.email+"\ndays=3600";
+		var pzhModules = [{name: "get42", params: [99]},
+				{name: "context", param: {}}];
+		Pzh.addPzh(myKey, contents, pzhModules, function(){
+			farm.pzhs[myKey].config.userDetails = user;
+			configuration.storeConfig(farm.pzhs[myKey].config);
+			callback(farm.pzhs[myKey]);
 		});
 	}
-	PzhWebInterface.startServer(configuration.pzhWebPort, requestClientCert, httpOnly, config, function(status) {
-		if (status) {
-			log('INFO','[PZH WEB INTERFACE] STARTED ====================');
-		} else {
-			log('ERROR','[PZH WEB INTERFACE] FAILED TO START *************');
-		}
-	});
-	 
-		
+}
+
+
+function loadPzhs(config) {	
+	for (var key in config.pzhs){
+		pzh.addPzh(key, config.pzhs[key].contents,config.pzhs[key].modules, function(res, instance) {
+			log('INFO','[PZHFARM] Started PZH ... ' + key);
+		});
+	}
 }

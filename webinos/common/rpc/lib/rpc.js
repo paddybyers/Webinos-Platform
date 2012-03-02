@@ -79,7 +79,7 @@
 			// are returned by the pzh
 			this.parent.addRemoteServiceListener(function (payload) {
 				var callback = that.remoteServicesFoundCallbacks[payload.id];
-				
+				console.log(payload);
 				if (!callback) {
 					console.log("ServiceDiscovery: no findServices callback found for id: " + payload.id);
 					return;
@@ -505,6 +505,7 @@
 			
 			// store callback in map for lookup on returned remote results
 			var callbackId = Math.floor(Math.random()*101);
+			console.log(callbackId);
 			this.remoteServicesFoundCallbacks[callbackId] = (function(res) {
 				return function(remoteServices) {
 					
@@ -676,9 +677,9 @@
 		}		
 	};
 	
-	function setSessionId (id) {
+ 	_RPCHandler.prototype.setSessionId = function(id) {
 		sessionId = id;
-	}
+	};
 	
 	/**
 	 * Export definitions for node.js
@@ -687,7 +688,7 @@
 		exports.RPCHandler = _RPCHandler;
 		exports.RPCWebinosService = RPCWebinosService;
 		exports.ServiceType = ServiceType;
-		exports.setSessionId = setSessionId;
+		//exports.setSessionId = setSessionId;
 		// none webinos modules
 		var md5 = require('../contrib/md5.js');
 

@@ -30,10 +30,11 @@ var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
 var cert         = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));        
 var logs         = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
 var rpc          = require(path.join(webinosRoot, dependencies.rpc.location, 'lib/rpc.js'));
+var configuration= require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
 
 pzp_server.connectOtherPZP = function (pzp, msg) {
 	var self = pzp, client;
-	fs.readFile(self.config.conn.key_id, function(key) {		
+	configuration.fetchKey(self.config.conn.key_id, function(key) {
 		var options = {
 				key:  key,
 				cert: self.config.conn.cert,
@@ -64,7 +65,7 @@ pzp_server.connectOtherPZP = function (pzp, msg) {
 					self.messageHandler.onMessageReceived(parse, parse.to);
 					client.resume();
 					
-				});
+				}
 			} catch (err) {
 				logs('ERROR', "[PZP - " + self.sessionId + "]  Client: Exception" + err);
 			}
@@ -87,7 +88,7 @@ pzp_server.connectOtherPZP = function (pzp, msg) {
 
 pzp_server.startServer = function (self, callback) {
 	var server;
-	fs.readFile(self.config.key.key_id, function(key) {
+	configuration.fetchKey(self.config.conn.key_id, function(key) {
 		// Read server configuration for creating TLS connection
 		var config = {	
 				key: key,

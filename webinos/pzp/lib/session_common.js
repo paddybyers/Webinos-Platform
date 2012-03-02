@@ -85,53 +85,20 @@ common.debug = function(num, msg) {
 common.removeClient = function(self, conn) {
 	"use strict";
 	var i, delId, delPzhId;
-	
-	for (i in self.connectedPzp) {
-		if(self.connectedPzp.hasOwnProperty(i)) {
-			if(conn === self.connectedPzp[i].socket) {
-				delId = i;
-				delete self.connectedPzp[i];
-			}
+
+	for (var id in self.connectedPzp){
+		if (self.connectedPzp[id].socket === conn) {
+			delete self.connectedPzp[i];
+			return id;
 		}
 	}
-	
-	if (typeof delId !== "undefined") {
-		for ( i = 0 ; i < self.connectedPzpIds.length; i += 1) {
-			if ( delId === self.connectedPzpIds[i]) {
-				//delete self.connectedPzpIds[i];
-				self.connectedPzpIds.splice(i, 1);
-				return delId;
-			}
-		}
-	}
-	
-	for (i in self.connectedPzh) {
-		if(self.connectedPzh.hasOwnProperty(i)) {
-			if(conn.socket._peername.address === self.connectedPzh[i].address) {
-				delPzhId = i;
-				self.connectedPzh.splice(i, 1);
-				//delete self.connectedPzh[i];
-			}
-		}
-	}
-	if (typeof delIPzhId !== "undefined") {
-		for ( i = 0 ; i < self.connectedPzhIds.length; i += 1) {
-			if ( delPzhId === self.connectedPzhIds[i]) {
-				//delete self.connectedPzhIds[i];
-				self.connectedPzhIds.splice(i, 1);
-				return delPzhId;
-			}
-		}
-	}
-	
-	
 };
 
 var message = '';
-common.processedMsg = function(self, data, dataLen, callback) {
+common.processedMsg = function(self, data, callback) {
 	"use strict";
 	var msg = data.toString('utf8');
-	
+	var dataLen = 1;
 	// This part of the code is executed when message comes in chunks 
 	// First part of the message coming in
 	if (msg[0] === '#' && msg[msg.length-dataLen] !== '#') {
@@ -157,21 +124,23 @@ common.processedMsg = function(self, data, dataLen, callback) {
 		var parse = JSON.parse(msg[1]);
 		// TODO POLITO: It is multiple messages in a msg string, check for all of them
 		// BEGIN OF POLITO MODIFICATIONS
-		var valError = validation.checkSchema(parse);
-		if(valError === false) { // validation error is false, so validation is ok
-			common.debug('DEBUG','[VALIDATION] Received recognized packet ' + JSON.stringify(msg));
-		} else if (valError === true) {
-			// for debug purposes, we only print a message about unrecognized packet
-			// in the final version we should throw an error
-			// Currently there is no a formal list of allowed packages and throw errors
-			// would prevent the PZH from working
-			common.debug('INFO','[VALIDATION] Received unrecognized packet ' + JSON.stringify(msg));
-		} else if (valError === 'failed') {
-			common.debug('ERROR','[VALIDATION] failed');
-		} else {
-			common.debug('ERROR','[VALIDATION] Invalid response ' + valError);
+		for (var i = 1 ; i < parse.length-1; i += 1) {
+			var valError = validation.checkSchema(parse[i]);
+			if(valError === false) { // validation error is false, so validation is ok
+				common.debug('DEBUG','[VALIDATION] Received recognized packet ' + JSON.stringify(parse[i]));
+			} else if (valError === true) {
+				// for debug purposes, we only print a message about unrecognized packet
+				// in the final version we should throw an error
+				// Currently there is no a formal list of allowed packages and throw errors
+				// would prevent the PZH from working
+				common.debug('INFO','[VALIDATION] Received unrecognized packet ' + JSON.stringify(parse[i]));
+			} else if (valError === 'failed') {
+				common.debug('ERROR','[VALIDATION] failed');
+			} else {
+				common.debug('ERROR','[VALIDATION] Invalid response ' + valError);
+			}
 		}
-		callback.call(self, parse);
+		callback.call(self, msg);
 	}
 
 };

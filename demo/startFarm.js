@@ -1,7 +1,7 @@
 var fs = require('fs'),
 	path                = require('path'),
 	PzhFarm             = require('../webinos/pzh/lib/pzh_farm.js');
-
+	Pzh                 = require('../webinos/pzh/lib/pzh_sessionHandling.js');
 
 var host = null, name = null;
 
@@ -43,7 +43,7 @@ if ( name === null) {
 
 var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon="+name+"\nemail=internal@webinos.org\ndays=180\n"
 PzhFarm.startFarm(host, contents, function(result) {
-	console.log('******* PZH FARM STARTED *******' + result);		
+	console.log('******* PZH FARM STARTED *******');	
 });
 
 

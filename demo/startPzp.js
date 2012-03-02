@@ -106,7 +106,7 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		}
 		
 		if (!config.pzhHost) {
-			config.pzhHost = 'localhost/webinos';
+			config.pzhHost = 'localhost/Habib';
 		}
 		if (!config.pzhPort) {
 			config.pzhPort = 8000;

@@ -1,0 +1,137 @@
+<html>
+	<head>
+		<title>PZH Testbed</title>
+		<script type="text/javascript">
+		var channel;
+
+		try{
+			channel  = new WebSocket('wss://localhost:81');
+		} catch(e) {
+			channel  = new MozWebSocket('wss://localhost:81');
+//window.location.hostname
+		}
+
+		channel.onmessage = function(ev) {
+			console.log('WebSocket Client: Message Received : ' + JSON.stringify(ev.data));
+			var msg = ev.data;
+			if( typeof ev.data === 'string'){
+				msg = JSON.parse(ev.data);
+			}
+			
+			switch(msg.cmd){
+				case 'listDevices':
+					displayPzhPzh(msg.payload);
+					break;
+				case 'userDetails':
+					displayUserDetails(msg.payload);
+					break;
+				case 'addPzpQR':
+					displayQRCode(msg.payload);
+					break;
+			}
+		};
+
+		function send(payload){
+			if(channel !== null && typeof channel !== "undefined"){
+				channel.send(JSON.stringify(payload));
+			}
+		}
+
+		function displayPzhPzh(payload){
+			var text =  "<table padding=10px>";
+			var i;
+			for (i = 0 ; i < payload.pzps.length; i += 1){
+				text += "<tr> <td> <font color=\"#FFFFFF\"> <b> Connected PZP </b> </font> </td> </tr>";
+				var color = payload.pzps[i].isConnected?"#FFFFFF":"#333333";
+				text+= "<tr> <td> <font color= "+color +">"+payload.pzps[i].id + "</font> </td> </tr>";
+			}
+			for (i = 0 ; i < payload.pzhs.length; i += 1){
+				text += "<tr> <td> <font color=\"#FFFFFF\"> <b> Connected PZH </b> </font> </td> </tr>";
+				var color = payload.pzhs[i].isConnected?"#FFFFFF":"#333333";
+				text+= "<tr> <td> <font color= "+color +">"+payload.pzhs[i].id + "</font> </td> </tr>";
+			}
+			text+="</table>"
+			document.getElementById('listDevices').innerHTML=text;
+			document.getElementById('userDetails').innerHTML="";
+			document.getElementById('addPzp').innerHTML="";
+		}		
+
+		function displayUserDetails(payload){
+			var text = "";
+			text += "<p> <h1>"+ payload.authenticated?"Authenticated":"Not Authenticated" +"</h1> </p>";
+			text += "<p><h3> First Name: "+ payload.firstname +"</h3></p>";
+			text += "<p><h3> Last Name:  "+ payload.lastname +"</h3></p>";
+			text += "<p><h3> Country  :  "+ payload.country +"</h3></p>";
+			text += "<p><h3> Email    :  "+ payload.email+"</h3></p>";
+			text += "<p> (Claimed Identifier: "+ payload.claimedIdentifier+")</p>";
+			
+			document.getElementById('userDetails').innerHTML=text;
+			document.getElementById('listDevices').innerHTML="";
+			document.getElementById('addPzp').innerHTML="";
+
+		}
+
+		function displayQRCode(payload){
+			var text = "<center>";
+			
+			text += "<p> <img src=" + payload.img + "> </img> </p> ";
+			text += "<p> <h2>" +payload.code +"</p> </h2>";
+			
+			document.getElementById('addPzp').innerHTML=text;
+			document.getElementById('userDetails').innerHTML="";
+			document.getElementById('listDevices').innerHTML="";
+		}
+		</script>
+		<style type="text/css">
+			body{
+				font-family:serif;
+				background-color:#3366FF;
+				color:#FFFFFF;
+				margin:0;
+				padding:0;
+			}
+			ul{
+				position: absolute;
+				top: 0px;
+				list-style-type: none;
+				margin: 0 auto;
+				padding: 0;
+				padding-top: 0px;
+				padding-bottom: 20px;
+			}
+			li{
+				display:inline;
+			}
+			a:link,a:visited{
+				font-weight:bold;
+				text-align: center;
+				text-transform:uppercase;
+				padding:10px;
+				color:#FFFFFF;
+				background-color:#000099;
+			}
+			a:hover{
+				background-color:#3366FF;
+			}
+			
+			
+		</style>
+	</head>
+	<body>
+		<div id = "Navigation" align="left">
+			<ul>
+				<li> <a href="/index.html" > Home </a> </li>
+				<li> <a href="#addPzp" onclick="send({cmd:'addPzp'})"> Add New PZP </a> </li>
+				<!--<li> <a href="#connectPzh" onclick=""> Connect Other PZH </a> </li>
+				<li> <a href="#revokeCert">Revoke Certificate </a> </li>
+				<li> <a href="#crashLog"> Crash Log </a> </li>
+				<li> <a href="#restartPzh" onclick="send({cmd:'restartPzh'})"> Restart PZH </a> </li>-->
+				<li> <a href="#userDetails" onclick="send({cmd:'userDetails'})"> User Details </a> </li>
+				<li> <a href="#logout" onclick="send({cmd:'logout'}); window.location.href='/index.html'"> Logout </a> </li>
+			</ul>
+		</div>
+		<div id = "listDevices" align="right" position="absolute" margin="0"> </div>
+		<div id="addPzp" align="left" margin="10px"> </div>
+		<div id="userDetails" align="left" margin="10px"> </div>
+	</body>
+</html>
