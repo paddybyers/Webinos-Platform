@@ -34,14 +34,13 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
           <executions>
-            <!-- Runs node-waf on the src folder
+            <!-- Runs node-waf on the src folder -->
             <execution>
               <id>node-waf</id>
               <goals>
                 <goal>exec</goal>
               </goals>
             </execution>
-            -->
             <!-- Runs jasmine node tests specified in .spec.js files in the jasmine test folder
             <execution>
               <id>jasmine-node-testing</id>
