@@ -26,7 +26,8 @@
 
 	var webinos = require("webinos")(__dirname);
 		webinos.dom = { rpc: require("./webinos.dom.rpc.js") },
-		webinos.file = require("./webinos.file.js");
+		webinos.file = require("./webinos.file.js"),
+		webinos.utils = webinos.global.require(webinos.global.rpc.location, "lib/webinos.utils.js");
 
 	exports.Blob = {};
 	exports.Blob.serialize = function (blob) {
@@ -36,10 +37,10 @@
 		};
 
 		if (blob instanceof webinos.file.Buffer) {
-			object.__type = "buffer";
+			object._type = "buffer";
 			object._buffer = blob._buffer.toString("hex");
 		} else if (blob instanceof webinos.file.File) {
-			object.__type = "file";
+			object._type = "file";
 			object.name = blob.name;
 			object.lastModifiedDate = blob.lastModifiedDate;
 			object._entry = exports.Entry.serialize(blob._entry);
@@ -52,7 +53,7 @@
 	};
 
 	exports.Blob.deserialize = function (object) {
-		switch (object.__type) {
+		switch (object._type) {
 			case "buffer":
 				return new webinos.file.Buffer(new Buffer(object._buffer, "hex"), object.type);
 			case "file":
