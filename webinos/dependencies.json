@@ -93,7 +93,15 @@
     "policy_manager": {
       "name": "Policy Manager",
       "location": "common/manager/policy_manager/"
+    },
+    "keystore": {
+      "name": "Key Store",
+      "location": "common/manager/keystore/"
     }
+  },
+  "uniqueID": {
+    "name":"uniqueID",
+    "location": "common/uniqueID/"
   },
   "rpc": {
     "name": "RPC",

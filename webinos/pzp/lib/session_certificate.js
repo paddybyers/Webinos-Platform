@@ -23,108 +23,136 @@ var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
 var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
+var uniqueID     = require(path.join(webinosRoot, dependencies.uniqueID.location, 'lib/uniqueID.js'));
+var log =  require(path.resolve(webinosRoot,dependencies.pzp.location, 'lib/session_common.js')).debug;
 
-var utils =  require(path.resolve(webinosRoot,dependencies.pzp.location, 'lib/session_common.js'));
 /* @description Create private key, certificate request, self signed certificate and empty crl. This is crypto sensitive function
  * @param {Object} self is currect object of Pzh/Pzp
  * @param {String} name used in common field to differentiate Pzh and Pzp 
  * @param {Object} obj holds key, certificate and crl certificate values and names
  * @returns {Function} callback returns failed or certGenerated. Added to get synchronous behaviour
  */
-certificate.selfSigned = function(self, name, obj, certType, callback) {
+
+certificate.selfSigned = function(name, certValues,  callback) {
 	"use strict";
 	var certman;
+	
+	var certType;
+	var obj= {cert: '', crl:''};
+
+	var key , csr ;
+	
 	try {
-	  if(process.platform !== 'android')
-		certman = require(path.resolve(webinosRoot,dependencies.manager.certificate_manager.location));
-	  else
+	  if(process.platform !== 'android') {
+		certman = require(path.resolve(webinosRoot,dependencies.manager.certificate_manager.location));	
+	  } else {
 		certman = require('certificate_manager');
+	  }
 	} catch (err) {
-		callback.call(self, "failed", err);
+		callback("failed", err);
 		return;
 	}
 
 	try {
-		obj.key.value = certman.genRsaKey(1024);
+		key = certman.genRsaKey(1024);
 	} catch(err1) {
-		callback.call(self, "failed", err1);
+		callback("failed", err1);
 		return;
 	}
 
-	var common = name+':'+self.config.common;
-	self.config.cn = common; 	
+	var cn = name+':'+certValues.common+':DeviceId('+uniqueID.getUUID_40.substring(0,10)+')';
 
+	if (  name === 'PzhFarmCA' ||  name === 'PzhCA') {
+		certType = 0;
+	} else if(name === 'Pzh' || name === 'PzhFarm' || name === 'PzhWebServer' || name === 'PzhWebSocketServer') {
+		certType = 1;
+	} else {
+		certType = 2;
+	}
+	
 	try {
-		obj.csr.value = certman.createCertificateRequest(obj.key.value, 
-			self.config.country,
-			self.config.state,
-			self.config.city,
-			self.config.orgname,
-			self.config.orgunit,
-			common, 
-			self.config.email);
+		csr = certman.createCertificateRequest(key,
+			certValues.country,
+			certValues.state,
+			certValues.city,
+			certValues.orgname,
+			certValues.orgunit,
+			cn, 
+			certValues.email);
 	} catch (e) {
-		callback.call(self, "failed", e);
+		callback("failed", e);
 		return;
 	}
 	
 	try {
-		obj.cert.value = certman.selfSignRequest(obj.csr.value, 30, obj.key.value, certType, "pzh.webinos.org");
+		obj.cert = certman.selfSignRequest(csr, 180, key, certType, "pzh.webinos.org");
 	} catch (e1) {
-		callback.call(self, "failed", e1);
+		callback("failed", e1);
 		return;
 	}
-
+	
 	try {
-		obj.crl.value = certman.createEmptyCRL(obj.key.value,  obj.cert.value, 30, 0);
+		obj.crl = certman.createEmptyCRL(key, obj.cert, 180, 0);
 	} catch (e2) {
-		callback.call(self, "failed", e2);
+		callback("failed", e2);
 		return;
 	}
-	callback.call(self, "certGenerated");
+	callback("certGenerated", null, key, obj, csr);
 };
 
 /* @description Crypto sensitive 
 */
-certificate.signRequest = function(self, csr, master, certType, callback) {
+certificate.signRequest = function(csr, master_key, master_cert, certType, callback) {
 	"use strict";
 	var certman;
 	
 	try {
 		certman = require(path.resolve(webinosRoot,dependencies.manager.certificate_manager.location));
 	} catch (err) {
-		callback.call(self, "failed");
+		callback( "failed");
 		return;
 	}
+	
 	try {
-		var clientCert = certman.signRequest(csr, 30, master.key.value, master.cert.value, certType, "pzh.webinos.org");
-		callback.call(self, "certSigned", clientCert);
+		var clientCert = certman.signRequest(csr, 30, master_key, master_cert, certType, "pzh.webinos.org");
+		callback("certSigned", clientCert);
 	} catch(err1) {
-	    utils.debug(1, "Failed to sign certificate: " + err1.code + ", " + err1.stack);
-		callback.call(self, "failed");
+		log('ERROR', "Failed to sign certificate: " + err1.code + ", " + err1.stack);
+		callback("failed");
 		return;
 	}	
 };
 
-certificate.revokeClientCert = function(self, master, pzpCert, callback) {
-    "use strict";
-    var certman;
+certificate.revokeClientCert = function(master_key, master_crl, pzpCert, callback) {
+	"use strict";
+	var certman;
 	
 	try {
 		certman = require(path.resolve(webinosRoot,dependencies.manager.certificate_manager.location));		
 	} catch (err) {
-	    utils.debug(1, "Failed to find the certificate manager");
-		callback.call(self, "failed");
+		log("ERROR", "Failed to find the certificate manager");
+		callback("failed", err);
 		return;
 	}
 	try {
-	    utils.debug(2, "Calling certman.addToCRL\n");    
-		var crl = certman.addToCRL("" + master.key.value, "" + master.crl.value, "" + pzpCert); 
+		log("ERROR", "Calling certman.addToCRL\n");
+		var crl = certman.addToCRL("" + master_key, "" + master_crl, "" + pzpCert);
 		// master.key.value, master.cert.value
-		callback.call(self, "certRevoked", crl);
+		callback("certRevoked",  crl);
 	} catch(err1) {
-	    utils.debug(1, "Error: " + err1);
-		callback.call(self, "failed");
+		log("ERROR", "Error: " + err1);
+		callback("failed", err1);
 		return;
 	}
+}
+
+certificate.fetchKey = function (key_id, callback) {
+	try{
+		var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
+		var fetchkey = key.get(key_id);
+		callback(fetchkey);
+	} catch(err){
+		log('ERR0R','Key fetching error' )
+		return;
+	}	
 }

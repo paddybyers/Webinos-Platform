@@ -39,6 +39,7 @@ node_modules/xmlhttprequest/
 RPC/node_modules/dojo-node/
 RPC/node_modules/prototype/
 RPC/node_modules/xmlhttprequest/
+node_modules
 #node_modules
 /.metadata/
 

@@ -1,0 +1,16 @@
+
+<% if(locals.status)%>
+<p class="certexchmsg">
+	<% if(locals.status) { %>
+		PZH got certificate from other PZH
+	<% } else { %>
+		PZH Not Able to get information about PZH, the PZH is not located in same farm.
+	<% } %>
+
+<table>
+	<tr>
+		<td> PZH Address: </td> <td> <form method="post" action="/certificate_fetch"> <input type="text" name="pzh_addr" /></td>
+		<td> <input type="submit" value="connect"/> </form> </td>
+	</tr>
+
+</table>

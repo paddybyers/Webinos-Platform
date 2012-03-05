@@ -1,0 +1,78 @@
+<html>
+	<head>
+		<title>PZH Testbed</title>
+		<script type="text/javascript">
+		var channel;
+
+		try{
+			channel  = new WebSocket('wss://'+window.location.hostname+':81');
+		} catch(e) {
+			channel  = new MozWebSocket('wss://'+window.location.hostname+':81');
+//window.location.hostname
+		}
+
+		channel.onmessage = function(ev) {
+			console.log('WebSocket Client: Message Received : ' + JSON.stringify(ev.data));
+			var msg = ev.data;
+			if( typeof ev.data === 'string'){
+				msg = JSON.parse(ev.data);
+			}
+			console.log(msg);
+			switch(msg.cmd){
+				case 'auth-url':
+					window.location.href=msg.payload;
+					break;
+			}
+		};
+
+		function Google(){
+			send({cmd: "authenticate-google"});
+		}
+		function Yahoo(){
+			send({cmd: "authenticate-yahoo"});
+		}
+		function send(payload){
+			channel.send(JSON.stringify(payload));
+		}
+		</script>
+		<style type="text/css">
+			body{
+				font-family:serif;
+				background-color:#3366FF;
+				color:#FFFFFF;
+				margin:10;
+				top: 0;
+				padding:20;
+			}
+		</style>
+	</head>
+	<body>
+		<div id = "authentication">
+			<table align="center" border="0" height="100%" width="100%">
+				<tr height="20%" width="100%" > <td>  <img src="http://webinos.org/wp-content/themes/parallelus-unite/images/webinos_logo.png"/> </td> </tr>
+				<tr height="30%" width="50%" >
+					<td height="100%" width="50%"> <h1> Welcome to Webinos PZH </h1>
+						<li> Login to your account</li>
+						<li> Access your devices </li>
+						<li> Add devices in your PZH </li>
+						<li> Connect other PZH </li>
+						<li> Revoke certificate </li>
+						<li> Crash Logs </li>
+						<li> Restart PZH </li>
+					</td>
+					<td height="30%" width="50%">
+						<center>
+							<input type="button" style="height:40;width:50%;center" value="Login via Google" onclick="Google()"/>
+							<p> </p>
+							<input type="button" style="height:40;width:50%;center" value="Login via Yahoo"  onclick="Yahoo()" />
+							
+							
+						</center>
+					</td>
+				</tr>
+				<tr height="50%" width="100%"> <td> </td> <td> </td> </tr>
+			</table>
+		</div>
+
+	</body>
+</html>

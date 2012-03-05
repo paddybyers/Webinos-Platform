@@ -106,7 +106,7 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		}
 		
 		if (!config.pzhHost) {
-			config.pzhHost = 'localhost';
+			config.pzhHost = 'localhost/Habib';
 		}
 		if (!config.pzhPort) {
 			config.pzhPort = 8000;
@@ -147,12 +147,13 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		if (options.code) {
 			config.code = options.code;
 		}
-
-		var contents ="pzh_name=localhost\ncountry=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon="+config.pzpName+"\nemail=internal@webinos.org\ndays=180\n"
+		var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=" + config.pzpName + "\nemail=internal@webinos.org\ndays=180\n"
 		websocket.startPzpWebSocketServer(config.pzpHost, config.pzpWebsocketPort, config.pzpHttpPort, function() {
-			pzp.startPzp(contents, config.pzhHost, config.pzhPort, config.code, pzpModules, function() {
-				console.log("=== PZP started ===");
+			pzp.startPzp(config.pzhHost, contents, config.code, pzpModules, function() {
+				console.log("=== PZP 1 started ===");
 			});
 		});
 	});
 }
+
+
