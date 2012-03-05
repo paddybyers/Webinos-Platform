@@ -28,11 +28,15 @@
 				case 'addPzpQR':
 					displayQRCode(msg.payload);
 					break;
+				case 'crashLog':
+					displayCrashLog(msg.payload);
+					break;
 			}
 		};
 
 		function send(payload){
 			if(channel !== null && typeof channel !== "undefined"){
+				payload.from = window.location.search.split("=")[1];
 				channel.send(JSON.stringify(payload));
 			}
 		}
@@ -51,10 +55,9 @@
 				text+= "<tr> <td> <font color= "+color +">"+payload.pzhs[i].id + "</font> </td> </tr>";
 			}
 			text+="</table>"
+			clearPage();
 			document.getElementById('listDevices').innerHTML=text;
-			document.getElementById('userDetails').innerHTML="";
-			document.getElementById('addPzp').innerHTML="";
-		}		
+		}
 
 		function displayUserDetails(payload){
 			var text = "";
@@ -64,22 +67,31 @@
 			text += "<p><h3> Country  :  "+ payload.country +"</h3></p>";
 			text += "<p><h3> Email    :  "+ payload.email+"</h3></p>";
 			text += "<p> (Claimed Identifier: "+ payload.claimedIdentifier+")</p>";
-			
+			clearPage();
 			document.getElementById('userDetails').innerHTML=text;
-			document.getElementById('listDevices').innerHTML="";
-			document.getElementById('addPzp').innerHTML="";
+		}
 
+		function displayCrashLog(payload){
+			clearPage();
+			var text = '';
+			for (var key in payload) {
+				text += "<p> ["+key+"] Error: " + payload[key]+ "</p>";
+			}
+			document.getElementById('crashLog').innerHTML = text;
 		}
 
 		function displayQRCode(payload){
 			var text = "<center>";
-			
 			text += "<p> <img src=" + payload.img + "> </img> </p> ";
 			text += "<p> <h2>" +payload.code +"</p> </h2>";
-			
+			clearPage();
 			document.getElementById('addPzp').innerHTML=text;
+
+		}
+		function clearPage(){
+			document.getElementById('addPzp').innerHTML="";
 			document.getElementById('userDetails').innerHTML="";
-			document.getElementById('listDevices').innerHTML="";
+			document.getElementById('crashLog').innerHTML="";
 		}
 		</script>
 		<style type="text/css">
@@ -89,6 +101,7 @@
 				color:#FFFFFF;
 				margin:0;
 				padding:0;
+				top: 30px;
 			}
 			ul{
 				position: absolute;
@@ -122,16 +135,18 @@
 			<ul>
 				<li> <a href="/index.html" > Home </a> </li>
 				<li> <a href="#addPzp" onclick="send({cmd:'addPzp'})"> Add New PZP </a> </li>
+				<li> <a href="#crashLog" onclick="send({cmd:'crashLog'})"> Crash Log </a> </li>
 				<!--<li> <a href="#connectPzh" onclick=""> Connect Other PZH </a> </li>
 				<li> <a href="#revokeCert">Revoke Certificate </a> </li>
-				<li> <a href="#crashLog"> Crash Log </a> </li>
+				
 				<li> <a href="#restartPzh" onclick="send({cmd:'restartPzh'})"> Restart PZH </a> </li>-->
 				<li> <a href="#userDetails" onclick="send({cmd:'userDetails'})"> User Details </a> </li>
 				<li> <a href="#logout" onclick="send({cmd:'logout'}); window.location.href='/index.html'"> Logout </a> </li>
 			</ul>
 		</div>
-		<div id = "listDevices" align="right" position="absolute" margin="0"> </div>
-		<div id="addPzp" align="left" margin="10px"> </div>
+		<div id="listDevices" align="right" position="absolute" margin="0"> </div>
+		<div id="addPzp"      align="left" margin="10px"> </div>
 		<div id="userDetails" align="left" margin="10px"> </div>
+		<div id="crashLog"    align="left" margin="10px"> </div>
 	</body>
 </html>

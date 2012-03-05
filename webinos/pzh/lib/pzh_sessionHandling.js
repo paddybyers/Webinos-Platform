@@ -153,7 +153,6 @@
 		 */
 		if(conn.authorized === false) {
 			log('INFO', '[PZH -'+self.sessionId+'] Connection NOT authorised at PZH');
-
 			/**
 			 * @description: If this is a new PZP, we allow if it has proper QRCode
 			 */
@@ -287,41 +286,31 @@
 		var self = this;
 		var pzp = 2;
 		try {
-			configuration.fetchKey(self.config.master.key_id, function(master_key){
-				// Check QRCode if it is valid ..
-				self.expecting.isExpectedCode(parse.payload.message.code, function(expected) {
-					if (expected) {
-						// Sign certificate based on received csr from client.
-						// Also includes master key and master certificate for signing the certificate
-						cert.signRequest(parse.payload.message.csr, master_key, self.config.master.cert, pzp, function(result, cert) {
-							// Certificate if signed
-							if(result === "certSigned") {
-								// unset expected QRCode
-								self.expecting.unsetExpected(function() {
-									//Save the signed certificate pzp information locally on the PZH.
-									self.config.signedCert[parse.payload.message.name]=cert;
-									// Send signed certificate and master certificate to PZP
-									var payload = {'clientCert': cert, 'masterCert':self.config.master};
-									var msg = self.prepMsg(self.sessionId, parse.from, 'signedCert', payload);
-									// update configuration with signed certificate details ..
-									configuration.storeConfig(self.config);
-									cb.call(self, null, msg);
-								});
-							} else {
-								log('ERROR ', '[PZH -'+self.sessionId+'] Error Signing Client Certificate');
-								cb.call(self, "Could not create client certificate - " + result, null);
+			// Check QRCode if it is valid ..
+			self.expecting.isExpectedCode(parse.payload.message.code, function(expected) {
+				if (expected) {
+					// Sign certificate based on received csr from client.
+					// Also includes master key and master certificate for signing the certificate
+					configure.signedCert(parse.payload.message.csr, self.config, pzp, function(config){
+						// unset expected QRCode
+						self.expecting.unsetExpected(function() {
+							// Send signed certificate and master certificate to PZP
+							var payload = {'clientCert': cert, 'masterCert':self.config.master};
+							var msg = self.prepMsg(self.sessionId, parse.from, 'signedCert', payload);
+							// update configuration with signed certificate details ..
+							cb.call(self, null, msg);
 
-							}
 						});
-					} else {
-						// Fail message
-						var payload = {};
-						var msg = self.prepMsg(self.sessionId, parse.from, 'failedCert', payload);
-						log('INFO', '[PZH -'+self.sessionId+'] Failed to create client certificate: not expected code');
-						cb.call(self, null, msg);
-					}
-				});
+					});
+				} else {
+					// Fail message
+					var payload = {};
+					var msg = self.prepMsg(self.sessionId, parse.from, 'failedCert', payload);
+					log('INFO', '[PZH -'+self.sessionId+'] Failed to create client certificate: not expected code, please generate via PZH');
+					cb.call(self, null, msg);
+				}
 			});
+			
 		} catch (err) {
 			log('ERROR ', '[PZH -'+self.sessionId+'] Error Signing Client Certificate' + err);
 			cb.call(self, "Could not create client certificate");

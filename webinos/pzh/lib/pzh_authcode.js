@@ -23,7 +23,7 @@ var utils = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
 tokenAuth.createAuthCounter = function(callback) {
 
     var authCounter = {       
-        status  : true, 
+		status  : true, 
 		code    : "DEBUG", 
 		timeout : new Date("October 13, 2100 11:13:00"),
 		guesses : 8
@@ -90,7 +90,7 @@ tokenAuth.createAuthCounter = function(callback) {
 	        cb(false);
 	        return;
 	    }
-	    	    
+	    console.log(self.code);
 	    if (self.code !== newcode) {
 	        utils.debug(2, "Was expecting a new PZP, but code wrong");
 	        self.guesses = self.guesses - 1;

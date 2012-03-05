@@ -21,22 +21,34 @@ var cert         = require(path.join(webinosRoot, dependencies.pzp.location, 'li
 var authorized   = false;
 var rely ;
 var connection;
-var pzh;
+var pzh = [];
 // Create HTTPS Server
 pzhWebInterface.start = function(hostname) {
 	createWebInterfaceCertificate(farm.config, function(webServer, wssServer){
-		console.log(webServer);
-		console.log(wssServer);
 		var server = https.createServer(webServer, function(req, res){
 			var parsed = url.parse(req.url);
 			var query = querystr.parse(parsed.query);
+			
 			if (query.id === 'verify'){
-				fetchOpenIdDetails(req);
-				res.writeHead(302, {Location: '/main.html'});
-				res.end();
+				fetchOpenIdDetails(req, function(userid) {// Important step as we assign pzh instance
+					res.writeHead(302, {Location: '/main.html?id='+userid}); // redirection to same page but without details fetched from google.
+					res.end();
+				});
 
 			} else {
-				var filename = path.join(__dirname, parsed.pathname);
+				currentPzh = query.id;
+// 				if (typeof currentPzh === "undefined") {
+// 					res.writeHeader(500, {"Content-Type": "text/plain"});
+// 					res.write('ID is missing ..' + "\n");
+// 					res.end();
+// 					return;
+// 				}
+				var filename;
+				if(typeof pzh === 'undefined' || !pzh[currentPzh]) {
+					filename = path.join(__dirname, '/index.html');
+				} else {
+					filename = path.join(__dirname, parsed.pathname);
+				}
 				path.exists(filename, function(exists) {
 					if(!exists) {
 						res.writeHeader(404, {"Content-Type": "text/plain"});
@@ -45,9 +57,6 @@ pzhWebInterface.start = function(hostname) {
 						return;
 					}
 					// Security check, if not logged in, we redirect to index.html
-					if(!authorized){
-						filename = '/index.html';
-					}
 					fs.readFile(filename, "binary", function(err, file) {
 						if(err) {
 							res.writeHeader(500, {"Content-Type": "text/plain"});
@@ -90,31 +99,37 @@ pzhWebInterface.start = function(hostname) {
 			connection = conn;
 			log('INFO','[WEB SERVER] '+connection.remoteAddress + ' connected ');
 			// TODO: Send only to main.html and not to all .. 
-			if (typeof pzh !== "undefined"){
-				pzhapis.listZoneDevices(pzh, result);
+			if (typeof pzh !== 'undefined' && pzh[currentPzh]){
+				pzhapis.listZoneDevices(pzh[currentPzh], result);
 			}
 			connection.on('message', function(data) {
 				console.log('received data :: ' + (data.utf8Data));
 				var parse = JSON.parse((data.utf8Data));
-				if (parse.cmd) {
+				if (parse.cmd)  {
 					switch(parse.cmd){
 						case 'authenticate-google':
 							authenticate('http://www.google.com/accounts/o8/id');
 							break;
+						case 'authenticate-yahoo':
+							authenticate('http://open.login.yahooapis.com/openid20/www.yahoo.com/xrds');
+							break;
 						case 'userDetails':
-							result({cmd:'userDetails', payload:pzh.config.userDetails});
+							result({cmd:'userDetails', payload:pzh[parse.from].config.userDetails});
+							break;
+						case 'crashLog':
+							pzhapis.crashLog(pzh[parse.from], result);
 							break;
 						case 'addPzp':
-							pzhapis.addPzpQR(pzh, result);
+							pzhapis.addPzpQR(pzh[parse.from], result);
 							break;
 						case 'logout':
 							connection.close();
 							break;
 						case 'restartPzh':
-							pzhapis.restartPzh(pzh, result);
+							pzhapis.restartPzh(pzh[parse.from], result);
 							break;
 						case 'connectPzh':
-							pzhapis.connectPzh(pzh, result);
+							pzhapis.connectPzh(pzh[parse.from], result);
 							break;
 					}
 				}
@@ -154,8 +169,8 @@ function getContentType(uri) {
 	}
 	return {'Content-Type': contentType};
 }
+
 function result(response) {
-	console.log(response);
 	connection.send(JSON.stringify(response));	
 }
  
@@ -180,10 +195,10 @@ function authenticate(url) {
 		false,
 		exts);
 	
-	openid.discover('http://www.google.com/accounts/o8/id', function(error, providers){
-		rely.authenticate('http://www.google.com/accounts/o8/id', false, function(error, authUrl) {
+	openid.discover(url, function(error, providers){
+		rely.authenticate(url, false, function(error, authUrl) {
 			if(error){
-				log('INFO','[WEB SERVER] Error '+ error);			
+				log('INFO','[WEB SERVER] Error '+ error);
 			} else if (!authUrl) {
 				console.log('Authentication failed as url to redirect after authentication is missing');
 			} else {                                                                                      
@@ -193,24 +208,26 @@ function authenticate(url) {
 	});
 }
 
-function fetchOpenIdDetails(req){
+function fetchOpenIdDetails(req, callback){
 	rely.verifyAssertion(req, function(err, userDetails){
 		if (err){
 			console.log(err.message);
 		}
-		else {
+		else if (userDetails.authenticated) {
 			var host;
 			if(req.headers.host.split(':')){
 				host = req.headers.host.split(':')[0];
 			} else {
 				host = req.headers.host;
 			}
-			authorized = true;
-			farm.getPzhInstance(host, userDetails, function(pzhInt){
-				pzh = pzhInt;
-				pzhapis.listZoneDevices(pzh, result);
+			console.log(userDetails);
+			farm.getPzhInstance(host, userDetails, function(key, pzhInt){
+				var parsed = url.parse(userDetails.claimedIdentifier);
+				var query = querystr.parse(parsed.query);
+				callback(query.id);
+				pzh[query.id] = pzhInt;
+				pzhapis.listZoneDevices(pzhInt, result);
 			});
-			
 		}
 	});
 }
@@ -224,11 +241,33 @@ function createWebInterfaceCertificate (config, callback) {
 		cert.selfSigned( 'PzhWebServer', config.certValues, function(status, selfSignErr, ws_key, ws_cert, csr ) {
 			if(status === 'certGenerated') {
 				configure.fetchKey(config.master.key_id, function(master_key) {
-					cert.signRequest(csr, master_key,  config.master.cert, 1, function(result, cert) {
+					cert.signRequest(csr, master_key,  config.master.cert, 1, function(result, signed_cert) {
 						if(result === 'certSigned') {
-							config.webServer.cert = cert;
+							config.webServer.cert = signed_cert;
 							configure.storeKey(config.webServer.key_id, ws_key);
 							configure.storeConfig(config);
+							cert.selfSigned( 'PzhWebSocketServer', config.certValues, function(status, selfSignErr, wss_key, ws_cert, csr ) {
+								if(status === 'certGenerated') {
+									cert.signRequest(csr, master_key,  config.master.cert, 1, function(result, signed_cert) {
+										if(result === 'certSigned') {
+											config.webSocketServer.cert = signed_cert;
+											configure.storeKey(config.webSocketServer.key_id, wss_key);
+											configure.storeConfig(config);
+											var wss = {
+												key : ws_key,
+												cert: config.webServer.cert,
+												ca  : config.master.cert
+											};
+											var wss1 = {
+												key : wss_key,
+												cert: config.webSocketServer.cert,
+												ca  : config.master.cert
+											};
+											callback(wss, wss1);
+										}
+									});
+								}
+							});
 						}
 					});
 				});
@@ -236,42 +275,26 @@ function createWebInterfaceCertificate (config, callback) {
 				log('ERROR', '[WEB SERVER] Certificate generation error')
 			}
 		});
-	}
-	if (config.webSocketServer.cert === "") {
-		cert.selfSigned( 'PzhWebSocketServer', config.certValues, function(status, selfSignErr, ws_key, ws_cert, csr ) {
-			if(status === 'certGenerated') {
-				configure.fetchKey(config.master.key_id, function(master_key) {
-					cert.signRequest(csr, master_key,  config.master.cert, 1, function(result, cert) {
-						if(result === 'certSigned') {
-							config.webSocketServer.cert = cert;
-							configure.storeKey(config.webSocketServer.key_id, ws_key);
-							configure.storeConfig(config);
-						}
-					});
+	} else {
+		if (config.webSocketServer.cert !== "" && config.webServer.cert !== ""){
+			var wss = {
+				key : '',
+				cert: config.webServer.cert,
+				ca  : config.master.cert
+				};
+			var wss1 = {
+				key : '',
+				cert: config.webSocketServer.cert,
+				ca  : config.master.cert
+			};
+			configure.fetchKey(config.webServer.key_id, function(ws_key){
+				wss.key = ws_key;
+				configure.fetchKey(config.webSocketServer.key_id, function(wss_key){
+					wss1.key = wss_key;
+					callback(wss, wss1);
 				});
-			} else {
-				log('ERROR', '[WEB SERVER] Certificate generation error')
-			}
-		});
-	}
-
-	if (config.webSocketServer.cert !== "" && config.webServer !== ""){
-		var wss = {
-			key : '',
-			cert: config.webServer.cert,
-			ca  : config.master.cert
-		};
-		var wss1 = {
-			key : '',
-			cert: config.webSocketServer.cert,
-			ca  : config.master.cert
-		};
-		configure.fetchKey(config.webServer.key_id, function(ws_key){
-			wss.key = ws_key;
-			configure.fetchKey(config.webSocketServer.key_id, function(wss_key){
-				wss1.key = wss_key;
-				callback(wss, wss1);
 			});
-		});
+		}
+		
 	}
 }

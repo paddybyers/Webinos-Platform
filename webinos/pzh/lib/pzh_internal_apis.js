@@ -34,6 +34,7 @@ var session      = require(path.join(webinosRoot, dependencies.pzh.location, 'li
 var configuration= require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
 var farm         = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_farm.js'));
 var pzhConnect   = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_connecting.js'));
+var common       = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 
 pzhapis.addPzpQR = function (pzh, callback) {
 	"use strict";
@@ -55,6 +56,15 @@ pzhapis.listZoneDevices = function(pzh, callback) {
 	
 	var payload = {cmd:'listDevices', payload:result};
 	callback(payload);
+}
+
+pzhapis.crashLog = function(pzh, callback){
+	"use strict";
+	var filename = path.join(common.webinosConfigPath()+'/logs/', pzh.sessionId+'.json');
+	fs.readFile(filename, function(err, data){
+		var payload = {cmd:'crashLog', payload: data.toString('utf8')};
+		callback(payload);
+	});
 }
 	
 function getPzpInfoSync(pzh, pzpId) {
@@ -162,19 +172,6 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 		callback(true);
 	}
 	
-}
-
-pzhapis.crashLog = function(pzh, callback) {
-	"use strict";	
-	try {
-		// TODO: Create log directory and store information in it about PZH
-		var logFile = webinosDemo + '/'+pzh.sessionId + '_crash.txt';
-		var clog = fs.readFileSync(logFile, 'utf8');
-		callback(null,clog);
-	} catch (err) {
-		log('ERROR', 'PZH ('+pzh.sessionId+') Error creating crashlog ' + err);
-		callback(err);
-	}
 }
 	
 // TODO: THIS IS NOT WORKING FIX IT

@@ -31,7 +31,7 @@ var common = exports;
 var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
 var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
-var webinosDemo  = path.resolve(__dirname, '../../../demo');
+
 var validation   = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_schema.js')); // ADDED BY POLITO
 var rpc          = require(path.join(webinosRoot, dependencies.rpc.location));
 
@@ -67,12 +67,24 @@ common.webinosConfigPath = function() {
     process.exit();
 });*/
 
+var writeError;
+var msgSave;
+common.writeStream = function(stream){
+	writeError = stream;
+	msgSave = [];
+}
+
 common.debug = function(num, msg) {
 	"use strict";
 	var info = true; // Change this if you want no prints from session manager
 	var debug = true;
+	
 	if(num === 'ERROR' || num === 1) {
-		console.log('ERROR: ' + msg);	
+		console.log('ERROR: ' + msg);
+		if (typeof writeError !== "undefined") {
+			msgSave[date] = msg;
+			writeError.write(JSON.stringify(msgSave, null, ''));
+		}
 	} else if((num === 'INFO' || num === 2) & info) {
 		console.log('INFO: ' + msg);		
 	} else if((num === 'DEBUG' || num === 3) && debug) {

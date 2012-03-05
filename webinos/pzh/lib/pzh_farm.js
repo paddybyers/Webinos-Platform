@@ -111,7 +111,7 @@ farm.startFarm = function (url, contents, callback) {
 		});
 		
 		farm.server.on('listening', function(){
-			log('INFO', '[PZHFARM] Intialized *********** ');
+			log('INFO', '[PZHFARM] Initialized *********** ');
 			// Load PZH's that we already have registered ...
 			loadPzhs(farm.config);
 			callback(true);
@@ -132,25 +132,24 @@ farm.getPzhInstance = function (host, user, callback) {
 	// This PZH 
 	if ( farm.pzhs[myKey] && farm.pzhs[myKey].config.userDetails.firstname === user.firstname ) {
 		log('INFO', '[PZHFARM] User already registered');
-		callback(farm.pzhs[myKey]);
+		callback(myKey, farm.pzhs[myKey]);
 		return;
 	} else if(farm.pzhs[myKey]) { // Cannot think of this case, but still might be useful
 		log('INFO', '[PZHFARM] User first time login');
 		farm.pzhs[myKey].config.userDetails = user;
 		configuration.storeConfig(farm.pzhs[myKey].config);
-		callback(farm.pzhs[myKey]);
+		callback(myKey, farm.pzhs[myKey]);
 		return;
 	} else {
 		log('INFO', '[PZHFARM] Adding new PZH');
 		var contents="country="+user.country+
 			"\nstate=\'\'\ncity=\'\'\norganization=\'\'\norganizationUnit=\'\'"+
 			"\ncommon="+user.firstname+user.lastname+"_pzh"+"\nemail="+user.email+"\ndays=3600";
-		var pzhModules = [{name: "get42", params: [99]},
-				{name: "context", param: {}}];
+		var pzhModules = [];
 		Pzh.addPzh(myKey, contents, pzhModules, function(){
 			farm.pzhs[myKey].config.userDetails = user;
 			configuration.storeConfig(farm.pzhs[myKey].config);
-			callback(farm.pzhs[myKey]);
+			callback(myKey, farm.pzhs[myKey]);
 		});
 	}
 }

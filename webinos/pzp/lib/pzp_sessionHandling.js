@@ -271,8 +271,7 @@
 						self.pzhId = client.getPeerCertificate().subject.CN.split(':')[1];//parseMsg.from;
 						self.connectedPzh[self.pzhId] = {socket: client};
 						self.prepMsg(self.sessionId, self.pzhId,
-						'clientCert',
-							{   csr: conn_csr,
+							'clientCert', { csr: conn_csr,
 							name: self.config.certValues.common.split(':')[0],
 							code: self.code //"DEBUG"
 						});
@@ -476,7 +475,7 @@
 		var client      = new Pzp(modules);
 		client.modules  = modules;
 		client.code     = code;
-		
+		console.log(client.code);
 		configuration.setConfiguration(contents, 'Pzp', function (config, conn_key, conn_csr) {
 			client.config            = config;
 			client.config.servername = url;
