@@ -32,62 +32,32 @@ var utils         = require(path.join(webinosRoot, dependencies.pzp.location, 'l
 var log           = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debugPzh;
 var configuration = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
 
-revoker.revokePzp = function (pzpid, pzh, callback ) {
-	"use strict";
-	var pzpcert = pzh.config.signedCert[pzpid];
-	if (typeof pzpcert !== "undefined" ) {
-		revoke(pzh, pzpcert, function(result) {
-			if (result) {
-				log(pzh.sessionId, "INFO", "[PZH - "+ pzh.sessionId+"]Revocation success! " + pzpid + " should not be able to connect anymore ");
-
-				removeRevokedCert(pzpid, pzh.config, function(status2) {
-					if (!status2) {
-						log(pzh.sessionId, "INFO", "[PZH - "+ pzh.sessionId+"] Could not rename certificate");
-					}
-					callback();
-					return;
-				});
-			} else {
-				log(pzh.sessionId, "INFO", "[PZH - "+ pzh.sessionId+"] Revocation failed! ");
-				callback("failed to update CRL");
-			}
-		});
-	}
-}
-
-
 function revoke(pzh, pzpCert, callback) {
 	"use strict";
-	try {
-		var key      = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
-		master_key   = key.get(config.master.key_id);
-	} catch (err) {
-		log(pzh.sessionId, "ERROR", "[PZH - "+pzh.sessionId+"] Failed fetching keys");
-		return;
-	}
-	
-	cert.revokeClientCert(master_key, pzh.config.master.crl, pzpCert, function(result, crl) {
-		if (result === "certRevoked") {
-			/* This should work, if this works then we do not have to restart PZH
-			try {
-				pzh.conn.pair.credentials.context.addCRL(crl);
-			} catch (err) {
-				console.log(err);
+	configuration.fetchKey(pzh.config.master.key_id, function(master_key) { 
+		cert.revokeClientCert(master_key, pzh.config.master.crl, pzpCert, function(result, crl) {
+			if (result === "certRevoked") {
+				/* This should work, if this works then we do not have to restart PZH
+				try {
+					pzh.conn.pair.credentials.context.addCRL(crl);
+				} catch (err) {
+					console.log(err);
+				}
+				*/
+				pzh.config.master.crl = crl;
+				configuration.storeConfig(pzh.config);
+				//TODO : trigger the PZH to reconnect all clients
+				//TODO : trigger a synchronisation with PZPs.
+				callback(true);
+			} else {
+				log(pzh.sessionId, "ERROR", "[PZH - "+pzh.sessionId+"] Failed to revoke client certificate [" + pzpCert + "]");
+				callback(false);
 			}
-			*/
-			pzh.config.master.crl = crl;
-			configuration.storeConfig(pzh.config);
-			//TODO : trigger the PZH to reconnect all clients
-			//TODO : trigger a synchronisation with PZPs.
-			callback(true);
-		} else {
-			log(pzh.sessionId, "ERROR", "[PZH - "+pzh.sessionId+"] Failed to revoke client certificate [" + pzpCert + "]");
-			callback(false);
-		}
-	});		
+		});
+	});
 }
 
-function removeRevokedCert(pzpid, config, callback) {
+function removeRevokedCert(pzh, pzpid, config, callback) {
 	"use strict";
 	try {
 		config.revokedCert[pzpid] = config.signedCert[pzpid];
@@ -100,4 +70,25 @@ function removeRevokedCert(pzpid, config, callback) {
 	}
 }
 	
+revoker.revokePzp = function (pzpid, pzh, callback ) {
+	"use strict";
+	var pzpcert = pzh.config.signedCert[pzpid];
+	if (typeof pzpcert !== "undefined" ) {
+		revoke(pzh, pzpcert, function(result) {
+			if (result) {
+				log(pzh.sessionId, "INFO", "[PZH - "+ pzh.sessionId+"]Revocation success! " + pzpid + " should not be able to connect anymore ");
 
+				removeRevokedCert(pzh, pzpid, pzh.config, function(status2) {
+					if (!status2) {
+						log(pzh.sessionId, "INFO", "[PZH - "+ pzh.sessionId+"] Could not rename certificate");
+					}
+					callback();
+					return;
+				});
+			} else {
+				log(pzh.sessionId, "INFO", "[PZH - "+ pzh.sessionId+"] Revocation failed! ");
+				callback("failed to update CRL");
+			}
+		});
+	}
+};

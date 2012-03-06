@@ -21,15 +21,12 @@ var path    = require('path');
 
 var webinosqr = exports;
 
-webinosqr.createQR = function(url, code, cb) {
-    create(url,code,cb);
-}
-
 function create(url, code, cb) {
     "use strict";
     try { 
         var QRCode = require('qrcode');
-        QRCode.toDataURL("" + url + ' ' + code, function(err,url) {
+        var urlCode = "" + url + ' ' + code;
+        QRCode.toDataURL(urlCode, function(err,url) {
             cb(err, url);
         });
     } catch (err) {
@@ -38,29 +35,32 @@ function create(url, code, cb) {
 }
 
 function generateRandomCode() {
+    "use strict";
     return crypto.randomBytes(8).toString("base64");
 }
 
-
+webinosqr.createQR = function(url, code, cb) {
+    "use strict";
+    create(url,code,cb);
+};
 // Add a new PZP by generating a QR code.  This function:
 // (1) returns a QR code 
 // (2) generates a new secret code, to be held by the PZH
 // (3) tells the PZH to be ready for a new PZP to be added
 webinosqr.addPzpQR = function(pzh, connection) {
     "use strict";
-    
     var code = generateRandomCode();
 
-    pzh.expecting.setExpectedCode(code,function() {
+    pzh.expecting.setExpectedCode(code, function() {
         pzh.getMyUrl(function(url) { 
             create(url, code, function(err, qrimg) {
-                if (err == null) {
+                if (err === null) {
                     var message = {
                         name: pzh.sessionId, 
                         img: qrimg,
                         result: "success"
                         };
-		            var payload = {status : 'addPzpQR', message : message};
+                    var payload = {status : 'addPzpQR', message : message};
                     var msg = {type: 'prop', payload: payload};	                    
                     connection.sendUTF(JSON.stringify(msg));
                 } else {
@@ -72,13 +72,13 @@ webinosqr.addPzpQR = function(pzh, connection) {
                             };			            
                         var payload = {status : 'addPzpQR', message : message};
                         var msg = {type: 'prop', payload: payload};
-    	                connection.sendUTF(JSON.stringify(msg));
+                        connection.sendUTF(JSON.stringify(msg));
                     });
                 }
             });
-        });	    
-    }); 
-}
+        });
+    });
+};
 
 webinosqr.addPzpQRAgain = function(pzh, next) {
     "use strict";
@@ -88,12 +88,12 @@ webinosqr.addPzpQRAgain = function(pzh, next) {
     pzh.expecting.setExpectedCode(code,function() {
         pzh.getMyUrl(function(url) {
             create(url, code, function(err, qrimg) {
-		    next({cmd: 'addPzpQR', payload:{err: err, img: qrimg, code: code}});
+                next({cmd: 'addPzpQR', payload:{err: err, img: qrimg, code: code}});
 
             });
         });	    
     }); 
-}
+};
 
 
 

@@ -260,7 +260,7 @@ function fetchOpenIdDetails(req, callback){
 				details.image = userDetails.image;
 			}
 			
-			farm.getPzhInstance(host, details, function(key, pzhInt){
+			farm.getOrCreatePzhInstance(host, details, function(key, pzhInt){
 				pzh[details.id] = pzhInt;	
 				pzhapis.listZoneDevices(pzhInt, result);
 			});

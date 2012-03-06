@@ -36,6 +36,53 @@ var pzhConnect   = require(path.join(webinosRoot, dependencies.pzh.location, 'li
 var common       = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 var log          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debugPzh;
 
+function getPzpInfoSync(pzh, pzpId) {
+	"use strict";
+
+	//find out whether we have this PZP in a session somewhere.
+	var pzpConnected = false;
+	var pzpName = pzpId;
+	var id;
+	for ( id in pzh.connectedPzp ){
+		if (typeof pzh.connectedPzp[id] !== "undefined") {
+			//session IDs append the PZH to the front of the PZP ID.
+			var splitId = id.split("/");
+			if (splitId.length > 1 && splitId[1] !== null) {
+				if (splitId[1] === pzpId) {
+					pzpConnected = true;
+					pzpName = id;
+				}
+			}
+		}
+	}
+//
+	return {
+		id          : pzpId,
+		cname       : pzpName,
+		isConnected : pzpConnected
+	};
+}
+
+function getPzhInfoSync(pzh, pzhId) {
+	"use strict";
+	if (pzhId === pzh.config.certValues.common.split(':')[0]) {
+		//we know that this PZH is alive
+		return {
+			id : pzhId,
+			url: "",
+			cname: pzhId + " (Your PZH)",
+			isConnected: true
+		};
+	} else {
+		return {
+			id          : pzhId,
+			url         : null,
+			cname       : "unknown",
+			isConnected : true
+		};
+	}
+}
+
 pzhapis.addPzpQR = function (pzh, callback) {
 	"use strict";
 	qrcode.addPzpQRAgain(pzh, callback);
@@ -44,13 +91,18 @@ pzhapis.addPzpQR = function (pzh, callback) {
 pzhapis.listZoneDevices = function(pzh, callback) {
 	"use strict";
 	var result = {pzps: [], pzhs: []};
-
-	for (var myKey in pzh.config.signedCert){
-		result.pzps.push(getPzpInfoSync(pzh, myKey));
+	var myKey;
+	
+	for (myKey in pzh.config.signedCert) {
+		if (typeof pzh.config.signedCert[myKey] !== "undefined") {
+			result.pzps.push(getPzpInfoSync(pzh, myKey));
+		}
 	}
 
-	for (var myKey in pzh.config.otherCert){
-		result.pzhs.push(getPzhInfoSync(pzh, myKey));
+	for (myKey in pzh.config.otherCert) {
+		if (typeof pzh.config.otherCert[myKey] !== "undefined") {
+			result.pzhs.push(getPzhInfoSync(pzh, myKey));
+		}
 	}
 	result.pzhs.push(getPzhInfoSync(pzh, pzh.sessionId));
 	
@@ -72,58 +124,10 @@ pzhapis.crashLog = function(pzh, callback){
 	});
 };
 	
-function getPzpInfoSync(pzh, pzpId) {
-	"use strict";
-
-	//find out whether we have this PZP in a session somewhere.
-	var pzpConnected = false;
-	var pzpName = pzpId;
-	for ( var id in pzh.connectedPzp ){
-		//session IDs append the PZH to the front of the PZP ID.
-		var splitId = id.split("/");
-		if (splitId.length > 1 && splitId[1] !== null) {
-			if (splitId[1] === pzpId) {
-				pzpConnected = true;
-				pzpName = id;
-			}
-		}
-	}
-// 
-	return {
-		id          : pzpId,
-		cname       : pzpName,
-		isConnected : pzpConnected
-	};
-}
-
-function getPzhInfoSync(pzh, pzhId) {
-	"use strict";
-	if (pzhId === pzh.config.certValues.common.split(':')[0]) {
-	//we know that this PZH is alive
-	return {
-		id : pzhId,
-		url: "",
-		cname: pzhId + " (Your PZH)",
-		isConnected: true
-	};
-
-
-	} else {
-
-	return {
-		id          : pzhId,
-		url         : null,
-		cname       : "unknown",
-		isConnected : true
-	};
-	}
-}
-
-
 pzhapis.revoke = function(pzh, pzpid, callback) {
 	"use strict";        
 	revoker.revokePzp(pzpid, pzh, callback);
-};	
+};
 
 // This is sending side action on PZH end
 pzhapis.addPzhCertificate = function(pzh, to, callback) {
@@ -131,12 +135,12 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 	
 	var id = pzh.config.servername.split('/')[0];
 	var id_to = to.split('/')[0];
-
+	var pzh_id;
 	// There are two scenarios:
 	// 1. Inside same PZH Farm, it is a mere copy. 
 	if (id === id_to) {
-		for (var pzh_id in farm.pzhs) {
-			if( pzh_id === to) {
+		for (pzh_id in farm.pzhs) {
+			if( typeof farm.pzhs[pzh_id] !== "undefined" && pzh_id === to) {
 				// Store the information in other_cert
 				pzh.config.otherCert[pzh_id] = farm.pzhs[pzh_id].config.master.cert;
 				farm.pzhs[pzh_id].config.otherCert[pzh.config.servername] = pzh.config.master.cert;
@@ -145,7 +149,7 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 				pzh.options.ca.push(pzh.config.otherCert[pzh_id]);
 				farm.pzhs[pzh_id].options.ca.push(pzh.config.master.cert);
 				
-				 farm.server._contexts.some(function(elem) {
+				farm.server._contexts.some(function(elem) {
 					if (to.match(elem[0]) !== null) {
 						elem[1] = crypto.createCredentials(farm.pzhs[pzh_id].options).context;
 					}
@@ -155,9 +159,8 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 					}
 				});
 				 
-				
-// 				// pzh.serverContext.pair.credentials.context.addCACert(pzh.config.other_cert[pzh_id]);
-				
+				// pzh.serverContext.pair.credentials.context.addCACert(pzh.config.other_cert[pzh_id]);
+			
 				// Store configuration
 				configuration.storeConfig(pzh.config);
 				configuration.storeConfig(farm.pzhs[pzh_id].config);
@@ -181,6 +184,7 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 	
 // TODO: THIS IS NOT WORKING FIX IT
 pzhapis.restartPzh = function(instance, from, callback) {
+	"use strict";
 	try {
 		log(instance.sessionId, 'INFO', util.inspect(instance));
 		if ((typeof instance.conn.end) === 'undefined' ) {

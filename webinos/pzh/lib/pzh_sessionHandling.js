@@ -20,23 +20,21 @@
 * @author <a href="mailto:habib.virji@samsung.com">Habib Virji</a>
 * @description session_pzh.js starts Pzh and handle communication with a messaging manager. It is also responsible for loading rpc modules.
 */
-(function() {
+(function () {
 	"use strict";
 
 	/**
 	 * Node modules used by Pzh
 	 */
 	var tls = require('tls'),
-	fs = require('fs'),
-	path = require('path'),
-	crypto = require('crypto'),
-	util = require('util');
-	
+		fs = require('fs'),
+		path = require('path'),
+		crypto = require('crypto'),
+		util = require('util');
+
 	var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
 	var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 	var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
-	var webinosDemo  = path.resolve(__dirname, '../../../demo');
-	
 
 	if (typeof exports !== 'undefined') {
 		try {
@@ -49,7 +47,7 @@
 			var utils        = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 			var log          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debugPzh;
 			var pzhapis      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_internal_apis.js'));
-			var configuration= require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
+			var configuration = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
 			var farm         = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_farm.js'));
 			var webInt       = require(path.join(webinosRoot, dependencies.pzh.location, 'web/pzh_webserver.js'));
 
@@ -60,7 +58,7 @@
 			return;
 		}
 	}
-	
+
 	/**
 	 * @description Creates a new Pzh object
 	 * @constructor
@@ -74,7 +72,7 @@
 		this.connectedPzh = [];
 		/** Holds connected PZP information such as IP address and socket connection */
 		this.connectedPzp = [];
-		/** This is used for synchronization purpose with connected PZP and PZH */	
+		/** This is used for synchronization purpose with connected PZP and PZH */
 		this.connectedPzhIds = [];
 		// Handler for remote method calls.
 		this.rpcHandler = new RPCHandler();
@@ -84,11 +82,11 @@
 		this.rpcHandler.loadModules(modules);
 		/* This is used for authenticating new PZPs */
 		var self = this;
-		authcode.createAuthCounter(function(res) {
+		authcode.createAuthCounter(function (res) {
 		    self.expecting = res;
 		});
-	}
-	
+	};
+
 	/**
 	 * @description A generic function used to set message parameter
 	 * @param {String} from Source address
@@ -97,15 +95,15 @@
 	 * @param {String|Object} message This could be a string or an object
 	 * @returns {Object} Message to be sent 
 	 */
-	Pzh.prototype.prepMsg = function(from, to, status, message) {
+	Pzh.prototype.prepMsg = function (from, to, status, message) {
 		var msg = null;
-		if ( from === null || to === null || status === null || message === null )  {
+		if (from === null || to === null || status === null || message === null) {
 			log(this.sessionId, 'INFO', "Prep message failed");
 		} else {
-			msg = {'type': 'prop', 
-			'from': from,
-			'to': to,
-			'payload':{'status':status, 'message':message}};
+			msg = {'type'  : 'prop',
+				'from' : from,
+				'to'   : to,
+				'payload' : {'status' : status, 'message' : message}};
 		}
 		return msg;
 	};
@@ -116,9 +114,9 @@
 	 * @param {String} address Destination session id
 	 * @param {Object} conn This is used in special cases, especially when Pzh and Pzp are not connected. 
 	 */
-	Pzh.prototype.sendMessage = function(message, address, conn) {
+	Pzh.prototype.sendMessage = function (message, address, conn) {
 		var buf, self = this;
-		try{
+		try {
 			/** TODO: This is a temporary solution to append message with #. This is done in order to identify whole message at receiving end */
 			log(self.sessionId, 'INFO', '[PZH -'+ self.sessionId+'] Send to '+ address + ' Message '+JSON.stringify(message));
 			buf = new Buffer('#'+JSON.stringify(message)+'#');
@@ -150,7 +148,8 @@
 	 * @param {Object} self: PZH instance
 	 * @param {Object} conn: Connection object when any new connection is accepted. 
 	 */
-	Pzh.prototype.handleConnectionAuthorization = function(self, conn) {
+	Pzh.prototype.handleConnectionAuthorization = function (self, conn) {
+		var msg;
 		/**
 		 * Allows PZP to connect if it has proper QRCode
 		 */
@@ -217,11 +216,11 @@
 			 * Authorized PZP session handling
 			 */
 			else if(data[0] === 'Pzp' ) {
-				var sessionId;
+				var sessionId, err1;
 				try {
 					sessionId = self.sessionId+'/'+data[1].split(':')[0];
-				} catch(err1){
-					log(self.sessionId, 'ERROR ','[PZH  -'+self.sessionId+'] Exception in reading common name of PZP certificate ' + err1);
+				} catch(err1) {
+					log(self.sessionId, 'ERROR ','[PZH  -' + self.sessionId + '] Exception in reading common name of PZP certificate ' + err1);
 					return;
 				}
 				
@@ -236,20 +235,24 @@
 				// Information to be sent includes address, id and indication which is a newPZP joining
 				var id, otherPzp = [];
 				for( id in self.connectedPzp) {
-					otherPzp[id] = {address:self.connectedPzp[id].address};
-					// Special case for new pzp
-					if (id === sessionId) { 
-						otherPzp[id].newPzp=true;
+					if (typeof self.connectedPzp[id] !== "undefined") {
+						otherPzp[id] = {address:self.connectedPzp[id].address};
+						// Special case for new pzp
+						if (id === sessionId) {
+							otherPzp[id].newPzp=true;
+						}
 					}
 				}
 				// Send message to all connected pzp's about new pzp that has joined in
 				for( id in self.connectedPzp) {
-					var msg = self.prepMsg(self.sessionId, id, 'pzpUpdate', otherPzp);
-					self.sendMessage(msg, id);
+					if (typeof self.connectedPzp[id] !== "undefined") {
+						msg = self.prepMsg(self.sessionId, id, 'pzpUpdate', otherPzp);
+						self.sendMessage(msg, id);
+					}
 				}
 
 				// Register PZP with message handler
-				var msg = self.messageHandler.registerSender(self.sessionId, sessionId);
+				msg = self.messageHandler.registerSender(self.sessionId, sessionId);
 				self.sendMessage(msg, sessionId);
 				
 				
@@ -376,7 +379,7 @@
 		});	
 	};
 
-	var send = function (message, address, object) {
+	var messageHandlerSend = function (message, address, object) {
 		"use strict";
 		object.sendMessage(message, address);
 	};
@@ -427,7 +430,7 @@
 					// Setting message handler to work with pzh instance
 					pzh.messageHandler.setGetOwnId(pzh.sessionId);
 					pzh.messageHandler.setObjectRef(pzh);
-					pzh.messageHandler.setSendMessage(send);
+					pzh.messageHandler.setSendMessage(messageHandlerSend);
 					pzh.messageHandler.setSeparator("/");
 					// RPC instance getting PZH session id
 					pzh.rpcHandler.setSessionId(pzh.sessionId);

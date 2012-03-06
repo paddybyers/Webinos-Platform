@@ -39,12 +39,26 @@ var pzh             = require(path.join(webinosRoot, dependencies.pzh.location))
 var farm = exports;
 farm.pzhs =[];
 farm.config = {};
+
+function loadPzhs(config) {
+	"use strict";
+	var key;
+	for (key in config.pzhs){
+		if(typeof config.pzhs[key] !== "undefined") {
+			pzh.addPzh(key, config.pzhs[key].contents,config.pzhs[key].modules, function(res, instance) {
+				log('INFO','[PZHFARM] Started PZH ... ' + key);
+			});
+		}
+	}
+}
+
 /**
  * @description: Starts farm.
  * @param {string} url: pzh farm url for e.g. pzh.webinos.org
  * @param {function} callback: true in case successful or else false in case unsuccessful
  */
 farm.startFarm = function (url, contents, callback) {
+	"use strict";
 	// The directory structure which farms needs for putting in files 
 	configuration.createDirectoryStructure();
 	// Configuration setting for pzh, returns set values and connection key
@@ -126,20 +140,19 @@ farm.startFarm = function (url, contents, callback) {
  * @param {string} url: pzh url
  * @param {object} user: details fetched from openid about user
  */
-farm.getPzhInstance = function (host, user, callback) {
+farm.getOrCreatePzhInstance = function (host, user, callback) {
+	"use strict";
 	// Check for if user already existed and is stored
 	var myKey = host+'/'+user.name;
 	// This PZH 
 	if ( farm.pzhs[myKey] && farm.pzhs[myKey].config.details.name === user.name ) {
 		log('INFO', '[PZHFARM] User already registered');
-		callback(myKey, farm.pzhs[myKey]);
-		return;
+		callback(myKey, farm.pzhs[myKey]);		
 	} else if(farm.pzhs[myKey]) { // Cannot think of this case, but still might be useful
 		log('INFO', '[PZHFARM] User first time login');
 		farm.pzhs[myKey].config.details = user;
 		configuration.storeConfig(farm.pzhs[myKey].config);
 		callback(myKey, farm.pzhs[myKey]);
-		return;
 	} else {
 		log('INFO', '[PZHFARM] Adding new PZH');
 		var contents="country="+user.country+
@@ -152,13 +165,4 @@ farm.getPzhInstance = function (host, user, callback) {
 			callback(myKey, farm.pzhs[myKey]);
 		});
 	}
-}
-
-
-function loadPzhs(config) {	
-	for (var key in config.pzhs){
-		pzh.addPzh(key, config.pzhs[key].contents,config.pzhs[key].modules, function(res, instance) {
-			log('INFO','[PZHFARM] Started PZH ... ' + key);
-		});
-	}
-}
+};

@@ -39,6 +39,7 @@ var rpc          = require(path.join(webinosRoot, dependencies.rpc.location));
 
 // this is for connecting when PZH is not in same farm
 pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
+	"use strict";
 	var self = pzh, options;
 	var serverName;
 	if (server.split('/')) {
@@ -51,10 +52,12 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 	
 	certificate.fetchKey(self.config.conn.key_id, function(key_id) {
 		try {
-			var caList = [];
+			var pzh_id, caList = [];
 			caList.push(self.config.master.cert);
-			for (var pzh_id in self.config.otherCert) {
-				caList.push(self.config.otherCert[pzh_id]);
+			for (pzh_id in self.config.otherCert) {
+				if (typeof self.config.otherCert[pzh_id] !== "undefined") {
+					caList.push(self.config.otherCert[pzh_id]);
+				}
 			}
 			//No CRL support yet, as this is out-of-zone communication.  TBC.
 			options = {
@@ -71,7 +74,7 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 		var connPzh = tls.connect(config.pzhPort, serverName, options, function() {
 			log('INFO', '[PZH -'+self.sessionId+'] Connection Status : '+connPzh.authorized);
 			if(connPzh.authorized) {
-				var connPzhId;
+				var connPzhId, msg;
 				log(pzh.sessionId, 'INFO', '[PZH -'+self.sessionId+'] Connected ');
 				try {
 					connPzhId = connPzh.getPeerCertificate().subject.CN.split(':')[1];
@@ -84,13 +87,13 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 						self.connectedPzh[connPzhId] = {socket : connPzh};
 						self.messageHandler.setGetOwnId(self.sessionId);
 						self.messageHandler.setObjectRef(self);
-						self.messageHandler.setSendMessage(send);
+						self.messageHandler.setSendMessage(send); // FIX THIS
 						self.messageHandler.setSeparator("/");
-						var msg = self.messageHandler.registerSender(self.sessionId, connPzhId);
+						msg = self.messageHandler.registerSender(self.sessionId, connPzhId);
 						self.sendMessage(msg, connPzhId);
 					}				
 				} catch (err1) {
-					log(pzh.sessionId, 'ERROR', 'PZH ('+selfsessionId+') Error storing pzh in the list ' + err);
+					log(pzh.sessionId, 'ERROR', 'PZH ('+self.sessionId+') Error storing pzh in the list ' + err1);
 					return;
 				}
 			} else {
