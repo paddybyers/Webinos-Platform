@@ -16,9 +16,8 @@
 *******************************************************************************/
 
 
-var	crypto  = require('crypto');
-var path = require('path');
-var utils   = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
+var crypto  = require('crypto');
+var path    = require('path');
 
 var webinosqr = exports;
 

@@ -92,13 +92,13 @@ farm.startFarm = function (url, contents, callback) {
 				try {
 					log('INFO', '[PZHFARM] ('+conn.servername+') Pzh/Pzp  closed');
 					if(conn.servername && farm.pzhs[conn.servername]) {
-							var cl = farm.pzhs[conn.servername];
-							var removed = utils.removeClient(cl, conn);
-							if (removed !== null && typeof removed !== "undefined"){
-								cl.messageHandler.removeRoute(removed, conn.servername);
-								cl.rpcHandler.removeRemoteServiceObjects(removed);
-							}
+						var cl = farm.pzhs[conn.servername];
+						var removed = utils.removeClient(cl, conn);
+						if (removed !== null && typeof removed !== "undefined"){
+							cl.messageHandler.removeRoute(removed, conn.servername);
+							cl.rpcHandler.removeRemoteServiceObjects(removed);
 						}
+					}
 				} catch (err) {
 					log('ERROR', '[PZHFARM] ('+conn.servername+') Remove client from connectedPzp/connectedPzh failed' + err);
 				}
@@ -128,15 +128,15 @@ farm.startFarm = function (url, contents, callback) {
  */
 farm.getPzhInstance = function (host, user, callback) {
 	// Check for if user already existed and is stored
-	var myKey = host+'/'+user.firstname;
+	var myKey = host+'/'+user.name;
 	// This PZH 
-	if ( farm.pzhs[myKey] && farm.pzhs[myKey].config.userDetails.firstname === user.firstname ) {
+	if ( farm.pzhs[myKey] && farm.pzhs[myKey].config.details.name === user.name ) {
 		log('INFO', '[PZHFARM] User already registered');
 		callback(myKey, farm.pzhs[myKey]);
 		return;
 	} else if(farm.pzhs[myKey]) { // Cannot think of this case, but still might be useful
 		log('INFO', '[PZHFARM] User first time login');
-		farm.pzhs[myKey].config.userDetails = user;
+		farm.pzhs[myKey].config.details = user;
 		configuration.storeConfig(farm.pzhs[myKey].config);
 		callback(myKey, farm.pzhs[myKey]);
 		return;
@@ -144,10 +144,10 @@ farm.getPzhInstance = function (host, user, callback) {
 		log('INFO', '[PZHFARM] Adding new PZH');
 		var contents="country="+user.country+
 			"\nstate=\'\'\ncity=\'\'\norganization=\'\'\norganizationUnit=\'\'"+
-			"\ncommon="+user.firstname+user.lastname+"_pzh"+"\nemail="+user.email+"\ndays=3600";
+			"\ncommon="+user.name+"_pzh"+"\nemail="+user.email+"\ndays=3600";
 		var pzhModules = [];
 		Pzh.addPzh(myKey, contents, pzhModules, function(){
-			farm.pzhs[myKey].config.userDetails = user;
+			farm.pzhs[myKey].config.details = user;
 			configuration.storeConfig(farm.pzhs[myKey].config);
 			callback(myKey, farm.pzhs[myKey]);
 		});

@@ -44,7 +44,7 @@ pzhWebInterface.start = function(hostname) {
 // 					return;
 // 				}
 				var filename;
-				if(typeof pzh === 'undefined' || !pzh[currentPzh]) {
+				if(typeof pzh === 'undefined' && !pzh[currentPzh] && parsed.pathname === '/main.html' ) {
 					filename = path.join(__dirname, '/index.html');
 				} else {
 					filename = path.join(__dirname, parsed.pathname);
@@ -64,7 +64,6 @@ pzhWebInterface.start = function(hostname) {
 							res.end();
 							return;
 						}
-
 						res.writeHeader(200, getContentType(filename));
 						res.write(file, "binary");
 						res.end();
@@ -96,25 +95,25 @@ pzhWebInterface.start = function(hostname) {
 		});
 
 		wsServer.on('connect', function(conn) {
+			log('INFO','[WEB SERVER] '+conn.remoteAddress + ' connected ');
 			connection = conn;
-			log('INFO','[WEB SERVER] '+connection.remoteAddress + ' connected ');
-			// TODO: Send only to main.html and not to all .. 
+			// TODO: Send only to main.html and not to all ..
 			if (typeof pzh !== 'undefined' && pzh[currentPzh]){
 				pzhapis.listZoneDevices(pzh[currentPzh], result);
 			}
-			connection.on('message', function(data) {
+			conn.on('message', function(data) {
 				console.log('received data :: ' + (data.utf8Data));
 				var parse = JSON.parse((data.utf8Data));
 				if (parse.cmd)  {
 					switch(parse.cmd){
 						case 'authenticate-google':
-							authenticate('http://www.google.com/accounts/o8/id');
+							authenticate(hostname, 'http://www.google.com/accounts/o8/id');
 							break;
 						case 'authenticate-yahoo':
-							authenticate('http://open.login.yahooapis.com/openid20/www.yahoo.com/xrds');
+							authenticate(hostname, 'http://open.login.yahooapis.com/openid20/www.yahoo.com/xrds');
 							break;
 						case 'userDetails':
-							result({cmd:'userDetails', payload:pzh[parse.from].config.userDetails});
+							result({cmd:'userDetails', payload:pzh[parse.from].config.details});
 							break;
 						case 'crashLog':
 							pzhapis.crashLog(pzh[parse.from], result);
@@ -123,7 +122,7 @@ pzhWebInterface.start = function(hostname) {
 							pzhapis.addPzpQR(pzh[parse.from], result);
 							break;
 						case 'logout':
-							connection.close();
+							conn.close();
 							break;
 						case 'restartPzh':
 							pzhapis.restartPzh(pzh[parse.from], result);
@@ -134,7 +133,7 @@ pzhWebInterface.start = function(hostname) {
 					}
 				}
 			});
-			connection.on('close', function(connection) {
+			conn.on('close', function() {
 				log('INFO','[WEB SERVER] Connection Closed');
 			});
 		});
@@ -143,6 +142,10 @@ pzhWebInterface.start = function(hostname) {
 			log('INFO','[WEB SERVER] Error '+ err);
 		})
 	});
+}
+
+pzhWebInterface.updateList = function (self) {
+	pzhapis.listZoneDevices(self, result);
 }
 
 function getContentType(uri) {
@@ -171,10 +174,13 @@ function getContentType(uri) {
 }
 
 function result(response) {
-	connection.send(JSON.stringify(response));	
+	console.log(response);
+	if (typeof connection !== "undefined") {
+		connection.send(JSON.stringify(response));
+	}
 }
  
-function authenticate(url) {
+function authenticate(hostname, url) {
 	var exts= [];
 	var attr = new openid.AttributeExchange({
 		"http://axschema.org/contact/country/home":	"required",
@@ -189,7 +195,7 @@ function authenticate(url) {
 	});
 	exts.push(attr);
 
-	rely = new openid.RelyingParty('https://localhost/main.html?id=verify',
+	rely = new openid.RelyingParty('https://'+hostname+':9000/main.html?id=verify',
 		null,
 		false,
 		false,
@@ -200,9 +206,9 @@ function authenticate(url) {
 			if(error){
 				log('INFO','[WEB SERVER] Error '+ error);
 			} else if (!authUrl) {
-				console.log('Authentication failed as url to redirect after authentication is missing');
+				log('INFO','[WEB SERVER] Authentication failed as url to redirect after authentication is missing');
 			} else {                                                                                      
-				connection.send(JSON.stringify({cmd:'auth-url', payload: authUrl}));
+				result({cmd:'auth-url', payload: authUrl});
 			}
 		});
 	});
@@ -211,21 +217,51 @@ function authenticate(url) {
 function fetchOpenIdDetails(req, callback){
 	rely.verifyAssertion(req, function(err, userDetails){
 		if (err){
-			console.log(err.message);
+			console.log("[ERROR] UNABLE TO LOGIN " + err.message);
 		}
 		else if (userDetails.authenticated) {
 			var host;
+			var details = {country: '', name: '', email: '', image: ''};
 			if(req.headers.host.split(':')){
 				host = req.headers.host.split(':')[0];
 			} else {
 				host = req.headers.host;
 			}
-			console.log(userDetails);
-			farm.getPzhInstance(host, userDetails, function(key, pzhInt){
+
+			if(userDetails.claimedIdentifier){
+				// google
 				var parsed = url.parse(userDetails.claimedIdentifier);
 				var query = querystr.parse(parsed.query);
-				callback(query.id);
-				pzh[query.id] = pzhInt;
+				if (query && query.id) {
+					details.id = query.id;
+				} else {					
+					details.id =  parsed.path.split('/')[2];
+					
+				}
+				callback(details.id)
+			}
+			if(userDetails.country){
+				details.country = userDetails.country;
+			}
+			if(userDetails.firstname){
+				details.name += userDetails.firstname;
+			}
+			if(userDetails.lastname){
+				details.name += userDetails.lastname;
+			}
+			if(userDetails.fullname){
+				var name = userDetails.fullname.split(' ');
+				details.name = name[0]+name[1];
+			}
+			if(userDetails.email){
+				details.email = userDetails.email;
+			}
+			if(userDetails.image){
+				details.image = userDetails.image;
+			}
+			
+			farm.getPzhInstance(host, details, function(key, pzhInt){
+				pzh[details.id] = pzhInt;	
 				pzhapis.listZoneDevices(pzhInt, result);
 			});
 		}

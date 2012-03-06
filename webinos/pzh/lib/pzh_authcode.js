@@ -17,23 +17,25 @@
 
 var tokenAuth = exports;
 
-var path = require('path');
-var utils = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));
+var path            = require('path');
+var moduleRoot      = require(path.resolve(__dirname, '../dependencies.json'));
+var dependencies    = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+var webinosRoot     = path.resolve(__dirname, '../' + moduleRoot.root.location);
+
+var log            = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debugPzh;
 
 tokenAuth.createAuthCounter = function(callback) {
-
-    var authCounter = {       
-		status  : true, 
-		code    : "DEBUG", 
-		timeout : new Date("October 13, 2100 11:13:00"),
-		guesses : 8
-	};
-
+    var authCounter = { status: false, code : "", timeout: "", guesses:0};
+// 		status  : true, 
+// 		code    : "DEBUG", 
+// 		timeout : new Date("October 13, 2100 11:13:00"),
+// 		guesses : 8
+//	};
 
     authCounter.setExpectedCode = function(code, cb) {
 	    "use strict";
-	    utils.debug(2, "New PZP expected, code: " + code);
 	    var self = this;
+    	    log(self.sessionId, 'INFO', "[PZH -"+self.sessionId+"] New PZP expected, code: " + code);
 	    self.status = true;
 	    self.code = code;
 	    var d = new Date(); 
@@ -46,15 +48,15 @@ tokenAuth.createAuthCounter = function(callback) {
 	authCounter.unsetExpected = function(cb) {
 	    "use strict";
 	    var self = this;
-	    if (self.code === "DEBUG") {
-	        //We don't unset if we're allowing debug additions.
-	    } else {
-	        utils.debug(2,"No longer expecting PZP with code " + self.code);
+// 	    if (self.code === "DEBUG") {
+// 	        //We don't unset if we're allowing debug additions.
+// 	    } else {
+	        log(self.sessionId, 'INFO', "[PZH -"+self.sessionId+"] No longer expecting PZP with code " + self.code);
 		self.status = false;
 	        self.code = null;
 		self.timeout = null;
 		self.guesses = 8;
-	    }
+//	    }
 	    cb();
 	}
 
@@ -63,12 +65,12 @@ tokenAuth.createAuthCounter = function(callback) {
 	    var self = this;
 	    
 	    if (!self.status) {
-	        utils.debug(2, "Not expecting a new PZP");
+	        log(self.sessionId, 'INFO', "[PZH -"+self.sessionId+"] Not expecting a new PZP");
 	        cb(false);
 	        return;
 	    }
 	    if (self.timeout < new Date()) {
-	        utils.debug(2, "Was expecting a new PZP, timed out.");
+	        log(self.sessionId, 'INFO', "[PZH -"+self.sessionId+"] Was expecting a new PZP, timed out.");
 	        self.unsetExpected( function() { 
         	        cb(false);
 	        });
@@ -83,20 +85,19 @@ tokenAuth.createAuthCounter = function(callback) {
 	    "use strict";
 	    var self = this;
 	    
-	    utils.debug(2, "Trying to add a PZP, code: " + newcode);
+	    log(self.sessionId, 'INFO', "[PZH -"+self.sessionId+"] Trying to add a PZP, code: " + newcode);
 	    
 	    if (!self.status) {
-	        utils.debug(2, "Not expecting a new PZP");
+	        log(self.sessionId, 'INFO', "[PZH -"+self.sessionId+"] Not expecting a new PZP");
 	        cb(false);
 	        return;
 	    }
-	    console.log(self.code);
 	    if (self.code !== newcode) {
-	        utils.debug(2, "Was expecting a new PZP, but code wrong");
+	        log(self.sessionId, 'INFO', "[PZH -"+self.sessionId+"] Was expecting a new PZP, but code wrong");
 	        self.guesses = self.guesses - 1;
 	        if (self.guesses <= 0) {
 	            //no more guesses
-	            utils.debug(2, "Too many guesses, deleting code");
+	            log(self.sessionId, 'INFO', "[PZH -"+self.sessionId+"] Too many guesses, deleting code");
 	            self.unsetExpected( function() { 
         	        cb(false);
     	        });           
@@ -106,7 +107,7 @@ tokenAuth.createAuthCounter = function(callback) {
 	    }
 	        	    
 	    if (self.timeout < new Date()) {
-	        utils.debug(2, "Was expecting a new PZP, code is right, but timed out.");
+	        log(self.sessionId, 'INFO', "[PZH -"+self.sessionId+"]Was expecting a new PZP, code is right, but timed out.");
 	        self.unsetExpected( function() { 
     	        cb(false);
 	        });
@@ -116,11 +117,5 @@ tokenAuth.createAuthCounter = function(callback) {
 	    cb( self.status && self.code === newcode && 
 	        (self.timeout > new Date()) );
 	}
-	
 	callback(authCounter);
-
 }
-
-
-
-

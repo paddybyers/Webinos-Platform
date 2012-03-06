@@ -360,8 +360,7 @@
 				if(parseMsg.type === 'prop' && parseMsg.payload.status === 'signedCert') {
 					log('INFO', '[PZP - '+self.sessionId+'] PZP Writing certificates data ');
 					self.config.conn.cert   = parseMsg.payload.message.clientCert;
-					self.config.master.cert = parseMsg.payload.message.masterCert.cert;
-					self.config.master.crl  = parseMsg.payload.message.masterCert.crl;
+					self.config.master.cert = parseMsg.payload.message.masterCert;
 
 					configuration.storeConfig(self.config);
 					callback.call(self, 'startPZPAgain');
@@ -475,7 +474,6 @@
 		var client      = new Pzp(modules);
 		client.modules  = modules;
 		client.code     = code;
-		console.log(client.code);
 		configuration.setConfiguration(contents, 'Pzp', function (config, conn_key, conn_csr) {
 			client.config            = config;
 			client.config.servername = url;

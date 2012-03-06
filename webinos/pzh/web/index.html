@@ -5,9 +5,9 @@
 		var channel;
 
 		try{
-			channel  = new WebSocket('wss://'+window.location.hostname+':81');
+			channel  = new WebSocket('wss://'+window.location.hostname+':8001');
 		} catch(e) {
-			channel  = new MozWebSocket('wss://'+window.location.hostname+':81');
+			channel  = new MozWebSocket('wss://'+window.location.hostname+':8001');
 //window.location.hostname
 		}
 
@@ -64,7 +64,7 @@
 						<center>
 							<input type="button" style="height:40;width:50%;center" value="Login via Google" onclick="Google()"/>
 							<p> </p>
-							<input type="button" style="height:40;width:50%;center" value="Login via Yahoo"  onclick="Yahoo()" />
+							<a href="Javascript:Yahoo()"> <img src="yahoo.png"/> </a>
 							
 							
 						</center>

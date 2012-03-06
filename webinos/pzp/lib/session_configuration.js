@@ -34,8 +34,8 @@ configure.pzhPort    = 8000; // used by PZP
 configure.farmPort   = 8000; // used by farm when starting
 
 //PZH webserver uses these ports 
-configure.httpServerPort = 81;
-configure.webServerPort  = 443;
+configure.httpServerPort = 8001;
+configure.webServerPort  = 9000;
 
 /**
 * @descripton Checks for master certificate, if certificate is not found it calls generating certificate function defined in certificate manager. This function is crypto sensitive.
@@ -45,7 +45,6 @@ configure.setConfiguration = function (config, type, callback) {
 	var webinosDemo = common.webinosConfigPath();
 	setCertValue(config, function(certValues) {
 		var name = certValues.common.split(':')[0];
-		configure.intializeLogs(name);
 		fs.readFile(( webinosDemo+'/config/'+ name +'.json'), function(err, data) {
 			if ( err && err.code=== 'ENOENT' ) {
 				// CREATE NEW CONFIGURATION
@@ -181,7 +180,7 @@ configure.signedCert = function (csr, config, type, name, callback) {
 					log('INFO', '[CONFIG] Generated Signed Certificate by CA');
 					try {
 						if(type == 1) { // PZH
-							config.conn.cert   = signed_cert; // Signed connection certificate
+							config.conn.cert = signed_cert; // Signed connection certificate
 						} else {
 							config.signedCert[name] = signed_cert;
 						}
@@ -189,7 +188,6 @@ configure.signedCert = function (csr, config, type, name, callback) {
 						// Update with the signed certificate
 						configure.storeConfig(config);
 						callback(config);
-						
 					} catch (err1) {
 						log('ERROR','[CONFIG] Error setting paramerters' + err1) ;
 						callback("undefined");
@@ -201,28 +199,6 @@ configure.signedCert = function (csr, config, type, name, callback) {
 	} catch (err){
 		log('ERROR', '[CONFIG] Error in generating signed certificate by CA' + err);
 		callback("undefined");	
-	}
-};
-
-configure.intializeLogs = function(name) {
-	if (typeof configure.writeError === "undefined"){
-		var filepath = common.webinosConfigPath();
-		var filename = path.join(filepath+'/logs/', name+'.json');
-		try{
-			path.exists(filename, function(status){
-				// If file does not exist, we create it , create write stream does not create .. 
-				if (!status) {
-					fs.writeFile(filename, function(){
-						var writeError = fs.createWriteStream(filename, { flags: 'a', encoding:'utf8'});
-					});
-				} else {
-					var writeError = fs.createWriteStream(filename, { flags: 'a', encoding:'utf8'});
-				}
-			});
-
-		} catch (err){
-			console.log('Error Initializing logs' + err);
-		}
 	}
 };
 

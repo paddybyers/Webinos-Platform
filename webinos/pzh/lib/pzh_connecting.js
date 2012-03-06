@@ -32,7 +32,7 @@ var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
 var utils        = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 var certificate  = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
-var log          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
+var log          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debugPzh;
 var config       = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
 
 var rpc          = require(path.join(webinosRoot, dependencies.rpc.location));
@@ -47,7 +47,7 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 		serverName = server;		
 	}
 	
-	log('INFO', '[PZH -'+self.sessionId+'] Connect Other PZH');
+	log(pzh.sessionId, 'INFO', '[PZH -'+self.sessionId+'] Connect Other PZH');
 	
 	certificate.fetchKey(self.config.conn.key_id, function(key_id) {
 		try {
@@ -64,7 +64,7 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 				servername: server};
 			console.log(options);
 		} catch (err) {
-			log('ERROR', '[PZH -'+self.sessionId+'] Options setting failed while connecting other Pzh ' + err);
+			log(pzh.sessionId, 'ERROR', '[PZH -'+self.sessionId+'] Options setting failed while connecting other Pzh ' + err);
 			return;
 		}
 		// It is similar to PZP connecting to PZH but instead it is PZH to PZH connection	
@@ -72,11 +72,11 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 			log('INFO', '[PZH -'+self.sessionId+'] Connection Status : '+connPzh.authorized);
 			if(connPzh.authorized) {
 				var connPzhId;
-				log('INFO', '[PZH -'+self.sessionId+'] Connected ');
+				log(pzh.sessionId, 'INFO', '[PZH -'+self.sessionId+'] Connected ');
 				try {
 					connPzhId = connPzh.getPeerCertificate().subject.CN.split(':')[1];
 				} catch (err) {
-					log('ERROR', '[PZH -'+self.sessionId+'] Error reading common name of peer certificate ' + err);
+					log(pzh.sessionId, 'ERROR', '[PZH -'+self.sessionId+'] Error reading common name of peer certificate ' + err);
 					return;
 				}
 				try {
@@ -90,35 +90,35 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 						self.sendMessage(msg, connPzhId);
 					}				
 				} catch (err1) {
-					log('ERROR', 'PZH ('+selfsessionId+') Error storing pzh in the list ' + err);
+					log(pzh.sessionId, 'ERROR', 'PZH ('+selfsessionId+') Error storing pzh in the list ' + err);
 					return;
 				}
 			} else {
-				log('INFO', '[PZH -'+self.sessionId+'] Not connected');
+				log(pzh.sessionId, 'INFO', '[PZH -'+self.sessionId+'] Not connected');
 			}
 		
 			connPzh.on('data', function(data) {
 				utils.processedMsg(data, 1, function(parse){
 					try {
 						rpc.SetSessionId(self.sessionId);
-						self.messageHandler.onMessageReceived(parse);				
+						self.messageHandler.onMessageReceived(parse);
 					} catch (err) {
-						log('ERROR', '[PZH -'+self.sessionId+'] Error sending message to messaging ' + err);
+						log(pzh.sessionId, 'ERROR', '[PZH -'+self.sessionId+'] Error sending message to messaging ' + err);
 					}
 				});				
 				
 			});
 
 			connPzh.on('error', function(err) {
-				log('ERROR', '[PZH -'+self.sessionId+'] Error in connect Pzh' + err.stack );
+				log(pzh.sessionId, 'ERROR', '[PZH -'+self.sessionId+'] Error in connect Pzh' + err.stack );
 			});
 
 			connPzh.on('close', function() {
-				log('INFO', 'Peer Pzh closed');
+				log(pzh.sessionId, 'INFO', 'Peer Pzh closed');
 			});
 
 			connPzh.on('end', function() {
-				log('INFO', 'Peer Pzh End');
+				log(pzh.sessionId, 'INFO', 'Peer Pzh End');
 			});
 
 		});

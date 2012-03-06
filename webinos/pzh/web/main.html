@@ -5,9 +5,9 @@
 		var channel;
 
 		try{
-			channel  = new WebSocket('wss://localhost:81');
+			channel  = new WebSocket('wss://'+window.location.hostname+':8001');
 		} catch(e) {
-			channel  = new MozWebSocket('wss://localhost:81');
+			channel  = new MozWebSocket('wss://'+window.location.hostname+':8001');
 //window.location.hostname
 		}
 
@@ -44,29 +44,29 @@
 		function displayPzhPzh(payload){
 			var text =  "<table padding=10px>";
 			var i;
+			text += "<tr> <td> <font color=\"#FFFFFF\"> <b> Connected PZP </b> </font> </td> </tr>";
 			for (i = 0 ; i < payload.pzps.length; i += 1){
-				text += "<tr> <td> <font color=\"#FFFFFF\"> <b> Connected PZP </b> </font> </td> </tr>";
 				var color = payload.pzps[i].isConnected?"#FFFFFF":"#333333";
 				text+= "<tr> <td> <font color= "+color +">"+payload.pzps[i].id + "</font> </td> </tr>";
 			}
+			text += "<tr> <td> <font color=\"#FFFFFF\"> <b> Connected PZH </b> </font> </td> </tr>";
 			for (i = 0 ; i < payload.pzhs.length; i += 1){
-				text += "<tr> <td> <font color=\"#FFFFFF\"> <b> Connected PZH </b> </font> </td> </tr>";
 				var color = payload.pzhs[i].isConnected?"#FFFFFF":"#333333";
 				text+= "<tr> <td> <font color= "+color +">"+payload.pzhs[i].id + "</font> </td> </tr>";
 			}
 			text+="</table>"
-			clearPage();
 			document.getElementById('listDevices').innerHTML=text;
 		}
 
 		function displayUserDetails(payload){
 			var text = "";
-			text += "<p> <h1>"+ payload.authenticated?"Authenticated":"Not Authenticated" +"</h1> </p>";
-			text += "<p><h3> First Name: "+ payload.firstname +"</h3></p>";
-			text += "<p><h3> Last Name:  "+ payload.lastname +"</h3></p>";
+			if (payload.image){
+				text += "<p><h3> <img src =  "+ payload.image+"> </img> </h3></p>";
+			}
+			text += "<p><h3> Name: "+ payload.name +"</h3></p>";
 			text += "<p><h3> Country  :  "+ payload.country +"</h3></p>";
-			text += "<p><h3> Email    :  "+ payload.email+"</h3></p>";
-			text += "<p> (Claimed Identifier: "+ payload.claimedIdentifier+")</p>";
+			text += "<p><h3> Email    :  "+ payload.email+"</h3></p>";			
+			text += "<p> (Claimed Identifier: "+ payload.id+")</p>";
 			clearPage();
 			document.getElementById('userDetails').innerHTML=text;
 		}
@@ -137,8 +137,7 @@
 				<li> <a href="#addPzp" onclick="send({cmd:'addPzp'})"> Add New PZP </a> </li>
 				<li> <a href="#crashLog" onclick="send({cmd:'crashLog'})"> Crash Log </a> </li>
 				<!--<li> <a href="#connectPzh" onclick=""> Connect Other PZH </a> </li>
-				<li> <a href="#revokeCert">Revoke Certificate </a> </li>
-				
+				<li> <a href="#revokeCert">Revoke Certificate </a> </li>				
 				<li> <a href="#restartPzh" onclick="send({cmd:'restartPzh'})"> Restart PZH </a> </li>-->
 				<li> <a href="#userDetails" onclick="send({cmd:'userDetails'})"> User Details </a> </li>
 				<li> <a href="#logout" onclick="send({cmd:'logout'}); window.location.href='/index.html'"> Logout </a> </li>

@@ -21,25 +21,25 @@ var pzhapis     = exports;
 var path        = require('path');
 var fs          = require('fs');
 var util        = require('util');
+var crypto      = require('crypto');
 
 var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
 var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
 var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
 
-var crypto       = require('crypto');
 var qrcode       = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_qrcode.js'));
-var log          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
 var revoker      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_revoke.js'));	
 var session      = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_sessionHandling.js'));
 var configuration= require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
 var farm         = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_farm.js'));
 var pzhConnect   = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_connecting.js'));
 var common       = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
+var log          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debugPzh;
 
 pzhapis.addPzpQR = function (pzh, callback) {
 	"use strict";
 	qrcode.addPzpQRAgain(pzh, callback);
-}
+};
 
 pzhapis.listZoneDevices = function(pzh, callback) {
 	"use strict";
@@ -56,16 +56,21 @@ pzhapis.listZoneDevices = function(pzh, callback) {
 	
 	var payload = {cmd:'listDevices', payload:result};
 	callback(payload);
-}
+};
 
 pzhapis.crashLog = function(pzh, callback){
 	"use strict";
 	var filename = path.join(common.webinosConfigPath()+'/logs/', pzh.sessionId+'.json');
 	fs.readFile(filename, function(err, data){
-		var payload = {cmd:'crashLog', payload: data.toString('utf8')};
-		callback(payload);
+		var payload = {cmd:'crashLog', payload:''};
+		if (data !== null || typeof data === "undefined"){
+			payload.payload = data;
+			callback(payload);
+		} else {
+			callback(payload);
+		}
 	});
-}
+};
 	
 function getPzpInfoSync(pzh, pzpId) {
 	"use strict";
@@ -83,7 +88,7 @@ function getPzpInfoSync(pzh, pzpId) {
 			}
 		}
 	}
-
+// 
 	return {
 		id          : pzpId,
 		cname       : pzpName,
@@ -118,7 +123,7 @@ function getPzhInfoSync(pzh, pzhId) {
 pzhapis.revoke = function(pzh, pzpid, callback) {
 	"use strict";        
 	revoker.revokePzp(pzpid, pzh, callback);
-}	
+};	
 
 // This is sending side action on PZH end
 pzhapis.addPzhCertificate = function(pzh, to, callback) {
@@ -172,12 +177,12 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 		callback(true);
 	}
 	
-}
+};
 	
 // TODO: THIS IS NOT WORKING FIX IT
-pzhapis.restartPzh = function(instance, callback) {
+pzhapis.restartPzh = function(instance, from, callback) {
 	try {
-		log('INFO', util.inspect(instance));
+		log(instance.sessionId, 'INFO', util.inspect(instance));
 		if ((typeof instance.conn.end) === 'undefined' ) {
 			callback.call(instance, "Failed - no open connections to close");
 		} else {
@@ -187,7 +192,7 @@ pzhapis.restartPzh = function(instance, callback) {
 			});
 		}
 	} catch(err) {
-		log('ERROR', 'Pzh restart failed ' + err);
+		log(instance.sessionId, 'ERROR', 'Pzh restart failed ' + err);
 		callback.call(instance, err);
 	}
-}
+};

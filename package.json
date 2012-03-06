@@ -1,6 +1,6 @@
 {
   "name": "webinos",
-  "description": "Web runtime platform for running Webinos specification",
+  "description": "Web runtime platform basd on Webinos specification",
   "version": "0.0.1",
   "dependencies": {
     "schema": "0.2.0",
@@ -11,13 +11,8 @@
     "sqlite3":"2.1.1",
     "zipfile":"0.3.0",
     "ejs":"0.6.1",
-    "express":"2.5.6",
     "openid":"0.3.2",
-    "passport":"0.1.5",
-    "passport-google":"0.1.0",
-    "passport-yahoo":"0.1.0",
     "qrcode":"0.1.1",
-    "connect":"1.8.5",
     "websocket":"1.0.2"   
   },
   "keywords": ["webinos", "api"],
