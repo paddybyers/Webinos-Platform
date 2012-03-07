@@ -19,7 +19,11 @@
 
 	//AppLauncher Module Functionality
 	
-	
+	/**
+	 * Webinos AppLauncher service constructor (client side).
+	 * @constructor
+	 * @param obj Object containing displayName, api, etc.
+	 */
 	AppLauncherModule = function(obj) {
 		this.base = WebinosService;
 		this.base(obj);
@@ -27,11 +31,23 @@
 	
 	AppLauncherModule.prototype = new WebinosService();
 
-	AppLauncherModule.prototype.bind = function(success) {
-		success();
+	/**
+	 * To bind the service.
+	 * @param bindCB BindCallback object.
+	 */
+	AppLauncherModule.prototype.bind = function(bindCB) {
+		if (typeof bindCB.onBind === 'function') {
+			bindCB.onBind(this);
+		};
 	};
 	
-	
+	/**
+	 * Launches an application.
+	 * @param successCallback Success callback.
+	 * @param errorCallback Error callback.
+	 * @param applicationID Application ID to be launched.
+	 * @param params Parameters for starting the application.
+	 */
 	AppLauncherModule.prototype.launchApplication = function (successCallback, errorCallback, applicationID, params){
 		//returns pendingOp
 		
@@ -50,7 +66,13 @@
 		);
 
 	};
-     
+    
+	/**
+	 * Reports if an application is isntalled.
+	 * [not yet implemented]
+	 * @param applicationID Application ID to test if installed.
+	 * @returns Boolean whether application is installed.
+	 */
 	AppLauncherModule.prototype.appInstalled = function(applicationID){
 
 		//returns bool
