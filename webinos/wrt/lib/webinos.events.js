@@ -299,11 +299,14 @@
          
     }
     
+	/**
+	 * Forwards an event.
+	 * [not yet implemented]
+	 */
 	WebinosEvent.prototype.forwardWebinosEvent = function(forwarding, withTimeStamp, callbacks, referenceTimeout, sync){
     	
     	//returns void
     	//raises(WebinosEventException);
-    }
-	
+    };
 	
 }());
