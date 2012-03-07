@@ -4,7 +4,7 @@
 , "keywords": ["webinos", "authentication" , "API"]
 , "version": "0.0.1"
 , "homepage": "http://webinos.org/"
-, "author": "Cesare Cameroni <cesare.cameroni@polito.it>"
+, "author": "Cesare Cameroni <cesare.cameroni@polito.it>, Andrea Atzeni <shocked@polito.it>"
 , "repository":
   { "type": "git"
   , "url": "http://dev.webinos.org/git/wp4.git"
@@ -14,7 +14,7 @@
   , "url": ""
   }
 , "directories": { "lib": "./lib"
-                 , "node_modules": "./node_modules"
+                 , "src": "./src"
                  }
 , "main": "./lib/webinos.authentication.rpc.js"
 , "dependencies":
@@ -23,5 +23,7 @@
 , "bundleDependencies":
   [ "fs"
   , "tty"
+  , "os"
+  , "path"
   ]
 }

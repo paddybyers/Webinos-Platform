@@ -6,13 +6,12 @@
 	en = null;
 	ev = null;
 	paintPlayers = null;
-	lastTime = 0;
 (function (exports) {
 	"use strict";
 
 	//ADAPT THIS TO YOUR MACHINE!
 	var playerApp = "C:\\Users\\apa\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
-	var startOptions = "\"http://192.168.2.113:8080/client/webinosFS/player.html?id=1&name=MyTV\" --kiosk --new-window";
+	var startOptions = "\"http://localhost:8080/client/webinosFS/player.html?id=1&name=MyTV\" --kiosk --new-window";
 	
 	
 	var browse = {},
@@ -335,41 +334,38 @@
 
 		
 		if (exports.remote.players.length < 1){
+
 			var appID = playerApp;
         	var startParams = [];
         	startParams.push(startOptions);
 			
-        	remote.$name.text(entry.name);
         	en = entry;
         	ev = event;
-        	paintPlayers = paintPlayerList;
-        	for (var i=0; i<exports.applauncher.services.length; i++) {
-        		exports.applauncher.services[i].launchApplication(
-        				function (){
-        					//$('#messages').append('<li> App launched </li>');
-        					console.log("Player App Launched");
-        					//setTimeout("paintPlayers(ev, en)",5000);
-        				},
-        				function (){
-        					//$('#messages').append('<li> Error while launching App</li>');
-        					console.log("Error while launching Player App");
-        				},
-        				appID,
-        				startParams
-        		);
-        	}
+        	paintPlayers = paintPlayerList;	
+			exports.applauncher.service.launchApplication(
+        			function (){
+        				//$('#messages').append('<li> App launched </li>');
+        				console.log("Player App Launched");
+        				//setTimeout("paintPlayers(ev, en)",5000);
+        			},
+        			function (){
+        				//$('#messages').append('<li> Error while launching App</li>');
+        				console.log("Error while launching Player App");
+        			},
+        			appID,
+        			startParams
+            );
 			
 		}
 		else {
-			paintPlayerList(event, entry, true);
+			paintPlayerList(event, entry);
 		}
 		
 
 	});
 	
-	var paintPlayerList = function (event, entry, mode) {
+	var paintPlayerList = function (event, entry) {
 		console.log("Painting Player List");
-		
 		
 		remote.$name.text(entry.name);
 
@@ -404,26 +400,24 @@
 				
 				var i;
 				var pl;
-				var known = false;
 				for (i = 0; i < exports.remote.players.length; i++){
 					pl = exports.remote.players[i];
 					
 					if (pl.id == event.payload.id){
 						pl.time = currentSecs;
-						known = true;
+						break;
 					}
 				}
 				
-				if (!known){
-					exports.remote.players.add({
-						id: event.payload.id,
-						name: event.payload.name,
-						time: currentSecs
-					});
+				
+				exports.remote.players.add({
+					id: event.payload.id,
+					name: event.payload.name,
+					time: currentSecs
+				});
 				
 				
-					paintPlayers(ev, en, true);
-				}
+				paintPlayers(ev, en);			
 				break;
 			case "play":
 				if (event.payload.id == exports.remote.playing.player.id) {
@@ -476,7 +470,7 @@
 	
 	
 	exports.applauncher = {};
-	exports.applauncher.services = [];
+	exports.applauncher.service = undefined;
 
 	$(document).ready(function () {
 		browse.$page = $("#browse");
@@ -649,10 +643,10 @@
 							
 							if (cur - pl.time > 10000){
 								console.log("Deleted player "  + pl.id + " " + pl.name);
-								
+				
 								exports.remote.players.splice(i);
 								//delete exports.remote.players[i];
-								paintPlayers(ev, en, false);
+								paintPlayers(ev, en);
 							}
 						}
 	    				
@@ -676,7 +670,7 @@
 		
 		 webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/applauncher'), 
 					{onFound: function (service) {
-						exports.applauncher.services.push(service);
+						exports.applauncher.service = service;
          	    }});
 		
 		

@@ -47,7 +47,7 @@
 
 	function logObj(obj, name){
 		for (var myKey in obj){
-			console.log(name + "["+myKey +"] = "+obj[myKey]);
+			console.log('INFO: [RPC]'+name + "["+myKey +"] = "+obj[myKey]);
 			if (typeof obj[myKey] == 'object') logObj(obj[myKey], name + "." + myKey);
 		}
 	}
@@ -96,7 +96,7 @@
 			// are returned by the pzh
 			this.parent.addRemoteServiceListener(function (payload) {
 				var callback = that.remoteServicesFoundCallbacks[payload.id];
-				
+				console.log(payload);
 				if (!callback) {
 					console.log("ServiceDiscovery: no findServices callback found for id: " + payload.id);
 					return;
@@ -123,10 +123,10 @@
 	 * Handles a new JSON RPC message (as string)
 	 */
 	_RPCHandler.prototype.handleMessage = function (message, from, msgid){
-		console.log("New packet from messaging");
-		console.log("Response to " + from);
+		console.log('INFO: [RPC] '+"New packet from messaging");
+		console.log('INFO: [RPC] '+"Response to " + from);
 		var myObject = message;
-		logObj(myObject, "rpc");
+		//logObj(myObject, "rpc");
 
 		//received message is RPC request
 		if (typeof myObject.method !== 'undefined' && myObject.method != null) {
@@ -148,7 +148,7 @@
 			//TODO send back error if service and method is not webinos style
 
 			if (typeof service !== 'undefined'){
-				console.log("Got message to invoke " + method + " on " + service + (serviceId ? "@" + serviceId : "") +" with params: " + myObject.params );
+				console.log('INFO: [RPC] '+"Got message to invoke " + method + " on " + service + (serviceId ? "@" + serviceId : "") +" with params: " + myObject.params );
 
 				var receiverObjs = this.objects[service];
 				if (!receiverObjs)
@@ -160,7 +160,7 @@
 				if (typeof includingObject === 'undefined') includingObject = receiverObjs[0]; 
 
 				if (typeof includingObject === 'undefined'){
-					console.log("No service found with id/type " + service);
+					console.log('INFO: [RPC] '+"No service found with id/type " + service);
 					return;
 				}
 
@@ -254,7 +254,7 @@
 			//if no id is provided we cannot invoke a callback
 			if (typeof myObject.id === 'undefined' || myObject.id == null) return;
 
-			console.log("Received a response that is registered for " + myObject.id);
+			console.log('INFO: [RPC] '+"Received a response that is registered for " + myObject.id);
 
 			//invoking linked error / success callback
 			if (typeof this.awaitingResponse[myObject.id] !== 'undefined'){
@@ -263,12 +263,12 @@
 					if (typeof this.awaitingResponse[myObject.id].onResult !== 'undefined' && typeof myObject.result !== 'undefined'){
 
 						this.awaitingResponse[myObject.id].onResult(myObject.result);
-						console.log("called SCB");
+						console.log('INFO: [RPC] '+"called SCB");
 					}
 
 					if (typeof this.awaitingResponse[myObject.id].onError !== 'undefined' && typeof myObject.error !== 'undefined'){
 						if (typeof myObject.error.data !== 'undefined'){
-							console.log("Propagating error to application");
+							console.log('INFO: [RPC] '+"Propagating error to application");
 							this.awaitingResponse[myObject.id].onError(myObject.error.data);
 						}
 						else this.awaitingResponse[myObject.id].onError();
@@ -316,7 +316,7 @@
 					from = this.objRefCachTable[objectRef].from;
 
 				}
-				console.log('RPC MESSAGE' + " to " + from + " for callback " + objectRef);
+				console.log('INFO: [RPC] '+'RPC MESSAGE' + " to " + from + " for callback " + objectRef);
 			}
 
 		}
@@ -326,7 +326,7 @@
 				from = this.objRefCachTable[objectRef].from;
 
 			}
-			console.log('RPC MESSAGE' + " to " + from + " for callback " + objectRef);
+			console.log('INFO: [RPC] '+'RPC MESSAGE' + " to " + from + " for callback " + objectRef);
 		}
 
 		//TODO check if rpc is request on a specific object (objectref) and get mapped from / destination session
@@ -402,7 +402,7 @@
 	 */
 	_RPCHandler.prototype.registerObject = function (callback) {
 		if (typeof callback !== 'undefined') {
-			console.log("Adding handler: " + callback.api);
+			console.log('INFO: [RPC] '+"Adding handler: " + callback.api);
 
 			var receiverObjs = this.objects[callback.api];
 			if (!receiverObjs)
@@ -428,7 +428,7 @@
 	 */
 	_RPCHandler.prototype.registerCallbackObject = function (callback) {
 		if (typeof callback !== 'undefined') {
-			console.log("Adding handler: " + callback.api);
+			console.log('INFO: [RPC] '+"Adding handler: " + callback.api);
 
 			var receiverObjs = this.objects[callback.api];
 			if (!receiverObjs)
@@ -445,7 +445,7 @@
 	 */
 	_RPCHandler.prototype.unregisterObject = function (callback) {
 		if (typeof callback !== 'undefined' && callback != null){
-			console.log("Removing handler: " + callback.api);	
+			console.log('INFO: [RPC] '+"Removing handler: " + callback.api);
 			var receiverObjs = this.objects[callback.api];
 
 			if (!receiverObjs)
@@ -462,7 +462,7 @@
 	 * 
 	 */
 	_RPCHandler.prototype.findServices = function (serviceType, callback) {
-		console.log("findService: searching for ServiceType: " + serviceType.api);
+		console.log('INFO: [RPC] '+"findService: searching for ServiceType: " + serviceType.api);
 		var results = [];
 		var cstar = serviceType.api.indexOf("*");
 		if(cstar !== -1){
@@ -504,7 +504,7 @@
 		else {
 			for (var i in this.objects) {
 				if (i === serviceType.api) {
-					console.log("findService: found matching service(s) for ServiceType: " + serviceType.api);
+					console.log('INFO: [RPC] '+"findService: found matching service(s) for ServiceType: " + serviceType.api);
 					results = this.objects[i];
 				}
 			} 
@@ -522,6 +522,7 @@
 			
 			// store callback in map for lookup on returned remote results
 			var callbackId = Math.floor(Math.random()*101);
+			console.log(callbackId);
 			this.remoteServicesFoundCallbacks[callbackId] = (function(res) {
 				return function(remoteServices) {
 					
@@ -544,7 +545,7 @@
 	 * @param services Array of services to be added.
 	 */
 	_RPCHandler.prototype.addRemoteServiceObjects = function(services) {
-		console.log("addRemoteServiceObjects: found " + (services && services.length) || 0 + " services.");
+		console.log('INFO: [RPC] '+"addRemoteServiceObjects: found " + (services && services.length) || 0 + " services.");
 		this.remoteServiceObjects = this.remoteServiceObjects.concat(services);
 	};
 	
@@ -671,28 +672,31 @@
 			//modules.push(webinosRoot + dependencies.manager.context_manager.location);
 //		}
 		
-		if (typeof modules === 'undefined') {
-			modules = [];
+		var _modules;
+		if (!modules){
+			_modules = [];
+		} else {
+			_modules = modules.slice(0); // copy array
 		}
 		
 		// add ServiceDiscovery, which should always be present
-		modules.unshift({name: "service_discovery", param: {}});
+		_modules.unshift({name: "service_discovery", param: {}});
 
-		for (var i = 0; i < modules.length; i++){
+		for (var i = 0; i < _modules.length; i++){
 			try{
-				var Service = require(webinosRoot + dependencies.api[modules[i].name].location).Service;
-				this.registerObject(new Service(this, modules[i].params));
+				var Service = require(webinosRoot + dependencies.api[_modules[i].name].location).Service;
+				this.registerObject(new Service(this, _modules[i].params));
 			}
 			catch (error){
-				console.log(error);
-				console.log("Could not load module " + modules[i].name + " with message: " + error );
+				console.log('INFO: [RPC] '+error);
+				console.log('INFO: [RPC] '+"Could not load module " + _modules[i].name + " with message: " + error );
 			}
-		}
+		}		
 	};
 	
-	function setSessionId (id) {
+ 	_RPCHandler.prototype.setSessionId = function(id) {
 		sessionId = id;
-	}
+	};
 	
 	/**
 	 * Export definitions for node.js
@@ -701,7 +705,7 @@
 		exports.RPCHandler = _RPCHandler;
 		exports.RPCWebinosService = RPCWebinosService;
 		exports.ServiceType = ServiceType;
-		exports.setSessionId = setSessionId;
+		//exports.setSessionId = setSessionId;
 		// none webinos modules
 		var md5 = require('../contrib/md5.js');
 

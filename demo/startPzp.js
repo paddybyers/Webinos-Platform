@@ -61,7 +61,7 @@ process.argv.forEach(function (arg) {
 	    	  options.pzpWebsocketPort = parseInt(parts[1], 10);
 	    	  break;
 	      case '--context-code':
-	    	  options.code = parts[1];
+	    	  options.code = parts[1]+'='; // added as last letter in qrcode is = but above 'split' removes this info
 	    	  break;
 	      default:
 	        console.log('unknown option: ' + parts[0]);
@@ -79,6 +79,7 @@ var pzpModules = [
     {name: "file", param: {}},
     {name: "geolocation", param: {}},
     {name: "applauncher", param: {}},
+   // {name: "events", param: {}},
     {name: "sensors", param: {}},
     {name: "payment", param: {}},
     {name: "tv", param: {}},
@@ -106,7 +107,7 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		}
 		
 		if (!config.pzhHost) {
-			config.pzhHost = 'localhost';
+			config.pzhHost = 'localhost/Habib';
 		}
 		if (!config.pzhPort) {
 			config.pzhPort = 8000;
@@ -147,12 +148,13 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		if (options.code) {
 			config.code = options.code;
 		}
-
-		var contents ="pzh_name=localhost\ncountry=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon="+config.pzpName+"\nemail=internal@webinos.org\ndays=180\n"
+		var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=" + config.pzpName + "\nemail=internal@webinos.org\ndays=180\n"
 		websocket.startPzpWebSocketServer(config.pzpHost, config.pzpWebsocketPort, config.pzpHttpPort, function() {
-			pzp.startPzp(contents, config.pzhHost, config.pzhPort, config.code, pzpModules, function() {
-				console.log("=== PZP started ===");
+			pzp.startPzp(config.pzhHost, contents, config.code, pzpModules, function() {
+				console.log("=== PZP 1 started ===");
 			});
 		});
 	});
 }
+
+

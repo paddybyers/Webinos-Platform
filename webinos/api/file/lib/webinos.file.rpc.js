@@ -1,3 +1,20 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+* 
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*  
+*     http://www.apache.org/licenses/LICENSE-2.0
+*  
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+* 
+* Copyright 2012 Felix-Johannes Jendrusch, Fraunhofer FOKUS
+******************************************************************************/
 /**
  * TODO Reuse event callback utility functions.
  * TODO Check various "inline" TODOs.
@@ -9,7 +26,8 @@
 
 	var webinos = require("webinos")(__dirname);
 		webinos.dom = { rpc: require("./webinos.dom.rpc.js") },
-		webinos.file = require("./webinos.file.js");
+		webinos.file = require("./webinos.file.js"),
+		webinos.utils = webinos.global.require(webinos.global.rpc.location, "lib/webinos.utils.js");
 
 	exports.Blob = {};
 	exports.Blob.serialize = function (blob) {
@@ -19,10 +37,10 @@
 		};
 
 		if (blob instanceof webinos.file.Buffer) {
-			object.__type = "buffer";
+			object._type = "buffer";
 			object._buffer = blob._buffer.toString("hex");
 		} else if (blob instanceof webinos.file.File) {
-			object.__type = "file";
+			object._type = "file";
 			object.name = blob.name;
 			object.lastModifiedDate = blob.lastModifiedDate;
 			object._entry = exports.Entry.serialize(blob._entry);
@@ -35,7 +53,7 @@
 	};
 
 	exports.Blob.deserialize = function (object) {
-		switch (object.__type) {
+		switch (object._type) {
 			case "buffer":
 				return new webinos.file.Buffer(new Buffer(object._buffer, "hex"), object.type);
 			case "file":

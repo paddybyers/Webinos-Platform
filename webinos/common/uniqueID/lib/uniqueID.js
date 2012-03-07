@@ -1,5 +1,5 @@
 var os = require('os');
-var hash = require('../node_modules/node_hash');
+var hash = require('../node_hash');
 
 /*console.log("hostname: "+ os.hostname() + "\n" +
 			"type: "+ os.type() + "\n" +

@@ -23,74 +23,107 @@
 var pzhConnecting = exports;
 
 var path      = require('path');
-var helper    = require(path.resolve(__dirname, 'pzh_helper.js'));
-var utils     = require(path.resolve(__dirname, '../../pzp/lib/session_common.js'));	
 var http      = require('http');
 var tls       = require('tls');
-var rpc       = require(path.resolve(__dirname, '../../common/rpc/lib/rpc.js'));			 
 
-pzhConnecting.connectOtherPZH = function(pzh, server, port) {
+var moduleRoot   = require(path.resolve(__dirname, '../dependencies.json'));
+var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+var webinosRoot  = path.resolve(__dirname, '../' + moduleRoot.root.location);
+
+var utils        = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
+var certificate  = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
+var log          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debugPzh;
+var config       = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
+
+var rpc          = require(path.join(webinosRoot, dependencies.rpc.location));
+
+// this is for connecting when PZH is not in same farm
+pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
+	"use strict";
 	var self = pzh, options;
-	helper.debug(2, 'PZH ('+self.sessionId+') Connect Other PZH');
-	try {
-		var ca = [self.config.master.cert.value];
-		
-		//No CRL support yet, as this is out-of-zone communication.  TBC.
-		options = {key: self.config.conn.key.value,
-				cert: self.config.conn.cert.value,
-				ca: ca};
-	} catch (err) {
-		helper.debug(1, 'PZH ('+self.sessionId+') Options setting failed while connecting other Pzh ' + err);
-		return;
+	var serverName;
+	if (server.split('/')) {
+		serverName = server.split('/')[0];
+	} else {
+		serverName = server;		
 	}
-		
-	var connPzh = tls.connect(port, server, options, function() {
-		helper.debug(2, 'PZH ('+self.sessionId+') Connection Status : '+connPzh.authorized);
-		if(connPzh.authorized) {
-			var connPzhId;
-			helper.debug(2, 'PZH ('+self.sessionId+') Connected ');
-			try {
-				connPzhId = connPzh.getPeerCertificate().subject.CN.split(':')[1];
-			} catch (err) {
-				helper.debug(1, 'PZH ('+self.sessionId+') Error reading common name of peer certificate ' + err);
-				return;
-			}
-			try {
-				if(self.connectedPzh.hasOwnProperty(connPzhId)) {
-					self.connectedPzh[connPzhId] = {socket : connPzh};
-					self.sendRegisterMessage();
-				}
-			} catch (err1) {
-				utils.debug(1, 'PZH ('+selfsessionId+') Error storing pzh in the list ' + err);
-				return;
-			}
-		} else {
-			utils.debug(2, 'PZH ('+self.sessionId+') Not connected');
-		}
 	
-		connPzh.on('data', function(data) {
-			utils.processedMsg(data, 1, function(parse){
-				try {
-					rpc.SetSessionId(self.sessionId);
-					utils.sendMessageMessaging(parse);				
-				} catch (err) {
-					utils.debug(1, 'PZH ('+self.sessionId+') Error sending message to messaging ' + err);
+	log(pzh.sessionId, 'INFO', '[PZH -'+self.sessionId+'] Connect Other PZH');
+	
+	certificate.fetchKey(self.config.conn.key_id, function(key_id) {
+		try {
+			var pzh_id, caList = [];
+			caList.push(self.config.master.cert);
+			for (pzh_id in self.config.otherCert) {
+				if (typeof self.config.otherCert[pzh_id] !== "undefined") {
+					caList.push(self.config.otherCert[pzh_id]);
 				}
-			});				
-			
-		});
+			}
+			//No CRL support yet, as this is out-of-zone communication.  TBC.
+			options = {
+				key:  key_id ,
+				cert: self.config.conn.cert,
+				ca:   caList,
+				servername: server};
+			console.log(options);
+		} catch (err) {
+			log(pzh.sessionId, 'ERROR', '[PZH -'+self.sessionId+'] Options setting failed while connecting other Pzh ' + err);
+			return;
+		}
+		// It is similar to PZP connecting to PZH but instead it is PZH to PZH connection	
+		var connPzh = tls.connect(config.pzhPort, serverName, options, function() {
+			log('INFO', '[PZH -'+self.sessionId+'] Connection Status : '+connPzh.authorized);
+			if(connPzh.authorized) {
+				var connPzhId, msg;
+				log(pzh.sessionId, 'INFO', '[PZH -'+self.sessionId+'] Connected ');
+				try {
+					connPzhId = connPzh.getPeerCertificate().subject.CN.split(':')[1];
+				} catch (err) {
+					log(pzh.sessionId, 'ERROR', '[PZH -'+self.sessionId+'] Error reading common name of peer certificate ' + err);
+					return;
+				}
+				try {
+					if(self.connectedPzh.hasOwnProperty(connPzhId)) {
+						self.connectedPzh[connPzhId] = {socket : connPzh};
+						self.messageHandler.setGetOwnId(self.sessionId);
+						self.messageHandler.setObjectRef(self);
+						self.messageHandler.setSendMessage(send); // FIX THIS
+						self.messageHandler.setSeparator("/");
+						msg = self.messageHandler.registerSender(self.sessionId, connPzhId);
+						self.sendMessage(msg, connPzhId);
+					}				
+				} catch (err1) {
+					log(pzh.sessionId, 'ERROR', 'PZH ('+self.sessionId+') Error storing pzh in the list ' + err1);
+					return;
+				}
+			} else {
+				log(pzh.sessionId, 'INFO', '[PZH -'+self.sessionId+'] Not connected');
+			}
+		
+			connPzh.on('data', function(data) {
+				utils.processedMsg(data, 1, function(parse){
+					try {
+						rpc.SetSessionId(self.sessionId);
+						self.messageHandler.onMessageReceived(parse);
+					} catch (err) {
+						log(pzh.sessionId, 'ERROR', '[PZH -'+self.sessionId+'] Error sending message to messaging ' + err);
+					}
+				});				
+				
+			});
 
-		connPzh.on('error', function(err) {
-			utils.debug(2, 'PZH ('+self.sessionId+') Error in connect Pzh' + err.stack );
-		});
+			connPzh.on('error', function(err) {
+				log(pzh.sessionId, 'ERROR', '[PZH -'+self.sessionId+'] Error in connect Pzh' + err.stack );
+			});
 
-		connPzh.on('close', function() {
-			utils.debug(2, 'Peer Pzh closed');
-		});
+			connPzh.on('close', function() {
+				log(pzh.sessionId, 'INFO', 'Peer Pzh closed');
+			});
 
-		connPzh.on('end', function() {
-			utils.debug(2, 'Peer Pzh End');
-		});
+			connPzh.on('end', function() {
+				log(pzh.sessionId, 'INFO', 'Peer Pzh End');
+			});
 
+		});
 	});
 };

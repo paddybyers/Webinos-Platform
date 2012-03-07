@@ -8,6 +8,7 @@
   ],
   "directories": {
     "lib": "./lib",
-    "test":"./test"
+    "test":"./test",
+    "web":"./web"
   }
 }

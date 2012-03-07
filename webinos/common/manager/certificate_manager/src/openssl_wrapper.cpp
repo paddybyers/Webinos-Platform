@@ -25,7 +25,6 @@
 #include <openssl/x509.h>
 #include <stdlib.h>
 #include <string.h>
-
 /*
  * Note: you CANT use STL in this module - it breaks the Android build.
  */
@@ -64,10 +63,9 @@ int genRsaKey(const int bits, char * privkey)
 
 int createCertificateRequest(char* result, char* keyToCertify, char * country, char* state, char* loc, char* organisation, char *organisationUnit, char* cname, char* email)
 {
-	BIO *mem = BIO_new(BIO_s_mem());
+	BIO *mem = BIO_new(BIO_s_mem());   
 	X509_REQ * req=X509_REQ_new();
-	X509_NAME *nm;
-	nm = X509_NAME_new();
+	X509_NAME *nm = X509_NAME_new();
 	int err=0;
 
 	//fill in details
@@ -75,29 +73,36 @@ int createCertificateRequest(char* result, char* keyToCertify, char * country, c
 		MBSTRING_ASC, (unsigned char*)country, -1, -1, 0))) {
 		return err;
 	}
+
 	if(!(err = X509_NAME_add_entry_by_txt(nm,"ST",
 		MBSTRING_ASC, (unsigned char*)state, -1, -1, 0))) {
 		return err;
 	}
+
 	if(!(err = X509_NAME_add_entry_by_txt(nm,"L",
 		MBSTRING_ASC, (unsigned char*)loc, -1, -1, 0))) {
 		return err;
 	}
+
 	if(!(err = X509_NAME_add_entry_by_txt(nm,"O",
 		MBSTRING_ASC, (unsigned char*)organisation, -1, -1, 0))) {
 		return err;
 	}
+
 	if(!(err = X509_NAME_add_entry_by_txt(nm,"OU",
 		MBSTRING_ASC, (unsigned char*)organisationUnit, -1, -1, 0))) {
 		return err;
 	}
+	
 	if(!(err = X509_NAME_add_entry_by_txt(nm,"CN",
 		MBSTRING_ASC, (unsigned char*)cname, -1, -1, 0))) {
 		return err;
 	}
+	
 	if(!(err = X509_NAME_add_entry_by_txt(nm,"emailAddress",MBSTRING_ASC, (unsigned char*)email, -1, -1, 0))) {
 		return err;
 	}
+
 	if(!(err = X509_REQ_set_subject_name(req, nm))) {
 		return err;
 	}
@@ -118,6 +123,7 @@ int createCertificateRequest(char* result, char* keyToCertify, char * country, c
 		return -4;
 	}
 
+
 	if(!(err = X509_REQ_set_pubkey(req, privkey)))
 	{
 		BIO_free(bmem);
@@ -137,13 +143,13 @@ int createCertificateRequest(char* result, char* keyToCertify, char * country, c
 		return err;
 	}
 
+
 	BUF_MEM *bptr;
 	BIO_get_mem_ptr(mem, &bptr);
 	BIO_read(mem, result, bptr->length);
 
 	BIO_free(bmem);
 	BIO_free(mem);
-
 	return 0;
 }
 
@@ -307,8 +313,7 @@ int selfSignRequest(char* pemRequest, int days, char* pemCAKey, int certType, ch
 	}
 	
 
-	if (!(err = X509_sign(cert,caKey,EVP_sha1())))
-	{
+	if (!(err = X509_sign(cert,caKey,EVP_sha1()))) {
 		BIO_free(bioReq);
 		BIO_free(bioCAKey);
 		return err;

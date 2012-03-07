@@ -42,7 +42,7 @@
   var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
   var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
 
-  var sqlite3 = require('node-sqlite3').verbose();
+  var sqlite3 = require('sqlite3').verbose();
 
   var dbpath = path.resolve(commonPaths.storage + '/pzh/contextDB.db');
   var bufferpath = path.resolve(commonPaths.storage + '/pzp/contextDBbuffer.json');
