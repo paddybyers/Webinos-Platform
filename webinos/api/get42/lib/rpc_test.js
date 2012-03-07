@@ -18,8 +18,12 @@
 (function() {
 
 /**
- * Webinos Service constructor.
- * @param rpcHandler A handler for functions that use RPC to deliver their result.  
+ * Webinos Get42 service constructor (server side).
+ * 
+ * This is an example, useful as a guide or writing a new service implementation.
+ * @constructor
+ * @param rpcHandler A handler for functions that use RPC to deliver their result.
+ * @param params Parameters to initialize the service.
  */
 var TestModule = function(rpcHandler, params) {
 	// inherit from RPCWebinosService
@@ -38,8 +42,14 @@ var TestModule = function(rpcHandler, params) {
 	
 	// custom get42 attribute
 	this.blaa = typeof params !== 'undefined' ? params[0] : 42;
-	
-	// member function attached to listenAttr
+
+	/**
+	 * Invoke the registered listener twice with a constant number value. 
+	 * @param params Optional parameters.
+	 * @param successCB Success callback.
+	 * @param errorCB Error callback.
+	 * @param objectRef RPC object reference.
+	 */
 	this.listenAttr.listenFor42 = function(params, successCB, errorCB, objectRef){
 		console.log("listenerFor42 was invoked");
 		
@@ -54,7 +64,13 @@ var TestModule = function(rpcHandler, params) {
 
 TestModule.prototype = new RPCWebinosService;
 
-// another member function
+/**
+ * Get the value of an internal property and whatever was sent as params.
+ * @param params Array with parameters.
+ * @param successCB Success callback.
+ * @param errorCB Error callback.
+ * @param objectRef RPC object reference.
+ */
 TestModule.prototype.get42 = function(params, successCB, errorCB, objectRef){
 	console.log("get42 was invoked");
 	successCB(this.blaa + " " + params[0]);

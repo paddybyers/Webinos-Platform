@@ -17,6 +17,11 @@
 ******************************************************************************/
 (function() {
 
+	/**
+	 * Webinos Get42 service constructor (client side).
+	 * @constructor
+	 * @param obj Object containing displayName, api, etc.
+	 */
 	TestModule = function(obj) {
 		this.base = WebinosService;
 		this.base(obj);
@@ -29,6 +34,10 @@
 	
 	TestModule.prototype = new WebinosService;
 	
+	/**
+	 * To bind the service.
+	 * @param bindCB BindCallback object.
+	 */
 	TestModule.prototype.bindService = function (bindCB, serviceId) {
 		// actually there should be an auth check here or whatever, but we just always bind
 		this.get42 = get42;
@@ -40,6 +49,13 @@
 		};
 	}
 	
+	/**
+	 * Get 42.
+	 * An example function which does a remote procedure call to retrieve a number.
+	 * @param attr Some attribute.
+	 * @param successCB Success callback.
+	 * @param errorCB Error callback. 
+	 */
 	function get42(attr, successCB, errorCB) {
 		console.log(this.id);
 		var rpc = webinos.rpcHandler.createRPC(this, "get42", [attr]);
@@ -53,6 +69,13 @@
 		);
 	}
 	
+	/**
+	 * Listen for 42.
+	 * An exmaple function to register a listener which is then called more than
+	 * once via RPC from the server side.
+	 * @param listener Listener function that gets called.
+	 * @param options Optional options.
+	 */
 	function listenerFor42(listener, options) {
 		var rpc = webinos.rpcHandler.createRPC(this, "listenAttr.listenFor42", [options]);
 		rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
