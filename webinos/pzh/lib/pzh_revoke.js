@@ -15,6 +15,13 @@
 *
 *******************************************************************************/
 
+// This module provides the PZH with revocation commands for removing a PZP
+// which should no longer be part of the personal zone. It does not handle
+// revocation of a PZH.
+//
+// The main user of this module is the PZH's web interface.
+//
+
 
 var revoker = exports;
 
@@ -32,6 +39,7 @@ var utils         = require(path.join(webinosRoot, dependencies.pzp.location, 'l
 var log           = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debugPzh;
 var configuration = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
 
+// Main interface: remove a PZP here.
 function revoke(pzh, pzpCert, callback) {
 	"use strict";
 	configuration.fetchKey(pzh.config.master.key_id, function(master_key) { 
@@ -59,6 +67,7 @@ function revoke(pzh, pzpCert, callback) {
 	});
 }
 
+// internal wrapper for revocation.  Collects key and revokes the certificate.
 function removeRevokedCert(pzh, pzpid, config, callback) {
 	"use strict";
 	try {
