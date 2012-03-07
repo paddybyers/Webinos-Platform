@@ -7,6 +7,11 @@
 	//get the reference to a certain tv module implementation
 	var tvmodule = require('./webinos.service_tv.'+_TV_MODULE_IMPLEMENTATION_+'.js').tv;
 	
+	/**
+	 * Webinos TV service constructor (server side).
+	 * @constructor
+	 * @param rpcHandler A handler for functions that use RPC to deliver their result.
+	 */
 	var RemoteTVManager = function(rpcHandler) {
 		// inherit from RPCWebinosService
 		this.base = RPCWebinosService;
@@ -16,6 +21,13 @@
 			description:'TV control and managment.'
 		});
 		
+		/**
+		 * Add event listener.
+		 * @param params Array, first item being event type.
+		 * @param successCallback Success callback.
+		 * @param errorCallback Error callback.
+		 * @param RPC object reference.
+		 */
 		this.display.addEventListener = function ( params,  successCallback,  errorCallback, objectRef) {
 			if(params[0]==='channelchange'){
 				var useCapture = params[2];
@@ -35,6 +47,12 @@
 	RemoteTVManager.prototype.tuner = {};
 	RemoteTVManager.prototype.display = {};
 	
+	/**
+	 * Set a channel.
+	 * @param params Array, first item being the channel.
+	 * @param successCallback Success callback.
+	 * @param errorCallback Error callback.
+	 */
 	RemoteTVManager.prototype.display.setChannel = function ( params,  successCallback,  errorCallback) {
 		tvmodule.tv.display.setChannel(params[0],function(channel){
 			successCallback(channel);
@@ -43,6 +61,12 @@
 		});
 	};
 	
+	/**
+	 * Get EPG info.
+	 * @param channel Channel.
+	 * @param successCallback Success callback.
+	 * @param errorCallback Error callback.
+	 */
 	RemoteTVManager.prototype.display.getEPGPIC = function( channel,  successCallback,  errorCallback){
 		//TODO: only internal temporarily use!
 		//This is only to bridge the missing Media Capture API and EPG functionality 
@@ -55,6 +79,12 @@
 		});
 	};
 	
+	/**
+	 * Get the available TV sources (e.g. tuners)
+	 * @param params not used.
+	 * @param successCallback Success callback.
+	 * @param errorCallback Error callback.
+	 */
 	RemoteTVManager.prototype.tuner.getTVSources = function ( params,  successCallback,  errorCallback) {
 		tvmodule.tv.tuner.getTVSources(function(sources){
 			successCallback(sources);
