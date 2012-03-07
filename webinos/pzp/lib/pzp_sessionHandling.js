@@ -362,8 +362,9 @@
 					self.config.conn.cert   = parseMsg.payload.message.clientCert;
 					self.config.master.cert = parseMsg.payload.message.masterCert;
 
-					configuration.storeConfig(self.config);
-					callback.call(self, 'startPZPAgain');
+					configuration.storeConfig(self.config, function() {
+						callback.call(self, 'startPZPAgain');
+					});
 
 				} // This is update message about other connected PZP
 				else if(parseMsg.type === 'prop' && parseMsg.payload.status === 'pzpUpdate') {

@@ -68,8 +68,9 @@ configure.setConfiguration = function (config, type, callback) {
 								try{
 									// Used for initial connection, will be replaced by cert received from PZH
 									config.conn.cert = conn_cert.cert; 
-									configure.storeConfig(config);
-									callback(config, conn_key, csr);
+									configure.storeConfig(config, function() {
+										callback(config, conn_key, csr);
+									});
 								} catch (err) {
 									log('ERROR', '[CONFIG] Error storing key in key store '+ err);
 									return;
@@ -130,16 +131,17 @@ configure.createDirectoryStructure = function (callback) {
 	}
 }
 
-configure.storeConfig = function (config) {
+configure.storeConfig = function (config, callback) {
 	var webinosDemo = common.webinosConfigPath();
 	var name = config.certValues.common.split(':')[0];
 	fs.writeFile((webinosDemo+ '/config/'+name+'.json'), JSON.stringify(config, null, " "), function(err) {
 		if(err) {
+			callback(false);
 			log('ERROR', '[CONFIG] Error saving configuration file @@ '+name);
 		} else {
+			callback(true);
 			log('INFO', '[CONFIG] Saved configuration file @@ ' + name);
 		}
-
 	});
 
 }
@@ -186,8 +188,9 @@ configure.signedCert = function (csr, config, type, name, callback) {
 						}
 						
 						// Update with the signed certificate
-						configure.storeConfig(config);
-						callback(config);
+						configure.storeConfig(config, function() {
+							callback(config);
+						});
 					} catch (err1) {
 						log('ERROR','[CONFIG] Error setting paramerters' + err1) ;
 						callback("undefined");
@@ -214,7 +217,7 @@ function createConfigStructure (name, type, certValues) {
 		config.conn            = { key_id: name+'_conn_key',   cert:''};
 		config.master          = { key_id: name+'_master_key', cert:''} ;
 		config.webServer       = { key_id: name+'_ws_key',     cert:''} ;
-		config.webSocketServer = { key_id: name+'_wss_key',     cert:''} ;
+		config.webSocketServer = { key_id: name+'_wss_key',    cert:''} ;
 		config.pzhs      = {}; //contents: '', modules:''
 	} else if (type === 'Pzp' ){
 		config.conn   = { key_id: name+'_conn_key', cert:''};
@@ -269,8 +272,9 @@ function selfSignedMasterCert(type, config, callback){
 				config.master.cert = master_cert.cert;
 				config.master.crl  = master_cert.crl;
 				configure.storeKey(config.master.key_id, master_key);
-				configure.storeConfig(config);
-				callback(config);
+				configure.storeConfig(config, function() {
+					callback(config);
+				});
 			}
 		});
 	} catch (err) {

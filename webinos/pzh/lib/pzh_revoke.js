@@ -45,10 +45,12 @@ function revoke(pzh, pzpCert, callback) {
 				}
 				*/
 				pzh.config.master.crl = crl;
-				configuration.storeConfig(pzh.config);
-				//TODO : trigger the PZH to reconnect all clients
-				//TODO : trigger a synchronisation with PZPs.
-				callback(true);
+				configuration.storeConfig(pzh.config, function() {
+					//TODO : trigger the PZH to reconnect all clients
+					//TODO : trigger a synchronisation with PZPs.
+					callback(true);
+				});
+
 			} else {
 				log(pzh.sessionId, "ERROR", "[PZH - "+pzh.sessionId+"] Failed to revoke client certificate [" + pzpCert + "]");
 				callback(false);
@@ -62,8 +64,9 @@ function removeRevokedCert(pzh, pzpid, config, callback) {
 	try {
 		config.revokedCert[pzpid] = config.signedCert[pzpid];
 		delete config.signedCert[pzpid] ;
-		configuration.storeConfig(config);
-		callback(true);
+		configuration.storeConfig(config, function() {
+			callback(true);
+		});
 	} catch (err) {
 		log(pzh.sessionId, "INFO", "[PZH - "+ pzh.sessionId+"] Unable to rename certificate " + err);
 		callback(false);
@@ -76,13 +79,13 @@ revoker.revokePzp = function (pzpid, pzh, callback ) {
 	if (typeof pzpcert !== "undefined" ) {
 		revoke(pzh, pzpcert, function(result) {
 			if (result) {
-				log(pzh.sessionId, "INFO", "[PZH - "+ pzh.sessionId+"]Revocation success! " + pzpid + " should not be able to connect anymore ");
+				log(pzh.sessionId, "INFO", "[PZH - "+ pzh.sessionId+"] Revocation success! " + pzpid + " should not be able to connect anymore ");
 
 				removeRevokedCert(pzh, pzpid, pzh.config, function(status2) {
 					if (!status2) {
 						log(pzh.sessionId, "INFO", "[PZH - "+ pzh.sessionId+"] Could not rename certificate");
 					}
-					callback();
+					callback({cmd:'revokePzp', pzpid: pzpid});
 					return;
 				});
 			} else {

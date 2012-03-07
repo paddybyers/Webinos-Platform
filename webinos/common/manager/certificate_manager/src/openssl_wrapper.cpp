@@ -431,7 +431,7 @@ int signRequest(char* pemRequest, int days, char* pemCAKey, char* pemCaCert,  in
 		}
 
 
-		if(!(ex = X509V3_EXT_conf_nid(NULL,  &ctx, NID_ext_key_usage, (char*)"critical, serverAuth"))) {
+		if(!(ex = X509V3_EXT_conf_nid(NULL,  &ctx, NID_ext_key_usage, (char*)"critical, clientAuth, serverAuth"))) {
 			free(str);
 			free(altname);
 			return 0;

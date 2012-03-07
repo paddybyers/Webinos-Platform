@@ -17,6 +17,7 @@ var farm         = require(path.join(webinosRoot, dependencies.pzh.location, 'li
 var log          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debug;
 var configure    = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_configuration.js'));
 var cert         = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_certificate.js'));
+var connecting   = require(path.join(webinosRoot, dependencies.pzh.location, 'lib/pzh_connecting.js'))
 
 var authorized   = false;
 var rely ;
@@ -112,8 +113,19 @@ pzhWebInterface.start = function(hostname) {
 						case 'authenticate-yahoo':
 							authenticate(hostname, 'http://open.login.yahooapis.com/openid20/www.yahoo.com/xrds');
 							break;
+					}					
+				}
+				if (parse.cmd && parse.from) {
+					switch(parse.cmd) {
 						case 'userDetails':
 							result({cmd:'userDetails', payload:pzh[parse.from].config.details});
+							break;
+						case 'pzhPzh':
+							pzhapis.addPzhCertificate(pzh[parse.from], parse.to, function() {
+								connecting.connectOtherPZH(pzh[parse.from], parse.to, function(status) {
+									result({cmd:'pzhPzh', payload: status})
+								});
+							});
 							break;
 						case 'crashLog':
 							pzhapis.crashLog(pzh[parse.from], result);
@@ -127,8 +139,11 @@ pzhWebInterface.start = function(hostname) {
 						case 'restartPzh':
 							pzhapis.restartPzh(pzh[parse.from], result);
 							break;
-						case 'connectPzh':
-							pzhapis.connectPzh(pzh[parse.from], result);
+						case 'revokePzp':
+							pzhapis.revoke(pzh[parse.from], parse.pzpid, result);
+							break;
+						case 'listPzp':
+							pzhapis.listPzp(pzh[parse.from], result);
 							break;
 					}
 				}
@@ -281,28 +296,30 @@ function createWebInterfaceCertificate (config, callback) {
 						if(result === 'certSigned') {
 							config.webServer.cert = signed_cert;
 							configure.storeKey(config.webServer.key_id, ws_key);
-							configure.storeConfig(config);
-							cert.selfSigned( 'PzhWebSocketServer', config.certValues, function(status, selfSignErr, wss_key, ws_cert, csr ) {
-								if(status === 'certGenerated') {
-									cert.signRequest(csr, master_key,  config.master.cert, 1, function(result, signed_cert) {
-										if(result === 'certSigned') {
-											config.webSocketServer.cert = signed_cert;
-											configure.storeKey(config.webSocketServer.key_id, wss_key);
-											configure.storeConfig(config);
-											var wss = {
-												key : ws_key,
-												cert: config.webServer.cert,
-												ca  : config.master.cert
-											};
-											var wss1 = {
-												key : wss_key,
-												cert: config.webSocketServer.cert,
-												ca  : config.master.cert
-											};
-											callback(wss, wss1);
-										}
-									});
-								}
+							configure.storeConfig(config, function() {
+								cert.selfSigned( 'PzhWebSocketServer', config.certValues, function(status, selfSignErr, wss_key, ws_cert, csr ) {
+									if(status === 'certGenerated') {
+										cert.signRequest(csr, master_key,  config.master.cert, 1, function(result, signed_cert) {
+											if(result === 'certSigned') {
+												config.webSocketServer.cert = signed_cert;
+												configure.storeKey(config.webSocketServer.key_id, wss_key);
+												configure.storeConfig(config, function() {
+													var wss = {
+														key : ws_key,
+														cert: config.webServer.cert,
+														ca  : config.master.cert
+													};
+													var wss1 = {
+														key : wss_key,
+														cert: config.webSocketServer.cert,
+														ca  : config.master.cert
+													};
+													callback(wss, wss1);
+												});
+											}
+										});
+									}
+								});
 							});
 						}
 					});
