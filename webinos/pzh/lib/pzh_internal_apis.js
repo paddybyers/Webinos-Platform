@@ -15,6 +15,12 @@
 *
 *******************************************************************************/
 
+// This file is a wrapper / facade for all the functionality that the PZH
+// web interface is likely to need.  
+
+// Ideally, this would be accessed through the same messaging interface
+// as everything else, as these need some access control too.  
+// In other words: due a refactor.
 
 var pzhapis     = exports;
 
