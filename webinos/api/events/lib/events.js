@@ -18,7 +18,8 @@
 (function() {
 
 	/**
-	 * Webinos Service constructor.
+	 * Webinos Event service constructor (server side).
+	 * @constructor
 	 * @param rpcHandler A handler for functions that use RPC to deliver their result.  
 	 */
 	var WebinosEventsModule = function(rpcHandler) {
@@ -31,6 +32,14 @@
 		});
 
 		this.WebinosEvent = {};
+		
+		/**
+		 * Sends an event.
+		 * @param params Event payload.
+		 * @param successCB Success callback.
+		 * @param errorCB Error callback.
+		 * @param ref RPC object reference.
+		 */
 		this.WebinosEvent.dispatchWebinosEvent = function (params, successCB, errorCB, ref){
 			//callbacks, referenceTimeout, sync
 			console.log("dispatchWebinosEvent was invoked: Payload: " + params.webinosevent.payload);
@@ -99,6 +108,14 @@
 		};
 	};
 	
+	/**
+	 * Create and return success calback for event delivery notification.
+	 * @param rpcHandler The RPC handler.
+	 * @param ref RPC object reference.
+	 * @param params Callback params.
+	 * @param useCB Boolean indicating whether this callback shall be used.
+	 * @private
+	 */
 	function getSuccessCB(rpcHandler, ref, params, useCB) {
 		var objectRef = ref;
 		var cbParams = params;
@@ -115,6 +132,14 @@
 	}  
 
 
+	/**
+	 * Create and return error calback for event delivery notification.
+	 * @param rpcHandler The RPC handler.
+	 * @param ref RPC object reference.
+	 * @param params Callback params.
+	 * @param useCB Boolean indicating whether this callback shall be used.
+	 * @private
+	 */
 	function getErrorCB(rpcHandler, ref, params, useCB) {
 		var objectRef = ref;
 		var cbParams = params;
@@ -136,10 +161,20 @@
 	var registeredListener = [];
 
 
+	/**
+	 * Create a new event.
+	 * 
+	 * [not yet implemented]
+	 */
 	WebinosEventsModule.prototype.createWebinosEvent = function (params, successCB, errorCB, objectRef){
 		console.log("createWebinosEvent was invoked");
 	};
 
+	/**
+	 * Registers an event listener.
+	 * @param params Object expecting type field.
+	 * @param ref Object expecting destination field.
+	 */
 	WebinosEventsModule.prototype.addWebinosEventListener = function (params, successCB, errorCB, objectRef){
 		console.log("addWebinosEventListener was invoked with params type: " + params.type + " source: " + params.source + " dest: " + params.destination);
 		/*
@@ -152,6 +187,11 @@
 		registeredListener.push(params);
 	};
 
+	/**
+	 * Unregisters an event listener.
+	 * 
+	 * [not yet implemented]
+	 */
 	WebinosEventsModule.prototype.removeWebinosEventListener = function (params, successCB, errorCB, objectRef){
 		console.log("removeWebinosEventListener was invoked");
 	};
