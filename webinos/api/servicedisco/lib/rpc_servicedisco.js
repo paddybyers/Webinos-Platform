@@ -18,7 +18,8 @@
 (function () {
 
 	/**
-	 * Webinos Service constructor.
+	 * Webinos ServiceDiscovery service constructor (server side).
+	 * @constructor
 	 * @param rpcHandler A handler for functions that use RPC to deliver their result.  
 	 */
 	function ServiceDiscoModule (rpcHandler) {
@@ -30,12 +31,15 @@
 			description: 'Webinos ServiceDiscovery'
 		});
 
+		/**
+		 * Call a listener for each found service.
+		 * @param params Array, first item being the service type to search.
+		 * @param successCB Success callback.
+		 * @param errorCB Error callback.
+		 * @param objectRef RPC object reference.
+		 */
 		this.findServices = function (params, successCB, errorCB, objectRef) {
-			var responseTo, msgid, serviceType = params[0];
-			if (params[1] !== null)
-				responseTo = params[1];
-			if (params[2] !== null)
-				msgid = params[2];
+			var serviceType = params[0];
 
 			var callback;
 			rpcHandler.findServices(serviceType, callback);
