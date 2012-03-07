@@ -36,6 +36,7 @@ var pzhConnect   = require(path.join(webinosRoot, dependencies.pzh.location, 'li
 var common       = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js'));
 var log          = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debugPzh;
 
+// Synchronous method for getting information about a PZP with a certain ID.
 function getPzpInfoSync(pzh, pzpId) {
 	"use strict";
 
@@ -63,6 +64,7 @@ function getPzpInfoSync(pzh, pzpId) {
 	};
 }
 
+// Synchronous method for getting information about a PZH with a certain ID.
 function getPzhInfoSync(pzh, pzhId) {
 	"use strict";
 	if (pzhId === pzh.config.certValues.common.split(':')[0]) {
@@ -83,11 +85,13 @@ function getPzhInfoSync(pzh, pzhId) {
 	}
 }
 
+// Wrapper for adding a new PZP to a personal zone through a short code
 pzhapis.addPzpQR = function (pzh, callback) {
 	"use strict";
 	qrcode.addPzpQRAgain(pzh, callback);
 };
 
+// Get a list of all Personal zone devices.
 pzhapis.listZoneDevices = function(pzh, callback) {
 	"use strict";
 	var result = {pzps: [], pzhs: []};
@@ -110,6 +114,7 @@ pzhapis.listZoneDevices = function(pzh, callback) {
 	callback(payload);
 };
 
+// Return the crashlog of this PZH.
 pzhapis.crashLog = function(pzh, callback){
 	"use strict";
 	var filename = path.join(common.webinosConfigPath()+'/logs/', pzh.sessionId+'.json');
@@ -123,6 +128,7 @@ pzhapis.crashLog = function(pzh, callback){
 		}
 	});
 };
+	
 	
 pzhapis.revoke = function(pzh, pzpid, callback) {
 	"use strict";        

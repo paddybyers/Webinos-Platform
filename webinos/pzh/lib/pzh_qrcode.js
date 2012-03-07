@@ -15,6 +15,8 @@
 *
 *******************************************************************************/
 
+// A wrapper for the QRCODE module which generates a QR code for a short,
+// 8-byte string, plus (in theory) the URL of the PZH.
 
 var crypto  = require('crypto');
 var path    = require('path');
@@ -39,6 +41,7 @@ function generateRandomCode() {
     return crypto.randomBytes(8).toString("base64");
 }
 
+// Generate me a random code.  I do hope this is secure...
 webinosqr.createQR = function(url, code, cb) {
     "use strict";
     create(url,code,cb);
@@ -80,6 +83,8 @@ webinosqr.addPzpQR = function(pzh, connection) {
     });
 };
 
+// The same function as the above, but without the messaging nonsense.
+// Due a refactor.
 webinosqr.addPzpQRAgain = function(pzh, next) {
     "use strict";
     
