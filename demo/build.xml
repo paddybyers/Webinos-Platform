@@ -13,6 +13,7 @@
                 <file name="common/rpc/lib/rpc.js"/>
             	<file name="common/manager/messaging/lib/messagehandler.js"/>
    				<file name="wrt/lib/webinos.session.js"/>
+    			<file name="wrt/lib/webinos.servicedisco.js"/>
     			<file name="wrt/lib/webinos.js"/>
             	<file name="common/rpc/lib/webinos.utils.js"/>
 				<file name="common/rpc/contrib/md5.js"/>

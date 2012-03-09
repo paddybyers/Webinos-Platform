@@ -17,17 +17,18 @@
 ******************************************************************************/
 (function() {
 
-	Context = function(obj) {
+	var Context = function(obj, rpcHandler) {
 		this.base = WebinosService;
 		this.base(obj);
+    	this.rpcHandler = rpcHandler;
 	};
 	
 	Context.prototype = new WebinosService;
 	
 	Context.prototype.bindService = function (bindCB, serviceId) {
 		// actually there should be an auth check here or whatever, but we just always bind
-		this.find = find;
-		this.executeQuery = executeQuery;
+		this.find = find.bind(this);
+		this.executeQuery = executeQuery.bind(this);
 		
 		if (typeof bindCB.onBind === 'function') {
 			bindCB.onBind(this);
@@ -35,8 +36,8 @@
 	}
 	
 	function find(params, successCB,errorCB) {
-		var rpc = webinos.rpcHandler.createRPC(this, "find",  params);
-		webinos.rpcHandler.executeRPC(rpc,
+		var rpc = this.rpcHandler.createRPC(this, "find",  params);
+		this.rpcHandler.executeRPC(rpc,
 				function (params){
 					successCB(params);
 				},
@@ -46,7 +47,7 @@
 		);
 	}
 	
-	 function registerAppContextObject(APPName, ContextObjectName, ContextFields, callback) {
+  function registerAppContextObject(APPName, ContextObjectName, ContextFields, callback) {
     var rpc = webinos.rpcHandler.createRPC(this, "registerAppContextObject",  query);
     webinos.rpcHandler.executeRPC(rpc,
         function (params){
@@ -57,10 +58,10 @@
         }
     );
   }
-	 
+
 	function executeQuery(query, successCB,errorCB) {
-	    var rpc = webinos.rpcHandler.createRPC(this, "executeQuery",  query);
-	    webinos.rpcHandler.executeRPC(rpc,
+	    var rpc = this.rpcHandler.createRPC(this, "executeQuery",  query);
+	    this.rpcHandler.executeRPC(rpc,
 	        function (params){
 	          successCB(params);
 	        },
@@ -69,4 +70,10 @@
 	        }
 	    );
 	  }
+	
+	if (typeof module !== 'undefined') {
+		exports.Context = Context;
+	} else {
+		webinos.Context = Context;
+	}
 })();

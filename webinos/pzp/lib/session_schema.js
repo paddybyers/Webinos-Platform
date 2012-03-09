@@ -47,16 +47,9 @@ schema.checkSchema = function(msg) {
 // function to validate 'prop' type packages
 checkPropSchema = function(message) {
 	var myEnv, assert, schema, validation;
-	try {
-		myEnv = require('schema')('myEnvironment', { fallbacks: 'STRICT_FALLBACKS' });
-	} catch (err) {
-		return 'failed';
-	}
-	try {
-		assert = require('assert');
-	} catch (err1) {
-		return 'failed';
-	}
+	
+	myEnv = require('schema')('myEnvironment', { fallbacks: 'STRICT_FALLBACKS' });
+	assert = require('assert');
 	
 	// 'prop' type package schema
 	// required fields: 'type', 'from', 'to' and 'payload' 
@@ -101,16 +94,9 @@ checkPropSchema = function(message) {
 // function to validate 'JSONRPC' type packages
 checkJSONRPCSchema = function(message) {
 	var myEnv, assert, schema, validation;
-	try {
-		myEnv = require('schema')('myEnvironment', { fallbacks: 'STRICT_FALLBACKS' });
-	} catch (err) {
-		return 'failed';
-	}
-	try {
-		assert = require('assert');
-	} catch (err1) {
-		return 'failed';
-	}
+	
+	myEnv = require('schema')('myEnvironment', { fallbacks: 'STRICT_FALLBACKS' });
+	assert = require('assert');
 	
 	// 'JSONRPC' package schema
 	// required fields: 'type', 'from', 'to' and 'payload' 
@@ -168,16 +154,9 @@ checkJSONRPCSchema = function(message) {
 // function to validate type field
 checkTypeSchema = function(message) {
 	var myEnv, assert, schema, validation;
-	try {
-		myEnv = require('schema')('myEnvironment', { fallbacks: 'STRICT_FALLBACKS' });
-	} catch (err) {
-		return 'failed';
-	}
-	try {
-		assert = require('assert');
-	} catch (err1) {
-		return 'failed';
-	}
+	
+	myEnv = require('schema')('myEnvironment', { fallbacks: 'STRICT_FALLBACKS' });
+	assert = require('assert');
 	
 	// only 'prop' and 'JSONRPC' types are allowed
 	schema = myEnv.Schema.create({

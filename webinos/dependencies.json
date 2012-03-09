@@ -122,5 +122,9 @@
   "pzh": {
     "name": "PZH",
     "location": "pzh/"
+  },
+  "wrt": {
+    "name": "wrt",
+    "location": "wrt/"
   }
 }
