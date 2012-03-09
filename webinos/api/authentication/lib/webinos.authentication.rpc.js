@@ -144,21 +144,27 @@
 	};
 
 	var password_filename = "./client/authentication/password.txt", authstatus_filename = "./client/authentication/authstatus.txt";
-	var PAMConfFile = ['/etc/pam.d/login', '/etc/pam.d/system-auth', '/etc/pam.conf'];
+	var PAMConfFile = ['/etc/pam.d/login', '/etc/pam.d/system-auth', '/etc/pam.conf'], PAMUsage = false;
 	var service, i, unixlib;
 
-	if (os.platform() === 'linux' || os.platform() === 'darwin') {
-		// on linux and mac we require unixlib module to use PAM
-		unixlib = require(path.resolve(__dirname, '../src/build/Release/unixlib'));
+	if ((os.type().toLowerCase() === 'linux' && os.platform().toLowerCase() === 'linux') || os.type().toLowerCase() === 'darwin') {
 		for (i = 0; i < PAMConfFile.length; i + 1) {
 			try {
 				fs.lstatSync(PAMConfFile[i]); // test if file exists
 				service = path.basename(PAMConfFile[i]);
+				PAMUsage = true;
 				break; // when a file is found, we stop the loop
 			} catch (error) {
 				// file not found (or other error)
 				// we don't need to manage this here
 			}
+		}
+		if (PAMUsage === true) {
+			// on linux and mac we require unixlib module to use PAM
+			unixlib = require(path.resolve(__dirname, '../src/build/Release/unixlib'));
+		}
+		else {
+			console.log("Authentication API: no useful PAM file found, password file is used as a fallback");
 		}
 	}
 
@@ -192,23 +198,17 @@
 					ask("Password", function (err, password) {
 						if (err === null || err === undefined) {
 							try {
-								if (os.platform() === 'linux' || os.platform() === 'darwin') {
-									// on linux or mac we use PAM
-									if (service !== null && service !== undefined) {
-										unixlib.pamauth(service, username, password, function (result) {
-											addUser(username, result, that, function (result) {
-												successCB(result);
-											},
-											function (error) {
-												errorCB(error);
-											});
+								if (PAMUsage === true) {
+									// on linux or mac we use PAM, if it is available
+									unixlib.pamauth(service, username, password, function (result) {
+										addUser(username, result, that, function (result) {
+											successCB(result);
+										},
+										function (error) {
+											errorCB(error);
 										});
-									} else {
-										error.code = AuthError.prototype.UNKNOWN_ERROR;
-										error.message = "PAM configuration file not found";
-										errorCB(error);
-									}
-								} else { // other platforms
+									});
+								} else { // PAM unavailable
 									newly_authenticated = false;
 									// TODO: use secure storage
 									passfile = JSON.parse(fs.readFileSync(password_filename).toString());
