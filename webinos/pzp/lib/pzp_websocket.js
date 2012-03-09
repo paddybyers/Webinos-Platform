@@ -51,7 +51,7 @@ var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
 		try {
 			wrtServer = require('bridge').load('org.webinos.app.wrt.channel.WebinosSocketServerImpl', exports);
 		} catch(e) {
-			utils.debug(2, "PZP pzp_websocket.js: exception attempting to open wrt server " + e);
+			log('ERROR', "PZP pzp_websocket.js: exception attempting to open wrt server " + e);
 		}
 	}
 
@@ -150,36 +150,27 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 
 		function wsMessage(connection, utf8Data) {
 			//schema validation
-			var msg;
-			//if(utils.checkSchema(message.utf8Data) === false){
-				msg = JSON.parse(utf8Data);
-			//}else {
-			//	throw new Error('Unrecognized packet');	
-			//}
-			
-			// BEGIN OF POLITO MODIFICATIONS
-			var valError = validation.checkSchema(msg);
-			if(valError === false) { // validation error is false, so validation is ok
-				log('INFO',  '[PZP WSServer]: Received recognized packet ' + JSON.stringify(msg));
+			var msg = JSON.parse(utf8Data);
+
+			var invalidSchemaCheck = true;
+			try {
+				invalidSchemaCheck = validation.checkSchema(msg);
+				
+			} catch (err) {
+				log('ERROR', '[PZP WSServer]: ' + err);
 			}
-			else if (valError === true) {
+			if(invalidSchemaCheck) {
 				// For debug purposes, we only print a message about unrecognized packet, 
 				// in the final version we should throw an error.
 				// Currently there is no a formal list of allowed packages and throw errors
 				// would prevent the PZP from working
-				log('INFO',  '[PZP WSServer]: Received recognized packet ' + JSON.stringify(msg));
+				log('ERROR',  '[PZP WSServer]: msg schema is not valid ' + JSON.stringify(msg));
 				console.log(msg);
 			}
-			else if (valError === 'failed') {
-				log('INFO',  '[PZP WSServer]: Validation failed');
-			}
 			else {
-				log('INFO',  '[PZP WSServer]: Invalid validation response ' + valError);
+				// schema check is false, so validation is ok
+				log('DEBUG',  '[PZP WSServer]: msg schema is valid ' + JSON.stringify(msg));
 			}
-
-			//utils.debug(2, 'PZP WSServer: Received packet ' + JSON.stringify(msg));
-
-			// END OF POLITO MODIFICATIONS
 
 			// Each message is forwarded back to Message Handler to forward rpc message
 			if(msg.type === 'prop' ) {
@@ -208,8 +199,7 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 				}
 			} else {
 				if( typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
-					rpc.setSessionId(instance.sessionId);
-					utils.sendMessageMessaging(instance, instance.messageHandler, msg);
+					instance.messageHandler.onMessageReceived(msg, msg.to);
 				}
 			}
 		}
