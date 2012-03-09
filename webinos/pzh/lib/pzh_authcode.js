@@ -15,13 +15,14 @@
 *
 *******************************************************************************/
 
-// This module can be used for authentication a new PZP to the personal zone hub
-// The PZH creates an "authCounter" which creates and validates authentication
-// codes that are given to new devices.  
-//
-// One implementation scenario is the QR Code: a user visits the PZH web 
-// interface, logs in, and is shown a QR Code, which contains an authCode, 
-// which is then presented to the PZH as proof that the PZP should be trusted.
+/** @description: This module can be used for authentication a new PZP to the personal zone hub
+ * The PZH creates an "authCounter" which creates and validates authentication
+ * codes that are given to new devices.  
+ *
+ * One implementation scenario is the QR Code: a user visits the PZH web 
+ * interface, logs in, and is shown a QR Code, which contains an authCode, 
+ * which is then presented to the PZH as proof that the PZP should be trusted.
+ */
 
 
 
@@ -35,8 +36,9 @@ var webinosRoot     = path.resolve(__dirname, '../' + moduleRoot.root.location);
 var log            = require(path.join(webinosRoot, dependencies.pzp.location, 'lib/session_common.js')).debugPzh;
 
 
-// This creates an auth code object which can be used to set a new
-// code for a new PZP and then query about whether it is still valid.
+/** @description: This creates an auth code object which can be used to set a new
+ * code for a new PZP and then query about whether it is still valid.
+ */
 tokenAuth.createAuthCounter = function(callback) {
 	"use strict";
 	var authCounter = { 
@@ -46,8 +48,9 @@ tokenAuth.createAuthCounter = function(callback) {
 	    guesses :0
     };
 
-    // set the code that we are expecting to see at the PZH from a new PZP
-    // it will automatically set an expiry time for this code.
+   /** @description:set the code that we are expecting to see at the PZH from a new PZP
+    * it will automatically set an expiry time for this code.
+    */
 	authCounter.setExpectedCode = function(code, cb) {
 		var self = this;
 		log(self.sessionId, 'INFO', "[PZH -"+self.sessionId+"] New PZP expected, code: " + code);
@@ -60,8 +63,9 @@ tokenAuth.createAuthCounter = function(callback) {
 		cb();
 	};
 
-	// unset the code - we've seen it before, or we've timed out and have no use
-	// for it anymore.
+	/** @description: unset the code - we've seen it before, or we've timed out and have no use
+	 * for it anymore.
+     */
 	authCounter.unsetExpected = function(cb) {
 		var self = this;
 		log(self.sessionId, 'INFO', "[PZH -"+self.sessionId+"] No longer expecting PZP with code " + self.code);
@@ -72,7 +76,7 @@ tokenAuth.createAuthCounter = function(callback) {
 		cb();
 	};
 
-    // query interface: are we expecting a new PZP any time soon?
+    /** @description query interface: are we expecting a new PZP any time soon? */
 	authCounter.isExpected = function(cb) {
 		var self = this;
 
@@ -93,8 +97,9 @@ tokenAuth.createAuthCounter = function(callback) {
 			(self.timeout > new Date()) );
 	};
 	
-	// query interface: are we expecting a new PZP any time soon?  and if so,
-    // does it have this code?  if not, increment the number of guesses.
+	/** @description: query interface: are we expecting a new PZP any time soon?  and if so,
+     * does it have this code?  if not, increment the number of guesses.
+     */
 	authCounter.isExpectedCode = function(newcode, cb) {
 		var self = this;
 

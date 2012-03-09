@@ -18,7 +18,8 @@
 (function() {
 
 	/**
-	 * Webinos Service constructor.
+	 * Webinos AppLauncher service constructor (server side).
+	 * @constructor
 	 * @param rpcHandler A handler for functions that use RPC to deliver their result.  
 	 */
 	var WebinosAppLauncherModule = function(rpcHandler) {
@@ -31,10 +32,15 @@
 		});
 	};
 	
-	
-
 	WebinosAppLauncherModule.prototype = new RPCWebinosService;
 
+	/**
+	 * Launch an application.
+	 * @param params Params.
+	 * @param successCB Success callback.
+	 * @param errorCB Error callback.
+	 * @param objectRef RPC object reference.
+	 */
 	WebinosAppLauncherModule.prototype.launchApplication = function (params, successCB, errorCB, objectRef){
 		console.log("launchApplication was invoked. AppID: " +  params.applicationID + " Parameters: " + params.params);
 		
@@ -65,6 +71,11 @@
 	};
 
 	
+	/**
+	 * Determine whether an app is available.
+	 * 
+	 * [not yet implemented.]
+	 */
 	WebinosAppLauncherModule.prototype.appInstalled = function (params, successCB, errorCB, objectRef){
 		console.log("appInstalled was invoked");
 	};

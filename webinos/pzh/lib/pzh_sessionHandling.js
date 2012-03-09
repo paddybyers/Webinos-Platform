@@ -134,7 +134,7 @@
 				conn.pause();
 				conn.write(buf);
 				conn.resume();
-			} else {
+			} else {// It is similar to PZP connecting to PZH but instead it is PZH to PZH connection	
 				log(self.sessionId, 'INFO', '[PZH -'+ self.sessionId+'] Client ' + address + ' is not connected');
 			} 
 		} catch(err) {
@@ -379,11 +379,18 @@
 		});	
 	};
 
-	var messageHandlerSend = function (message, address, object) {
-		"use strict";
-		object.sendMessage(message, address);
-	};
-
+	Pzh.prototype.setMessageHandler = function() {
+		var self = this;
+		var messageHandlerSend = function (message, address, object) {
+			"use strict";
+			object.sendMessage(message, address);
+		};
+	// Setting message handler to work with pzh instance
+		self.messageHandler.setGetOwnId(self.sessionId);
+		self.messageHandler.setObjectRef(self);
+		self.messageHandler.setSendMessage(messageHandlerSend);
+		self.messageHandler.setSeparator("/");
+	}
 	/**
 	 * @description: ADDs PZH in a farm ..
 	 * @param {string} uri: pzh url you want to add .. assumption it is of form pzh.webinos.org/nick
@@ -421,17 +428,12 @@
 						key  : conn_key,
 						cert : config.conn.cert,
 						ca   : [config.master.cert],
-						crl  : config.master.crl,
+						crl  : [config.master.crl],
 						requestCert: true,
 						rejectUnauthorized: false
 					};
 					pzh.options = options;
-
-					// Setting message handler to work with pzh instance
-					pzh.messageHandler.setGetOwnId(pzh.sessionId);
-					pzh.messageHandler.setObjectRef(pzh);
-					pzh.messageHandler.setSendMessage(messageHandlerSend);
-					pzh.messageHandler.setSeparator("/");
+					pzh.setMessageHandler();
 					// RPC instance getting PZH session id
 					pzh.rpcHandler.setSessionId(pzh.sessionId);
 
@@ -442,8 +444,9 @@
 						farm.server.addContext(uri, options);
 					}
 
-					configuration.storeConfig(farm.config);
-					callback(true, pzh);
+					configuration.storeConfig(farm.config, function() {
+						callback(true, pzh);
+					});
 				});
 			}
 		}

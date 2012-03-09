@@ -80,7 +80,7 @@
                     $('#bind').bind('click', function() {
                         for (var i = 0; i < sensors.length; i++){
                         	var act = i;
-                        	sensors[act].bindService(function(){
+                        	sensors[act].bind({onBind:function(){
                         		
                         		logObj(sensors,"sensors");
                         		$('#messages').append('<li> Sensor ' + sensors[act].api + ' bound.</li>');
@@ -91,7 +91,7 @@
                     	    	$('#messages').append("<li> Resolution: " + sensors[act].resolution + '</li>');
                     	    	$('#messages').append("<li> Vendor: " + sensors[act].vendor + '</li>');  
                     	    	$('#messages').append("<li> Version: " + sensors[act].version + '</li>'); 
-                        	});
+                        	}});
                         }
             	    	
                     }); 

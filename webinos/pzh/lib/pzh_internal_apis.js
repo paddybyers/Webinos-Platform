@@ -76,16 +76,14 @@ function getPzhInfoSync(pzh, pzhId) {
 	if (pzhId === pzh.config.certValues.common.split(':')[0]) {
 		//we know that this PZH is alive
 		return {
-			id : pzhId,
-			url: "",
-			cname: pzhId + " (Your PZH)",
+			id : pzhId.split('_')[0] + " (Your PZH)",
+			url: pzhId,
 			isConnected: true
 		};
 	} else {
 		return {
-			id          : pzhId,
-			url         : null,
-			cname       : "unknown",
+			id          : pzhId.split('/')[1],
+			url         : pzhId,
 			isConnected : true
 		};
 	}
@@ -97,12 +95,34 @@ pzhapis.addPzpQR = function (pzh, callback) {
 	qrcode.addPzpQRAgain(pzh, callback);
 };
 
+
+pzhapis.listPzp = function(pzh, callback) {
+	"use strict";
+	var result = {signedCert: [], revokedCert: []};
+	var myKey;
+
+	for (myKey in pzh.config.signedCert) {
+		if (typeof pzh.config.signedCert[myKey] !== "undefined") {
+			result.signedCert.push(getPzpInfoSync(pzh, myKey));
+		}
+	}
+	
+	for (myKey in pzh.config.revokedCert) {
+		if (typeof pzh.config.revokedCert[myKey] !== "undefined") {
+			result.revokedCert.push(getPzpInfoSync(pzh, myKey));
+		}
+	}
+	var payload = {cmd:'listPzp', payload:result};
+	callback(payload);
+};
+
+
 // Get a list of all Personal zone devices.
 pzhapis.listZoneDevices = function(pzh, callback) {
 	"use strict";
 	var result = {pzps: [], pzhs: []};
 	var myKey;
-	
+
 	for (myKey in pzh.config.signedCert) {
 		if (typeof pzh.config.signedCert[myKey] !== "undefined") {
 			result.pzps.push(getPzpInfoSync(pzh, myKey));
@@ -110,7 +130,7 @@ pzhapis.listZoneDevices = function(pzh, callback) {
 	}
 
 	for (myKey in pzh.config.otherCert) {
-		if (typeof pzh.config.otherCert[myKey] !== "undefined") {
+		if (typeof pzh.config.otherCert[myKey] !== "undefined" && pzh.config.otherCert[myKey].cert !== '') {
 			result.pzhs.push(getPzhInfoSync(pzh, myKey));
 		}
 	}
@@ -134,8 +154,7 @@ pzhapis.crashLog = function(pzh, callback){
 		}
 	});
 };
-	
-	
+
 pzhapis.revoke = function(pzh, pzpid, callback) {
 	"use strict";        
 	revoker.revokePzp(pzpid, pzh, callback);
@@ -154,13 +173,17 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 		for (pzh_id in farm.pzhs) {
 			if( typeof farm.pzhs[pzh_id] !== "undefined" && pzh_id === to) {
 				// Store the information in other_cert
-				pzh.config.otherCert[pzh_id] = farm.pzhs[pzh_id].config.master.cert;
-				farm.pzhs[pzh_id].config.otherCert[pzh.config.servername] = pzh.config.master.cert;
-				
+				pzh.config.otherCert[to] = { cert: farm.pzhs[to].config.master.cert, crl: farm.pzhs[to].config.master.crl};
+				farm.pzhs[to].config.otherCert[pzh.config.servername] = { cert: pzh.config.master.cert, crl: pzh.config.master.crl }
+
 				// Add in particular context of each PZH options
-				pzh.options.ca.push(pzh.config.otherCert[pzh_id]);
+				pzh.options.ca.push(pzh.config.otherCert[pzh_id].cert);
+				pzh.options.crl.push(pzh.config.otherCert[pzh_id].crl);
+
 				farm.pzhs[pzh_id].options.ca.push(pzh.config.master.cert);
-				
+				farm.pzhs[pzh_id].options.crl.push(pzh.config.master.crl);
+
+
 				farm.server._contexts.some(function(elem) {
 					if (to.match(elem[0]) !== null) {
 						elem[1] = crypto.createCredentials(farm.pzhs[pzh_id].options).context;
@@ -172,19 +195,15 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 				});
 				 
 				// pzh.serverContext.pair.credentials.context.addCACert(pzh.config.other_cert[pzh_id]);
-			
 				// Store configuration
-				configuration.storeConfig(pzh.config);
-				configuration.storeConfig(farm.pzhs[pzh_id].config);
-				pzhConnect.connectOtherPZH(pzh, to, function(status) {
-					console.log('PZH are connected to each other');
+				configuration.storeConfig(pzh.config, function() {
+					configuration.storeConfig(farm.pzhs[pzh_id].config, function(){
+						callback(true);
+						return;
+					});
 				});
-				callback(true);
-				return;
-
 			}
-		}
-		callback(false);
+		}		
 	} 
 	// TODO:2. Outside farm, this will involve https.request going out.
 	else {
@@ -193,20 +212,19 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 	}
 	
 };
-	
-// TODO: THIS IS NOT WORKING FIX IT
+
 pzhapis.restartPzh = function(instance, from, callback) {
 	"use strict";
 	try {
-		log(instance.sessionId, 'INFO', util.inspect(instance));
-		if ((typeof instance.conn.end) === 'undefined' ) {
-			callback.call(instance, "Failed - no open connections to close");
-		} else {
-			instance.socket.close();
-			session.addPzh(instance.config.servername, instance.contents, instance.modules,  function(result){
-				callback.call(instance, result);
-			});
-		}
+		// Reload contents
+		var id = instance.config.servername;
+		farm.server._contexts.some(function(elem) {
+			if (id.match(elem[0]) !== null) {
+				
+				elem[1] = crypto.createCredentials(farm.pzhs[id].options).context;
+				console.log('Restarting PZH ... ');
+			}
+		});
 	} catch(err) {
 		log(instance.sessionId, 'ERROR', 'Pzh restart failed ' + err);
 		callback.call(instance, err);

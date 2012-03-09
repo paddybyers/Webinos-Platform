@@ -1,12 +1,21 @@
+Please note: 
+1. If PZP is not able to connect to PZH, check if your configuration file exists in HOME_DIR/.webinos/config/<pzp name>.json. Delete it and try again
+2. Recompile code to get PZH - PZH connection, you will need to clean your config files in HOME_DIR/.webinos/config/ 
+
 To start farm:
-    1. node startFarm.js (Default is localhost, for more options use --help)
-    (following ports are used: 9000 (webserver) , 8001 (websocket connection) and 8000 (PZH farm). You can change ports in webinos/pzp/lib/session_configuration.js)
-    2. https://localhost/index.html (Login via Gmail or Yahoo)
-    3. https://localhost/main.html provides following functionalities: addnewpzp, fetch user details, crashLogs, connected PZH and PZP information, and logout
+    1. node startFarm.js 
+    2. https://localhost:9000/index.html (Login via Gmail or Yahoo)
+    
+ To change Port Numbers: 
+    - Default is localhost, for more options use --help
+    - following ports are used: 9000 (webserver) , 8001 (websocket connection) and 8000 (PZH farm). 
+    - You can change ports in webinos/pzp/lib/session_configuration.js
 
 To start pzp:
-   1. node startPzp.js --pzh-host='localhost/HabibVirji' --context-code=<fetched via web interface> (This is your PZH Name created based on Open ID details)
-   2. To specify different parameters check node startPzp.js --help
+   1. node startPzp.js --pzh-host='localhost/HabibVirji' --context-code='code' --pzp-name=PC
+   -- mandatory pzh-host is your PZH Name created based on Open ID details, if in doubt check on right handside the pzh name
+   -- mandatory context-code is fetched via a web interface
+   -- optional pzh-name is need if you need to start more than 1 pzp (if WebinosPzp is created, subsequent connection uses same file)
 
 Configuration storage information:
     1. Configuration of certificate is stored in HOME_DIR/.webinos/config
@@ -17,10 +26,9 @@ Configuration storage information:
     6. Certificates are created based on openid details. 
     
  TODO ITEMS:
-    1. PZH web interface associated with PZH, only one connection is handled currently. To support multiple users ..
+    6. Restart PZH - As PZH are SNI context, how to restart a PZH in a farm. 
+    7. No support for IP address
+
     2. Change directory from where web server is initialized ..
     3. Allow only certain directories to be accessible
     4. Use write stream and pipe for storing keys and config
-    5. Revoke Certificate
-    6. Restart PZH
-    

@@ -17,13 +17,22 @@
 ******************************************************************************/
 (function() {
 
+	/**
+	 * Webinos Sensor service constructor (client side).
+	 * @constructor
+	 * @param obj Object containing displayName, api, etc.
+	 */
 	Sensor = function(obj) {
        this.base = WebinosService;
        this.base(obj);
 	};
 	Sensor.prototype = new WebinosService;
 	
-	Sensor.prototype.bindService = function(success) {
+	/**
+	 * To bind the service.
+	 * @param bindCB BindCallback object.
+	 */
+	Sensor.prototype.bind = function(bindCB) {
 		 	
 		var self = this;
 		
@@ -41,6 +50,12 @@
 					self.vendor = result.vendor;  
 					self.version = result.version; 
 	        
+					/**
+					 * Configures a Sensor.
+					 * @param options Configuration options.
+					 * @param successCB Success callback.
+					 * @param errorCB Error callback.
+					 */
 					self.configureSensor = function (options, successCB, errorCB){
 						//thows (SensorException);
 						var rpc = webinos.rpcHandler.createRPC(this, "configureSensor", arguments[0]);
@@ -54,6 +69,9 @@
 						);
 					};
 	    	
+					/**
+					 * Add listener for sensor events.
+					 */
 					self.addEventListener = function(eventType, eventHandler, capture) {
 	
 							var rpc = webinos.rpcHandler.createRPC(this, "addEventListener", eventType);
@@ -72,7 +90,9 @@
 	
 					};
 	    	
-					success();
+					if (typeof bindCB.onBind === 'function') {
+						bindCB.onBind(this);
+					};
 				},
 				function (error){
 					

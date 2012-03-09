@@ -78,9 +78,9 @@
                     }); 
                     
                     $('#bind').bind('click', function() {
-                    	appLauncherToUse.bind(function(){
+                    	appLauncherToUse.bind({onBind:function(){
                         	$('#messages').append('<li> AppLauncher API ' + appLauncherToUse.api + ' bound.</li>');
-                        });
+                        }});
                     }); 
                     
                     

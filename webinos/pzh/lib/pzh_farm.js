@@ -151,8 +151,9 @@ farm.getOrCreatePzhInstance = function (host, user, callback) {
 	} else if(farm.pzhs[myKey]) { // Cannot think of this case, but still might be useful
 		log('INFO', '[PZHFARM] User first time login');
 		farm.pzhs[myKey].config.details = user;
-		configuration.storeConfig(farm.pzhs[myKey].config);
-		callback(myKey, farm.pzhs[myKey]);
+		configuration.storeConfig(farm.pzhs[myKey].config, function() {
+			callback(myKey, farm.pzhs[myKey]);
+		});
 	} else {
 		log('INFO', '[PZHFARM] Adding new PZH');
 		var contents="country="+user.country+
@@ -161,8 +162,9 @@ farm.getOrCreatePzhInstance = function (host, user, callback) {
 		var pzhModules = [];
 		Pzh.addPzh(myKey, contents, pzhModules, function(){
 			farm.pzhs[myKey].config.details = user;
-			configuration.storeConfig(farm.pzhs[myKey].config);
-			callback(myKey, farm.pzhs[myKey]);
+			configuration.storeConfig(farm.pzhs[myKey].config, function() {
+				callback(myKey, farm.pzhs[myKey]);
+			});
 		});
 	}
 };

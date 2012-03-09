@@ -31,6 +31,15 @@
 				case 'crashLog':
 					displayCrashLog(msg.payload);
 					break;
+				case 'pzhPzh':
+					displayPzhResult(msg.payload);
+					break;
+				case 'listPzp':
+					displayPzpResult(msg.payload);
+					break;
+				case 'revokePzp':
+					displayRevokeResult(msg.pzpid);
+					break;
 			}
 		};
 
@@ -39,6 +48,26 @@
 				payload.from = window.location.search.split("=")[1];
 				channel.send(JSON.stringify(payload));
 			}
+		}
+
+		function showConnectPzh() {
+			clearPage();
+			var text = "Connect PZH: <input type='text' id='connectPzhId' value='localhost/WGuo'/>";
+			text +=    "<input type='button' onclick='connectPzh()' value='Connect Pzh'>"
+			document.getElementById('pzhPzh').innerHTML=text;
+		}
+
+		function connectPzh(){
+			send({cmd:'pzhPzh', to:document.getElementById('connectPzhId').value});
+			clearPage();
+		}
+
+		function displayPzhResult(result) {
+			clearPage();
+			var text;
+			if(result) { text = 'Connected'}
+			else  { text = "Unable to connect";}
+			document.getElementById('pzhPzh').innerHTML = text;
 		}
 
 		function displayPzhPzh(payload){
@@ -65,7 +94,7 @@
 			}
 			text += "<p><h3> Name: "+ payload.name +"</h3></p>";
 			text += "<p><h3> Country  :  "+ payload.country +"</h3></p>";
-			text += "<p><h3> Email    :  "+ payload.email+"</h3></p>";			
+			text += "<p><h3> Email    :  "+ payload.email+"</h3></p>";
 			text += "<p> (Claimed Identifier: "+ payload.id+")</p>";
 			clearPage();
 			document.getElementById('userDetails').innerHTML=text;
@@ -88,11 +117,42 @@
 			document.getElementById('addPzp').innerHTML=text;
 
 		}
+
+		function sendRevoke(self) {
+			send({cmd: 'revokePzp', pzpid: self.id});
+		}
+
+		function displayPzpResult(payload){
+			clearPage();
+			var i, id;
+			var text = " <h3 align=center> Connected PZP's</h3> <p> <table border=2 align='center' bgcolor='#000099' font-color='#FFFFFF'>";
+			for (i = 0; i < payload.signedCert.length; i += 1 ) {
+				id = payload.signedCert[i].id;
+				text += "<tr>  <td> " + payload.signedCert[i].cname + "</td>  <td> <input id="+id+" type=button onclick=sendRevoke("+id+") value ="+id+" />  </td> </tr>" ;
+			}
+			text += '</table> </p>';
+			text += " <p> <h3 align=center> Revoked PZP's</h3> </p> <p> <table border=2 align='center' bgcolor='#000099' font-color='#FFFFFF'>";
+			for (i = 0; i < payload.revokedCert.length; i += 1 ) {
+				id = payload.revokedCert[i].id;
+				text += "<tr>  <td> " + payload.revokedCert[i].cname + "</td> </td> </tr>" ;
+			}
+			text += '</table> </p>';
+			document.getElementById('revokePzp').innerHTML = text;
+		}
+
+		function displayRevokeResult(id) {
+			clearPage();
+			document.getElementById('revokePzp').innerHTML = id + " certificate revoked";
+		}
+
 		function clearPage(){
 			document.getElementById('addPzp').innerHTML="";
 			document.getElementById('userDetails').innerHTML="";
 			document.getElementById('crashLog').innerHTML="";
+			document.getElementById('pzhPzh').innerHTML="";
+			document.getElementById('revokePzp').innerHTML="";
 		}
+
 		</script>
 		<style type="text/css">
 			body{
@@ -134,18 +194,20 @@
 		<div id = "Navigation" align="left">
 			<ul>
 				<li> <a href="/index.html" > Home </a> </li>
-				<li> <a href="#addPzp" onclick="send({cmd:'addPzp'})"> Add New PZP </a> </li>
-				<li> <a href="#crashLog" onclick="send({cmd:'crashLog'})"> Crash Log </a> </li>
-				<!--<li> <a href="#connectPzh" onclick=""> Connect Other PZH </a> </li>
-				<li> <a href="#revokeCert">Revoke Certificate </a> </li>				
-				<li> <a href="#restartPzh" onclick="send({cmd:'restartPzh'})"> Restart PZH </a> </li>-->
-				<li> <a href="#userDetails" onclick="send({cmd:'userDetails'})"> User Details </a> </li>
-				<li> <a href="#logout" onclick="send({cmd:'logout'}); window.location.href='/index.html'"> Logout </a> </li>
+				<li> <a href="#addPzp"      onclick="send({cmd:'addPzp'})">        Add New PZP </a> </li>
+				<li> <a href="#crashLog"    onclick="send({cmd:'crashLog'})">      Crash Log </a> </li>
+				<li> <a href="#connectPzh"  onclick="showConnectPzh()">            Connect Other PZH </a> </li>
+				<li> <a href="#revokeCert"  onclick="send({cmd:'listPzp'})">       Revoke Certificate </a> </li>
+				<li> <a href="#restartPzh"  onclick="send({cmd:'restartPzh'})">    Restart PZH </a> </li>
+				<li> <a href="#userDetails" onclick="send({cmd:'userDetails'})">   User Details </a> </li>
+				<li> <a href="#logout"      onclick="send({cmd:'logout'}); window.location.href='/index.html'"> Logout </a> </li>
 			</ul>
 		</div>
 		<div id="listDevices" align="right" position="absolute" margin="0"> </div>
 		<div id="addPzp"      align="left" margin="10px"> </div>
 		<div id="userDetails" align="left" margin="10px"> </div>
 		<div id="crashLog"    align="left" margin="10px"> </div>
+		<div id="pzhPzh"      align="left" margin="10px"> </div>
+		<div id="revokePzp"   align="left" margin="10px"> </div>
 	</body>
 </html>

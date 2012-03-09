@@ -135,7 +135,7 @@ certificate.revokeClientCert = function(master_key, master_crl, pzpCert, callbac
 		return;
 	}
 	try {
-		log("ERROR", "Calling certman.addToCRL\n");
+		log("INFO", "Calling certman.addToCRL\n");
 		var crl = certman.addToCRL("" + master_key, "" + master_crl, "" + pzpCert);
 		// master.key.value, master.cert.value
 		callback("certRevoked",  crl);
@@ -144,15 +144,4 @@ certificate.revokeClientCert = function(master_key, master_crl, pzpCert, callbac
 		callback("failed", err1);
 		return;
 	}
-}
-
-certificate.fetchKey = function (key_id, callback) {
-	try{
-		var key = require(path.resolve(webinosRoot,dependencies.manager.keystore.location));
-		var fetchkey = key.get(key_id);
-		callback(fetchkey);
-	} catch(err){
-		log('ERR0R','Key fetching error' )
-		return;
-	}	
 }

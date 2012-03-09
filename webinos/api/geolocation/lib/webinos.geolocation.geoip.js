@@ -29,6 +29,13 @@ var watchIdTable = {};
 // var used for debugging only;
 var counter = 0;
 
+/**
+ * Retrieve the current position.
+ * @param params Optional options object for enabling higher accuracy.
+ * @param successCB Success callback.
+ * @param errorCB Error callback.
+ * @param objectRef RPC object reference.
+ */
 function getCurrentPosition (params, successCB, errorCB, objectRef){
 	var error = {};
 	var geoip = null;
@@ -85,6 +92,13 @@ function getCurrentPosition (params, successCB, errorCB, objectRef){
 	});			
 }
 
+/**
+ * Continuously call back with the current position.
+ * @param args Array, first item being the options object, second item being an id.
+ * @param successCB Success callback.
+ * @param errorCB Error callback.
+ * @param objectRef RPC object reference.
+ */
 function watchPosition (args, successCB, errorCB, objectRef) {
     var tint = 2000;
 	var params = args[0];
@@ -107,6 +121,10 @@ function watchPosition (args, successCB, errorCB, objectRef) {
 	watchIdTable[watchIdKey] = watchId;
 }
 
+/**
+ * Clear continuously position event for given listener id.
+ * @param params Array, first item being the listener id.
+ */
 function clearWatch (params, successCB, errorCB, objectRef) {
 	var watchIdKey = params[0];
 	var watchId = watchIdTable[watchIdKey];
@@ -115,6 +133,10 @@ function clearWatch (params, successCB, errorCB, objectRef) {
 	clearInterval(watchId);
 }
 
+/**
+ * Set the RPC handler
+ * @private
+ */
 function setRPCHandler(rpcHdlr) {
 	rpcHandler = rpcHdlr;
 }

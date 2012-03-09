@@ -19,6 +19,11 @@
 
 (function() {
 
+/**
+ * Webinos Geolocation service constructor  (server side).
+ * @constructor
+ * @param rpcHandler A handler for functions that use RPC to deliver their result.
+ */
 function GeolocationModule(rpcHandler) {
 	// figure out which impl to use
 	try{
@@ -64,20 +69,30 @@ function GeolocationModule(rpcHandler) {
 	this.base = RPCWebinosService;
 	this.base(implModule.serviceDesc);
 	
+	/**
+	 * Get the current position.
+	 */
 	this.getCurrentPosition = function(params, successCB, errorCB, objectRef) {
 		implModule.getCurrentPosition(params, successCB, errorCB, objectRef);
 	};
 	
+	/**
+	 * Continuously call a listener with the current position. 
+	 */
 	this.watchPosition = function(args, successCB, errorCB, objectRef) {
 		implModule.watchPosition(args, successCB, errorCB, objectRef);
 	};
 	
+	/**
+	 * Stop calling a listener.
+	 */
 	this.clearWatch = function(params, successCB, errorCB, objectRef) {
 		implModule.clearWatch(params, successCB, errorCB, objectRef);
 	};
-    }
+	
+}
 
-    GeolocationModule.prototype = new RPCWebinosService;
-    exports.Service = GeolocationModule;
+GeolocationModule.prototype = new RPCWebinosService;
+exports.Service = GeolocationModule;
 
 })();

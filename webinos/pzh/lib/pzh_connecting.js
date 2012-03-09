@@ -37,7 +37,7 @@ var config       = require(path.join(webinosRoot, dependencies.pzp.location, 'li
 
 var rpc          = require(path.join(webinosRoot, dependencies.rpc.location));
 
-// this is for connecting when PZH is not in same farm
+// this is for connecting when PZH is in same farm
 pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 	"use strict";
 	var self = pzh, options;
@@ -50,32 +50,37 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 	
 	log(pzh.sessionId, 'INFO', '[PZH -'+self.sessionId+'] Connect Other PZH');
 	
-	certificate.fetchKey(self.config.conn.key_id, function(key_id) {
+	config.fetchKey(self.config.conn.key_id, function(key_id) {
 		try {
-			var pzh_id, caList = [];
+			var pzh_id, caList = [], crlList = [];
 			caList.push(self.config.master.cert);
+			crlList.push(self.config.master.crl);
+			
 			for (pzh_id in self.config.otherCert) {
 				if (typeof self.config.otherCert[pzh_id] !== "undefined") {
-					caList.push(self.config.otherCert[pzh_id]);
+					caList.push(self.config.otherCert[pzh_id].cert);
+					crlList.push(self.config.otherCert[pzh_id].crl);
 				}
 			}
 			//No CRL support yet, as this is out-of-zone communication.  TBC.
 			options = {
-				key:  key_id ,
+				key : key_id ,
 				cert: self.config.conn.cert,
-				ca:   caList,
+				ca  : caList,
+				crl : crlList,
 				servername: server};
-			console.log(options);
 		} catch (err) {
 			log(pzh.sessionId, 'ERROR', '[PZH -'+self.sessionId+'] Options setting failed while connecting other Pzh ' + err);
 			return;
 		}
-		// It is similar to PZP connecting to PZH but instead it is PZH to PZH connection	
+		
 		var connPzh = tls.connect(config.pzhPort, serverName, options, function() {
 			log('INFO', '[PZH -'+self.sessionId+'] Connection Status : '+connPzh.authorized);
+			
 			if(connPzh.authorized) {
 				var connPzhId, msg;
 				log(pzh.sessionId, 'INFO', '[PZH -'+self.sessionId+'] Connected ');
+				callback(connPzh.authorized);
 				try {
 					connPzhId = connPzh.getPeerCertificate().subject.CN.split(':')[1];
 				} catch (err) {
@@ -83,12 +88,9 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 					return;
 				}
 				try {
+					
 					if(self.connectedPzh.hasOwnProperty(connPzhId)) {
 						self.connectedPzh[connPzhId] = {socket : connPzh};
-						self.messageHandler.setGetOwnId(self.sessionId);
-						self.messageHandler.setObjectRef(self);
-						self.messageHandler.setSendMessage(send); // FIX THIS
-						self.messageHandler.setSeparator("/");
 						msg = self.messageHandler.registerSender(self.sessionId, connPzhId);
 						self.sendMessage(msg, connPzhId);
 					}				
@@ -97,14 +99,14 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 					return;
 				}
 			} else {
+				callback(connPzh.authorized);
 				log(pzh.sessionId, 'INFO', '[PZH -'+self.sessionId+'] Not connected');
 			}
 		
 			connPzh.on('data', function(data) {
-				utils.processedMsg(data, 1, function(parse){
+				utils.processedMsg(self, data, function(parse){
 					try {
-						rpc.SetSessionId(self.sessionId);
-						self.messageHandler.onMessageReceived(parse);
+						self.messageHandler.onMessageReceived(parse, parse.to);
 					} catch (err) {
 						log(pzh.sessionId, 'ERROR', '[PZH -'+self.sessionId+'] Error sending message to messaging ' + err);
 					}
