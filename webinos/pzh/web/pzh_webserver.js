@@ -31,7 +31,7 @@ pzhWebInterface.start = function(hostname) {
 			var query = querystr.parse(parsed.query);
 			
 			if (query.id === 'verify'){
-				fetchOpenIdDetails(req, function(userid) {// Important step as we assign pzh instance
+				fetchOpenIdDetails(req, res, function(userid) {// Important step as we assign pzh instance
 					res.writeHead(302, {Location: '/main.html?id='+userid}); // redirection to same page but without details fetched from google.
 					res.end();
 				});
@@ -228,10 +228,12 @@ function authenticate(hostname, url) {
 	
 }
 
-function fetchOpenIdDetails(req, callback){
+function fetchOpenIdDetails(req, res, callback){
 	rely.verifyAssertion(req, function(err, userDetails){
 		if (err){
 			console.log("[ERROR] UNABLE TO LOGIN " + err.message);
+			res.writeHead(302, {Location: '/index.html?error='+err.message}); // redirection to same page but without details fetched from google.
+			res.end();
 		}
 		else if (userDetails.authenticated) {
 			var host;
