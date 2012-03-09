@@ -12,16 +12,19 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-* 
-* Copyright 2011 Alexander Futasz, Fraunhofer FOKUS
+*
+* Copyright 2011 Samsung Electronics Research Institute
 ******************************************************************************/
-(function()	{
+(function ()	{
 "use strict";
 	
 	function logObj(obj, name)	{
 		for (var myKey in obj)	{
-			console.log(name + "["+myKey +"] = "+obj[myKey]);
-			if (typeof obj[myKey] === 'object') logObj(obj[myKey], name + "." + myKey);
+			if (typeof obj[myKey] === 'object') 
+			{
+				console.log(name + "["+myKey +"] = "+obj[myKey]);
+				logObj(obj[myKey], name + "." + myKey);
+			}	
 		}
 	}
 
@@ -93,7 +96,7 @@
 	};
 	
 	MessageHandler.prototype.sendMessage = function (message, sessionid, objectRef) {
-		this.sendMsg (message, sessionid, objectRef);
+		this.sendMsg(message, sessionid, objectRef);
 	};
 	
 	/**
@@ -120,9 +123,10 @@
 
 	
 	/**
-	 *  Set separator used to in Addressing to separator different part of the address. 
-	 *  e.g. PZH/PZP/APPID, "/" is the separator here 	
-	 */ 
+	 * Set separator used to in Addressing to separator different part of the address. 
+	 * e.g. PZH/PZP/APPID, "/" is the separator here 	
+	 */
+
 	MessageHandler.prototype.setSeparator = function (sep) {
 		this.separator = sep;
 	};
@@ -133,7 +137,7 @@
 	MessageHandler.prototype.createMessage = function (options) {
 		var message = {};
 		
-		for (var i in options)	{
+		for (var i in options ) {
 			message[i] = options[i];
 		}
 		return message;
@@ -165,18 +169,21 @@
 		return message;
 	};
 
-	MessageHandler.prototype.removeRoute = function(sender, receiver) {
+	/**
+	 *  Remove stored session route. This function is called once session is closed.  
+	 */ 
+	MessageHandler.prototype.removeRoute = function (sender, receiver) {
 		var session = [sender, receiver];		
 		session.join("->");
-		if(this.clients[session]) {
+		if (this.clients[session]) {
 			this.clients[session] = null;
 		}
 	};
 	
 	/**
-	 * RPC writer
+	 * RPC writer - referto write function in  RPC
 	 */
-	MessageHandler.prototype.write = function(rpc, respto, msgid) {
+	MessageHandler.prototype.write = function (rpc, respto, msgid) {
 		//TODO calling write function from RPC does not allow to register call-backs yet
 
 	    //create response message
@@ -187,26 +194,26 @@
 	    
 	    options.from = this.ownId;
 	    
-	    if(!msgid) {
+	    if (!msgid) {
 	    	msgid = 1 + Math.floor(Math.random() * 1024);
 	    }
 	    options.id = msgid;
-	    	
-		if(typeof rpc.jsonrpc !== "undefined") {
+
+	    if (typeof rpc.jsonrpc !== "undefined") {
 			options.type = "JSONRPC";
 		}
 		
 		options.payload = rpc;
 		var message = this.createMessage(options);
 		
-		if(message.to !== undefined) {
+		if (message.to !== undefined) {
 			var to = message.to;
 			var session1 = [to, this.self];
 			session1.join("->");
 			var session2 = [this.self, to];
 			session2.join("->");
 			
-			if((!this.clients[session1]) && (!this.clients[session2]))  // not registered either way
+			if ((!this.clients[session1]) && (!this.clients[session2]))  // not registered either way
 			{
 				console.log("MSGHANDLER:  session not set up");
 				var occurences = (message.to.split(this.separator).length - 1);
@@ -215,57 +222,68 @@
 				var id = data[0];
 				var forwardto = data[0]; 
 
-				for(var i = 1; i < occurences; i++)	{
+				for (var i = 1; i < occurences; i++)	{
 					id = id + this.separator + data[i];
 					var new_session1 = [id, this.self];
 					new_session1.join("->");
 					var new_session2 = [this.self, id];
 					new_session2.join("->");
 	
-					if(this.clients[new_session1] || this.clients[new_session2]) {
+					if (this.clients[new_session1] || this.clients[new_session2]) {
 						forwardto = id;
 						console.log("MSGHANDLER:  forwardto", forwardto);
 					}
 				}
 				this.sendMsg(message, forwardto, this.objectRef);
 			}
-		    else if(this.clients[session2]){
+		    else if (this.clients[session2]) {
 		    	console.log("MSGHANDLER:  clients[session2]:" + this.clients[session2]);
 		    	this.sendMsg(message, this.clients[session2], this.objectRef);
 		    }
-		    else if(this.clients[session1]){
+		    else if (this.clients[session1]) {
 		    	console.log("MSGHANDLER:  clients[session1]:" + this.clients[session1]);
 		    	this.sendMsg(message, this.clients[session1], this.objectRef);
 		    }
 		}
 	};
 
-	MessageHandler.prototype.onMessageReceived = function(message, sessionid) {
-		if(typeof message === "string") {
-			message = JSON.parse(message);
+	
+	/**
+	 *  Handle message routing on receiving message. it does -
+	 *  [1] Handle register message and create session path for newly registered party
+	 *  [2] Forward messaging if not message destination
+	 *  [3] Handle message  by calling RPC handler if it is message destination 
+	 */ 
+	MessageHandler.prototype.onMessageReceived = function (message, sessionid) {
+		if (typeof message === "string") {
+			try {
+				message = JSON.parse(message);
+			} catch (e) {
+				console.log("JSON.parse (message) - error: "+ e.message);
+			}
 		}
 		
- 		if(message.hasOwnProperty("register") && message.register) {
+		if (message.hasOwnProperty("register") && message.register) {
 			var from = message.from;
 			var to = message.to;
-			if(to !== undefined) {
+			if (to !== undefined) {
 				var regid = [from, to];
 				regid.join("->");  
 
 				//Register message to associate the address with session id
-				if(message.from) {
+				if (message.from) {
 					this.clients[regid] = message.from;
 				}
-				else if(sessionid) {
+				else if (sessionid) {
 					this.clients[regid] = sessionid;
 				}
    
 				console.log("register Message");
 			}
-    		return; 
+			return; 
 		}
 		// check message destination 
-		else if(message.hasOwnProperty("to") && (message.to)) {
+		else if (message.hasOwnProperty("to") && (message.to)) {
 			this.self = this.ownId;
 			
 			//check if a session with destination has been stored 
@@ -281,7 +299,7 @@
 				session2.join("->");
 
 				// not registered either way
-				if((!this.clients[session1]) && (!this.clients[session2])) {
+				if ((!this.clients[session1]) && (!this.clients[session2])) {
 					logObj(message, "Sender, receiver not registered either way");
 					//check occurances of separator used in addressing 
 					var occurences = (message.to.split(this.separator).length - 1);
@@ -290,54 +308,50 @@
 					var forwardto = data[0];
 				    
 					//strip from right side
-					for(var i = 1; i < occurences; i++) {
+					for (var i = 1; i < occurences; i++) {
 						id = id + this.separator + data[i];
 						var new_session1 = [id, this.self];
 						new_session1.join("->");
 						var new_session2 = [this.self, id];
 						new_session2.join("->");
 
-						if(this.clients[new_session1] || this.clients[new_session2]) {
+						if (this.clients[new_session1] || this.clients[new_session2]) {
 							forwardto = id;
 						}
 					}
-					console.log(message);
-					console.log(forwardto);
-					console.log(this.objectRef);
+
 					this.sendMsg(message, forwardto, this.objectRef);
 				}
-				else if(this.clients[session2]) {
+				else if (this.clients[session2]) {
 					this.sendMsg(message, this.clients[session2], this.objectRef);
 				}
-				else if(this.clients[session1]) {
+				else if (this.clients[session1]) {
 					this.sendMsg(message, this.clients[session1], this.objectRef);
 				}	
 				return;
 			}
 			//handle message on itself 
 			else {
-				if(message.payload) {
+				if (message.payload) {
 					if(message.to != message.resp_to) {
-						console.log(message.payload);
 						var from = message.from;
 						var msgid = message.id;
 						this.rpcHandler.handleMessage(message.payload, from, msgid);
 					} 
 					else {
-						if(typeof message.payload.method !== "undefined" ) {
+						if (typeof message.payload.method !== "undefined") {
 							// FIXME: can we call rpc.handleMessage here without checking messageCallbacks[] for message.id?
-							console.log("Message forwarded to RPC to handle callback");
 							var from = message.from;
 							var msgid = message.id;
 							this.rpcHandler.handleMessage(message.payload, from, msgid);
 						}
-						else {
-							if(typeof message.payload.result !== "undefined" || typeof message.payload.error !== "undefined") {
+						else { 
+							if (typeof message.payload.result !== "undefined" || typeof message.payload.error !== "undefined") {
 								this.rpcHandler.handleMessage(message.payload);
 							}
 						}
 
-						if(this.messageCallbacks[message.id]) {
+						if (this.messageCallbacks[message.id]) {
 							this.messageCallbacks[message.id].onSuccess(message.payload.result);
 						}
 					}
@@ -356,7 +370,7 @@
 	/**
 	 * Export messaging handler definitions for node.js
 	 */
-	if (typeof exports !== 'undefined'){
+	if (typeof exports !== 'undefined') {
 		exports.MessageHandler = MessageHandler; 
 	} else {
 		// export for web browser

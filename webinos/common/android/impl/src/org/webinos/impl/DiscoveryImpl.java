@@ -13,8 +13,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
+* Copyright 2011 Samsung Electronics Research Institute
 * Copyright 2011-2012 Paddy Byers
-*
 ******************************************************************************/
 
 package org.webinos.impl;
@@ -69,7 +69,6 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
     ArrayList<BluetoothDevice> devicesAvailable = new ArrayList<BluetoothDevice>(10);
     ArrayList<BluetoothDevice> devicesFound = new ArrayList<BluetoothDevice>(10);
     
-    //Service srv = new DiscoveryServiceImpl();
     DiscoveryServiceImpl srv = new DiscoveryServiceImpl();
     
     //DEMO:
