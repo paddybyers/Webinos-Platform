@@ -4,29 +4,47 @@ webinos/common/manager/context_manager/data/log.json
 
 # generated webinos.js
 demo/client/webinos.js
+
 # eclipse project files
 .project
 .settings
+
 # vstudio prj files
 *.sln
 *.vcxproj
+
 # generated certificates
 *.pem
 *.csr
 *.crl
 *.srl
+
 # backup files
 *~
+
 # waf lock files
 .lock-wscript
+
 # vi swap file
 *.swp
-# build folders
+
+# build stuff
 build
+out
+*.node
+linker.lock
+*.o
+
+# gyp generated
+webinos/common/manager/certificate_manager/src/Makefile
+webinos/common/manager/certificate_manager/src/*.mk
+
 # target folders
 target
+
 # reports folders
 reports
+
 # modules for vehicle connection
 webinos/api/vehicle/contrib/vb-con/
 webinos/api/vehicle/contrib/vb-con/vc.js
@@ -40,15 +58,14 @@ RPC/node_modules/dojo-node/
 RPC/node_modules/prototype/
 RPC/node_modules/xmlhttprequest/
 node_modules
+
 #node_modules
 /.metadata/
 
 #pzh logs
 demo/crash.txt
 demo/info.txt
-certificate_manager.node
-linker.lock
-*.o
 WebinosPzh_crash.txt
-node_modules
 *_crash.txt
+
+node_modules

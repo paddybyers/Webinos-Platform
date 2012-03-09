@@ -216,7 +216,6 @@ function authenticate(hostname, url) {
 		false,
 		exts);
 	
-	openid.discover(url, function(error, providers){
 		rely.authenticate(url, false, function(error, authUrl) {
 			if(error){
 				log('INFO','[WEB SERVER] Error '+ error);
@@ -226,7 +225,7 @@ function authenticate(hostname, url) {
 				result({cmd:'auth-url', payload: authUrl});
 			}
 		});
-	});
+	
 }
 
 function fetchOpenIdDetails(req, callback){
