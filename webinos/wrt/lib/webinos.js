@@ -26,14 +26,23 @@
      * messaging/eventing system will be used
      */
     function createCommChannel(successCB) {
-        try{
-            var port = parseInt(location.port) + 1;
-            if (isNaN(port)) {
-                port = 81;
-            }
-            channel  = new WebSocket('ws://'+window.location.hostname+':'+port);                    
-        } catch(e) {
-            channel  = new MozWebSocket('ws://'+window.location.hostname+':'+port);                         
+        try {
+            channel = new WebinosSocket();
+        } catch(e1) {
+	        try {
+	            var port = parseInt(location.port) + 1;
+	            if (isNaN(port)) {
+	                port = 81;
+	            }
+	            var host = window.location.hostname;
+	            if(!host) {
+	            	host = 'localhost';
+	            	port = 8081;
+	            }
+	            channel = new WebSocket("ws://" + host + ":" + port);
+	        } catch(e2) {
+	            channel  = new MozWebSocket('ws://'+window.location.hostname+':'+port);
+	        }
         }
         webinos.session.setChannel(channel);
 
@@ -92,6 +101,7 @@
             if (typeof webinos.file !== 'undefined' && typeof webinos.file.LocalFileSystem !== 'undefined')
                 typeMap['http://webinos.org/api/file'] = webinos.file.LocalFileSystem;
             if (typeof TestModule !== 'undefined') typeMap['http://webinos.org/api/test'] = TestModule;
+            if (typeof oAuthModule!== 'undefined') typeMap['http://webinos.org/mwc/oauth'] = oAuthModule;
             if (typeof WebinosGeolocation !== 'undefined') typeMap['http://www.w3.org/ns/api-perms/geolocation'] = WebinosGeolocation;
             if (typeof WebinosDeviceOrientation !== 'undefined') typeMap['http://webinos.org/api/deviceorientation'] = WebinosDeviceOrientation;
             if (typeof Vehicle !== 'undefined') typeMap['http://webinos.org/api/vehicle'] = Vehicle;

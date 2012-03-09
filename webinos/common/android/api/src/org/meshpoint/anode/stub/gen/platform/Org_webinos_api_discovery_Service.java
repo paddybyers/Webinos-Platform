@@ -17,7 +17,10 @@ public class Org_webinos_api_discovery_Service {
 				(String)args[1]
 			);
 			break;
-		case 1: /* unbind */
+		case 1: /* finalize */
+			inst.finalize();
+			break;
+		case 2: /* unbind */
 			inst.unbind();
 			break;
 		default:
@@ -55,6 +58,9 @@ public class Org_webinos_api_discovery_Service {
 		case 8: /* state */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.state);
 			break;
+		case 9: /* values */
+			result = inst.values;
+			break;
 		default:
 		}
 		return result;
@@ -79,6 +85,9 @@ public class Org_webinos_api_discovery_Service {
 			break;
 		case 8: /* state */
 			inst.state = (int)((org.meshpoint.anode.js.JSValue)val).longValue;
+			break;
+		case 9: /* values */
+			inst.values = (long[])val;
 			break;
 		default:
 			throw new UnsupportedOperationException();

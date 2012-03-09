@@ -40,7 +40,7 @@ public class WrtReceiver extends BroadcastReceiver {
 			wrtManager.stopInstance(activity);
 			return;
 		}
-		
+
 		if(ACTION_START.equals(action)) {
 			intent.setClassName(ctx, RendererActivity.class.getName());
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

@@ -1,7 +1,6 @@
 package org.webinos.app.wrt.ui;
 
 import org.webinos.app.R;
-import org.webinos.app.wrt.mgr.Constraints;
 import org.webinos.app.wrt.mgr.PrepareCallback;
 import org.webinos.app.wrt.mgr.ProcessingResult;
 import org.webinos.app.wrt.mgr.WidgetConfig;

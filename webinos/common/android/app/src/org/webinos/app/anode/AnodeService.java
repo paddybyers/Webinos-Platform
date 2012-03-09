@@ -17,9 +17,6 @@
 package org.webinos.app.anode;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -32,7 +29,6 @@ import org.meshpoint.anode.Runtime.StateListener;
 import org.webinos.util.ArgProcessor;
 import org.webinos.util.Constants;
 import org.webinos.util.ModuleUtils;
-import org.webinos.util.ModuleUtils.ModuleType;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -48,7 +44,7 @@ public class AnodeService extends IntentService {
 	private static int counter;
 	private static HashMap<String, Isolate> instances = new HashMap<String, Isolate>();
 	
-	static synchronized String addInstance(String instance, Isolate isolate) {
+	public static synchronized String addInstance(String instance, Isolate isolate) {
 		if(instance == null) instance = String.valueOf(counter++);
 		instances.put(instance, isolate);
 		return instance;
@@ -161,95 +157,12 @@ public class AnodeService extends IntentService {
 	}
 
 	private void handleInstall(Intent intent) {
-
-		/* get the specified arguments */
 		String module = intent.getStringExtra(AnodeReceiver.MODULE);
 		String path = intent.getStringExtra(AnodeReceiver.PATH);
-		File moduleResource;
-		boolean remove_tmp_resource = false;
-		
-		/* if no path was specified, it is an error */
-		if(path == null || path.isEmpty()) {
-			Log.v(TAG, "AnodeService.onHandleInstall: no path specified");
-			return;
-		}
-		
-		/* resolve expected module type from path */
-		ModuleType modType = ModuleUtils.guessModuleType(path);
-		if(modType == null) {
-			Log.v(TAG, "AnodeService.onHandleInstall: unable to determine module type: path = " + path);
-			return;
-		}
-		
-		/* guess the module name, if not already specified */
-		if(module == null || module.isEmpty()) {
-			int pathEnd = path.lastIndexOf('/') + 1;
-			module = path.substring(pathEnd, path.length()-modType.extension.length());
-		}
-
-		/* download module if http or https */
-		if(path.startsWith("http://") || path.startsWith("https://")) {
-			String filename = ModuleUtils.getResourceUriHash(path);
-			try {
-				moduleResource = ModuleUtils.getResource(new URI(path), filename);
-				remove_tmp_resource = true;
-			} catch(IOException e) {
-				Log.v(TAG, "handleInstall: aborting (unable to download resource); exception: " + e + "; resource = " + path);
-				return;
-			} catch(URISyntaxException e) {
-				Log.v(TAG, "handleInstall: aborting (invalid URI specified for resource); exception: " + e + "; resource = " + path);
-				return;
-			}
-		} else {
-			moduleResource = new File(path);
-		}
-		
-		/* unpack if necessary */
-		if(modType.unpacker != null) {
-			try {
-				moduleResource = ModuleUtils.unpack(moduleResource, module, modType);
-				remove_tmp_resource = true;
-			} catch(IOException e) {
-				Log.v(TAG, "handleInstall: aborting (unable to unpack resource); exception: " + e + "; resource = " + path);
-				return;
-			}
-		}
-
-		/* copy processed package to modules dir */
-		File installLocation = ModuleUtils.getModuleFile(module, modType);
-		if(installLocation.exists()) {
-			if(!ModuleUtils.deleteFile(installLocation)) {
-				Log.v(TAG, "handleInstall: aborting (unable to delete old module version); resource = " + path + ", destination = " + installLocation.toString());
-				return;
-			}
-		}
-		if(ModuleUtils.copyFile(moduleResource, installLocation)) {
-			if(remove_tmp_resource)
-				ModuleUtils.deleteFile(moduleResource);
-			Log.v(TAG, "handleInstall: success; resource = " + path + ", destination = " + installLocation.toString());
-			return;
-		}
-		Log.v(TAG, "handleInstall: aborting (unable to copy resource); resource = " + path + ", destination = " + installLocation.toString());
+		ModuleUtils.install(this, module, path);
 	}
 
 	private void handleUninstall(Intent intent) {
-		String module = intent.getStringExtra(AnodeReceiver.MODULE);
-		
-		/* if no module was specified, it is an error */
-		if(module == null || module.isEmpty()) {
-			Log.v(TAG, "AnodeService.onHandleUninstall: no module specified");
-			return;
-		}
-
-		File moduleLocation = ModuleUtils.locateModule(module, null);
-		if(moduleLocation == null) {
-			Log.v(TAG, "AnodeService.onHandleUninstall: specified module does not exist: " + module);
-			return;
-		}
-		if(!ModuleUtils.deleteFile(moduleLocation)) {
-			Log.v(TAG, "AnodeService.onHandleUninstall: unable to delete: " + module + "; attempting to delete " + moduleLocation.toString());
-			return;
-		}
-		Log.v(TAG, "handleUninstall: success; module = " + module + ", location = " + moduleLocation.toString());
+		ModuleUtils.uninstall(intent.getStringExtra(AnodeReceiver.MODULE));
 	}
 }

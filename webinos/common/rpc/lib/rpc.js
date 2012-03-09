@@ -55,6 +55,8 @@
 	
 	/**
 	 * RPCHandler constructor
+	 *  @constructor
+	 *  @param parent The PZP object or optional else.
 	 */
 	_RPCHandler = function(parent) {
 		/**
@@ -114,6 +116,7 @@
 	
 	/**
 	 * Sets the writer that should be used to write the stringified JSON RPC request.
+	 * @param messageHandler Message handler manager.
 	 */
 	_RPCHandler.prototype.setMessageHandler = function (messageHandler){
 		this.messageHandler = messageHandler;
@@ -121,6 +124,9 @@
 
 	/**
 	 * Handles a new JSON RPC message (as string)
+	 * @param message The RPC message coming in.
+	 * @param from The sender.
+	 * @param msgid An id.
 	 */
 	_RPCHandler.prototype.handleMessage = function (message, from, msgid){
 		console.log('INFO: [RPC] '+"New packet from messaging");
@@ -274,8 +280,6 @@
 						else this.awaitingResponse[myObject.id].onError();
 					}
 
-					//this.awaitingResponse[myObject.id] == null;
-					//this.awaitingResponse.splice(myObject.id,1);
 					delete this.awaitingResponse[myObject.id];
 				}
 			}
@@ -284,8 +288,13 @@
 	};
 
 	/**
-	 * Executes the given RPC Request and registers an optional callback that
-	 * is invoked if an RPC response with same id was received
+	 * Executes the given RPC request and registers an optional callback that
+	 * is invoked if an RPC response with same id was received.
+	 * @param rpc An RPC object create with createRPC.
+	 * @param callback Success callback.
+	 * @param errorCB Error callback.
+	 * @param from Sender.
+	 * @param msgid An id.
 	 */
 	_RPCHandler.prototype.executeRPC = function (rpc, callback, errorCB, from, msgid) {
 		//service invocation case
@@ -368,6 +377,16 @@
 		return rpc;
 	};
 	
+	/**
+	 * Utility method that combines createRPC and executeRPC.
+	 * @param service The service (e.g., the file reader or the
+	 * 	      camera service) as RPCWebinosService object instance.
+	 * @param method The method that should be invoked on the service.
+	 * @param objectRef RPC object reference.
+	 * @param successCallback Success callback.
+	 * @param errorCallback Error callback.
+	 * @returns Function which when called does the rpc.
+	 */
 	_RPCHandler.prototype.request = function (service, method, objectRef, successCallback, errorCallback) {
 		var self = this; // TODO Bind returned function to "this", i.e., an instance of RPCHandler?
 		
@@ -382,6 +401,16 @@
 		};
 	};
 
+	/**
+	 * Utility method that combines createRPC and executeRPC.
+	 * 
+	 * For notification only, doesn't support success or error callbacks.
+	 * @param service The service (e.g., the file reader or the
+	 * 	      camera service) as RPCWebinosService object instance.
+	 * @param method The method that should be invoked on the service.
+	 * @param objectRef RPC object reference.
+	 * @returns Function which when called does the rpc.
+	 */
 	_RPCHandler.prototype.notify = function (service, method, objectRef) {
 		var self = this; // TODO Bind returned function to "this", i.e., an instance of RPCHandler?
 		
@@ -398,7 +427,7 @@
 
 	/**
 	 * Registers a Webinos service object as RPC request receiver.
-	 * @param callback The callback object the contains the methods available via RPC.
+	 * @param callback The callback object that contains the methods available via RPC.
 	 */
 	_RPCHandler.prototype.registerObject = function (callback) {
 		if (typeof callback !== 'undefined') {
@@ -424,7 +453,7 @@
 
 	/**
 	 * Registers an object as RPC request receiver.
-	 * @param callback the callback object the contains the methods available via RPC
+	 * @param callback The callback object that contains the methods available via RPC.
 	 */
 	_RPCHandler.prototype.registerCallbackObject = function (callback) {
 		if (typeof callback !== 'undefined') {
@@ -440,8 +469,8 @@
 	};
 
 	/**
-	 * 
-	 * 
+	 * Unregisters an object, so it can no longer receives requests.
+	 * @param callback The callback object to unregister.
 	 */
 	_RPCHandler.prototype.unregisterObject = function (callback) {
 		if (typeof callback !== 'undefined' && callback != null){
@@ -459,7 +488,10 @@
 	};
 
 	/**
-	 * 
+	 * Used by the ServiceDiscovery to search for registered services.
+	 * @param serviceType ServiceType object to search for.
+	 * @param callback Callback to call with results.
+	 * @private
 	 */
 	_RPCHandler.prototype.findServices = function (serviceType, callback) {
 		console.log('INFO: [RPC] '+"findService: searching for ServiceType: " + serviceType.api);
@@ -567,10 +599,11 @@
 	};
 	
 	/**
-	 * Return an array of all known services, including local and remote
+	 * Get an array of all known services, including local and remote
 	 * services. Used by PZH.
 	 * @param exceptAddress Address of services that match will be excluded from
 	 * results.
+	 * @returns Array with known services.
 	 */
 	_RPCHandler.prototype.getAllServices = function(exceptAddress) {
 		var results = [];
@@ -586,7 +619,8 @@
 	};
 	
 	/**
-	 * Return an array of all registered Service objects. 
+	 * Get an array of all registered Service objects. 
+	 * @returns Array with said objects.
 	 */
 	_RPCHandler.prototype.getRegisteredServices = function() {
 		// FIXME this shouldn't be a public method i guess
@@ -618,6 +652,7 @@
 	 * that has the following three fields: api, displayName, description. When
 	 * used as RPC callback object, it is enough to specify the api field and set
 	 * that to ObjectRef.
+	 * @constructor
 	 * @param obj Object with fields describing the service.
 	 */
 	this.RPCWebinosService = function (obj) {
@@ -636,6 +671,10 @@
 		}
 	};
 	
+	/**
+	 * Get an information object from the service.
+	 * @returns Object including id, api, displayName, serviceAddress.
+	 */
 	this.RPCWebinosService.prototype.getInformation = function () {
 		return {
 			id: this.id,
@@ -648,7 +687,8 @@
 
 	/**
 	 * Webinos ServiceType from ServiceDiscovery
-	 * @param api
+	 * @constructor
+	 * @param api String with API URI.
 	 */
 	this.ServiceType = function(api) {
 		if (!api)
@@ -657,6 +697,11 @@
 		this.api = api; 
 	};
 
+	/**
+	 * Used to load and register webinos services.
+	 * @private
+	 * @param modules An array of services, must be valid node add-ons exporting a Service constructor.
+	 */
 	_RPCHandler.prototype.loadModules = function(modules) {
 		if (typeof module === 'undefined') return;
 		
@@ -694,6 +739,10 @@
 		}		
 	};
 	
+	/**
+	 * Set session id.
+	 * @param id Session id.
+	 */
  	_RPCHandler.prototype.setSessionId = function(id) {
 		sessionId = id;
 	};

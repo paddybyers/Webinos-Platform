@@ -23,49 +23,39 @@
 	};
 	
 	BluetoothManager.prototype = new WebinosService;
+  
+	BluetoothManager.prototype.bindService = function (bindCB, serviceId) {
+		this.findHRM = findHRM;
+		this.listenAttr = {};
+		this.listenerForHRM = listenerForHRM.bind(this);
+		
+		if (typeof bindCB.onBind === 'function') {
+			bindCB.onBind(this);
+		}
+	};
+
+	//function listenerForHRM(listener, options) {
+	BluetoothManager.prototype.listenerForHRM = function(listener, options){
+		var rpc = webinos.rpcHandler.createRPC(this, "listenAttr.listenForHRM", [options]);
+		rpc.fromObjectRef = Math.floor(Math.random()*101); //random object ID	
+
+		// create a temporary webinos service on the browser
+		var callback = new RPCWebinosService({api:rpc.fromObjectRef});
+		callback.onEvent = function (obj) {
+			listener(obj); 
+		};
+		webinos.rpcHandler.registerCallbackObject(callback);
+
+		webinos.rpcHandler.executeRPC(rpc);
 	
-	BluetoothManager.prototype.findservices = function(data, success,fail){
-		console.log("bluetooth findservices");
-	  	var rpc = webinos.rpcHandler.createRPC(this, "findservices",arguments);
+	};
+
+	BluetoothManager.prototype.findHRM = function(data, success){
+		console.log("HRM find HRM");
+  		var rpc = webinos.rpcHandler.createRPC(this, "findHRM",arguments);
 	  	webinos.rpcHandler.executeRPC(rpc, function(params) {
 		success(params);
-	   }, function(error) {
-		  fail(error);
-	   });
-	  return;
+  	 });
 	};
-	
-	//BluetoothManager.prototype.binddevice = function(data, success,fail){
-	  //var rpc = webinos.rpcHandler.createRPC(this, "binddevice",arguments);
-	  
-	  BluetoothManager.prototype.bindservice = function(data, success,fail){
-	  var rpc = webinos.rpcHandler.createRPC(this, "bindservice",arguments);
-          webinos.rpcHandler.executeRPC(rpc, function(params) {
-			success(params);
-	   }, function(error) {
-		  fail(error);
-	   });
-	  return;
-	};
-	
-	BluetoothManager.prototype.listfile = function(data, success,fail){
-	  var rpc = webinos.rpcHandler.createRPC(this, "listfile",arguments);
-          webinos.rpcHandler.executeRPC(rpc, function(params) {
-			success(params);
-	   }, function(error) {
-		  fail(error);
-	   });
-	  return;
-	};
-	
-	BluetoothManager.prototype.transferfile = function(data, success,fail){
-	  var rpc = webinos.rpcHandler.createRPC(this, "transferfile",arguments);
-          webinos.rpcHandler.executeRPC(rpc, function(params) {
-			success(params);
-	   }, function(error) {
-		  fail(error);
-	   });
-	  return;
-	};
-	
+ 
 }());

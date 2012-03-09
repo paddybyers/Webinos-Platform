@@ -2,13 +2,13 @@
 <head>
 <title>PZP Testbed</title>
         <link rel="icon" href="vehicle/webinos.ico" type="image/x-icon">
-        <script type="text/javascript" src="/client/webinos.js"></script>
-        <script type="text/javascript" src="/client/jsrender.js"></script>
-        <link rel="stylesheet" type="text/css" href="/client/jquery-ui-1.8.16.custom.css"/>
+        <script type="text/javascript" src="./webinos.js"></script>
+        <script type="text/javascript" src="./jsrender.js"></script>
+        <link rel="stylesheet" type="text/css" href="./jquery-ui-1.8.16.custom.css"/>
         <link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
-        <script type="text/javascript" src="/client/jquery.js"></script>
-        <script type="text/javascript" src="/client/jquery-ui.js"></script>
-        <script type="text/javascript" src="/client/dojo.js"></script>
+        <script type="text/javascript" src="./jquery.js"></script>
+        <script type="text/javascript" src="./jquery-ui.js"></script>
+        <script type="text/javascript" src="./dojo.js"></script>
         <script type="text/javascript">
                 $(document).ready(function() {
                                 $("#tabs").tabs();
@@ -136,13 +136,14 @@
                 <li> <a href="#contact"> Contact </a> </li>
                 <li> <a href="#geolocation"> GeoLocation </a> </li>
                 <li> <a href="#discovery_UI"> Discovery UI </a> </li>
-                <li> <a href="#discovery_BT"> Discovery Bluetooth </a> </li>
+                <li> <a href="#discovery_HRM"> Bluetooth HRM Demo </a> </li>
                 <li> <a href="#sensor"> Sensor </a> </li>
                 <li> <a href="#payment"> Payment </a> </li>
                 <li> <a href="#file"> File API </a> </li>
                 <li> <a href="#events"> Event API </a> </li>
                 <li> <a href="#applauncher"> AppLauncher API </a> </li>
                 <li> <a href="#tv"> TV API </a> </li>
+                <li> <a href="#oAuth"> oAuth API </a> </li>
                 <li><a href="#context"> Context </a></li>
                 <li> <a href="#authentication"> Authentication </a> </li>
                 <li> <a href="#pzp"> PZP </a> </li>
@@ -230,8 +231,8 @@
                 </iframe>
         </div>
         
-        <div id="discovery_BT" style="background-color:#0879a9">
-                <iframe src="discovery/bluetooth.html" width="100%" height="100%">
+        <div id="discovery_HRM" style="background-color:#0879a9">
+                <iframe src="discovery/bluetooth_hrm.html" width="100%" height="100%">
                 </iframe>
         </div>
         
@@ -261,6 +262,10 @@
         </div>
         <div id="tv" style="background-color:#0879a9">
                 <iframe src="tv/client.html" width="100%" height="100%">
+                </iframe>
+        </div>
+        <div id="oAuth" style="background-color:#0879a9">
+                <iframe src="oAuth/client.html" width="100%" height="100%">
                 </iframe>
         </div>
         <div id="context" style="background-color: #0879a9">

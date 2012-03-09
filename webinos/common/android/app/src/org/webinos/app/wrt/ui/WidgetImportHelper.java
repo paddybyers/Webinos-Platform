@@ -18,7 +18,6 @@ import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -39,20 +38,24 @@ public class WidgetImportHelper {
 
 	private void addWgtFilesFromDir(File dir, ArrayList<String> wgtFiles) {
 		String[] dirEntries = dir.list();
-		for(String entry : dirEntries) {
-			File file = new File(dir, entry);
-			if(file.isDirectory()) {
-				addWgtFilesFromDir(file, wgtFiles);
-				return;
+		if(dirEntries != null) {
+			for(String entry : dirEntries) {
+				File file = new File(dir, entry);
+				if(file.isDirectory()) {
+					addWgtFilesFromDir(file, wgtFiles);
+				} else if(file.isFile() && entry.endsWith(".wgt")) {
+					wgtFiles.add(file.getAbsolutePath());
+				}
 			}
-			if(file.isFile() && entry.endsWith(".wgt"))
-				wgtFiles.add(file.getAbsolutePath());
 		}
 	}
 	
 	ImportListAdapter getListAdapter() {
-		return new ImportListAdapter();
-	}
+		ImportListAdapter result = null;
+		if(wgtNames != null)
+			result = new ImportListAdapter();
+		return result;
+}
 
 	private class ImportListAdapter extends ArrayAdapter<String> implements OnCheckedChangeListener {
 		public ImportListAdapter() {

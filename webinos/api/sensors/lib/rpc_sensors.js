@@ -18,7 +18,8 @@
 (function() {
 
 /**
- * Webinos Service constructor.
+ * Webinos Sensor service constructor (server side).
+ * @constructor
  * @param rpcHandler A handler for functions that use RPC to deliver their result.  
  */
 var SensorModule = function(rpcHandler) {

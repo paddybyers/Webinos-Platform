@@ -1,7 +1,7 @@
 <html>
 <head>
 	<title>webinos events</title>
-	<script type="text/javascript" src="/client/webinos.js"></script>
+	<script type="text/javascript" src="../webinos.js"></script>
 	<script type="text/javascript"
 		src="http://code.jquery.com/jquery-1.5.2.js"></script>
 	<script type="text/javascript">
@@ -103,10 +103,10 @@
                     }); 
                     
                     $('#bind').bind('click', function() {
-                        eventAPIToUse.bind(function(){
+                        eventAPIToUse.bind({onBind:function(){
                         	$('#messages').append('<li> Events API ' + eventAPIToUse.api + ' bound.</li>');
                         	$('#messages').append('<li> My APP ID ' + eventAPIToUse.temporaryRandomAppID + ' </li>');
-                        });
+                        }});
                     }); 
                     
                     

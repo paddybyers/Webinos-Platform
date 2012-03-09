@@ -40,6 +40,7 @@ public class WidgetListActivity extends ListActivity implements WidgetManagerSer
 	private Handler asyncRefreshHandler;
 	private String[] ids;
 
+	@Override
 	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
 		registerForContextMenu(getListView());
@@ -54,6 +55,17 @@ public class WidgetListActivity extends ListActivity implements WidgetManagerSer
 			mgr.addEventListener(this);
 			initList();
 		}
+		scanner = new WidgetImportHelper(this);
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
 	}
 
 	@Override
@@ -96,7 +108,7 @@ public class WidgetListActivity extends ListActivity implements WidgetManagerSer
 		if(item.getItemId() != SCAN_MENUITEM_ID)
 			return false;
 
-		(scanner = new WidgetImportHelper(this)).scan();
+		scanner.scan();
 		return true;    
 	}
 
@@ -105,9 +117,9 @@ public class WidgetListActivity extends ListActivity implements WidgetManagerSer
 		String item = (String) getListAdapter().getItem(position);
 		Context ctx = getApplicationContext();
 		Intent wrtIntent = new Intent(ACTION_START);
-		wrtIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		wrtIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); /* Intent.FLAG_INCLUDE_STOPPED_PACKAGES */
 		wrtIntent.putExtra(ID, item);
-		ctx.sendBroadcast(wrtIntent);
+		ctx.startActivity(wrtIntent);
 	}
 
 	public void onLaunch(final WidgetManagerImpl mgr) {
