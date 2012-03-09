@@ -42,14 +42,10 @@
   var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + '/';
   var dependencies = require(path.resolve(webinosRoot + '/dependencies.json'));
 
-<<<<<<< HEAD
-  var sqlite3 = require('sqlite3').verbose();
-=======
   var ServiceDiscovery = require(path.join(webinosRoot, dependencies.wrt.location, 'lib/webinos.servicedisco.js')).ServiceDiscovery;
   var webinosServiceDiscovery = null;
 
   var sqlite3 = require('node-sqlite3').verbose();
->>>>>>> Context manager code now talks to the pzh.
 
   var dbpath = path.resolve(commonPaths.storage + '/pzh/contextDB.db');
   var bufferpath = path.resolve(commonPaths.storage + '/pzp/contextDBbuffer.json');
