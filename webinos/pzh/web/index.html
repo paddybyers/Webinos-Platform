@@ -37,42 +37,50 @@
 		</script>
 		<style type="text/css">
 			body{
-				font-family:serif;
-				background-color:#3366FF;
+				font-family:Optima, Segoe, Candara, Calibri, Arial, sans-serif;
+				background-color:#257fd7;
 				color:#FFFFFF;
-				margin:10;
+				margin:0;
 				top: 0;
-				padding:20;
+				padding:0;
+			}
+			h2 {
+				font-family: 'Mate SC', serif;
+				color: #65b3ff;
+				padding: 5px;
+				font-size: 3em;
+				margin: 0
+			}
+			li {
+				font-family: 'Mate SC', serif;
+				color: #FFFFFF;
+				padding: 5px;
+				font-size: 2em;
+				margin: 0
 			}
 		</style>
 	</head>
 	<body>
-		<div id = "authentication">
-			<table align="center" border="0" height="100%" width="100%">
-				<tr height="20%" width="100%" > <td>  <img src="http://webinos.org/wp-content/themes/parallelus-unite/images/webinos_logo.png"/> </td> </tr>
-				<tr height="30%" width="50%" >
-					<td height="100%" width="50%"> <h1> Welcome to Webinos PZH </h1>
-						<li> Login to your account</li>
-						<li> Access your devices </li>
-						<li> Add devices in your PZH </li>
-						<li> Connect other PZH </li>
-						<li> Revoke certificate </li>
-						<li> Crash Logs </li>
-						<li> Restart PZH </li>
-					</td>
-					<td height="30%" width="50%">
-						<center>
-							<input type="button" style="height:40;width:50%;center" value="Login via Google" onclick="Google()"/>
-							<p> </p>
-							<a href="Javascript:Yahoo()"> <img src="yahoo.png"/> </a>
-							
-							
-						</center>
-					</td>
-				</tr>
-				<tr height="50%" width="100%"> <td> </td> <td> </td> </tr>
-			</table>
+		
+		<h1 style="display:block;border:none;width:160px;height:150px;margin:5px auto 20px auto;padding:0">
+		<span> <img src="http://webinos.org/wp-content/themes/parallelus-unite/images/webinos_logo.png"></img> </span>
+		</h1>			
+		<div style="width:30%;display:inline;background:#004C97;border:0.1px;padding:15px;float:left;clear:left;margin-left:20%;text-shadow:1em 1em 2em black;">
+			<h2> Welcome to Webinos PZH </h2>
+			<li> Login to your account</li>
+			<li> Connected devices List </li>
+			<li> Add devices(PZP) in your PZH </li>
+			<li> Connect other PZH's</li>
+			<li> Revoke PZP certificate </li>
+			<li> Crash Logs </li>
+			<li> Restart PZH </li> 
 		</div>
 
+		<div style="width:20%;display:inline;background:#004C97;border:0.1px;float:right;clear:right;margin-right:20%;text-shadow:1em 1em 2em black;">
+			<center> <h2> Sign in Using: </h2>
+			<input type="button" style="height:40;width:50%;align:center" value="Login via Google" onclick="Google()"/>
+			<p> <h2> or </h2> </p>
+			 <a href="Javascript:Yahoo()"> <img src="yahoo.png"/> </a> </center>
+		</div>
 	</body>
 </html>
