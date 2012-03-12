@@ -25,14 +25,14 @@ var connection;
 var pzh = [];
 // Create HTTPS Server
 pzhWebInterface.start = function(hostname) {
-	createWebInterfaceCertificate(farm.config, function(webServer, wssServer){
+	createWebInterfaceCertificate(farm.config, function(webServer){
 		var server = https.createServer(webServer, function(req, res){
 			var parsed = url.parse(req.url);
 			var query = querystr.parse(parsed.query);
 			
 			if (query.id === 'verify'){
-				fetchOpenIdDetails(req, res, function(userid) {// Important step as we assign pzh instance
-					res.writeHead(302, {Location: '/main.html?id='+userid}); // redirection to same page but without details fetched from google.
+				fetchOpenIdDetails(req, res, function(provider, userid) {// Important step as we assign pzh instance
+					res.writeHead(302, {Location: '/main.html?provider='+provider+'?id='+userid}); // redirection to same page but without details fetched from google.
 					res.end();
 				});
 
@@ -45,11 +45,12 @@ pzhWebInterface.start = function(hostname) {
 // 					return;
 // 				}
 				var filename;
-				if(typeof pzh === 'undefined' && !pzh[currentPzh] && parsed.pathname === '/main.html' ) {
-					filename = path.join(__dirname, '/index.html');
-				} else {
-					filename = path.join(__dirname, parsed.pathname);
-				}
+// 				if(typeof pzh === 'undefined' || !pzh[currentPzh] ) {
+// 					filename = path.join(__dirname, '/index.html');
+// 				} else {
+// 					
+// 				}
+				filename = path.join(__dirname, parsed.pathname);
 				path.exists(filename, function(exists) {
 					if(!exists) {
 						res.writeHeader(404, {"Content-Type": "text/plain"});
@@ -81,7 +82,7 @@ pzhWebInterface.start = function(hostname) {
 			log('INFO','[WEB SERVER] Server Error' + err);
 		});
 
-		var httpsServer = https.createServer(wssServer, function(request, response) {
+		var httpsServer = https.createServer(webServer, function(request, response) {
 			response.writeHead(404);
 			response.end();
 		});
@@ -99,6 +100,7 @@ pzhWebInterface.start = function(hostname) {
 			log('INFO','[WEB SERVER] '+conn.remoteAddress + ' connected ');
 			connection = conn;
 			// TODO: Send only to main.html and not to all ..
+			console.log(pzh);
 			if (typeof pzh !== 'undefined' && pzh[currentPzh]){
 				pzhapis.listZoneDevices(pzh[currentPzh], result);
 			}
@@ -117,6 +119,9 @@ pzhWebInterface.start = function(hostname) {
 				}
 				if (parse.cmd && parse.from) {
 					switch(parse.cmd) {
+						case 'listDevices':
+							pzhapis.listZoneDevices(pzh[parse.from], result);
+							break;
 						case 'userDetails':
 							result({cmd:'userDetails', payload:pzh[parse.from].config.details});
 							break;
@@ -250,11 +255,13 @@ function fetchOpenIdDetails(req, res, callback){
 				var query = querystr.parse(parsed.query);
 				if (query && query.id) {
 					details.id = query.id;
-				} else {					
+					details.provider = 'google';
+				} else {
 					details.id =  parsed.path.split('/')[2];
+					details.provider = 'yahoo';
 					
 				}
-				callback(details.id)
+				callback(details.provider, details.id)
 			}
 			if(userDetails.country){
 				details.country = userDetails.country;
@@ -298,29 +305,12 @@ function createWebInterfaceCertificate (config, callback) {
 							config.webServer.cert = signed_cert;
 							configure.storeKey(config.webServer.key_id, ws_key);
 							configure.storeConfig(config, function() {
-								cert.selfSigned( 'PzhWebSocketServer', config.certValues, function(status, selfSignErr, wss_key, ws_cert, csr ) {
-									if(status === 'certGenerated') {
-										cert.signRequest(csr, master_key,  config.master.cert, 1, function(result, signed_cert) {
-											if(result === 'certSigned') {
-												config.webSocketServer.cert = signed_cert;
-												configure.storeKey(config.webSocketServer.key_id, wss_key);
-												configure.storeConfig(config, function() {
-													var wss = {
-														key : ws_key,
-														cert: config.webServer.cert,
-														ca  : config.master.cert
-													};
-													var wss1 = {
-														key : wss_key,
-														cert: config.webSocketServer.cert,
-														ca  : config.master.cert
-													};
-													callback(wss, wss1);
-												});
-											}
-										});
-									}
-								});
+								var wss = {
+									key : ws_key,
+									cert: config.webServer.cert,
+									ca  : config.master.cert
+								};
+								callback(wss);
 							});
 						}
 					});
@@ -330,23 +320,15 @@ function createWebInterfaceCertificate (config, callback) {
 			}
 		});
 	} else {
-		if (config.webSocketServer.cert !== "" && config.webServer.cert !== ""){
+		if (config.webServer.cert !== ""){
 			var wss = {
 				key : '',
 				cert: config.webServer.cert,
 				ca  : config.master.cert
 				};
-			var wss1 = {
-				key : '',
-				cert: config.webSocketServer.cert,
-				ca  : config.master.cert
-			};
 			configure.fetchKey(config.webServer.key_id, function(ws_key){
 				wss.key = ws_key;
-				configure.fetchKey(config.webSocketServer.key_id, function(wss_key){
-					wss1.key = wss_key;
-					callback(wss, wss1);
-				});
+				callback(wss);
 			});
 		}
 		

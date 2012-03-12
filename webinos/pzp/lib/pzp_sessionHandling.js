@@ -240,7 +240,7 @@
 		self = this;
 		var conn_key, config = {};
 		try {
-			if (typeof self.config.master.cert !== "undefined" && self.config.master.cert !== '' ) {
+			if (typeof self.config.master.cert !== "undefined" || self.config.master.cert !== '' ) {
 				config = {
 					key : conn_key,
 					cert: self.config.conn.cert,
@@ -255,8 +255,6 @@
  					servername: self.config.servername
 				};
 			}
-
-
 			client = tls.connect(configuration.pzhPort, self.address, config,
 			function(conn) {
 				log('INFO','[PZP -'+ self.sessionId+'] Connection to PZH status: ' + client.authorized );

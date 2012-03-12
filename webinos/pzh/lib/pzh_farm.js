@@ -73,65 +73,67 @@ farm.startFarm = function (url, contents, callback) {
 			requestCert       : true,
 			rejectUnauthorised: false
 		};
-		// Farm URL
-		farm.config.servername = url;
-		// Start web interface, this webinterface will adapt depending on user who logins
-		pzhWebInterface.start(url);
-		// Main farm TLS server
-		farm.server = tls.createServer (options, function (conn) {
-			// if servername existes in conn and farm.pzhs has details about pzh instance, message will be routed to respective PZH authorization function
-			if (conn.servername && farm.pzhs[conn.servername]) {
-				log('INFO', '[PZHFARM] sending message to ' + conn.servername);
-				farm.pzhs[conn.servername].handleConnectionAuthorization(farm.pzhs[conn.servername], conn);
-			} else {
-				log('ERROR', '[PZHFARM] Server Is Not Registered in Farm');
-				conn.socket.end();
-				return;
-			}
-			// In case data is received at farm
-			conn.on('data', function(data){
-				log('INFO', '[PZHFARM] msg received at farm');
-				// forward message to respective PZH handleData function
-				if(conn.servername && farm.pzhs[conn.servername]) {
-					farm.pzhs[conn.servername].handleData(conn, data);
+		utils.resolveIP(url, function(resolvedAddress) {
+			// Farm URL
+			farm.config.servername = resolvedAddress;
+			// Start web interface, this webinterface will adapt depending on user who logins
+			pzhWebInterface.start(url);
+			// Main farm TLS server
+			farm.server = tls.createServer (options, function (conn) {
+				// if servername existes in conn and farm.pzhs has details about pzh instance, message will be routed to respective PZH authorization function
+				if (conn.servername && farm.pzhs[conn.servername]) {
+					log('INFO', '[PZHFARM] sending message to ' + conn.servername);
+					farm.pzhs[conn.servername].handleConnectionAuthorization(farm.pzhs[conn.servername], conn);
+				} else {
+					log('ERROR', '[PZHFARM] Server Is Not Registered in Farm');
+					conn.socket.end();
+					return;
 				}
-			});
-			// In case of error
-			conn.on('end', function(err) {
-				log('INFO', '[PZHFARM] Client of ' +conn.servername+' ended connection');
-			});
-
-			// It calls removeClient to remove PZH from list.
-			conn.on('close', function() {
-				try {
-					log('INFO', '[PZHFARM] ('+conn.servername+') Pzh/Pzp  closed');
+				// In case data is received at farm
+				conn.on('data', function(data){
+					log('INFO', '[PZHFARM] msg received at farm');
+					// forward message to respective PZH handleData function
 					if(conn.servername && farm.pzhs[conn.servername]) {
-						var cl = farm.pzhs[conn.servername];
-						var removed = utils.removeClient(cl, conn);
-						if (removed !== null && typeof removed !== "undefined"){
-							cl.messageHandler.removeRoute(removed, conn.servername);
-							cl.rpcHandler.removeRemoteServiceObjects(removed);
-						}
+						farm.pzhs[conn.servername].handleData(conn, data);
 					}
-				} catch (err) {
-					log('ERROR', '[PZHFARM] ('+conn.servername+') Remove client from connectedPzp/connectedPzh failed' + err);
-				}
+				});
+				// In case of error
+				conn.on('end', function(err) {
+					log('INFO', '[PZHFARM] Client of ' +conn.servername+' ended connection');
+				});
+
+				// It calls removeClient to remove PZH from list.
+				conn.on('close', function() {
+					try {
+						log('INFO', '[PZHFARM] ('+conn.servername+') Pzh/Pzp  closed');
+						if(conn.servername && farm.pzhs[conn.servername]) {
+							var cl = farm.pzhs[conn.servername];
+							var removed = utils.removeClient(cl, conn);
+							if (removed !== null && typeof removed !== "undefined"){
+								cl.messageHandler.removeRoute(removed, conn.servername);
+								cl.rpcHandler.removeRemoteServiceObjects(removed);
+							}
+						}
+					} catch (err) {
+						log('ERROR', '[PZHFARM] ('+conn.servername+') Remove client from connectedPzp/connectedPzh failed' + err);
+					}
+				});
+
+				conn.on('error', function(err) {
+					log('ERROR', '[PZHFARM] ('+conn.servername+') General Error' + err);
+
+				});
 			});
 
-			conn.on('error', function(err) {
-				log('ERROR', '[PZHFARM] ('+conn.servername+') General Error' + err);
-
+			farm.server.on('listening', function(){
+				log('INFO', '[PZHFARM] Initialized *********** ');
+				// Load PZH's that we already have registered ...
+				loadPzhs(farm.config);
+				callback(true);
 			});
+
+			farm.server.listen(configuration.farmPort, resolvedAddress);
 		});
-		
-		farm.server.on('listening', function(){
-			log('INFO', '[PZHFARM] Initialized *********** ');
-			// Load PZH's that we already have registered ...
-			loadPzhs(farm.config);
-			callback(true);
-		});
-		
-		farm.server.listen(configuration.farmPort, 'localhost');
 	});
 };
 
@@ -142,9 +144,16 @@ farm.startFarm = function (url, contents, callback) {
  */
 farm.getOrCreatePzhInstance = function (host, user, callback) {
 	"use strict";
-	// Check for if user already existed and is stored
-	var myKey = host+'/'+user.name;
-	// This PZH 
+	var name;
+	
+	if (typeof user.name === 'undefined' ) {
+		name = user.email;
+	} else {
+		name = user.name;
+	}
+	// Check for if user already existed and is stored	
+	var myKey = host+'/'+name;
+
 	if ( farm.pzhs[myKey] && farm.pzhs[myKey].config.details.name === user.name ) {
 		log('INFO', '[PZHFARM] User already registered');
 		callback(myKey, farm.pzhs[myKey]);		
@@ -158,7 +167,7 @@ farm.getOrCreatePzhInstance = function (host, user, callback) {
 		log('INFO', '[PZHFARM] Adding new PZH');
 		var contents="country="+user.country+
 			"\nstate=\'\'\ncity=\'\'\norganization=\'\'\norganizationUnit=\'\'"+
-			"\ncommon="+user.name+"_pzh"+"\nemail="+user.email+"\ndays=3600";
+			"\ncommon="+name+"_pzh"+"\nemail="+user.email+"\ndays=3600";
 		var pzhModules = [];
 		Pzh.addPzh(myKey, contents, pzhModules, function(){
 			farm.pzhs[myKey].config.details = user;

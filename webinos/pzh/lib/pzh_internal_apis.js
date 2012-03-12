@@ -202,6 +202,9 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 						return;
 					});
 				});
+			} else {
+				console.log('Not registered in PZH');
+				callback(false);
 			}
 		}		
 	} 

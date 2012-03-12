@@ -27,9 +27,6 @@ Configuration storage information:
     
  TODO ITEMS:
     6. Restart PZH - As PZH are SNI context, how to restart a PZH in a farm. 
-    7. No support for IP address
-    8. If no first and last name is present it will fail creating certificates. check before allowing ...
-    9. Google does not logout when you clear cache, it stores your information it does not redirect you to verify page..
 
     2. Change directory from where web server is initialized ..
     3. Allow only certain directories to be accessible

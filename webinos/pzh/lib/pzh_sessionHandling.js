@@ -289,7 +289,6 @@
 	 * @param {Object} parse: It its is an object holding received message. 
 	 */
 	Pzh.prototype.addNewPZPCert = function (parse, cb) {
-		"use strict";
 		var self = this;
 		var pzp = 2;
 		try {

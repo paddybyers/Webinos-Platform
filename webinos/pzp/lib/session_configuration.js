@@ -88,9 +88,22 @@ configure.setConfiguration = function (config, type, callback) {
 			} else { // When configuration already exists, just load configuration file 
 				var configData = data.toString('utf8');
 				config = JSON.parse(configData);
-				configure.fetchKey(config.conn.key_id, function(conn_key){
-					callback(config, conn_key);
-				});
+				if (config.master.cert === '' ){
+					log('INFO', '[CONFIG] Regenerate PZP certificate as it failed getting certificate from PZH');
+					cert.selfSigned( type, config.certValues, function(status, selfSignErr, conn_key, conn_cert, csr ) {
+						if(status === 'certGenerated') {
+							configure.storeKey(config.conn.key_id, conn_key);
+							config.conn.cert = conn_cert.cert;
+							configure.storeConfig(config, function() {
+								callback(config, conn_key, csr);
+							});
+						}
+					});
+				} else {
+					configure.fetchKey(config.conn.key_id, function(conn_key){
+						callback(config, conn_key);
+					});
+				}
 			}
 		});
 	});
@@ -210,14 +223,13 @@ function createConfigStructure (name, type, certValues) {
 	if (type === 'Pzh') {
 		config.conn        = { key_id: name+'_conn_key',   cert:''};
 		config.master      = { key_id: name+'_master_key', cert:'', crl:'' };
-		config.signedCert  = {};
-		config.revokedCert = {};
-		config.otherCert   = {};
+		config.signedCert  = [];
+		config.revokedCert = [];
+		config.otherCert   = [];
 	} else if (type === 'PzhFarm') {
 		config.conn            = { key_id: name+'_conn_key',   cert:''};
 		config.master          = { key_id: name+'_master_key', cert:''} ;
 		config.webServer       = { key_id: name+'_ws_key',     cert:''} ;
-		config.webSocketServer = { key_id: name+'_wss_key',    cert:''} ;
 		config.pzhs      = {}; //contents: '', modules:''
 	} else if (type === 'Pzp' ){
 		config.conn   = { key_id: name+'_conn_key', cert:''};
