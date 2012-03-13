@@ -389,7 +389,6 @@
 				} else if(parseMsg.type === 'prop' && parseMsg.payload.status === 'foundServices') {
 					log('INFO', '[PZP -'+self.sessionId+'] Received message about available remote services.');
 					this.serviceListener && this.serviceListener(parseMsg.payload);
-					this.serviceListener = undefined;
 				}
 				// Forward message to message handler
 				else {
@@ -401,7 +400,8 @@
 	
 	/**
 	 * Add callback to be used when PZH sends message about other remote
-	 * services being available. The callback is cleared once it was called.
+	 * services being available. This is used by the RPCHandler to receive
+	 * other found services.
 	 * @param callback the listener that gets called.
 	 */
 	Pzp.prototype.addRemoteServiceListener = function(callback) {

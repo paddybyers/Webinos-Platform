@@ -98,7 +98,7 @@
 			// are returned by the pzh
 			this.parent.addRemoteServiceListener(function (payload) {
 				var callback = that.remoteServicesFoundCallbacks[payload.id];
-				console.log(payload);
+				
 				if (!callback) {
 					console.log("ServiceDiscovery: no findServices callback found for id: " + payload.id);
 					return;
@@ -559,7 +559,6 @@
 			
 			// store callback in map for lookup on returned remote results
 			var callbackId = Math.floor(Math.random()*101);
-			console.log(callbackId);
 			this.remoteServicesFoundCallbacks[callbackId] = (function(res) {
 				return function(remoteServices) {
 					
