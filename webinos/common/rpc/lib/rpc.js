@@ -442,7 +442,8 @@
 				receiverObjs = [];
 
 			// generate id
-			callback.id = md5.hexhash(callback.api + callback.displayName + callback.description);
+			var md5sum = crypto.createHash('md5');
+			callback.id = md5sum.update(callback.api + callback.displayName + callback.description).digest('hex');
 			// verify id isn't existing already
 			var filteredRO = receiverObjs.filter(function(el, idx, array) {
 				return el.id === callback.id;
@@ -760,7 +761,7 @@
 		exports.ServiceType = ServiceType;
 		//exports.setSessionId = setSessionId;
 		// none webinos modules
-		var md5 = require('../contrib/md5.js');
+		var crypto = require('crypto');
 
 	} else {
 		// export for web browser
