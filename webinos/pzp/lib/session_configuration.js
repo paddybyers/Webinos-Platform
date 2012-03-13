@@ -39,8 +39,9 @@ configure.webServerPort  = 9000;
 
 // Default webinos services available when no configuration exists yet
 configure.pzhDefaultServices = [
-    {name: "get42", param: {}},
-    {name: "events", param: {}}
+    {name: "context", param: {}},
+    {name: "events", param: {}},
+    {name: "get42", param: {}}
 ]
 
 /**
