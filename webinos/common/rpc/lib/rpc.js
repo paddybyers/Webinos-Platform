@@ -66,10 +66,14 @@
 		this.parent = parent;
 		
 		/**
-		 * used to store objectRefs for callbacks that get invoked more than once
+		 * Used to store objectRefs for callbacks that get invoked more than once
 		 */ 
 		this.objRefCachTable = {};
 
+		/**
+		 * Used on the client side by executeRPC to store callbacks that are
+		 * invoked once the RPC finished.
+		 */
 		this.awaitingResponse = {};
 		
 		/**
@@ -608,6 +612,7 @@
 	 * @param exceptAddress Address of services that match will be excluded from
 	 * results.
 	 * @returns Array with known services.
+	 * @private
 	 */
 	_RPCHandler.prototype.getAllServices = function(exceptAddress) {
 		var results = [];
@@ -625,9 +630,9 @@
 	/**
 	 * Get an array of all registered Service objects. 
 	 * @returns Array with said objects.
+	 * @private
 	 */
 	_RPCHandler.prototype.getRegisteredServices = function() {
-		// FIXME this shouldn't be a public method i guess
 		var results = [];
 		
 		for (var service in this.objects) {
