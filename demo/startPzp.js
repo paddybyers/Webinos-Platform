@@ -79,7 +79,6 @@ var pzpModules = [
     {name: "file", param: {}},
     {name: "geolocation", param: {}},
     {name: "applauncher", param: {}},
-    {name: "events", param: {}},
     {name: "sensors", param: {}},
     {name: "payment", param: {}},
     {name: "tv", param: {}},

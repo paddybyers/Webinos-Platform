@@ -168,7 +168,7 @@ farm.getOrCreatePzhInstance = function (host, user, callback) {
 		var contents="country="+user.country+
 			"\nstate=\'\'\ncity=\'\'\norganization=\'\'\norganizationUnit=\'\'"+
 			"\ncommon="+name+"_pzh"+"\nemail="+user.email+"\ndays=3600";
-		var pzhModules = [];
+		var pzhModules = configuration.pzhDefaultServices;
 		pzh.addPzh(myKey, contents, pzhModules, function(){
 			farm.pzhs[myKey].config.details = user;
 			configuration.storeConfig(farm.pzhs[myKey].config, function() {
