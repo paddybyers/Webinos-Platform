@@ -1,7 +1,5 @@
 var fs = require('fs'),
-	path                = require('path'),
 	PzhFarm             = require('../webinos/pzh/lib/pzh_farm.js');
-	Pzh                 = require('../webinos/pzh/lib/pzh_sessionHandling.js');
 
 var host = null, name = null;
 
