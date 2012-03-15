@@ -1,4 +1,5 @@
-/*******************************************************************************
+/*
+*********************************************************************************
 *  Code contributed to the webinos project
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +20,12 @@
 
 (function() {
 	
+	/**
+	 * Webinos Authentication service constructor (client side).
+	 * @name AuthenticationModule
+	 * @constructor
+	 * @param obj Object containing displayName, api, etc.
+	 */
 	AuthenticationModule = function (obj) {
 		"use strict";
 		this.base = WebinosService;
@@ -27,6 +34,14 @@
 
 	AuthenticationModule.prototype = new WebinosService();
 
+	/**
+	 * Requests user authentication
+	 * @name authenticate
+	 * @function
+	 * @param usename Username
+	 * @param successCB Success callback
+	 * @param errorCB Error callback
+	 */
 	function authenticate(username, successCB, errorCB) {
 		"use strict";
 		var rpc = webinos.rpcHandler.createRPC(this, "authenticate", [username]);
@@ -42,6 +57,14 @@
 		);
 	}
 
+	/**
+	 * Reports if user is authenticated
+	 * @name isAuthenticated
+	 * @function
+	 * @param usename Username
+	 * @param successCB Success callback
+	 * @param errorCB Error callback
+	 */
 	function isAuthenticated(username, successCB, errorCB) {
 		"use strict";
 		var rpc = webinos.rpcHandler.createRPC(this, "isAuthenticated", [username]);
@@ -57,6 +80,14 @@
 		);
 	}
 	
+	/**
+	 * Retrieves user authentication status (when and how he or she was last authenticated)
+	 * @name getAuthenticationStatus
+	 * @function
+	 * @param usename Username
+	 * @param successCB Success callback
+	 * @param errorCB Error callback
+	 */
 	function getAuthenticationStatus(username, successCB, errorCB) {
 		"use strict";
 		var rpc = webinos.rpcHandler.createRPC(this, "getAuthenticationStatus", [username]);
@@ -72,6 +103,12 @@
 		);
 	}
 
+	/**
+	 * To bind the service.
+	 * @name bindService
+	 * @function
+	 * @param bindCB BindCallback object.
+	 */
 	AuthenticationModule.prototype.bindService = function (bindCB, serviceId) {
 		"use strict";
 		this.authenticate = authenticate;

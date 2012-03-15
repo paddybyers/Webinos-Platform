@@ -1,4 +1,5 @@
-/*******************************************************************************
+/*
+*********************************************************************************
 *  Code contributed to the webinos project
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,12 +18,14 @@
 * Politecnico di Torino
 *******************************************************************************/
 
-
 var schema = exports;
 
-// MODIFIED BY POLITO
-
-// exported function to validate packages
+/**
+ * Validates messages
+ * @name checkSchema
+ * @function
+ * @param msg Message to validate
+ */
 schema.checkSchema = function(msg) {
 
 	// 'type' field validation
@@ -44,7 +47,12 @@ schema.checkSchema = function(msg) {
 	}
 };
 
-// function to validate 'prop' type packages
+/**
+ * Validates 'prop' type messages
+ * @name checkPropSchema
+ * @function
+ * @param msg Message to validate
+ */
 checkPropSchema = function(message) {
 	var myEnv, assert, schema, validation;
 	
@@ -91,7 +99,12 @@ checkPropSchema = function(message) {
 	}
 };
 
-// function to validate 'JSONRPC' type packages
+/**
+ * Validates 'JSONRPC' type messages
+ * @name checkJSONRPCSchema
+ * @function
+ * @param msg Message to validate
+ */
 checkJSONRPCSchema = function(message) {
 	var myEnv, assert, schema, validation;
 	
@@ -151,7 +164,12 @@ checkJSONRPCSchema = function(message) {
 	}
 };
 
-// function to validate type field
+/**
+ * Validates 'type' field
+ * @name checkTypeSchema
+ * @function
+ * @param msg Message to validate
+ */
 checkTypeSchema = function(message) {
 	var myEnv, assert, schema, validation;
 	

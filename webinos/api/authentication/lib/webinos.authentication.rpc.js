@@ -1,4 +1,5 @@
-/*******************************************************************************
+/*
+*********************************************************************************
 *  Code contributed to the webinos project
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +33,13 @@
 		var webinos = {};
 	}
 
-	// password file validation
+	/**
+	 * Validates password file
+	 * @name passfile_validation
+	 * @function
+	 * @param data JSON parsed data to validate
+	 * @param callback Callback
+	 */
 	var passfile_validation = sc.f(
 		{
 			type: 'array', // function arguments are treated as array
@@ -63,7 +70,13 @@
 		}
 	);
 
-	// authstatus file validation
+	/**
+	 * Validates authstatus file
+	 * @name authstatus_validation
+	 * @function
+	 * @param data JSON parsed data to validate
+	 * @param callback Callback
+	 */
 	var authfile_validation = sc.f(
 		{
 			type: 'array', // function arguments are treated as array
@@ -169,7 +182,9 @@
 	}
 
 	/**
-	 * Webinos Service constructor.
+	 * Webinos Authentication service constructor (server side).
+	 * @name AuthenticationModule
+	 * @constructor
 	 * @param rpcHandler A handler for functions that use RPC to deliver their result.  
 	 */
 	var AuthenticationModule = function (rpcHandler) {
@@ -186,6 +201,15 @@
 
 	var ask, getAuthTime, username, addUser;
 
+	/**
+	 * Requests user authentication
+	 * @name authenticate
+	 * @function
+	 * @param usename Username
+	 * @param successCB Success callback
+	 * @param errorCB Error callback
+	 * @param objectRef RPC object reference
+	 */
 	AuthenticationModule.prototype.authenticate = function (params, successCB, errorCB, objectRef) {
 		"use strict";
 		var newly_authenticated, passfile, p, error = {};
@@ -256,7 +280,16 @@
 		}
 	};
 
-	// add new user to authstatus file
+	/**
+	 * Adds user to authstatus
+	 * @name addUser
+	 * @function
+	 * @param usename Username
+	 * @param newly_authenticated Authentication result
+	 * @param that Object reference
+	 * @param successCB Success callback
+	 * @param errorCB Error callback
+	 */
 	addUser = function (username, newly_authenticated, that, successCB, errorCB) {
 		var  authfile, error = {};
 
@@ -296,7 +329,11 @@
 		}
 	};
 
-	// get authentication time a translate in the right format
+	/**
+	 * Get authentication time a translates it into the right format
+	 * @name getAuthTime
+	 * @function
+	 */
 	getAuthTime = function () {
 		"use strict";
 		var now = new Date(), tmp, h_tmp, m_tmp;
@@ -354,7 +391,13 @@
 		return now.getFullYear().toString() + "-" + month + "-" + date + "T" + hours + ":" + minutes + h_offset + ":" + m_offset;
 	};
 
-	// insert password via console
+	/**
+	 * Asks for console password input
+	 * @name ask
+	 * @function
+	 * @param question Question printed on console
+	 * @param callback Callback
+	 */
 	ask = function (question, callback) {
 		"use strict";
 		var pswd = "", passwd, error = {}, invalid_char,
@@ -365,6 +408,13 @@
 		invalid_char = false;
 		stdout.write(question + ": ");
 
+		/**
+		 * Listener registered on 'keypress' event
+		 * @name passwd
+		 * @function
+		 * @param char Returned character
+		 * @param key Pressed keys
+		 */
 		passwd = function (char, key) {
 
 			if (key !== undefined) { // key parameter is undefined when the acquired character is a number
@@ -416,6 +466,15 @@
 	};
 
 
+	/**
+	 * Reports if user is authenticated
+	 * @name isAuthenticated
+	 * @function
+	 * @param usename Username
+	 * @param successCB Success callback
+	 * @param errorCB Error callback
+	 * @param objectRef RPC object reference
+	 */
 	AuthenticationModule.prototype.isAuthenticated = function (params, successCB, errorCB, objectRef) {
 		"use strict";
 		var authenticated, authfile, authrow, error = {};
@@ -453,6 +512,15 @@
 		}
 	};
 
+	/**
+	 * Retrieves user authentication status (when and how he or she was last authenticated)
+	 * @name getAuthenticationStatus
+	 * @function
+	 * @param usename Username
+	 * @param successCB Success callback
+	 * @param errorCB Error callback
+	 * @param objectRef RPC object reference
+	 */
 	AuthenticationModule.prototype.getAuthenticationStatus = function (params, successCB, errorCB, objectRef) {
 		"use strict";
 		var authenticated, resp, authfile, authrow, auth_s = new AuthStatus(), error = {};
