@@ -22,7 +22,12 @@ if (!webinos.discovery) { webinos.discovery = {}; }
 
 	var localdisc = (process.versions.node < "0.6.0" ) ? require('../src/build/default/bluetooth.node') : require('../src/build/Release/bluetooth.node');
 
-	BTfindservice = function(serviceType,success){
+	/**
+	 * Find devices that support specific service type
+	 * @param serviceType Service type.
+	 * @param success Success callback.
+	 */
+	BTfindservice = function(serviceType, success){
 		n = new localdisc.bluetooth();
 		var arg = [];
 		arg =  ArgumentHandler(serviceType);
@@ -30,7 +35,12 @@ if (!webinos.discovery) { webinos.discovery = {}; }
 		success(result); 
 	};
   
-  	BTbindservice = function(service,success){
+	/**
+	 * Connect with selected device and obtain folder list from the device
+	 * @param service The device to connect. 
+	 * @param success Success callback.
+	 */
+  	BTbindservice = function(service, success){
 		console.log("linux.discovery: BTbindservice");
 		n = new localdisc.bluetooth();
 		var args = [];
@@ -42,6 +52,11 @@ if (!webinos.discovery) { webinos.discovery = {}; }
 		success(result);
   };
   
+  	/**
+	 * Obtain file list of the selected folder  
+	 * @param data Folder
+	 * @param success Success callback.
+	 */
   	BTlistfile = function(data,success){
 	  n = new localdisc.bluetooth();
      
@@ -55,6 +70,11 @@ if (!webinos.discovery) { webinos.discovery = {}; }
 	  success(lists);
   };
 
+  	/**
+	 * Transfer selected file from connected device   
+	 * @param data file name
+	 * @param success Success callback.
+	 */
   	BTtransferfile = function(data,success){
 
 	  n = new localdisc.bluetooth();

@@ -34,7 +34,12 @@
 		var hrmmodule = require('./webinos.discovery.hrm.js');
 	} 
 	
-	var BluetoothManager = function(rpcHandler) {
+	/**
+	 * Webinos Bluetooth Discovery service constructor (server side).
+	 * @constructor
+	 * @param rpcHandler A handler for functions that use RPC to deliver their result.  
+	 */
+	var BluetoothManager = function (rpcHandler) {
 			this.base = RPCWebinosService;
 			this.base({
 				api:'http://webinos.org/api/discovery',
@@ -44,34 +49,56 @@
 	}
 	BluetoothManager.prototype = new RPCWebinosService;
 
-	//General - both Android and Linux
+	/**
+	 * To find devices that support the specific service. This applies to both Android and Linux
+	 * @param data Service type.
+	 * @param successCallback Success callback.
+	 */
 	BluetoothManager.prototype.BTfindservice = function(data, successCallback){
 
 			discoverymodule.BTfindservice(
 				data, successCallback);   
 	}
-
-	//android HRM	
+	
+	/**
+	 * To find Heart Rate Monitor device, only support Android OS.
+	 * @param data Service type.
+	 * @param successCallback Success callback.
+	 */
 	BluetoothManager.prototype.findHRM = function(data, successCallback){
 
 			hrmmodule.HRMfindservice(
 				data, successCallback); 
 	}
-	
-	//Linux
+
+	/**
+	 * To bind with found device that has the service requested. It lists all 
+	 * file folders in the device.
+	 * @param data Device address.
+	 * @param successCallback Success callback.
+	 */
 	BluetoothManager.prototype.bindservice = function(data, successCallback){
 			
 			discoverymodule.BTbindservice(
 					data, successCallback);   
 	}
 	
-	//Linux
+	/**
+	 * To get file list of selected folder in the bonded device
+	 * @param data File folder.
+	 * @param successCallback Success callback.
+	 */
 	BluetoothManager.prototype.listfile = function(data, successCallback){
 		
 			discoverymodule.BTlistfile(
 					data, successCallback);
 	}
-	//Linux
+	
+	/**
+	 * To transfer selected file from the bonded device
+	 * @param data Selected file.
+	 * @param successCallback Success callback.
+	 */
 	BluetoothManager.prototype.transferfile = function(data, successCallback){
 
 			discoverymodule.BTtransferfile(
@@ -81,6 +108,3 @@
 	exports.Service = BluetoothManager;
 	
 })();
-
-
-

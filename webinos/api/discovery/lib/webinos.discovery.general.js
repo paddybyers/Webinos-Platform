@@ -24,7 +24,13 @@ if (!webinos.discovery) { webinos.discovery = {}; }
 
 var disc = require('bridge').load('org.webinos.impl.discovery.DiscoveryImpl', this);
 
-BTfindservice = function(serviceType,onFound){
+/**
+ * Find devices that support specific service type
+ * @param serviceType Service type.
+ * @param onFound Success callback.
+ */
+
+BTfindservice = function(serviceType, onFound){
 	try 
 	{
 		disc.findServices(serviceType, function(service){onFound(service);}, null, null);

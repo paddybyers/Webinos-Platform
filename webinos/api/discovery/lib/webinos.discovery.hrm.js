@@ -24,13 +24,18 @@ if (!webinos.discovery) { webinos.discovery = {}; }
 
 var disc = require('bridge').load('org.webinos.impl.discovery.DiscoveryHRMImpl', this);
 
+/**
+ * Find Bluetooth Heart Rate Monitor device
+ * @param serviceType Service type.
+ * @param onFound Success callback.
+ */
+
 HRMfindservice = function(serviceType,onFound){
 
 	try 
 	{
 		disc.findServices(serviceType, function(service){onFound(service);}, null, null);
 	//	disc.findServices(servicetype, {onFound:onFound}, null, null);
-		console.log("discoveryTests - END");
 	}
 	catch(e) {
 		console.log("discoveryTests - error: "+e.message);
