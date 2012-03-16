@@ -23,19 +23,19 @@
 	 * @constructor
 	 * @param obj Object containing displayName, api, etc.
 	 */
-	BluetoothManager = function (obj) {
+	DiscoveryModule = function (obj) {
 		this.base = WebinosService;
 		this.base(obj);
 	};
 	
-	BluetoothManager.prototype = new WebinosService();
+	DiscoveryModule.prototype = new WebinosService();
 	
 	/**
 	 * To find devices that support the specific service. This applies to both Android and Linux
 	 * @param data Service type.
 	 * @param success Success callback.
 	 */
-	BluetoothManager.prototype.BTfindservice = function (data, success) {
+	DiscoveryModule.prototype.BTfindservice = function (data, success) {
 		console.log("BT findservice");
 		var rpc = webinos.rpcHandler.createRPC(this, "BTfindservice", data);
 		webinos.rpcHandler.executeRPC(rpc, function(params) {
@@ -49,7 +49,7 @@
 	 * @param success Success callback.
 	 */
 
-	BluetoothManager.prototype.findHRM = function(data, success){
+	DiscoveryModule.prototype.findHRM = function(data, success){
 		console.log("HRM find HRM");
   		var rpc = webinos.rpcHandler.createRPC(this, "findHRM",data);
 	  	webinos.rpcHandler.executeRPC(rpc, function(params) {
@@ -63,7 +63,7 @@
 	 * @param data Device address.
 	 * @param success Success callback.
 	 */
-	BluetoothManager.prototype.bindservice = function(data, success){
+	DiscoveryModule.prototype.bindservice = function(data, success){
 		console.log("Linux BT bindservice");
 		var rpc = webinos.rpcHandler.createRPC(this, "bindservice",arguments);
 	  	webinos.rpcHandler.executeRPC(rpc, function(params) {
@@ -76,7 +76,7 @@
 	 * @param data File folder.
 	 * @param success Success callback.
 	 */
-	BluetoothManager.prototype.listfile = function(data, success){
+	DiscoveryModule.prototype.listfile = function(data, success){
 		console.log("Linux BT listfile");
 		var rpc = webinos.rpcHandler.createRPC(this, "listfile",arguments);
 		webinos.rpcHandler.executeRPC(rpc, function(params) {
@@ -90,7 +90,7 @@
 	 * @param success Success callback.
 	 */
 
-	BluetoothManager.prototype.transferfile = function(data, success){
+	DiscoveryModule.prototype.transferfile = function(data, success){
 		console.log("Linux BT transferfile");
 		var rpc = webinos.rpcHandler.createRPC(this, "transferfile",arguments);
 		webinos.rpcHandler.executeRPC(rpc, function(params) {

@@ -921,8 +921,8 @@
       if(typeof Context !== "undefined") {
         typeMap["http://webinos.org/api/context"] = Context
       }
-      if(typeof BluetoothManager !== "undefined") {
-        typeMap["http://webinos.org/api/discovery"] = BluetoothManager
+      if(typeof DiscoveryModule !== "undefined") {
+        typeMap["http://webinos.org/api/discovery"] = DiscoveryModule
       }
       if(typeof AuthenticationModule !== "undefined") {
         typeMap["http://webinos.org/api/authentication"] = AuthenticationModule
@@ -2581,16 +2581,16 @@ if(typeof webinos.file === "undefined") {
 })();
 (function() {
 
-	BluetoothManager = function(obj) {
+	DiscoveryModule = function(obj) {
 		this.base = WebinosService;
 		this.base(obj);
 	};
 	
-	BluetoothManager.prototype = new WebinosService;
+	DiscoveryModule.prototype = new WebinosService;
 	
 	
 	//General - both Android and Linux
-	BluetoothManager.prototype.BTfindservice = function(data, success){
+	DiscoveryModule.prototype.BTfindservice = function(data, success){
 		console.log("BT findservice");
   		var rpc = webinos.rpcHandler.createRPC(this, "BTfindservice",data);
   		webinos.rpcHandler.executeRPC(rpc, function(params) {
@@ -2599,7 +2599,7 @@ if(typeof webinos.file === "undefined") {
 	};
 	
 	//Android
-	BluetoothManager.prototype.findHRM = function(data, success){
+	DiscoveryModule.prototype.findHRM = function(data, success){
 		console.log("HRM find HRM");
   		var rpc = webinos.rpcHandler.createRPC(this, "findHRM",data);
 	  	webinos.rpcHandler.executeRPC(rpc, function(params) {
@@ -2608,7 +2608,7 @@ if(typeof webinos.file === "undefined") {
 	};
 
 	//Linux
-	BluetoothManager.prototype.bindservice = function(data, success){
+	DiscoveryModule.prototype.bindservice = function(data, success){
 		console.log("Linux BT bindservice");
 		var rpc = webinos.rpcHandler.createRPC(this, "bindservice",arguments);
 	  	webinos.rpcHandler.executeRPC(rpc, function(params) {
@@ -2616,7 +2616,7 @@ if(typeof webinos.file === "undefined") {
   	 });
 	};
 
-	BluetoothManager.prototype.listfile = function(data, success){
+	DiscoveryModule.prototype.listfile = function(data, success){
 		console.log("Linux BT listfile");
 		var rpc = webinos.rpcHandler.createRPC(this, "listfile",arguments);
 	  	webinos.rpcHandler.executeRPC(rpc, function(params) {
@@ -2624,7 +2624,7 @@ if(typeof webinos.file === "undefined") {
   	 });
 	};
 
-	BluetoothManager.prototype.transferfile = function(data, success){
+	DiscoveryModule.prototype.transferfile = function(data, success){
 		console.log("Linux BT transferfile");
 		var rpc = webinos.rpcHandler.createRPC(this, "transferfile",arguments);
 	  	webinos.rpcHandler.executeRPC(rpc, function(params) {
