@@ -42,9 +42,6 @@ var appVocDBpath = path.resolve(commonPaths.storage + '/pzp/appContextVocabulary
 webinos.context.app.appVocDB = new databasehelper.JSONDatabase({path : appVocDBpath,transactional : false});
 console.log("Log DB Initialized");
 
-//webinos.context.DB = require(moduleRoot +'/lib/contextDBpzhManager.js')
-//var sessionPzp = require( webinosRoot + '/pzp/lib/pzp_sessionHandling.js');
-
 //Method to insert a new field and/or Application Context Object
 //Example:
 /*
@@ -209,7 +206,7 @@ webinos.context.saveAppContext = function(APPName, ContextObjectName, data, call
                   findObjectsToStore(vocList[vocItem].values, callList[callItem],arrayToFill);
                   break;
                 }
-                //Case
+                //Case if the Object is an array.
                 else if(vocList[vocItem].type == "array" && vocList[vocItem].logged == true){
                   var tmpObjRef = "";
                   if(objRef == ""){
@@ -247,7 +244,7 @@ webinos.context.saveAppContext = function(APPName, ContextObjectName, data, call
       }
     }
   }
-  //Find APP and ContextObject
+  //Find and return APP and ContextObject
   
   webinos.context.app.getContextObjectVoc(APPName, ContextObjectName, function(vocObject){  
     if(vocObject){

@@ -34,7 +34,7 @@ var databasehelper = require('JSORMDB');
 var Fs = require('fs');
 var vocdbpath = path.resolve(moduleRoot +'/data/contextVocabulary.json');
 
-webinos.context.DB = require(moduleRoot +'/lib/contextDBpzhManager.js')
+webinos.context.DB = require(moduleRoot +'/lib/ContextDBManagerPZP.js')
 var sessionPzp = require( webinosRoot + '/pzp/lib/pzp_sessionHandling.js');
 
 webinos.context.saveContext = function(dataIn, success, fail) {
