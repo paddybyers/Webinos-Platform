@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright 2011 Samsung Electronics Research Institute
+* Copyright 2012 Samsung Electronics(UK) Ltd
 * 
 ******************************************************************************/
 

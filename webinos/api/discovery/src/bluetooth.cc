@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 * 
-* Copyright 2012 Samsung Electronics UK Ltd (SERI)
+* Copyright 2012 Samsung Electronics(UK) Ltd
 *
 ******************************************************************************/
 #include <v8.h>
