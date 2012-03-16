@@ -5,9 +5,9 @@
 <!---<link href='http://fonts.googleapis.com/css?family=Bowlby+One+SC' rel='stylesheet' type='text/css'>-->
 <link rel="stylesheet" href="./hrm.css">
 <meta name="viewport" content="format-detection=no,initial-scale=1.0,maximum-scale=1.0,user-scalable=0,width=device-width" />
-<!-- <script type="text/javascript" src="../webinos.js"></script> -->
 <script type="text/javascript" src="jquery-1.7.1.min.js"></script>
 <script type="text/javascript" src="hrm.js"></script>
+<script type="text/javascript" src="../../webinos.js"></script>
 </head>
 
 <body>
@@ -108,19 +108,8 @@
 				
 			console.log("onFound callback: found service."); 
 			
-			//human's maximum pulse is 220
-			if(service.values[0] > 300)
-			{
-				alert("HRM is not connected");
-				var text = document.getElementById("HRM");
-				$('#HRM').text('StartHRM');
-			}
-			else
-			{
-				nmbrmainspan = document.getElementById('nmbrmainspan');
-				nmbrmainspan.innerHTML = service.values[0];
-			}
-			
+			nmbrmainspan = document.getElementById('nmbrmainspan');
+			nmbrmainspan.innerHTML = service.values[0];
 		}	
 		
 		function startHRM()

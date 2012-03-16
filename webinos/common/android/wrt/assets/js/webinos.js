@@ -2580,34 +2580,55 @@ if(typeof webinos.file === "undefined") {
   PropertyRef.prototype.property = String
 })();
 (function() {
-  BluetoothManager = function(obj) {
-    this.base = WebinosService;
-    this.base(obj)
-  };
-  BluetoothManager.prototype = new WebinosService;
-  BluetoothManager.prototype.bindService = function(bindCB, serviceId) {
-    this.findHRM = findHRM;
-    this.listenAttr = {};
-    this.listenerForHRM = listenerForHRM.bind(this);
-    if(typeof bindCB.onBind === "function") {
-      bindCB.onBind(this)
-    }
-  };
-  BluetoothManager.prototype.listenerForHRM = function(listener, options) {
-    var rpc = webinos.rpcHandler.createRPC(this, "listenAttr.listenForHRM", [options]);
-    rpc.fromObjectRef = Math.floor(Math.random() * 101);
-    var callback = new RPCWebinosService({api:rpc.fromObjectRef});
-    callback.onEvent = function(obj) {
-      listener(obj)
-    };
-    webinos.rpcHandler.registerCallbackObject(callback);
-    webinos.rpcHandler.executeRPC(rpc)
-  };
-  BluetoothManager.prototype.findHRM = function(data, success) {
-    console.log("HRM find HRM");
-    var rpc = webinos.rpcHandler.createRPC(this, "findHRM", arguments);
-    webinos.rpcHandler.executeRPC(rpc, function(params) {
-      success(params)
-    })
-  }
-})();
+
+	BluetoothManager = function(obj) {
+		this.base = WebinosService;
+		this.base(obj);
+	};
+	
+	BluetoothManager.prototype = new WebinosService;
+	
+	
+	//General - both Android and Linux
+	BluetoothManager.prototype.BTfindservice = function(data, success){
+		console.log("BT findservice");
+  		var rpc = webinos.rpcHandler.createRPC(this, "BTfindservice",data);
+  		webinos.rpcHandler.executeRPC(rpc, function(params) {
+		success(params);
+  	 });
+	};
+	
+	//Android
+	BluetoothManager.prototype.findHRM = function(data, success){
+		console.log("HRM find HRM");
+  		var rpc = webinos.rpcHandler.createRPC(this, "findHRM",data);
+	  	webinos.rpcHandler.executeRPC(rpc, function(params) {
+		success(params);
+  	 });
+	};
+
+	//Linux
+	BluetoothManager.prototype.bindservice = function(data, success){
+		console.log("Linux BT bindservice");
+		var rpc = webinos.rpcHandler.createRPC(this, "bindservice",arguments);
+	  	webinos.rpcHandler.executeRPC(rpc, function(params) {
+		success(params);
+  	 });
+	};
+
+	BluetoothManager.prototype.listfile = function(data, success){
+		console.log("Linux BT listfile");
+		var rpc = webinos.rpcHandler.createRPC(this, "listfile",arguments);
+	  	webinos.rpcHandler.executeRPC(rpc, function(params) {
+		success(params);
+  	 });
+	};
+
+	BluetoothManager.prototype.transferfile = function(data, success){
+		console.log("Linux BT transferfile");
+		var rpc = webinos.rpcHandler.createRPC(this, "transferfile",arguments);
+	  	webinos.rpcHandler.executeRPC(rpc, function(params) {
+		success(params);
+  	 });
+	};
+}());

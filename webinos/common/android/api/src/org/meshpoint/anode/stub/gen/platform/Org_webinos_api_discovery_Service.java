@@ -46,19 +46,25 @@ public class Org_webinos_api_discovery_Service {
 		case 4: /* description */
 			result = inst.description;
 			break;
-		case 5: /* displayName */
+		case 5: /* deviceAddresses */
+			result = inst.deviceAddresses;
+			break;
+		case 6: /* deviceNames */
+			result = inst.deviceNames;
+			break;
+		case 7: /* displayName */
 			result = inst.displayName;
 			break;
-		case 6: /* icon */
+		case 8: /* icon */
 			result = inst.icon;
 			break;
-		case 7: /* id */
+		case 9: /* id */
 			result = inst.id;
 			break;
-		case 8: /* state */
+		case 10: /* state */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.state);
 			break;
-		case 9: /* values */
+		case 11: /* values */
 			result = inst.values;
 			break;
 		default:
@@ -74,19 +80,25 @@ public class Org_webinos_api_discovery_Service {
 		case 4: /* description */
 			inst.description = (String)val;
 			break;
-		case 5: /* displayName */
+		case 5: /* deviceAddresses */
+			inst.deviceAddresses = (String[])val;
+			break;
+		case 6: /* deviceNames */
+			inst.deviceNames = (String[])val;
+			break;
+		case 7: /* displayName */
 			inst.displayName = (String)val;
 			break;
-		case 6: /* icon */
+		case 8: /* icon */
 			inst.icon = (String)val;
 			break;
-		case 7: /* id */
+		case 9: /* id */
 			inst.id = (String)val;
 			break;
-		case 8: /* state */
+		case 10: /* state */
 			inst.state = (int)((org.meshpoint.anode.js.JSValue)val).longValue;
 			break;
-		case 9: /* values */
+		case 11: /* values */
 			inst.values = (long[])val;
 			break;
 		default:

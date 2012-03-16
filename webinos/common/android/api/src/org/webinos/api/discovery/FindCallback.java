@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright 2011-2012 Paddy Byers
+* Copyright 2011 Samsung Electronics UK Ltd (SERI)
 *
 ******************************************************************************/
 
@@ -21,7 +21,7 @@ package org.webinos.api.discovery;
 
 public interface FindCallback {
 	 public void onFound(Service service);        
-    // public void onLost(Service service);
-    // public void onError(DiscoveryError error);
+  /*   public void onLost(Service service);
+     public void onError(DiscoveryError error);*/ 
 }
 

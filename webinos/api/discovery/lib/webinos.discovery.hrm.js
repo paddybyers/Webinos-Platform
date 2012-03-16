@@ -13,15 +13,28 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright 2011 Samsung Electronics UK Ltd (SERI)
-*
+* Copyright 2011 Samsung Electronics Research Institute
+* 
 ******************************************************************************/
 
-package org.webinos.api.discovery;
+if (typeof webinos === "undefined") { webinos = {}; }
+if (!webinos.discovery) { webinos.discovery = {}; }
 
-import org.meshpoint.anode.idl.Dictionary;
+//android
 
-public class ServiceType implements Dictionary { 
-	
-	public String api;
-}
+var disc = require('bridge').load('org.webinos.impl.DiscoveryHRMImpl', this);
+
+HRMfindservice = function(serviceType,onFound){
+
+	try 
+	{
+		disc.findServices(serviceType, function(service){onFound(service);}, null, null);
+	//	disc.findServices(servicetype, {onFound:onFound}, null, null);
+		console.log("discoveryTests - END");
+	}
+	catch(e) {
+		console.log("discoveryTests - error: "+e.message);
+	}
+};
+
+exports.HRMfindservice = HRMfindservice;

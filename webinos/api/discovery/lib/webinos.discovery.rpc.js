@@ -1,8 +1,38 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+* Copyright 2011 Samsung Electronics UK Ltd (SERI)
+* 
+******************************************************************************/
+
 (function() {
 	
 	"use strict";
 	
-	var discoverymodule = require('./webinos.discovery.server.js');
+	var discoverymodule = '';
+	
+
+	if(process.platform!=='android')
+	{
+		 discoverymodule = require('./webinos.discovery.linux.js');
+	}
+	else  
+	{
+		discoverymodule = require('./webinos.discovery.general.js');
+		var hrmmodule = require('./webinos.discovery.hrm.js');
+	} 
 	
 	var BluetoothManager = function(rpcHandler) {
 			this.base = RPCWebinosService;
@@ -11,39 +41,43 @@
 				displayName:'Bluetooth discovery manager',
 				description:'A simple bluetooth discovery manager'
 			});
-
-	// member attribute
-	//this.testAttr = "Hello Attribute";
-
-	// member attribute 
-	this.listenAttr = {};
-	
-	// custom get42 attribute
-	//this.blaa = typeof params !== 'undefined' ? params[0] : 42;
-	
-	// member function attached to listenAttr
-	this.listenAttr.listenForHRM = function(params, successCB, errorCB, objectRef){
-		console.log("listenerForHRM was invoked");
-		
-		// call the registered listener twice, delivering an object
-		for (var i=0; i<2; i++) {
-			// use RPC to deliver result
-			var rpc = rpcHandler.createRPC(objectRef, 'onEvent', {msg:i + " HRM"});
-			rpcHandler.executeRPC(rpc);
-		}
-	  };
-
 	}
-
 	BluetoothManager.prototype = new RPCWebinosService;
 
+	//General - both Android and Linux
+	BluetoothManager.prototype.BTfindservice = function(data, successCallback){
+
+			discoverymodule.BTfindservice(
+				data, successCallback);   
+	}
+
+	//android HRM	
 	BluetoothManager.prototype.findHRM = function(data, successCallback){
 
-			discoverymodule.HRMfindservice(
+			hrmmodule.HRMfindservice(
 				data, successCallback); 
-			
 	}
 	
+	//Linux
+	BluetoothManager.prototype.bindservice = function(data, successCallback){
+			
+			discoverymodule.BTbindservice(
+					data, successCallback);   
+	}
+	
+	//Linux
+	BluetoothManager.prototype.listfile = function(data, successCallback){
+		
+			discoverymodule.BTlistfile(
+					data, successCallback);
+	}
+	//Linux
+	BluetoothManager.prototype.transferfile = function(data, successCallback){
+
+			discoverymodule.BTtransferfile(
+					data, successCallback);
+	} 
+
 	exports.Service = BluetoothManager;
 	
 })();
