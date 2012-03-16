@@ -23,9 +23,7 @@
 			+ '/dependencies.json');
 	var webinosRoot = '../' + moduleRoot.root.location;
 
-	var contextDB = require(webinosRoot
-			+ dependencies.manager.context_manager.location
-			+ 'lib/contextDBpzhManager.js');
+
 	 var appContext = require(webinosRoot
 	      + dependencies.manager.context_manager.location
 	      + 'lib/appContext.js');
@@ -55,19 +53,28 @@
 	
 	RemoteContextManager.prototype.executeQuery = function(query, successCallback, errorCallback) {
 		switch (query.type) {
-		case "DB-insert":
+		case "DB-insert"://PZH
+		  var contextDB = require(webinosRoot
+		      + dependencies.manager.context_manager.location
+		      + 'lib/contextDBManagerPZH.js');
 			contextDB.insert(query.data); //TODO: Add success callback
 			break;
-		case "getrawview":
+		case "getrawview"://PZH
+		  var contextDB = require(webinosRoot
+		      + dependencies.manager.context_manager.location
+		      + 'lib/contextDBManagerPZH.js');
 			contextDB.getrawview(function(results) {
 				successCallback(results);
 			});
 			break;
-		case "query":
+		case "query": //PZH
+		  var contextDB = require(webinosRoot
+		      + dependencies.manager.context_manager.location
+		      + 'lib/contextDBManagerPZH.js');
 			contextDB.query(query.data, function(results) {
 				successCallback(results);
 			});
-		case "saveAppContext":
+		case "saveAppContext"://PZP
 		  appContext.saveAppContext(query.APPName, query.ContextObjectName, query.data, function(results){
 		    successCallback(results);
 		  });
