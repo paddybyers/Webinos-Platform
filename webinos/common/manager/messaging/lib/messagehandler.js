@@ -59,6 +59,12 @@
 	 * other_user@her_domain.com/laptop/urn:services-webinos-org:calender/
 	 * @param rpcHandler RPC handler manager.
 	 */
+	 
+	 /**
+	 * MessageHandler constructor
+	 *  @constructor
+	 *  @param rpcHandler RPC handler manager.
+	 */
 
 	var MessageHandler = function (rpcHandler) {
 		this.sendMsg = null;
