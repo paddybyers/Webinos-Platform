@@ -45,64 +45,12 @@
   var ServiceDiscovery = require(path.join(webinosRoot, dependencies.wrt.location, 'lib/webinos.servicedisco.js')).ServiceDiscovery;
   var webinosServiceDiscovery = null;
 
-  var sqlite3 = require('node-sqlite3').verbose();
+  var sqlite3 = require('sqlite3').verbose();
 
   var dbpath = path.resolve(commonPaths.storage + '/pzh/contextDB.db');
-  var bufferpath = path.resolve(commonPaths.storage + '/pzp/contextDBbuffer.json');
+
   var db =  new sqlite3.Database(dbpath);
-  var databasehelper = require('JSORMDB');
-  bufferDB = new databasehelper.JSONDatabase({path : bufferpath, transactional : false});
 
-  sessionPzp = require(webinosRoot + '/pzp/lib/pzp_sessionHandling.js');
-  var sessionInstance =null;
-
-
-  ////////////////////////////////////////////////////////////////////////////////////////
-  //Running on the PZP
-  //////////////////////////////////////////////////////////////////////////////////////
-  exports.handleContextData = function(contextData){
-
-    var connectedPzh = sessionPzp.getPzhId();
-    if (connectedPzh == "null" || connectedPzh == "undefined"){
-      bufferDB.insert(contextData)
-      console.log("Successfully commited Context Object to the context buffer");
-    }else{
-      if (sessionInstance === null){
-        sessionInstance = sessionPzp.getPzp();
-        webinosServiceDiscovery = new ServiceDiscovery(sessionInstance.rpcHandler);
-      }
-      bufferDB.db.load();
-      bufferDB.insert(contextData);
-      var data = bufferDB.query();
-
-      var contextService = [];
-      var service = webinosServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/context'), {onFound:function(service) {
-        var pzhService = null;
-        util= require('util');
-        //console.log(util.inspect(service, false, null), 'white+red_bg');
-        if (service.serviceAddress == connectedPzh){
-
-          service.bindService({onBind:function(service) {
-            console.log("Service Bound", 'white+red_bg');
-            var query = {};
-            query.type = "DB-insert";
-            query.data = data;
-            //message.write(query, connectedPzh, 0);
-            var query = {};
-            query.type = "DB-insert";
-            query.data = data;
-
-            service.executeQuery(query);
-            bufferDB.db.clear();
-            bufferDB.commit();
-
-          }
-          });
-      }
-      }});
-    }
-    //success(true);
-  }
 
   ////////////////////////////////////////////////////////////////////////////////////////
   //Running on the PZH
