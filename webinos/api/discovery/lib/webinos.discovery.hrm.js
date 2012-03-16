@@ -22,7 +22,7 @@ if (!webinos.discovery) { webinos.discovery = {}; }
 
 //android
 
-var disc = require('bridge').load('org.webinos.impl.DiscoveryHRMImpl', this);
+var disc = require('bridge').load('org.webinos.impl.discovery.DiscoveryHRMImpl', this);
 
 HRMfindservice = function(serviceType,onFound){
 

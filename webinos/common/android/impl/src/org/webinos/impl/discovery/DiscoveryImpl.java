@@ -13,10 +13,10 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright 2011 Samsung Electronics UK Ltd (SERI)
+* Copyright 2012 Samsung Electronics(UK) Ltd
 ******************************************************************************/
 
-package org.webinos.impl;
+package org.webinos.impl.discovery;
 
 import java.util.Set;
 import java.util.ArrayList;

@@ -22,7 +22,7 @@ if (!webinos.discovery) { webinos.discovery = {}; }
 
 //android
 
-var disc = require('bridge').load('org.webinos.impl.DiscoveryImpl', this);
+var disc = require('bridge').load('org.webinos.impl.discovery.DiscoveryImpl', this);
 
 BTfindservice = function(serviceType,onFound){
 	try 
