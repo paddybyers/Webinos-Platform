@@ -126,6 +126,57 @@ var registeredListeners = [];
 webinos.context.database = new databasehelper.JSONDatabase({path : dbpath,transactional : false});
 console.log("Log DB Initialized");
 
+function saveContextData(_dataInLog, _dataIn)
+{
+  var pmlib = require(webinosRoot+'/common/manager/policy_manager/lib/policymanager.js'), policyManager, exec = require('child_process').exec;
+  policyManager = new pmlib.policyManager();
+
+  var res, request = {}, subjectInfo = {}, resourceInfo = {};
+
+  subjectInfo.userId = "user1";
+  request.subjectInfo = subjectInfo;
+
+  resourceInfo.apiFeature = "http://webinos.org/api/context.store";
+  request.resourceInfo = resourceInfo;
+
+  res = policyManager.enforceRequest(request);
+
+  switch (res)
+  {
+    case 0:
+      webinos.context.database.insert([_dataInLog]);
+      console.log(" Context Data Saved");
+      webinos.context.saveContext(_dataIn);
+      break;
+		
+    case 1:
+        console.log(" ACCESS DENIED: Context Data not saved");
+      break;
+
+    case 2:
+    case 3:
+    case 4:
+    exec("xmessage -buttons allow,deny -print 'Access request to " + resourceInfo.apiFeature + "'",
+    function(error, stdout, stderr)
+    {
+      if (stdout == "allow\n")
+      {
+        webinos.context.database.insert([_dataInLog]);
+        console.log(" Context Data Saved");
+        webinos.context.saveContext(_dataIn);
+      }
+      else
+      {
+        console.log(" ACCESS DENIED: Context Data not saved");
+      }
+    });
+    break;
+
+    default:
+      console.log(" ACCESS DENIED: Context Data not saved");
+  }
+}
+
 webinos.context.logContext = function(myObj, res) {
   if (!res['result']) res['result']={};
 
@@ -139,9 +190,10 @@ webinos.context.logContext = function(myObj, res) {
   //Don't log Context API calls
   if (!(myData.call.api =='http://webinos.org/api/context'))
   {
-    webinos.context.database.insert([dataInLog]);
-    console.log(" Context Data Saved");
-    webinos.context.saveContext(dataIn);
+    saveContextData(dataInLog, dataIn);
+//    webinos.context.database.insert([dataInLog]);
+//    console.log(" Context Data Saved");
+//    webinos.context.saveContext(dataIn);
   }
 };
 
@@ -161,10 +213,10 @@ webinos.context.logListener = function(myObj){
     registeredListeners[registeredListeners.length] = regListener;
 
     //Don't log Context API calls
-
-    webinos.context.database.insert([dataIn]);
-    console.log(" Context Data Saved");
-    webinos.context.saveContext(dataIn);
+    saveContextData(dataIn, dataIn);
+//    webinos.context.database.insert([dataIn]);
+//    console.log(" Context Data Saved");
+//    webinos.context.saveContext(dataIn);
   }
 }
 

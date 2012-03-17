@@ -51,6 +51,93 @@
 	  appContext.registerContextObject(APPName, ContextObjectName, ContextFields, function(response){callback(response);})
 	}
 	
+	function enforceContextDataAccess(_mode, _query, _successCallback)
+	{
+		var pmlib = require(webinosRoot+'/common/manager/policy_manager/lib/policymanager.js'), policyManager, exec = require('child_process').exec;
+		policyManager = new pmlib.policyManager();
+
+		var res, request = {}, subjectInfo = {}, resourceInfo = {};
+		subjectInfo.userId = "user1";
+		request.subjectInfo = subjectInfo;
+		resourceInfo.apiFeature = "http://webinos.org/api/context." + _mode;
+		request.resourceInfo = resourceInfo;
+		res = policyManager.enforceRequest(request);
+		switch (res)
+		{
+			case 0:
+				if (_mode=="store")
+				{
+					appContext.saveAppContext(query.APPName, query.ContextObjectName, query.data, function(results){
+						successCallback(results);
+					});
+					break;
+				}
+
+				var contextDB = require(webinosRoot
+		      			+ dependencies.manager.context_manager.location
+		      			+ 'lib/contextDBManagerPZH.js');
+				if(_query.type == "getrawview")
+				{
+					contextDB.getrawview(function(results) {
+						_successCallback(results);
+					});
+				}
+				else if(_query.type == "query")
+				{
+					contextDB.query(_query.data, function(results) {
+						_successCallback(results);
+					});
+				}
+      				break;
+			
+			case 1:
+        			console.log(" ACCESS DENIED: Context Data not read");
+				break;
+
+			case 2:
+			case 3:
+			case 4:
+				exec("xmessage -buttons allow,deny -print 'Access request to " + resourceInfo.apiFeature + "'",
+				function(error, stdout, stderr)
+    				{
+					if (stdout == "allow\n")
+					{
+						if (_mode == "store")
+						{
+							appContext.saveAppContext(query.APPName, query.ContextObjectName, query.data, function(results){
+								successCallback(results);
+							});
+						}
+						else
+						{
+							var contextDB = require(webinosRoot
+			      					+ dependencies.manager.context_manager.location
+			      					+ 'lib/contextDBManagerPZH.js');
+							if(_query.type == "getrawview")
+							{
+								contextDB.getrawview(function(results) {
+									_successCallback(results);
+								});
+							}
+							else if(_query.type == "query")
+							{
+								contextDB.query(_query.data, function(results) {
+									_successCallback(results);
+								});
+							}
+						}
+					}
+					else
+					{
+						console.log(" ACCESS DENIED: Context Data " + _mode);
+					}
+				});
+			break;
+			default:
+      				console.log(" ACCESS DENIED: Context Data " + _mode);
+		}
+	}
+
 	RemoteContextManager.prototype.executeQuery = function(query, successCallback, errorCallback) {
 		switch (query.type) {
 		case "DB-insert"://PZH
@@ -60,24 +147,12 @@
 			contextDB.insert(query.data); //TODO: Add success callback
 			break;
 		case "getrawview"://PZH
-		  var contextDB = require(webinosRoot
-		      + dependencies.manager.context_manager.location
-		      + 'lib/contextDBManagerPZH.js');
-			contextDB.getrawview(function(results) {
-				successCallback(results);
-			});
-			break;
 		case "query": //PZH
-		  var contextDB = require(webinosRoot
-		      + dependencies.manager.context_manager.location
-		      + 'lib/contextDBManagerPZH.js');
-			contextDB.query(query.data, function(results) {
-				successCallback(results);
-			});
+			enforceContextDataAccess("read", query, successCallback);
+			break;
 		case "saveAppContext"://PZP
-		  appContext.saveAppContext(query.APPName, query.ContextObjectName, query.data, function(results){
-		    successCallback(results);
-		  });
+			enforceContextDataAccess("store", query, successCallback);
+			break;
 		default:
 			errorCallback(new ContextError("Context Query Type '" + query.type + "' not found"))
 		}

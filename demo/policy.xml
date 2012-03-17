@@ -10,8 +10,16 @@
 				<resource-match attr="api-feature" match="http://www.w3.org/ns/api-perms/calendar.read"/>
 				<resource-match attr="api-feature" match="http://www.w3.org/ns/api-perms/contacts.read"/>
 				<resource-match attr="api-feature" match="http://wacapps.net/api/devicestatus"/>
+				<resource-match attr="api-feature" match="http://webinos.org/api/context.store"/>
 			</condition>
 		</rule>
+	
+		<rule effect="permit">
+			<condition>
+				<resource-match attr="api-feature" match="http://webinos.org/api/context.read"/>
+			</condition>
+		</rule>
+
 		<rule effect="deny">
 			<condition>
 				<resource-match attr="api-feature" match="*"/>
