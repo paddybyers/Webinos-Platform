@@ -17,6 +17,7 @@
 		<rule effect="permit">
 			<condition>
 				<resource-match attr="api-feature" match="http://webinos.org/api/context.read"/>
+				<resource-match attr="api-feature" match="http://webinos.org/api/discovery"/>
 			</condition>
 		</rule>
 

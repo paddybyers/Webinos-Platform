@@ -49,6 +49,11 @@
 	}
 	DiscoveryModule.prototype = new RPCWebinosService;
 
+	DiscoveryModule.prototype.BTauthenticate = function (params, successCB)
+	{
+		discoverymodule.BTauthenticate(params,successCB);
+	}
+
 	/**
 	 * To find devices that support the specific service. This applies to both Android and Linux
 	 * @param data Service type.

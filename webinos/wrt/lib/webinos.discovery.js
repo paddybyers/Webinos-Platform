@@ -30,6 +30,14 @@
 	
 	DiscoveryModule.prototype = new WebinosService();
 	
+	DiscoveryModule.prototype.BTauthenticate = function (data, success) {
+		console.log("BT Authenticate");
+		var rpc = webinos.rpcHandler.createRPC(this, "BTauthenticate", data);
+		webinos.rpcHandler.executeRPC(rpc, function(params) {
+			success(params);
+		});
+	};
+	
 	/**
 	 * To find devices that support the specific service. This applies to both Android and Linux
 	 * @param data Service type.
@@ -37,7 +45,7 @@
 	 */
 	DiscoveryModule.prototype.BTfindservice = function (data, success) {
 		console.log("BT findservice");
-		var rpc = webinos.rpcHandler.createRPC(this, "BTfindservice", data);
+		var rpc = webinos.rpcHandler.createRPC(this, "BTfindservice", arguments);
 		webinos.rpcHandler.executeRPC(rpc, function(params) {
 			success(params);
 		});

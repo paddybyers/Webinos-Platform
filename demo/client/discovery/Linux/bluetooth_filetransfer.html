@@ -9,7 +9,6 @@
 	<body>	
 	<div id="content">	
 		<div id="header">
-		<!--<h1><img src="discovery_logo.png"> 	</h1> -->
 		</div>
 		
 		<div> PZH PZP LIST : <select id="pzh_pzp_list"> <option> </option> </select> <br> </div>
@@ -20,6 +19,7 @@
 		<p>
 			<!--<INPUT TYPE="submit" onclick="connectWebinos()" VALUE="Connect to webinos" class="button" /><br />-->
 			<INPUT TYPE="submit" onclick="connectWebinos()" VALUE="Find Service" class="button" /><br />
+			<INPUT TYPE="submit" onclick="authenticate()" VALUE="Authenticate" class="button" /><br />
 			<select id='servicelist'>
 				<option>Pull down and select a service </option>
 				<OPTION VALUE="0x1106"          >FileService
@@ -207,6 +207,18 @@
   			// DOM0 fallback
   			filelist.onchange = changeHandler;
 		}		
+		
+		
+		function handle_authentication_query() // see function
+  		{
+			console.log('------------------handle_auth : ');
+		}
+		
+		function authenticate()
+		{
+			var parameters={};
+			bluetoothService.BTauthenticate(parameters, handle_authentication_query)
+		}
 		
 		function discoverdevice()
 		{

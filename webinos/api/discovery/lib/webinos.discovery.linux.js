@@ -22,6 +22,84 @@ if (!webinos.discovery) { webinos.discovery = {}; }
 
 	var localdisc = (process.versions.node < "0.6.0" ) ? require('../src/build/default/bluetooth.node') : require('../src/build/Release/bluetooth.node');
 
+	//check path
+	var path = require('path');
+	var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
+	var dependencies = require(path.resolve(__dirname, '../' + moduleRoot.root.location + '/dependencies.json'));
+	var webinosRoot = path.resolve(__dirname, '../' + moduleRoot.root.location);
+	
+	console.log("webinosRoot=" + webinosRoot); 
+	
+	//Enforce Policy in
+	/**
+	 * Ask policy manager for permission
+	 */
+	checkPolicyManager = function(module, params, callback)
+	{
+	  console.log("discovery Linux - check Policy");
+	  
+	  // TODO CHANGE
+	  var pmlib = require(webinosRoot+'/common/manager/policy_manager/lib/policymanager.js'); 
+	  exec = require('child_process').exec; 
+	  var policyManager = new pmlib.policyManager();
+	
+	  var res, request = {}, subjectInfo = {}, resourceInfo = {};
+	
+	  subjectInfo.userId = "user1";
+	  request.subjectInfo = subjectInfo;
+	  resourceInfo.apiFeature = "http://webinos.org/api/discovery";
+	  request.resourceInfo = resourceInfo;
+	  res = policyManager.enforceRequest(request);
+	  console.log("res =" + res);
+	  switch (res)
+	  {
+		case 0:
+			console.log("---discovery.checkkPolicyManager: logging in");
+		break;
+
+		case 1:
+  			console.log("---Discovery.checkPolicyManager: authorization NOT granted");
+//  			callback(false);
+  		break;
+
+		case 2:
+		case 3:
+		case 4:
+			/*var child =*/ 
+			exec("xmessage -buttons allow,deny -print 'Access request to " + resourceInfo.apiFeature + "'",
+			function(error, stdout, stderr)
+			{
+				if (stdout == "allow\n")
+				{
+					console.log("---discovery.checkPolicyManager: logging in");
+				}
+				else
+				{
+			  		console.log("---discovery.checkPolicyManager: authorization NOT granted");
+			  		callback(false);
+				}
+		});
+		break;
+	
+	    default:
+	      console.log("---discovery.checkPolicyManager: authorization NOT granted");
+	      callback(false);
+	      break;
+	  }
+	}
+	
+	//end of Policy enforcement	
+	
+	//Add authenticate function based on policy enforcement
+	
+	//BTauthenticate = function(params,callback)
+	BTauthenticate = function(callback)
+	{
+		checkPolicyManager(localdisc, callback);
+	}
+	
+	// end of authentication
+	
 	/**
 	 * Find devices that support specific service type
 	 * @param serviceType Service type.
@@ -123,6 +201,7 @@ if (!webinos.discovery) { webinos.discovery = {}; }
 	  }
   }
   
+  	exports.BTauthenticate = BTauthenticate;
 	exports.BTfindservice = BTfindservice;
 	exports.BTbindservice = BTbindservice;
 	exports.BTlistfile = BTlistfile;
