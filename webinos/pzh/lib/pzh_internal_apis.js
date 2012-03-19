@@ -51,7 +51,7 @@ function getPzpInfoSync(pzh, pzpId) {
 	//find out whether we have this PZP in a session somewhere.
 	var pzpConnected = false;
 	var pzpName = pzpId;
-	for (var i=0; i<pzh.connectedPzp.length; i++){
+	for (var i in pzh.connectedPzp) {
 		if (typeof pzh.connectedPzp[i] !== "undefined") {
 			//session IDs append the PZH to the front of the PZP ID.
 			var splitId = i.split("/");
@@ -100,7 +100,6 @@ pzhapis.addPzpQR = function (pzh, callback) {
 pzhapis.listPzp = function(pzh, callback) {
 	"use strict";
 	var result = {signedCert: [], revokedCert: []};
-
 	for (var i=0; i<pzh.config.signedCert.length; i++) {
 		if (typeof pzh.config.signedCert[i] !== "undefined") {
 			result.signedCert.push(getPzpInfoSync(pzh, i));
@@ -120,15 +119,16 @@ pzhapis.listPzp = function(pzh, callback) {
 // Get a list of all Personal zone devices.
 pzhapis.listZoneDevices = function(pzh, callback) {
 	"use strict";
-	var result = {pzps: [], pzhs: []};
 
-	for (var i=0; i<pzh.config.signedCert.length; i++) {
+	var result = {pzps: [], pzhs: []};
+	
+	for (var i in pzh.config.signedCert){
 		if (typeof pzh.config.signedCert[i] !== "undefined") {
 			result.pzps.push(getPzpInfoSync(pzh, i));
 		}
 	}
 
-	for (var i=0; i<pzh.config.otherCert.length; i++) {
+	for (var i in pzh.config.otherCert) {
 		if (typeof pzh.config.otherCert[i] !== "undefined" && pzh.config.otherCert[i].cert !== '') {
 			result.pzhs.push(getPzhInfoSync(pzh, i));
 		}
@@ -169,11 +169,12 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 	if (to) {
 		id_to = to.split('/')[0];
 	}
-	
+
 	// There are two scenarios:
 	// 1. Inside same PZH Farm, it is a mere copy. 
 	if (id === id_to) {
 		for (var i=0; i<farm.pzhs.length; i++) {
+			console.log(farm.pzhs)
 			if( typeof farm.pzhs[i] !== "undefined" && i === to) {
 				// Store the information in other_cert
 				pzh.config.otherCert[to] = { cert: farm.pzhs[to].config.master.cert, crl: farm.pzhs[to].config.master.crl};

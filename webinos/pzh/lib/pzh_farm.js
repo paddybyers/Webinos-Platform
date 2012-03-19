@@ -42,11 +42,11 @@ farm.config = {};
 
 function loadPzhs(config) {
 	"use strict";
-	var key;
-	for (key in config.pzhs){
-		if(typeof config.pzhs[key] !== "undefined") {
-			pzh.addPzh(key, config.pzhs[key], function(res, instance) {
-				log('INFO','[PZHFARM] Started PZH ... ' + key);
+	var myKey;
+	for ( myKey in config.pzhs) {
+		if(typeof config.pzhs[myKey] !== "undefined") {
+			pzh.addPzh(myKey, config.pzhs[myKey], function(res, instance) {
+				log('INFO','[PZHFARM] Started PZH ... ' + instance.config.details.name);
 			});
 		}
 	}
@@ -172,7 +172,7 @@ farm.getOrCreatePzhInstance = function (host, user, callback) {
 	} else {
 		log('INFO', '[PZHFARM] Adding new PZH - ' + myKey);
 		var pzhModules = configuration.pzhDefaultServices;;
-		Pzh.addPzh(myKey, pzhModules, function(){
+		pzh.addPzh(myKey, pzhModules, function(){
 			farm.pzhs[myKey].config.details.email    = user.email;
 			farm.pzhs[myKey].config.details.username = user.username;
 			farm.pzhs[myKey].config.details.country  = user.country;
