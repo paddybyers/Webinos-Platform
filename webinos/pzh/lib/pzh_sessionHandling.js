@@ -233,21 +233,21 @@
 				self.connectedPzp[sessionId] = {'socket': conn,  'address': conn.socket.remoteAddress};
 				// Fetch details about connected pzp's
 				// Information to be sent includes address, id and indication which is a newPZP joining
-				var id, otherPzp = [];
-				for( id in self.connectedPzp) {
-					if (typeof self.connectedPzp[id] !== "undefined") {
-						otherPzp[id] = {address:self.connectedPzp[id].address};
+				var otherPzp = [];
+				for(var i=0; i<self.connectedPzp.length; i++) {
+					if (typeof self.connectedPzp[i] !== "undefined") {
+						otherPzp[i] = {address:self.connectedPzp[i].address};
 						// Special case for new pzp
-						if (id === sessionId) {
-							otherPzp[id].newPzp=true;
+						if (i === sessionId) {
+							otherPzp[i].newPzp=true;
 						}
 					}
 				}
 				// Send message to all connected pzp's about new pzp that has joined in
-				for( id in self.connectedPzp) {
-					if (typeof self.connectedPzp[id] !== "undefined") {
-						msg = self.prepMsg(self.sessionId, id, 'pzpUpdate', otherPzp);
-						self.sendMessage(msg, id);
+				for(var i=0; i<self.connectedPzp.length; i++) {
+					if (typeof self.connectedPzp[i] !== "undefined") {
+						msg = self.prepMsg(self.sessionId, i, 'pzpUpdate', otherPzp);
+						self.sendMessage(msg, i);
 					}
 				}
 
