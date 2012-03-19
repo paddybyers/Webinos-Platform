@@ -274,8 +274,7 @@ function fetchOpenIdDetails(req, res, callback){
 				details.name += userDetails.lastname;
 			}
 			if(userDetails.fullname){
-				var name = userDetails.fullname.split(' ');
-				details.name = name[0]+name[1];
+				details.name = userDetails.fullname.replace(/ /g, '');
 			}
 			if(userDetails.email){
 				details.email = userDetails.email;
