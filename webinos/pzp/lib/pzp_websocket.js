@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright 2011 Samsung Electronics Research Institute
+* Copyright 2011 Habib Virji, Samsung Electronics (UK) Ltd
 *******************************************************************************/
 
 /**
@@ -55,7 +55,7 @@ var moduleRoot = require(path.resolve(__dirname, '../dependencies.json'));
 		}
 	}
 
-websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort, callback) {		
+websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort, callback) {
 		function getContentType(uri) {
 			var contentType = 'text/plain';
 		    switch (uri.substr(uri.lastIndexOf('.'))) {
@@ -174,19 +174,7 @@ websocket.startPzpWebSocketServer = function(hostname, serverPort, webServerPort
 
 			// Each message is forwarded back to Message Handler to forward rpc message
 			if(msg.type === 'prop' ) {
-				if( msg.payload.status === 'startPzp' ) {
-					instance = pzp_session.startPzp(msg.payload.value, 
-					msg.payload.servername, 
-					msg.payload.serverport,
-					msg.payload.code,
-					msg.payload.modules,
-					function(status) {
-						if(typeof status !== "undefined") {
-							connectedApp(connection);
-							instance.wsServerMsg("Pzp " + instance.sessionId+ " started");
-						}
-					});
-				} else if(msg.payload.status === 'disconnectPzp') {
+				if(msg.payload.status === 'disconnectPzp') {
 					if( typeof instance !== "undefined" && typeof instance.sessionId !== "undefined") {
 						if(instance.connectedPzp.hasOwnProperty(instance.sessionId)) {
 							instance.connectedPzp[instance.sessionId].socket.end();

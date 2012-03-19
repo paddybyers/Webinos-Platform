@@ -12,8 +12,9 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*
-*******************************************************************************/
+* 
+* Copyright 2011 Habib Virji, Samsung Electronics (UK) Ltd
+********************************************************************************/
 
 // This file is a wrapper / facade for all the functionality that the PZH
 // web interface is likely to need.  
@@ -62,7 +63,7 @@ function getPzpInfoSync(pzh, pzpId) {
 			}
 		}
 	}
-//
+
 	return {
 		id          : pzpId,
 		cname       : pzpName,
@@ -73,7 +74,7 @@ function getPzpInfoSync(pzh, pzpId) {
 // Synchronous method for getting information about a PZH with a certain ID.
 function getPzhInfoSync(pzh, pzhId) {
 	"use strict";
-	if (pzhId === pzh.config.certValues.common.split(':')[0]) {
+	if (pzhId && pzhId.split('_')[0] === pzh.config.details.name) {
 		//we know that this PZH is alive
 		return {
 			id : pzhId.split('_')[0] + " (Your PZH)",
@@ -147,7 +148,7 @@ pzhapis.crashLog = function(pzh, callback){
 	fs.readFile(filename, function(err, data){
 		var payload = {cmd:'crashLog', payload:''};
 		if (data !== null || typeof data === "undefined"){
-			payload.payload = data;
+			payload.payload = data.toString('utf8');
 			callback(payload);
 		} else {
 			callback(payload);
@@ -163,10 +164,14 @@ pzhapis.revoke = function(pzh, pzpid, callback) {
 // This is sending side action on PZH end
 pzhapis.addPzhCertificate = function(pzh, to, callback) {
 	"use strict";
+	var id, id_to, pzh_id;
+	if (pzh.config.details.servername) {
+		id = pzh.config.details.servername.split('/')[0];
+	}
+	if (to) {
+		id_to = to.split('/')[0];
+	}
 	
-	var id = pzh.config.servername.split('/')[0];
-	var id_to = to.split('/')[0];
-	var pzh_id;
 	// There are two scenarios:
 	// 1. Inside same PZH Farm, it is a mere copy. 
 	if (id === id_to) {
@@ -174,7 +179,7 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 			if( typeof farm.pzhs[pzh_id] !== "undefined" && pzh_id === to) {
 				// Store the information in other_cert
 				pzh.config.otherCert[to] = { cert: farm.pzhs[to].config.master.cert, crl: farm.pzhs[to].config.master.crl};
-				farm.pzhs[to].config.otherCert[pzh.config.servername] = { cert: pzh.config.master.cert, crl: pzh.config.master.crl }
+				farm.pzhs[to].config.otherCert[pzh.config.details.servername] = { cert: pzh.config.master.cert, crl: pzh.config.master.crl }
 
 				// Add in particular context of each PZH options
 				pzh.options.ca.push(pzh.config.otherCert[pzh_id].cert);
@@ -189,7 +194,7 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 						elem[1] = crypto.createCredentials(farm.pzhs[pzh_id].options).context;
 					}
 					
-					if (pzh.config.servername.match(elem[0]) !== null) {
+					if (pzh.config.details.servername.match(elem[0]) !== null) {
 						elem[1] =  crypto.createCredentials(pzh.options).context;
 					}
 				});
@@ -216,7 +221,7 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 	
 };
 
-pzhapis.restartPzh = function(instance, from, callback) {
+pzhapis.restartPzh = function(instance, callback) {
 	"use strict";
 	try {
 		// Reload contents

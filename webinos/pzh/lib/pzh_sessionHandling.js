@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright 2011 Samsung Electronics Research Institute
+* Copyright 2011 Habib Virji, Samsung Electronics (UK) Ltd
 * Copyright 2011 Alexander Futasz, Fraunhofer FOKUS
 *******************************************************************************/
 /**
@@ -119,7 +119,7 @@
 		try {
 			/** TODO: This is a temporary solution to append message with #. This is done in order to identify whole message at receiving end */
 			log(self.sessionId, 'INFO', '[PZH -'+ self.sessionId+'] Send to '+ address + ' Message '+JSON.stringify(message));
-			buf = new Buffer('#'+JSON.stringify(message)+'#');
+			buf = new Buffer('#'+JSON.stringify(message)+'#', 'utf8');
 			if (self.connectedPzh.hasOwnProperty(address)) {
 				self.connectedPzh[address].socket.pause();
 				self.connectedPzh[address].socket.write(buf);
@@ -290,14 +290,13 @@
 	 */
 	Pzh.prototype.addNewPZPCert = function (parse, cb) {
 		var self = this;
-		var pzp = 2;
 		try {
 			// Check QRCode if it is valid ..
 			self.expecting.isExpectedCode(parse.payload.message.code, function(expected) {
 				if (expected) {
 					// Sign certificate based on received csr from client.
 					// Also includes master key and master certificate for signing the certificate
-					configuration.signedCert(parse.payload.message.csr, self.config, pzp, parse.payload.message.name , function(config){
+					configuration.signedCert(parse.payload.message.csr, self.config, parse.payload.message.name, 2, function(config) { // pzp = 2
 						// unset expected QRCode
 						self.expecting.unsetExpected(function() {
 							// Send signed certificate and master certificate to PZP
@@ -393,35 +392,32 @@
 	/**
 	 * @description: ADDs PZH in a farm ..
 	 * @param {string} uri: pzh url you want to add .. assumption it is of form pzh.webinos.org/nick
-	 * @param {string} contents: contents needed for creating certificate
 	 * @param {object} modules: modules that will be supported on PZH
 	 * @param {function} callback: returns instance of PZH 
 	 */ 
-	exports.addPzh = function ( uri, contents, modules, callback) {
+	exports.addPzh = function ( uri, modules, callback) {
 		if (typeof farm.server === "undefined" || farm.server === null) {
 			log(null, 'ERROR', '[PZH] Farm is not running, please startFarm');
 			callback(false);
 		} else {
-			if (typeof uri === "undefined" && uri === 'null' && typeof contents === "undefined" && contents === 'null' && typeof modules === "undefined" && modules === 'null' ){
+			if (typeof uri === "undefined" || uri === 'null' || typeof modules === "undefined" || modules === 'null' ){
 				log(null, 'ERROR','PZH could not be started as one of the details are missing ');
 				callback(false);
 			} else {
-				var pzh = new Pzh(modules);
-				configuration.setConfiguration(contents, 'Pzh', function(config, conn_key) {
+				var name = uri.split('/')[1];
+				var pzh  = new Pzh(modules);
+				configuration.setConfiguration(name, 'Pzh', uri, function(config, conn_key) {
 					pzh.config    = config;
 					// Set sessionId by reading common value.
-					pzh.sessionId = pzh.config.certValues.common.split(':')[0];
-					pzh.contents  = contents;
+					pzh.sessionId = name + '_'+config.details.type;//Pzh_DeviceName
 					// modules loaded in pzh
 					pzh.modules   = modules;
 					// pzh servername
-					pzh.config.servername = uri;
+					pzh.config.details.servername = uri;
 					// store pzh instance in farm, this will allow farm to know about PZH instance.
 					farm.pzhs[uri] = pzh;
 					// Information for reloading PZH if PZH Farm restarts later
-					farm.config.pzhs[uri]={};
-					farm.config.pzhs[uri].contents = contents;
-					farm.config.pzhs[uri].modules  = modules;
+					farm.config.pzhs[uri] = modules;
 					// Certificate parameters that will be added in SNI context of farm
 					var options = {
 						key  : conn_key,

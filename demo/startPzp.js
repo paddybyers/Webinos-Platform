@@ -122,7 +122,7 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 			config.pzpWebsocketPort = 8081;
 		}
 		if (!config.pzpName) {
-			config.pzpName = 'WebinosPzp';
+			config.pzpName = '';
 		}
 		if (!config.code) {
 			config.code = 'DEBUG';
@@ -148,9 +148,8 @@ if (options.pzhHost === '' || options.pzhPort <= 0) {
 		if (options.code) {
 			config.code = options.code;
 		}
-		var contents ="country=UK\nstate=MX\ncity=ST\norganization=Webinos\norganizationUnit=WP4\ncommon=" + config.pzpName + "\nemail=internal@webinos.org\ndays=180\n"
 		websocket.startPzpWebSocketServer(config.pzpHost, config.pzpWebsocketPort, config.pzpHttpPort, function() {
-			pzp.startPzp(config.pzhHost, contents, config.code, pzpModules, function() {
+			pzp.startPzp(config.pzhHost, config.pzpName, config.code, pzpModules, function() {
 				console.log("=== PZP 1 started ===");
 			});
 		});

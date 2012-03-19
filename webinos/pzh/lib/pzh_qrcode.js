@@ -13,6 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
+* Copyright 2011 Habib Virji, Samsung Electronics (UK) Ltd
 *******************************************************************************/
 
 // A wrapper for the QRCODE module which generates a QR code for a short,

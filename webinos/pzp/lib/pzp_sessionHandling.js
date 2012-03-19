@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright 2011 Samsung Electronics Research Institute
+* Copyright 2011 Habib Virji, Samsung Electronics (UK) Ltd
 * Copyright 2011 Alexander Futasz, Fraunhofer FOKUS
 *******************************************************************************/
 
@@ -113,7 +113,7 @@
 	 */
 	Pzp.prototype.sendMessage = function (message, address) {
 		var self = this;
-		var buf = new Buffer('#'+JSON.stringify(message)+'#');
+		var buf = new Buffer('#'+JSON.stringify(message)+'#', 'utf8');
 		log('INFO','[PZP -'+ self.sessionId+'] Send to '+ address + ' Message '+JSON.stringify(message));
 		
 		try {
@@ -201,7 +201,7 @@
 			log('INFO','[PZP -'+ self.sessionId+'] Connected to PZH & Authenticated');
 			self.pzhId = cn;
 			
-			self.sessionId = self.pzhId + "/" + self.config.certValues.common.split(':')[0];
+			self.sessionId = self.pzhId + "/" + self.config.details.name;
 			self.rpcHandler.setSessionId(self.sessionId);
 			self.connectedPzh[self.pzhId] = {socket: client};
 			self.connectedPzhIds.push(self.pzhId);
@@ -240,19 +240,19 @@
 		self = this;
 		var conn_key, config = {};
 		try {
-			if (typeof self.config.master.cert !== "undefined" || self.config.master.cert !== '' ) {
+			if (typeof self.config.master.cert !== "undefined" && self.config.master.cert !== '' ) {
 				config = {
 					key : conn_key,
 					cert: self.config.conn.cert,
 					crl : self.config.master.crl,
 					ca  : self.config.master.cert,
-					servername: self.config.servername
+					servername: self.config.details.servername
 				};
 			} else {
 				config = {
 					key : conn_key, 
 					cert: self.config.conn.cert,
- 					servername: self.config.servername
+ 					servername: self.config.details.servername
 				};
 			}
 			client = tls.connect(configuration.pzhPort, self.address, config,
@@ -270,7 +270,7 @@
 						self.connectedPzh[self.pzhId] = {socket: client};
 						self.prepMsg(self.sessionId, self.pzhId,
 							'clientCert', { csr: conn_csr,
-							name: self.config.certValues.common.split(':')[0],
+							name: self.config.details.name,
 							code: self.code //"DEBUG"
 						});
 					}
@@ -307,7 +307,7 @@
 				delete self.connectedPzp[self.sessionId];
 	
 				self.pzhId     = '';
-				self.sessionId = self.config.certValues.common.split(':')[0];
+				self.sessionId = self.config.details.name;
 				self.rpcHandler.setSessionId(self.sessionId);
 
 				websocket.updateInstance(instance);
@@ -331,7 +331,7 @@
 			// go into PZP mode from PZH/PZP mode
 			if (err.code === 'ECONNREFUSED') {
 				self.pzhId = '';
-				self.sessionId = self.config.certValues.common.split(':')[0];
+				self.sessionId = self.config.details.name;
 				self.rpcHandler.setSessionId(self.sessionId);
 				setupMessageHandler(self);
 				log('INFO', 'PZP ('+self.sessionId+') virgin PZP mode');
@@ -469,21 +469,28 @@
 	 * @param server name
 	 * @param port: port on which PZH is running
 	 */
-	sessionPzp.startPzp = function(url, contents, code, modules, callback) {
+	sessionPzp.startPzp = function(url, name, code, modules, callback) {
 		var client      = new Pzp(modules);
 		client.modules  = modules;
 		client.code     = code;
-		configuration.setConfiguration(contents, 'Pzp', function (config, conn_key, conn_csr) {
-			client.config            = config;
-			client.config.servername = url;
-			var name;
-			client.sessionId = client.config.certValues.common.split(':')[0];
-			if (url && url.split('/')) {
-				name = url.split('/')[0];
-			} else {
-				name = url;
+		
+		configuration.setConfiguration(name, 'Pzp', url, function (config, conn_key, conn_csr) {
+			var addr;
+			if (config === "undefined") {
+				log('ERROR', 'Error in initializing PZP configuration')
+				return;
 			}
-			utils.resolveIP(name, function(resolvedAddress) {
+			
+			client.config                    = config;
+			client.config.details.servername = url;
+			client.sessionId                 = config.details.name;
+			
+			if (url && url.split('/')) {
+				addr = url.split('/')[0];
+			} else {
+				addr = url;
+			}
+			utils.resolveIP(addr, function(resolvedAddress) {
 				log('DEBUG', '[PZP -'+ client.sessionId+'] Connecting Address: ' + resolvedAddress);
 				client.address = resolvedAddress;
 				try {

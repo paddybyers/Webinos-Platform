@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright 2011 Samsung Electronics Research Institute
+* Copyright 2011 Habib Virji Samsung Electronics (UK) Ltd
 *******************************************************************************/
 
 /*
@@ -45,10 +45,10 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 	if (server.split('/')) {
 		serverName = server.split('/')[0];
 	} else {
-		serverName = server;		
+		serverName = server;
 	}
 	
-	log(pzh.sessionId, 'INFO', '[PZH -'+self.sessionId+'] Connect Other PZH');
+	log(pzh.sessionId, 'INFO', '[PZH -'+self.sessionId+'] Connect Other PZH - '+serverName);
 	
 	config.fetchKey(self.config.conn.key_id, function(key_id) {
 		try {
@@ -70,13 +70,12 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 				crl : crlList,
 				servername: server};
 		} catch (err) {
-			log(pzh.sessionId, 'ERROR', '[PZH -'+self.sessionId+'] Options setting failed while connecting other Pzh ' + err);
+			log(pzh.sessionId, 'ERROR', '[PZH -'+self.sessionId+'] Connecting other Pzh failed in setting configuration ' + err);
 			return;
 		}
 		
 		var connPzh = tls.connect(config.pzhPort, serverName, options, function() {
-			log('INFO', '[PZH -'+self.sessionId+'] Connection Status : '+connPzh.authorized);
-			
+			log('INFO', '[PZH -'+self.sessionId+'] Connection Status : '+connPzh.authorized);			
 			if(connPzh.authorized) {
 				var connPzhId, msg;
 				log(pzh.sessionId, 'INFO', '[PZH -'+self.sessionId+'] Connected ');
@@ -88,12 +87,11 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 					return;
 				}
 				try {
-					
 					if(self.connectedPzh.hasOwnProperty(connPzhId)) {
 						self.connectedPzh[connPzhId] = {socket : connPzh};
 						msg = self.messageHandler.registerSender(self.sessionId, connPzhId);
 						self.sendMessage(msg, connPzhId);
-					}				
+					}
 				} catch (err1) {
 					log(pzh.sessionId, 'ERROR', 'PZH ('+self.sessionId+') Error storing pzh in the list ' + err1);
 					return;
@@ -102,7 +100,7 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 				callback(connPzh.authorized);
 				log(pzh.sessionId, 'INFO', '[PZH -'+self.sessionId+'] Not connected');
 			}
-		
+
 			connPzh.on('data', function(data) {
 				utils.processedMsg(self, data, function(parse){
 					try {
@@ -110,8 +108,7 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 					} catch (err) {
 						log(pzh.sessionId, 'ERROR', '[PZH -'+self.sessionId+'] Error sending message to messaging ' + err);
 					}
-				});				
-				
+				});
 			});
 
 			connPzh.on('error', function(err) {
@@ -125,7 +122,6 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 			connPzh.on('end', function() {
 				log(pzh.sessionId, 'INFO', 'Peer Pzh End');
 			});
-
 		});
 	});
 };

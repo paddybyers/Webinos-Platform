@@ -13,6 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
+* Copyright 2011 Habib Virji, Samsung Electronics (UK) Ltd
 *******************************************************************************/
 
 #include <v8.h>
@@ -79,11 +80,10 @@ v8::Handle<Value> _genRsaKey(const Arguments& args)
 v8::Handle<Value> _createCertificateRequest(const Arguments& args)
 {
 	HandleScope scope;
+	
 	if (args.Length() == 8 && args[0]->IsString() && args[1]->IsString()
-		&& args[2]->IsString() && args[3]->IsString() && args[4]->IsString()
-		&& args[5]->IsString() && args[6]->IsString() && args[7]->IsString()  ) {
+		&& args[6]->IsString() && args[7]->IsString()  ) {
 	//extract the strings
-
 		String::Utf8Value key(args[0]->ToString());
 		String::Utf8Value country(args[1]->ToString());
 		String::Utf8Value state(args[2]->ToString());
@@ -96,6 +96,7 @@ v8::Handle<Value> _createCertificateRequest(const Arguments& args)
 		//call the wrapper & check for errors
 		char *pem=(char *)calloc(BUFFER_SIZE+1, sizeof(char)); /* Null-terminate */
 		int res = 0;
+
 		res = ::createCertificateRequest(pem, key.operator*(),
 			country.operator*(), state.operator*(), loc.operator*(),
 			organisation.operator*(), organisationUnit.operator*(), cname.operator*(), email.operator*());		
@@ -113,20 +114,19 @@ v8::Handle<Value> _createCertificateRequest(const Arguments& args)
 	}
 }
 
-
 v8::Handle<Value> _selfSignRequest(const Arguments& args)
 {
 	HandleScope scope;
 	if (args.Length() == 5 && args[0]->IsString() && args[1]->IsNumber()
-		&& args[2]->IsString() && args[3]->IsNumber()  && args[4]->IsString()) {
+		&& args[2]->IsString() && args[3]->IsNumber()) {
 	  //extract the strings and ints
 
 		String::Utf8Value pemRequest(args[0]->ToString());
 		int days = args[1]->Int32Value();
 		String::Utf8Value pemCAKey(args[2]->ToString());
-		String::Utf8Value url(args[4]->ToString());
 		int certType = args[3]->Int32Value();
-
+		String::Utf8Value url(args[4]->ToString());
+		
 		//call the wrapper & check for errors
 		char *pem=(char *)calloc(BUFFER_SIZE+1, sizeof(char)); /* Null-terminate */
 		int res = 0;

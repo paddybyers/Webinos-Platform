@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright 2011 Samsung Electronics Research Institute
+* Copyright 2011 Habib Virji, Samsung Electronics (UK) Ltd
 *******************************************************************************/
 
 var certificate = exports;
@@ -32,22 +32,19 @@ var log          =  require(path.resolve(webinosRoot,dependencies.pzp.location, 
  * @param {Object} obj holds key, certificate and crl certificate values and names
  * @returns {Function} callback returns failed or certGenerated. Added to get synchronous behaviour
  */
-
-certificate.selfSigned = function(name, certValues,  callback) {
+certificate.selfSigned = function(config, type, callback) {
 	"use strict";
 	var certman;
-	
 	var certType;
-	var obj= {cert: '', crl:''};
-
 	var key , csr ;
-	
+	var obj = {cert: '', crl:''};	
+
 	try {
-	  if(process.platform !== 'android') {
-		certman = require(path.resolve(webinosRoot,dependencies.manager.certificate_manager.location));	
-	  } else {
-		certman = require('certificate_manager');
-	  }
+		if(process.platform !== 'android') {
+			certman = require(path.resolve(webinosRoot,dependencies.manager.certificate_manager.location));
+		} else {
+			certman = require('certificate_manager');
+		}
 	} catch (err) {
 		callback("failed", err);
 		return;
@@ -60,39 +57,40 @@ certificate.selfSigned = function(name, certValues,  callback) {
 		return;
 	}
 
-	var cn = name+':'+certValues.common+':DeviceId('+uniqueID.getUUID_40.substring(0,10)+')';
+	var cn = type+':'+config.details.name+':DeviceId('+uniqueID.getUUID_40.substring(0,10)+')';
 
-	if (  name === 'PzhFarmCA' ||  name === 'PzhCA') {
+	if (type === 'PzhFarmCA' ||  type === 'PzhCA') {
 		certType = 0;
-	} else if(name === 'Pzh' || name === 'PzhFarm' || name === 'PzhWebServer' || name === 'PzhWebSocketServer') {
+	} else if (type === 'Pzh' || type === 'PzhFarm' || type === 'PzhWebServer' || type === 'PzhWebSocketServer') {
 		certType = 1;
 	} else {
 		certType = 2;
 	}
 	
 	try {
+		// state, city, orgname, orgunit are left empty as we do not posses this information
 		csr = certman.createCertificateRequest(key,
-			certValues.country,
-			certValues.state,
-			certValues.city,
-			certValues.orgname,
-			certValues.orgunit,
-			cn, 
-			certValues.email);
+			config.details.country,
+			'', // state
+			'', //city
+			'', //orgname
+			'', //orgunit
+			cn,
+			config.details.email);
 	} catch (e) {
 		callback("failed", e);
 		return;
 	}
-	
+
 	try {
-		obj.cert = certman.selfSignRequest(csr, 180, key, certType, "pzh.webinos.org");
+		obj.cert = certman.selfSignRequest(csr, 3600, key, certType, config.details.servername);
 	} catch (e1) {
 		callback("failed", e1);
 		return;
 	}
-	
+
 	try {
-		obj.crl = certman.createEmptyCRL(key, obj.cert, 180, 0);
+		obj.crl = certman.createEmptyCRL(key, obj.cert, 3600, 0);
 	} catch (e2) {
 		callback("failed", e2);
 		return;
@@ -100,9 +98,10 @@ certificate.selfSigned = function(name, certValues,  callback) {
 	callback("certGenerated", null, key, obj, csr);
 };
 
-/* @description Crypto sensitive 
+/**
+ * @description Crypto sensitive 
 */
-certificate.signRequest = function(csr, master_key, master_cert, certType, callback) {
+certificate.signRequest = function(csr, master_key, master_cert, certType, uri, callback) {
 	"use strict";
 	var certman;
 	
@@ -114,7 +113,7 @@ certificate.signRequest = function(csr, master_key, master_cert, certType, callb
 	}
 	
 	try {
-		var clientCert = certman.signRequest(csr, 30, master_key, master_cert, certType, "pzh.webinos.org");
+		var clientCert = certman.signRequest(csr, 3600, master_key, master_cert, certType, uri);
 		callback("certSigned", clientCert);
 	} catch(err1) {
 		log('ERROR', "Failed to sign certificate: " + err1.code + ", " + err1.stack);

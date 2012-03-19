@@ -65,7 +65,6 @@
 
 		function connectPzh(){
 			"use strict";
-			clearPage();
 			send({cmd:'pzhPzh', to:document.getElementById('connectPzhId').value});
 		};
 
@@ -106,18 +105,14 @@
 			text += "<p><h3> Name: "+ payload.name +"</h3></p>";
 			text += "<p><h3> Country  :  "+ payload.country +"</h3></p>";
 			text += "<p><h3> Email    :  "+ payload.email+"</h3></p>";
-			text += "<p> (Claimed Identifier: "+ payload.id+")</p>";
+			text += "<p> (Claimed Identifier: "+ payload.connid+")</p>";
 			document.getElementById('userDetails').innerHTML=text;
 		};
 
 		function displayCrashLog(payload){
 			"use strict";
 			clearPage();
-			var text = '';
-			for (var key in payload) {
-				text += "<p> ["+key+"] Error: " + payload[key]+ "</p>";
-			}
-			document.getElementById('crashLog').innerHTML = text;
+			document.getElementById('crashLog').innerHTML = payload;
 		};
 
 		function displayQRCode(payload){
@@ -172,10 +167,10 @@
 		function Logout() {
 			"use strict";
 			send({cmd:'logout'});
-			if (window.location.search.split("=")[1] === 'google') {
-				window.location.href='https://www.google.com/accounts/Logout';
+			if (window.location.search && window.location.search.split("?") && window.location.search.split("?")[1].split('=')[1] === 'google') {
+				window.open('https://www.google.com/accounts/Logout');
 			} else {
-				window.location.href ='https://login.yahoo.com/config/login?logout=1';
+				window.open('https://login.yahoo.com/config/login?logout=1');
 			}
 			window.location.href='/index.html';
 		};

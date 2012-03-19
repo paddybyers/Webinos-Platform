@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright 2011 Samsung Electronics Research Institute
+* Copyright 2011 Habib Virji, Samsung Electronics (UK) Ltd
 *******************************************************************************/
 var configure = exports;
 
@@ -41,74 +41,94 @@ configure.webServerPort  = 9000;
 * @descripton Checks for master certificate, if certificate is not found it calls generating certificate function defined in certificate manager. This function is crypto sensitive.
 * @param {function} callback It is callback function that is invoked after checking/creating certificates
 */
-configure.setConfiguration = function (config, type, callback) {
+configure.setConfiguration = function (name, type, url, callback) {
 	var webinosDemo = common.webinosConfigPath();
-	setCertValue(config, function(certValues) {
-		var name = certValues.common.split(':')[0];
-		fs.readFile(( webinosDemo+'/config/'+ name +'.json'), function(err, data) {
-			if ( err && err.code=== 'ENOENT' ) {
-				// CREATE NEW CONFIGURATION
-				config = createConfigStructure(name, type, certValues);
-				// This self signed certificate is for getting connection certificate CSR.
-				try {  // From this certificate generated only csr is used
-					cert.selfSigned( type, config.certValues, function(status, selfSignErr, conn_key, conn_cert, csr ) {
-						if(status === 'certGenerated') {
-							configure.storeKey(config.conn.key_id, conn_key);
-							log('INFO', '[CONFIG] Generated CONN Certificates');
-							if (type !== 'Pzp') {
-								// This self signed certificate is  master certificate / CA
-								selfSignedMasterCert(type, config, function(config_master){
-									// Sign connection certifcate 
-									configure.signedCert(csr, config_master, 1, null, function(config_signed){ // 1 is for PZH
-										callback(config_signed, conn_key);
-									});
+
+	if (typeof callback !== "function") {
+		log('ERROR', '[CONFIG] Callback function is not defined');
+		callback("undefined");
+		return;
+	}
+
+	if (type !== 'PzhFarm' && type !== 'Pzh' && type !== 'Pzp') {
+		log('ERROR', '[CONFIG] Wrong type is used');
+		callback("undefined");
+		return;
+	}
+	
+	if (name === '' && (type === 'Pzp' || type === 'PzhFarm')){
+		name = type+'%'+os.type()+'%'+os.hostname(); //(PzhFarm%Linux%x86%devicename)
+	}
+	
+	fs.readFile(( webinosDemo+'/config/'+ name +'.json'), function(err, data) {
+		if ( err && err.code=== 'ENOENT' ) {
+			// CREATE NEW CONFIGURATION
+			var config = createConfigStructure(name, type);
+			
+			config.details.name       = name;
+			config.details.type       = type;
+			config.details.servername = url;
+			// This self signed certificate is for getting connection certificate CSR.
+			try {  // From this certificate generated only csr is used
+				cert.selfSigned(config, config.details.type, function(status, selfSignErr, conn_key, conn_cert, csr ) {
+					if(status === 'certGenerated') {
+						configure.storeKey(config.conn.key_id, conn_key);
+						log('INFO', '[CONFIG] Generated CONN Certificates');
+						if (type !== 'Pzp') {
+							// This self signed certificate is  master certificate / CA
+							selfSignedMasterCert(config, function(config_master){
+								// Sign connection certifcate
+								configure.signedCert(csr, config_master, null, 1, function(config_signed) { // PZH CONN CERT 1
+									callback(config_signed, conn_key);
 								});
-							} else {
-								// PZP will only generate only 1 certificate
-								try{
-									// Used for initial connection, will be replaced by cert received from PZH
-									config.conn.cert = conn_cert.cert; 
-									configure.storeConfig(config, function() {
-										callback(config, conn_key, csr);
-									});
-								} catch (err) {
-									log('ERROR', '[CONFIG] Error storing key in key store '+ err);
-									return;
-								}
-							}
-						} else {
-							log('ERROR', '[CONFIG] Error Generating Self Signed Cert: ');
-							callback("undefined");
-						}
-					});
-				} catch (err) {
-					log('ERROR', '[CONFIG] Error in generating certificates' + err);
-					callback("undefined");
-				}
-			} else { // When configuration already exists, just load configuration file 
-				var configData = data.toString('utf8');
-				config = JSON.parse(configData);
-				if (config.master.cert === '' ){
-					log('INFO', '[CONFIG] Regenerate PZP certificate as it failed getting certificate from PZH');
-					cert.selfSigned( type, config.certValues, function(status, selfSignErr, conn_key, conn_cert, csr ) {
-						if(status === 'certGenerated') {
-							configure.storeKey(config.conn.key_id, conn_key);
-							config.conn.cert = conn_cert.cert;
-							configure.storeConfig(config, function() {
-								callback(config, conn_key, csr);
 							});
+						} else {
+							// PZP will only generate only 1 certificate
+							try{
+								// Used for initial connection, will be replaced by cert received from PZH
+								config.conn.cert = conn_cert.cert;
+								configure.storeConfig(config, function() {
+									callback(config, conn_key, csr);
+								});
+							} catch (err) {
+								log('ERROR', '[CONFIG] Error storing key in key store '+ err);
+								return;
+							}
 						}
-					});
-				} else {
-					configure.fetchKey(config.conn.key_id, function(conn_key){
-						callback(config, conn_key);
-					});
-				}
+					} else {
+						log('ERROR', '[CONFIG] Error Generating Self Signed Cert: ');
+						callback("undefined");
+					}
+				});
+			} catch (err) {
+				log('ERROR', '[CONFIG] Error in generating certificates' + err);
+				callback("undefined");
 			}
-		});
+		} else { // When configuration already exists, just load configuration file
+			var configData = data.toString('utf8');
+			config = JSON.parse(configData);
+			if (config.master.cert === '' ){ 
+				log('INFO', '[CONFIG] Regenerate PZP certificate as it failed getting certificate from PZH');
+				cert.selfSigned(config, config.details.type, function(status, selfSignErr, conn_key, conn_cert, csr ) {
+					if(status === 'certGenerated') {
+						configure.storeKey(config.conn.key_id, conn_key);
+						config.conn.cert = conn_cert.cert;
+						configure.storeConfig(config, function() {
+							callback(config, conn_key, csr);
+						});
+					}
+				});
+			} else {
+				configure.fetchKey(config.conn.key_id, function(conn_key){
+					callback(config, conn_key);
+				});
+			}
+		}
+		
 	});
 
 };
+
 configure.createDirectoryStructure = function (callback) {
 	var webinosDemo = common.webinosConfigPath();
 	try {
@@ -146,7 +166,7 @@ configure.createDirectoryStructure = function (callback) {
 
 configure.storeConfig = function (config, callback) {
 	var webinosDemo = common.webinosConfigPath();
-	var name = config.certValues.common.split(':')[0];
+	var name = config.details.name;
 	fs.writeFile((webinosDemo+ '/config/'+name+'.json'), JSON.stringify(config, null, " "), function(err) {
 		if(err) {
 			callback(false);
@@ -186,15 +206,15 @@ configure.fetchKey= function (key_id, callback) {
 
 }
 
-configure.signedCert = function (csr, config, type, name, callback) {
+configure.signedCert = function (csr, config, name, type, callback) {
 	try {
 		configure.fetchKey(config.master.key_id, function(master_key){
 			// connection certificate signed by master certificate
-			cert.signRequest(csr, master_key,  config.master.cert, type, function(result, signed_cert) {
+			cert.signRequest(csr, master_key,  config.master.cert, type, config.details.servername, function(result, signed_cert) {
 				if(result === 'certSigned') {
 					log('INFO', '[CONFIG] Generated Signed Certificate by CA');
 					try {
-						if(type == 1) { // PZH
+						if(type === 1 || type === 0) { // PZH
 							config.conn.cert = signed_cert; // Signed connection certificate
 						} else {
 							config.signedCert[name] = signed_cert;
@@ -218,66 +238,30 @@ configure.signedCert = function (csr, config, type, name, callback) {
 	}
 };
 
-function createConfigStructure (name, type, certValues) {
+function createConfigStructure (name, type) {
 	var config = {};
 	if (type === 'Pzh') {
 		config.conn        = { key_id: name+'_conn_key',   cert:''};
 		config.master      = { key_id: name+'_master_key', cert:'', crl:'' };
-		config.signedCert  = [];
-		config.revokedCert = [];
-		config.otherCert   = [];
+		config.signedCert  = {};
+		config.revokedCert = {};
+		config.otherCert   = {};
 	} else if (type === 'PzhFarm') {
-		config.conn            = { key_id: name+'_conn_key',   cert:''};
-		config.master          = { key_id: name+'_master_key', cert:''} ;
-		config.webServer       = { key_id: name+'_ws_key',     cert:''} ;
-		config.pzhs      = {}; //contents: '', modules:''
-	} else if (type === 'Pzp' ){
-		config.conn   = { key_id: name+'_conn_key', cert:''};
-		config.master = { cert:'', crl:'' };
+		config.conn        = { key_id: name+'_conn_key',   cert:''};
+		config.master      = { key_id: name+'_master_key', cert:''} ;
+		config.webServer   = { key_id: name+'_ws_key',     cert:''} ;
+		config.pzhs        = {}; //contents: '', modules:''
+	} else if (type === 'Pzp' ) {
+		config.conn        = { key_id: name+'_conn_key', cert:''};
+		config.master      = { cert:'', crl:'' };
 	};
-	config.userDetails = {};
-	config.certValues  = certValues;
+	config.details = {email: '', username: '', country: '', connid: '', image: '', servername:'', type: '', name: ''};
 	return config;
 }
 
-function setCertValue(contents, callback) {
-	if (contents === '' && typeof contents !== 'undefined') {
-		certValues = { country:'', state:'', city:'', orgname:'',orgunit:'', common:'', email:'', days:''};
-	} else {
-		var certValues = {};
-		var i;
-		var data = contents.toString().split('\n');
-
-		for(i = 0; i < data.length; i += 1) {
-			data[i] = data[i].split('=');
-		}
-
-		for(i = 0; i < data.length; i += 1) {
-			if(data[i][0] === 'country') {
-				certValues.country = data[i][1];
-			} else if(data[i][0] === 'state') {
-				certValues.state   = data[i][1];
-			} else if(data[i][0] === 'city') {
-				certValues.city    = data[i][1];
-			} else if(data[i][0] === 'organization') {
-				certValues.orgname = data[i][1];
-			} else if(data[i][0] === 'organizationUnit') {
-				certValues.orgunit = data[i][1];
-			} else if(data[i][0] === 'common') {
-				certValues.common  = data[i][1];
-			} else if(data[i][0] === 'email') {
-				certValues.email    = data[i][1];
-			} else if(data[i][0] === 'days') {
-				certValues.days   = data[i][1];
-			}
-		}
-	}
-	callback(certValues);
-}
-
-function selfSignedMasterCert(type, config, callback){
+function selfSignedMasterCert(config, callback){
 	try {
-		cert.selfSigned( type+'CA', config.certValues, function(result, selfSignErr, master_key, master_cert) {
+		cert.selfSigned( config, config.details.type+'CA', function(result, selfSignErr, master_key, master_cert) {
 			if(result === 'certGenerated') {
 				log('INFO', '[CONFIG] Generated CA Certificate');
 				// Store all master certificate information
@@ -287,6 +271,8 @@ function selfSignedMasterCert(type, config, callback){
 				configure.storeConfig(config, function() {
 					callback(config);
 				});
+			} else {
+				log('ERROR', 'Error in genrarting certificate for ' + config.name )
 			}
 		});
 	} catch (err) {

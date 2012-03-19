@@ -13,8 +13,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
+* Copyright 2011 Habib Virji, Samsung Electronics (UK) Ltd
 *******************************************************************************/
-
 #include "openssl_wrapper.h"
 #include <openssl/rsa.h>
 #include <openssl/bio.h>
@@ -69,40 +69,49 @@ int createCertificateRequest(char* result, char* keyToCertify, char * country, c
 	int err=0;
 
 	//fill in details
-	if(!(err = X509_NAME_add_entry_by_txt(nm,"C",
-		MBSTRING_ASC, (unsigned char*)country, -1, -1, 0))) {
-		return err;
+	if (strlen(country) > 0) {
+		if(!(err = X509_NAME_add_entry_by_txt(nm,"C",
+			MBSTRING_ASC, (unsigned char*)country, -1, -1, 0))) {
+			return err;
+		}
+	}
+	if (strlen(state) > 0) {
+		if(!(err = X509_NAME_add_entry_by_txt(nm,"ST",
+			MBSTRING_ASC, (unsigned char*)state, -1, -1, 0))) {
+			return err;
+		}
+	}
+	if (strlen(loc) > 0) {
+		if(!(err = X509_NAME_add_entry_by_txt(nm,"L",
+			MBSTRING_ASC, (unsigned char*)loc, -1, -1, 0))) {
+			return err;
+		}
+	}
+	if (strlen(organisation) > 0) {
+		if(!(err = X509_NAME_add_entry_by_txt(nm,"O",
+			MBSTRING_ASC, (unsigned char*)organisation, -1, -1, 0))) {
+			return err;
+		}
 	}
 
-	if(!(err = X509_NAME_add_entry_by_txt(nm,"ST",
-		MBSTRING_ASC, (unsigned char*)state, -1, -1, 0))) {
-		return err;
+	if (strlen(organisationUnit) > 0) {
+		if(!(err = X509_NAME_add_entry_by_txt(nm,"OU",
+			MBSTRING_ASC, (unsigned char*)organisationUnit, -1, -1, 0))) {
+			return err;
+		}
 	}
-
-	if(!(err = X509_NAME_add_entry_by_txt(nm,"L",
-		MBSTRING_ASC, (unsigned char*)loc, -1, -1, 0))) {
-		return err;
-	}
-
-	if(!(err = X509_NAME_add_entry_by_txt(nm,"O",
-		MBSTRING_ASC, (unsigned char*)organisation, -1, -1, 0))) {
-		return err;
-	}
-
-	if(!(err = X509_NAME_add_entry_by_txt(nm,"OU",
-		MBSTRING_ASC, (unsigned char*)organisationUnit, -1, -1, 0))) {
-		return err;
-	}
-	
+	 // This is mandatory to have, rest are optional
 	if(!(err = X509_NAME_add_entry_by_txt(nm,"CN",
 		MBSTRING_ASC, (unsigned char*)cname, -1, -1, 0))) {
 		return err;
 	}
 	
-	if(!(err = X509_NAME_add_entry_by_txt(nm,"emailAddress",MBSTRING_ASC, (unsigned char*)email, -1, -1, 0))) {
-		return err;
+	if (strlen(email) > 0) {
+		if(!(err = X509_NAME_add_entry_by_txt(nm,"emailAddress",MBSTRING_ASC, (unsigned char*)email, -1, -1, 0))) {
+			return err;
+		}
 	}
-
+	
 	if(!(err = X509_REQ_set_subject_name(req, nm))) {
 		return err;
 	}
@@ -142,7 +151,7 @@ int createCertificateRequest(char* result, char* keyToCertify, char * country, c
 		BIO_free(bmem);
 		return err;
 	}
-
+	
 
 	BUF_MEM *bptr;
 	BIO_get_mem_ptr(mem, &bptr);
@@ -215,23 +224,7 @@ int selfSignRequest(char* pemRequest, int days, char* pemCAKey, int certType, ch
 
 	ASN1_UTCTIME_free(s);
 
-	
-// 	if(!(X509_gmtime_adj(X509_get_notBefore(cert), -60*60*24)))
-// 	{
-// 		BIO_free(bioReq);
-// 		BIO_free(bioCAKey);
-// 		return err;
-// 	}
-// 
-// 	if(!(X509_gmtime_adj(X509_get_notAfter(cert), (long)60*60*24*days)))
-// 	{
-// 		BIO_free(bioReq);
-// 		BIO_free(bioCAKey);
-// 		return err;
-// 	}
-// 
-	if(!(err = X509_set_subject_name(cert, X509_REQ_get_subject_name(req))))
-	{
+	if(!(err = X509_set_subject_name(cert, X509_REQ_get_subject_name(req)))) {
 		BIO_free(bioReq);
 		BIO_free(bioCAKey);
 		return err;
@@ -670,3 +663,4 @@ int addToCRL(char* pemSigningKey, char* pemOldCrl, char* pemRevokedCert, char* r
 
 	return 0;
 }
+

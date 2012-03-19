@@ -3,6 +3,7 @@
 		<title>PZH Testbed</title>
 		<script type="text/javascript">
 		var channel;
+		var setFlag = false;
 
 		try{
 			channel  = new WebSocket('wss://'+window.location.hostname+':8001');
@@ -24,7 +25,9 @@
 					break;
 			}
 		};
-
+		channel.onopen = function(ev) {
+			setFlag = true;
+		};
 		function Google(){
 			send({cmd: "authenticate-google"});
 		}
@@ -32,7 +35,8 @@
 			send({cmd: "authenticate-yahoo"});
 		}
 		function send(payload){
-			channel.send(JSON.stringify(payload));
+			if (setFlag)
+				channel.send(JSON.stringify(payload));
 		}
 		</script>
 		<style type="text/css">
@@ -55,7 +59,7 @@
 				font-family: 'Mate SC', serif;
 				color: #FFFFFF;
 				padding: 5px;
-				font-size: 2em;
+				font-size: 1.5em;
 				margin: 0
 			}
 		</style>

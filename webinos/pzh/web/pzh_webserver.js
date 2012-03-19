@@ -1,3 +1,21 @@
+/*******************************************************************************
+*  Code contributed to the webinos project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+* Copyright 2011 Habib Virji, Samsung Electronics (UK) Ltd
+********************************************************************************/
+
 var pzhWebInterface = exports;
 
 var https    = require('https');
@@ -100,7 +118,6 @@ pzhWebInterface.start = function(hostname) {
 			log('INFO','[WEB SERVER] '+conn.remoteAddress + ' connected ');
 			connection = conn;
 			// TODO: Send only to main.html and not to all ..
-			console.log(pzh);
 			if (typeof pzh !== 'undefined' && pzh[currentPzh]){
 				pzhapis.listZoneDevices(pzh[currentPzh], result);
 			}
@@ -241,8 +258,9 @@ function fetchOpenIdDetails(req, res, callback){
 			res.end();
 		}
 		else if (userDetails.authenticated) {
+			console.log(userDetails);
 			var host;
-			var details = {country: '', name: '', email: '', image: ''};
+			var details = {country: '', username: '', email: '', image: ''};
 			if(req.headers.host.split(':')){
 				host = req.headers.host.split(':')[0];
 			} else {
@@ -267,14 +285,14 @@ function fetchOpenIdDetails(req, res, callback){
 				details.country = userDetails.country;
 			}
 			if(userDetails.firstname){
-				details.name += userDetails.firstname;
+				details.username += userDetails.firstname;
 			}
 			if(userDetails.lastname){
-				details.name += userDetails.lastname;
+				details.username += userDetails.lastname;
 			}
 			if(userDetails.fullname){
 				var name = userDetails.fullname.split(' ');
-				details.name = name[0]+name[1];
+				details.username = name[0]+name[1];
 			}
 			if(userDetails.email){
 				details.email = userDetails.email;
@@ -297,10 +315,10 @@ function fetchOpenIdDetails(req, res, callback){
  * */
 function createWebInterfaceCertificate (config, callback) {
 	if (config.webServer.cert === "") {
-		cert.selfSigned( 'PzhWebServer', config.certValues, function(status, selfSignErr, ws_key, ws_cert, csr ) {
+		cert.selfSigned(config, 'PzhWebServer', function(status, selfSignErr, ws_key, ws_cert, csr ) {
 			if(status === 'certGenerated') {
 				configure.fetchKey(config.master.key_id, function(master_key) {
-					cert.signRequest(csr, master_key,  config.master.cert, 1, function(result, signed_cert) {
+					cert.signRequest(csr, master_key,  config.master.cert, 1, config.details.servername, function(result, signed_cert) {
 						if(result === 'certSigned') {
 							config.webServer.cert = signed_cert;
 							configure.storeKey(config.webServer.key_id, ws_key);
