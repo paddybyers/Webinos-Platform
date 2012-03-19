@@ -49,20 +49,19 @@ function getPzpInfoSync(pzh, pzpId) {
 	//find out whether we have this PZP in a session somewhere.
 	var pzpConnected = false;
 	var pzpName = pzpId;
-	var id;
-	for ( id in pzh.connectedPzp ){
-		if (typeof pzh.connectedPzp[id] !== "undefined") {
+	for (var i=0; i<pzh.connectedPzp.length; i++){
+		if (typeof pzh.connectedPzp[i] !== "undefined") {
 			//session IDs append the PZH to the front of the PZP ID.
-			var splitId = id.split("/");
+			var splitId = i.split("/");
 			if (splitId.length > 1 && splitId[1] !== null) {
 				if (splitId[1] === pzpId) {
 					pzpConnected = true;
-					pzpName = id;
+					pzpName = i;
 				}
 			}
 		}
 	}
-//
+
 	return {
 		id          : pzpId,
 		cname       : pzpName,
@@ -99,17 +98,16 @@ pzhapis.addPzpQR = function (pzh, callback) {
 pzhapis.listPzp = function(pzh, callback) {
 	"use strict";
 	var result = {signedCert: [], revokedCert: []};
-	var myKey;
 
-	for (myKey in pzh.config.signedCert) {
-		if (typeof pzh.config.signedCert[myKey] !== "undefined") {
-			result.signedCert.push(getPzpInfoSync(pzh, myKey));
+	for (var i=0; i<pzh.config.signedCert.length; i++) {
+		if (typeof pzh.config.signedCert[i] !== "undefined") {
+			result.signedCert.push(getPzpInfoSync(pzh, i));
 		}
 	}
 	
-	for (myKey in pzh.config.revokedCert) {
-		if (typeof pzh.config.revokedCert[myKey] !== "undefined") {
-			result.revokedCert.push(getPzpInfoSync(pzh, myKey));
+	for (var i=0; i<pzh.config.revokedCert.length; i++) {
+		if (typeof pzh.config.revokedCert[i] !== "undefined") {
+			result.revokedCert.push(getPzpInfoSync(pzh, i));
 		}
 	}
 	var payload = {cmd:'listPzp', payload:result};
@@ -121,17 +119,16 @@ pzhapis.listPzp = function(pzh, callback) {
 pzhapis.listZoneDevices = function(pzh, callback) {
 	"use strict";
 	var result = {pzps: [], pzhs: []};
-	var myKey;
 
-	for (myKey in pzh.config.signedCert) {
-		if (typeof pzh.config.signedCert[myKey] !== "undefined") {
-			result.pzps.push(getPzpInfoSync(pzh, myKey));
+	for (var i=0; i<pzh.config.signedCert.length; i++) {
+		if (typeof pzh.config.signedCert[i] !== "undefined") {
+			result.pzps.push(getPzpInfoSync(pzh, i));
 		}
 	}
 
-	for (myKey in pzh.config.otherCert) {
-		if (typeof pzh.config.otherCert[myKey] !== "undefined" && pzh.config.otherCert[myKey].cert !== '') {
-			result.pzhs.push(getPzhInfoSync(pzh, myKey));
+	for (var i=0; i<pzh.config.otherCert.length; i++) {
+		if (typeof pzh.config.otherCert[i] !== "undefined" && pzh.config.otherCert[i].cert !== '') {
+			result.pzhs.push(getPzhInfoSync(pzh, i));
 		}
 	}
 	result.pzhs.push(getPzhInfoSync(pzh, pzh.sessionId));
@@ -166,27 +163,26 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 	
 	var id = pzh.config.servername.split('/')[0];
 	var id_to = to.split('/')[0];
-	var pzh_id;
 	// There are two scenarios:
 	// 1. Inside same PZH Farm, it is a mere copy. 
 	if (id === id_to) {
-		for (pzh_id in farm.pzhs) {
-			if( typeof farm.pzhs[pzh_id] !== "undefined" && pzh_id === to) {
+		for (var i=0; i<farm.pzhs.length; i++) {
+			if( typeof farm.pzhs[i] !== "undefined" && i === to) {
 				// Store the information in other_cert
 				pzh.config.otherCert[to] = { cert: farm.pzhs[to].config.master.cert, crl: farm.pzhs[to].config.master.crl};
 				farm.pzhs[to].config.otherCert[pzh.config.servername] = { cert: pzh.config.master.cert, crl: pzh.config.master.crl }
 
 				// Add in particular context of each PZH options
-				pzh.options.ca.push(pzh.config.otherCert[pzh_id].cert);
-				pzh.options.crl.push(pzh.config.otherCert[pzh_id].crl);
+				pzh.options.ca.push(pzh.config.otherCert[i].cert);
+				pzh.options.crl.push(pzh.config.otherCert[i].crl);
 
-				farm.pzhs[pzh_id].options.ca.push(pzh.config.master.cert);
-				farm.pzhs[pzh_id].options.crl.push(pzh.config.master.crl);
+				farm.pzhs[i].options.ca.push(pzh.config.master.cert);
+				farm.pzhs[i].options.crl.push(pzh.config.master.crl);
 
 
 				farm.server._contexts.some(function(elem) {
 					if (to.match(elem[0]) !== null) {
-						elem[1] = crypto.createCredentials(farm.pzhs[pzh_id].options).context;
+						elem[1] = crypto.createCredentials(farm.pzhs[i].options).context;
 					}
 					
 					if (pzh.config.servername.match(elem[0]) !== null) {
@@ -194,10 +190,10 @@ pzhapis.addPzhCertificate = function(pzh, to, callback) {
 					}
 				});
 				 
-				// pzh.serverContext.pair.credentials.context.addCACert(pzh.config.other_cert[pzh_id]);
+				// pzh.serverContext.pair.credentials.context.addCACert(pzh.config.other_cert[i]);
 				// Store configuration
 				configuration.storeConfig(pzh.config, function() {
-					configuration.storeConfig(farm.pzhs[pzh_id].config, function(){
+					configuration.storeConfig(farm.pzhs[i].config, function(){
 						callback(true);
 						return;
 					});
