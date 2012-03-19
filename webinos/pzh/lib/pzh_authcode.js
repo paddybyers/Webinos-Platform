@@ -13,6 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
+* Copyright 2011 University of Oxford
 *******************************************************************************/
 
 /** @description: This module can be used for authentication a new PZP to the personal zone hub

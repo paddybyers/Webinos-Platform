@@ -13,6 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
+* Copyright 2011 University of Oxford
 *******************************************************************************/
 
 int genRsaKey(const int bits, char * privkey);

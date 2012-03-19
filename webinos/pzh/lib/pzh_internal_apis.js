@@ -13,6 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
+* Copyright 2011 University of Oxford
 *******************************************************************************/
 
 // This file is a wrapper / facade for all the functionality that the PZH
