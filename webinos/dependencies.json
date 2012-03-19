@@ -1,18 +1,6 @@
 {
   "api": {
-    "get42": {
-      "name": "Get 42",
-      "location": "api/get42/"
-    },
-        "events": {
-      "name": "Events API",
-      "location": "api/events/"
-    },
-    "test-module": {
-      "name": "Test module",
-      "location": "api/test-module/"
-    },
-     "applauncher": {
+    "applauncher": {
       "name": "Applauncher module",
       "location": "api/applauncher/"
     },
@@ -24,13 +12,17 @@
       "name": "Authentication",
       "location": "api/authentication/"
      },
-     "contacts": {
+    "contacts": {
       "name": "contacts",
       "location": "api/contacts/"
     },
     "context": {
       "name": "Context",
       "location": "api/context/"
+    },
+    "events": {
+      "name": "Events API",
+      "location": "api/events/"
     },
     "file": {
       "name": "File API",

@@ -171,7 +171,7 @@ farm.getOrCreatePzhInstance = function (host, user, callback) {
 		});
 	} else {
 		log('INFO', '[PZHFARM] Adding new PZH - ' + myKey);
-		var pzhModules = [];
+		var pzhModules = configuration.pzhDefaultServices;;
 		Pzh.addPzh(myKey, pzhModules, function(){
 			farm.pzhs[myKey].config.details.email    = user.email;
 			farm.pzhs[myKey].config.details.username = user.username;

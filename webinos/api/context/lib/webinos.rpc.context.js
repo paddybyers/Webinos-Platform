@@ -23,9 +23,7 @@
 			+ '/dependencies.json');
 	var webinosRoot = '../' + moduleRoot.root.location;
 
-	var contextDB = require(webinosRoot
-			+ dependencies.manager.context_manager.location
-			+ 'lib/contextDBpzhManager.js');
+
 	 var appContext = require(webinosRoot
 	      + dependencies.manager.context_manager.location
 	      + 'lib/appContext.js');
@@ -53,24 +51,108 @@
 	  appContext.registerContextObject(APPName, ContextObjectName, ContextFields, function(response){callback(response);})
 	}
 	
+	function enforceContextDataAccess(_mode, _query, _successCallback)
+	{
+		var pmlib = require(webinosRoot+'/common/manager/policy_manager/lib/policymanager.js'), policyManager, exec = require('child_process').exec;
+		policyManager = new pmlib.policyManager();
+
+		var res, request = {}, subjectInfo = {}, resourceInfo = {};
+		subjectInfo.userId = "user1";
+		request.subjectInfo = subjectInfo;
+		resourceInfo.apiFeature = "http://webinos.org/api/context." + _mode;
+		request.resourceInfo = resourceInfo;
+		res = policyManager.enforceRequest(request);
+		switch (res)
+		{
+			case 0:
+				if (_mode=="store")
+				{
+					appContext.saveAppContext(query.APPName, query.ContextObjectName, query.data, function(results){
+						successCallback(results);
+					});
+					break;
+				}
+
+				var contextDB = require(webinosRoot
+		      			+ dependencies.manager.context_manager.location
+		      			+ 'lib/contextDBManagerPZH.js');
+				if(_query.type == "getrawview")
+				{
+					contextDB.getrawview(function(results) {
+						_successCallback(results);
+					});
+				}
+				else if(_query.type == "query")
+				{
+					contextDB.query(_query.data, function(results) {
+						_successCallback(results);
+					});
+				}
+      				break;
+			
+			case 1:
+        			console.log(" ACCESS DENIED: Context Data not read");
+				break;
+
+			case 2:
+			case 3:
+			case 4:
+				exec("xmessage -buttons allow,deny -print 'Access request to " + resourceInfo.apiFeature + "'",
+				function(error, stdout, stderr)
+    				{
+					if (stdout == "allow\n")
+					{
+						if (_mode == "store")
+						{
+							appContext.saveAppContext(query.APPName, query.ContextObjectName, query.data, function(results){
+								successCallback(results);
+							});
+						}
+						else
+						{
+							var contextDB = require(webinosRoot
+			      					+ dependencies.manager.context_manager.location
+			      					+ 'lib/contextDBManagerPZH.js');
+							if(_query.type == "getrawview")
+							{
+								contextDB.getrawview(function(results) {
+									_successCallback(results);
+								});
+							}
+							else if(_query.type == "query")
+							{
+								contextDB.query(_query.data, function(results) {
+									_successCallback(results);
+								});
+							}
+						}
+					}
+					else
+					{
+						console.log(" ACCESS DENIED: Context Data " + _mode);
+					}
+				});
+			break;
+			default:
+      				console.log(" ACCESS DENIED: Context Data " + _mode);
+		}
+	}
+
 	RemoteContextManager.prototype.executeQuery = function(query, successCallback, errorCallback) {
 		switch (query.type) {
-		case "DB-insert":
+		case "DB-insert"://PZH
+		  var contextDB = require(webinosRoot
+		      + dependencies.manager.context_manager.location
+		      + 'lib/contextDBManagerPZH.js');
 			contextDB.insert(query.data); //TODO: Add success callback
 			break;
-		case "getrawview":
-			contextDB.getrawview(function(results) {
-				successCallback(results);
-			});
+		case "getrawview"://PZH
+		case "query": //PZH
+			enforceContextDataAccess("read", query, successCallback);
 			break;
-		case "query":
-			contextDB.query(query.data, function(results) {
-				successCallback(results);
-			});
-		case "saveAppContext":
-		  appContext.saveAppContext(query.APPName, query.ContextObjectName, query.data, function(results){
-		    successCallback(results);
-		  });
+		case "saveAppContext"://PZP
+			enforceContextDataAccess("store", query, successCallback);
+			break;
 		default:
 			errorCallback(new ContextError("Context Query Type '" + query.type + "' not found"))
 		}

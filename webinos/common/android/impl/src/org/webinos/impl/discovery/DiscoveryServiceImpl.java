@@ -13,12 +13,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright 2011 Samsung Electronics Research Institute
-* Copyright 2011-2012 Paddy Byers
+* Copyright 2012 Samsung Electronics(UK) Ltd
 *
 ******************************************************************************/
 
-package org.webinos.impl;
+package org.webinos.impl.discovery;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,8 +28,8 @@ import org.webinos.api.discovery.BindCallback;
 import org.webinos.api.discovery.DiscoveryError;
 import org.webinos.api.discovery.Service;
 
-import org.webinos.impl.DiscoveryImpl.DiscoveryRunnable;
-import org.webinos.impl.DiscoveryImpl.DiscoveryPendingOperation;
+import org.webinos.impl.discovery.DiscoveryImpl.DiscoveryRunnable;
+import org.webinos.impl.discovery.DiscoveryImpl.DiscoveryPendingOperation;
 
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;

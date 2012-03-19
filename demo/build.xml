@@ -16,7 +16,6 @@
     			<file name="wrt/lib/webinos.servicedisco.js"/>
     			<file name="wrt/lib/webinos.js"/>
             	<file name="common/rpc/lib/webinos.utils.js"/>
-				<file name="common/rpc/contrib/md5.js"/>
 				<file name="api/file/lib/webinos.path.js"/>
 				<file name="wrt/lib/webinos.file.js"/>
             	<file name="wrt/lib/webinos.tv.js"/>

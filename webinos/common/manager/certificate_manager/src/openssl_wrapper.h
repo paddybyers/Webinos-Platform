@@ -13,6 +13,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
+* Copyright 2011 University of Oxford
+* Copyright 2011 Habib Virji, Samsung Electronics (UK) Ltd
 *******************************************************************************/
 
 int genRsaKey(const int bits, char * privkey);

@@ -13,11 +13,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright 2011 Samsung Electronics Research Institute
-* Copyright 2011-2012 Paddy Byers
+* Copyright 2012 Samsung Electronics(UK) Ltd
+* 
 ******************************************************************************/
 
-package org.webinos.impl;
+package org.webinos.impl.discovery;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import android.util.Log;
 
 import android.app.Activity;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -45,11 +44,9 @@ import org.webinos.api.discovery.FindCallback;
 import org.webinos.api.discovery.Options;
 import org.webinos.api.discovery.Service;
 import org.webinos.api.discovery.ServiceType;
-import org.webinos.api.discovery.DiscoveryError;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothSocket;
 
 import android.content.BroadcastReceiver;
@@ -57,12 +54,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 
-public class DiscoveryImpl extends DiscoveryManager implements IModule {
+public class DiscoveryHRMImpl extends DiscoveryManager implements IModule {
 	
 	private Context androidContext;
     private BluetoothAdapter mBluetoothAdapter;
 	
-    private static final String TAG = "org.webinos.impl.DiscoveryImpl";
+    private static final String TAG = "org.webinos.impl.DiscoveryHRMImpl";
     private static final boolean D = true;
     
     /* hard coded array length */
@@ -89,10 +86,10 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
 			Options options, 
 			Filter filter)   
 	{
-		if(D) Log.v(TAG, "DiscoveryImpl: findservices");
+		if(D) Log.v(TAG, "DiscoveryHRMImpl: findservices");
 		
 			if(serviceType == null) {
-			Log.e(TAG, "DiscoveryImpl: Please specify a serviceType");
+			Log.e(TAG, "DiscoveryHRMImpl: Please specify a serviceType");
 			return null;
 		}
 		
@@ -121,7 +118,7 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
 	@Override
 	public Object startModule(IModuleContext ctx) {
 
-		if(D) Log.v(TAG, "DiscoveryImpl: startModule");
+		if(D) Log.v(TAG, "DiscoveryHRMImpl: startModule");
 		androidContext = ((AndroidContext)ctx).getAndroidContext();
 		
 		mBluetoothAdapter = getDefaultBluetoothAdapter();
@@ -154,7 +151,7 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
 	        	mConnectedThread.cancel(); mConnectedThread = null;
 	        }
 		  
-		Log.v(TAG, "DiscoveryImpl: stopModule");
+		Log.v(TAG, "DiscoveryHRMImpl: stopModule");
 	}
 	
 	/*****************************
@@ -245,13 +242,6 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
         if(stopped)
         	return;
         
-        /*
-        IntentFilter ifilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        androidContext.registerReceiver(mReceiver, ifilter);
-        
-        ifilter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        androidContext.registerReceiver(mReceiver, ifilter); */
-        
         IntentFilter ifilter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
         androidContext.registerReceiver(mReceiver, ifilter);
         
@@ -281,13 +271,7 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
 			}
            String action = intent.getAction();
            
-           // When discovery finds a device
-        /*   if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-               BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-               devicesAvailable.add(device);  
-           } */
-        // When device discovery is finished, query services
-          // else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+           // Skip further discovery process
            if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
            
 				//unregister receiver
@@ -343,8 +327,7 @@ public class DiscoveryImpl extends DiscoveryManager implements IModule {
 											 // This is a blocking call and will only return on a successful connection or an exception
 											 mmSocket.connect();
 										} catch (IOException e) {
-										   	  //inform widget that socket is not connected
-										   	  //srv.values[0]=1001;
+										   	  //Make up a ridiculous high pulse rate to inform widget that socket is not connected
 										   	  long[] values = {1000, 0 , 0, 0, 0, 0};
                   							  srv.values = values;
 										   	  findCallback.onFound(srv);

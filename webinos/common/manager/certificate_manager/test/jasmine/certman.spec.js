@@ -13,6 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
+* Copyright 2011 University of Oxford
 *******************************************************************************/
 // test for the openssl wrapper.
 // TODO: more than just checks for not-empty, need to check some fields

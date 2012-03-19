@@ -52,34 +52,34 @@
 		            if(document.getElementById('pzh_pzp_list'))
 		                document.getElementById('pzh_pzp_list').innerHTML="";
 		    
-		            $("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
+		           // $("<optgroup label = 'PZP' id ='pzp_list' >").appendTo("#pzh_pzp_list");
 		            
 		            var i;
 		            if(typeof connectedPzp !== "undefined") {
 				        for(i =0; i < connectedPzp.length; i++) {
-				            $("<option value=" + connectedPzp[i] + " >" +connectedPzp[i] + "</option>").appendTo("#pzh_pzp_list");                  
+				           // $("<option value=" + connectedPzp[i] + " >" +connectedPzp[i] + "</option>").appendTo("#pzh_pzp_list");                  
 				        }
 				    }
-		            $("<option value="+pzpId+" >" + pzpId+ "</option>").appendTo("#pzh_pzp_list");                      
-		            $("</optgroup>").appendTo("#pzh_pzp_list");
-		            $("<optgroup label = 'PZH' id ='pzh_list' >").appendTo("#pzh_pzp_list");
+		            //$("<option value="+pzpId+" >" + pzpId+ "</option>").appendTo("#pzh_pzp_list");                      
+		            //$("</optgroup>").appendTo("#pzh_pzp_list");
+		            //$("<optgroup label = 'PZH' id ='pzh_list' >").appendTo("#pzh_pzp_list");
 		            if(typeof connectedPzh !== "undefined") {
 				        for(i =0; i < connectedPzh.length; i++) {
-				            $("<option value=" + connectedPzh[i] + " >" +connectedPzh[i] + "</option>").appendTo("#pzh_pzp_list");                  
+				      //      $("<option value=" + connectedPzh[i] + " >" +connectedPzh[i] + "</option>").appendTo("#pzh_pzp_list");                  
 				        }
 				    }
 		            $("</optgroup>").appendTo("#pzh_pzp_list");
                 }
                 webinos.session.addListener('registeredBrowser', fillPZAddrs);
-                
+                /*
                 function updatePZAddrs(data) {
                     if(typeof data.payload.message.pzp !== "undefined") {
                         $("<option value=" + data.payload.message.pzp + " >" +data.payload.message.pzp + "</option>").appendTo("#pzp_list");
                     } else {
                         $("<option value=" + data.payload.message.pzh + " >" +data.payload.message.pzh + "</option>").appendTo("#pzh_list");
                     }
-                }
-                webinos.session.addListener('update', updatePZAddrs);
+                }*/
+                //webinos.session.addListener('update', updatePZAddrs);
                 
                 function printInfo(data) {
                     $('#message').append('<li>'+data.payload.message+'</li>');
@@ -88,9 +88,15 @@
                 
                 
             	    var eventAPIToUse;
+            	    var eventAPIS = [];
                     $('#findService').bind('click', function() {
                 	    webinos.ServiceDiscovery.findServices(new ServiceType('http://webinos.org/api/events'), 
 						{onFound: function (service) {
+
+							
+							 $("<option value=" + service.serviceAddress + " >" +service.serviceAddress + "</option>").appendTo("#pzh_pzp_list");
+							eventAPIS[service.serviceAddress] = service;
+							
 							eventAPIToUse = service;
                 	    	$('#messages').append('<li> EventAPI found: ' + service.api + ' @ ' + service.serviceAddress + '</li>');
 
@@ -103,6 +109,9 @@
                     }); 
                     
                     $('#bind').bind('click', function() {
+                    	
+                    	eventAPITOUse = $('#serviceList option:selected').val();
+                    	
                         eventAPIToUse.bind({onBind:function(){
                         	$('#messages').append('<li> Events API ' + eventAPIToUse.api + ' bound.</li>');
                         	$('#messages').append('<li> My APP ID ' + eventAPIToUse.temporaryRandomAppID + ' </li>');
@@ -122,6 +131,15 @@
                     		logObj(event,"event");
                     	});
                      }); 
+                    
+                    $('#registertype').bind('click', function() {
+                    	eventAPIToUse.addWebinosEventListener(function (event) {
+                    		console.log("New event received");
+                    		$("#textIn").val(event.payload);
+                    		$('#messages').append('<li> Received event from ' + event.addressing.source + ': ' + event.payload + ' </li>');
+                    		logObj(event,"event");
+                    	},  $("#servicetypelistener").val());
+                     }); 
                      
                      $('#remove').bind('click', function() {
                     	 eventAPIToUse.removeWebinosEventListener();
@@ -129,6 +147,7 @@
                      
                      $('#send').bind('click', function() {
                     	var ev = eventAPIToUse.createWebinosEvent();
+                    	if ($("#servicetype").val().length > 0) ev.type = $("#servicetype").val();
                     	ev.payload = $("#textOut").val();
                     	//console.log(ev.payLoad);
                     	ev.dispatchWebinosEvent(callback);
@@ -141,14 +160,16 @@
 	<div >
 		<div >
 			<p>
-				<div> PZH PZP LIST : <select id="pzh_pzp_list"> <option> </option> </select> <br> </div>
+				<div> Found Services @: <select id="pzh_pzp_list"> <option> </option> </select> <br> </div>
 				<button id="cls">Clear</button><button id="findService">Find Eventing Service</button>
 				
 				<button id="bind">Bind</button>
 		    	<button id="create">Create Event</button>
-		    	<button id="register">Register Event Listener</button>
+		    	<button id="register">Register To all Events</button>
 		    	<button id="remove">Remove Event Listener</button>
 		    	<button id="send">Send Event</button>
+		    	<br><button id="registertype">Register to type: </button><textarea id="servicetypelistener" rows="1" cols="40"></textarea>
+		    	
 			</p>
 			<p><div style="color:#ffffff;">
 				1. Press "Find Eventing Service" Button
@@ -156,6 +177,7 @@
 			</div><p>
 				<textarea id="textOut" rows="5" cols="40">Type your Message here</textarea>
 				<textarea id="textIn" rows="5" cols="40" readonly>Incoming Messages will appear here</textarea>
+				<br>Service Type for next message: <textarea id="servicetype" rows="1" cols="40"></textarea>
 			</p>
 			<p>
 				<ul id="sensorResult">

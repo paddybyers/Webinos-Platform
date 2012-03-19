@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright 2011 Samsung Electronics Research Institute
+* Copyright 2012 Samsung Electronics(UK) Ltd
 ******************************************************************************/
 (function ()	{
 "use strict";
@@ -57,6 +57,13 @@
 	 *              |
 	 *              +-- A0B3      
 	 * other_user@her_domain.com/laptop/urn:services-webinos-org:calender/
+	 * @param rpcHandler RPC handler manager.
+	 */
+	 
+	 /**
+	 * MessageHandler constructor
+	 *  @constructor
+	 *  @param rpcHandler RPC handler manager.
 	 */
 
 	var MessageHandler = function (rpcHandler) {
@@ -89,7 +96,8 @@
 	 * Set the sendMessage function that should be used to send message. 
 	 * Developers use this function to call different sendmessage APIs under
 	 * different communication environment. e.g. in socket.io, the 
-	 * sendMessageFunction could be: io.sockets.send(sessionid); 
+	 * sendMessageFunction could be: io.sockets.send(sessionid);
+	 * @param sendMessageFunction A function that used for sending messages. 
 	 */
 	MessageHandler.prototype.setSendMessage = function (sendMessageFunction) {
 		this.sendMsg = sendMessageFunction;
@@ -100,8 +108,8 @@
 	};
 	
 	/**
-	 * To set the reference to different objects. e.g. in a PZH farm, objectRef  
-	 * is used to refer to different PZH.
+	 * To set the reference to different objects. 
+	 * @param objref A object reference to referring different PZH or PZP instances.
 	 */
 	MessageHandler.prototype.setObjectRef = function (objref) {
 		this.objectRef = objref;
@@ -109,13 +117,15 @@
 	
 	/**
 	 * Function to get own identity.  
+	 * @param OwnIdGetter A function that used to get own identification.
 	 */
 	MessageHandler.prototype.setGetOwnId = function (OwnIdGetter) {
 		this.ownId = OwnIdGetter;
 	};
 
 	/**
-	 * Function to get own identity.  
+	 * Function to get own identity.
+	 * @param   
 	 */
 	MessageHandler.prototype.getOwnId = function () {
 		return this.ownId;
@@ -124,7 +134,8 @@
 	
 	/**
 	 * Set separator used to in Addressing to separator different part of the address. 
-	 * e.g. PZH/PZP/APPID, "/" is the separator here 	
+	 * e.g. PZH/PZP/APPID, "/" is the separator here
+	 * @param sep The separator that used in address representation 	
 	 */
 
 	MessageHandler.prototype.setSeparator = function (sep) {
@@ -133,6 +144,7 @@
 	
 	/**
 	 *  Create new message. Refer Message fields above for more details.
+	 *  @param options An array that contains elements to define fields in a message
 	 */ 
 	MessageHandler.prototype.createMessage = function (options) {
 		var message = {};
@@ -146,6 +158,9 @@
 	/**
 	 *  Create messageid. This messageid is used as an identifier for callback function associated 
 	 *  with the message.  
+	 *  @param message Message
+	 *  @param successHandler Success handler
+	 *  @param errorHandler	Error handler 
 	 */ 
 	MessageHandler.prototype.createMessageId = function(message, successHandler, errorHandler) {
 		message.id =  1 + Math.floor(Math.random() * 1024);
@@ -156,6 +171,8 @@
 
 	/**
 	 *  Only need to call this once. This will result a sessionid in the receiver's storage. 
+	 *  @param from Message originator
+	 *  @param to  Message destination
 	 */ 
 	MessageHandler.prototype.registerSender = function(from, to) {
 		var options = {};
@@ -171,6 +188,8 @@
 
 	/**
 	 *  Remove stored session route. This function is called once session is closed.  
+	 *  @param Message sender or fowarder
+	 *  @param Message recipient 
 	 */ 
 	MessageHandler.prototype.removeRoute = function (sender, receiver) {
 		var session = [sender, receiver];		
@@ -182,6 +201,9 @@
 	
 	/**
 	 * RPC writer - referto write function in  RPC
+	 * @param rpc Message body
+	 * @param respto Destination for rpc result to be sent to
+	 * @param msgid Message id
 	 */
 	MessageHandler.prototype.write = function (rpc, respto, msgid) {
 		//TODO calling write function from RPC does not allow to register call-backs yet
@@ -253,6 +275,8 @@
 	 *  [1] Handle register message and create session path for newly registered party
 	 *  [2] Forward messaging if not message destination
 	 *  [3] Handle message  by calling RPC handler if it is message destination 
+	 *  @param message	Received message
+	 *  @param sessionid session id 
 	 */ 
 	MessageHandler.prototype.onMessageReceived = function (message, sessionid) {
 		if (typeof message === "string") {

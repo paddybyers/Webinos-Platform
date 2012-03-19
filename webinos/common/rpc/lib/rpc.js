@@ -44,15 +44,6 @@
 //    contextEnabled = require(webinosRoot + dependencies.manager.context_manager.location + 'data/contextSettings.json').contextEnabled;
 //  }   
 
-
-	function logObj(obj, name){
-		for (var myKey in obj){
-			console.log('INFO: [RPC]'+name + "["+myKey +"] = "+obj[myKey]);
-			if (typeof obj[myKey] == 'object') logObj(obj[myKey], name + "." + myKey);
-		}
-	}
-	
-	
 	/**
 	 * RPCHandler constructor
 	 *  @constructor
@@ -66,10 +57,14 @@
 		this.parent = parent;
 		
 		/**
-		 * used to store objectRefs for callbacks that get invoked more than once
+		 * Used to store objectRefs for callbacks that get invoked more than once
 		 */ 
-		this.objRefCachTable = {};
+		this.objRefCacheTable = {};
 
+		/**
+		 * Used on the client side by executeRPC to store callbacks that are
+		 * invoked once the RPC finished.
+		 */
 		this.awaitingResponse = {};
 		
 		/**
@@ -98,7 +93,7 @@
 			// are returned by the pzh
 			this.parent.addRemoteServiceListener(function (payload) {
 				var callback = that.remoteServicesFoundCallbacks[payload.id];
-				console.log(payload);
+				
 				if (!callback) {
 					console.log("ServiceDiscovery: no findServices callback found for id: " + payload.id);
 					return;
@@ -111,7 +106,11 @@
 		
 		this.requesterMapping = [];
 		
-		this.messageHandler = null;
+		this.messageHandler = {
+				write: function() {
+					console.log('INFO: [RPC] could not execute RPC, messageHandler was not set.');
+				}
+		};
 	}
 	
 	/**
@@ -123,168 +122,197 @@
 	};
 
 	/**
+	 * Create and return a new JSONRPC 2.0 object.
+	 * @function
+	 * @private
+	 */
+	var newJSONRPCObj = function(id) {
+		return {
+			jsonrpc: '2.0',
+			id: id || Math.floor(Math.random()*101)
+		};
+	};
+	
+	/**
+	 * Create and return a new JSONRPC 2.0 request object.
+	 * @function
+	 * @private
+	 */
+	var newJSONRPCRequest = function(method, params) {
+		var rpc = newJSONRPCObj();
+		rpc.method = method;
+		rpc.params = params || [];
+		return rpc;
+	};
+	
+	/**
+	 * Create and return a new JSONRPC 2.0 response result object.
+	 * @function
+	 * @private
+	 */
+	var newJSONRPCResponseResult = function(id, result) {
+		var rpc = newJSONRPCObj(id);
+		rpc.result = result || {};
+		return rpc;
+	};
+	
+	/**
+	 * Create and return a new JSONRPC 2.0 response error object.
+	 * @function
+	 * @private
+	 */
+	var newJSONRPCResponseError = function(id, error) {
+		var rpc = newJSONRPCObj(id);
+		rpc.error = {
+			data: error,
+			code: 32000,
+			message: 'Method Invocation returned with error'
+		};
+		return rpc;
+	};
+
+	/**
+	 * Handles a JSON RPC request.
+	 * @param request JSON RPC request object.
+	 * @param from The sender.
+	 * @param msgid An id.
+	 * @function
+	 * @private
+	 */
+	var handleRequest = function (request, from, msgid) {
+		var idx = request.method.lastIndexOf('.');
+		var service = request.method.substring(0, idx);
+		var method = request.method.substring(idx + 1);
+		var serviceId = undefined;
+		idx = service.indexOf('@');
+		if (idx !== -1) {
+			// uses old format without md5 hash, see createRPC
+			var serviceIdRest = service.substring(idx + 1);
+			service = service.substring(0, idx);
+			var idx2 = serviceIdRest.indexOf('.');
+			if (idx2 !== -1) {
+				serviceId = serviceIdRest.substring(0, idx2);
+			} else {
+				serviceId = serviceIdRest;
+			}
+		}
+		//TODO send back error if service and method is not webinos style
+
+		if (typeof service !== 'undefined'){
+			console.log('INFO: [RPC] '+"Got request to invoke " + method + " on " + service + (serviceId ? "@" + serviceId : "") +" with params: " + request.params );
+
+			var receiverObjs = this.objects[service];
+			if (!receiverObjs)
+				receiverObjs = [];
+			var filteredRO = receiverObjs.filter(function(el, idx, array) {
+				return el.id === serviceId;
+			});
+			var includingObject = filteredRO[0]; 
+			if (typeof includingObject === 'undefined') includingObject = receiverObjs[0]; 
+
+			if (typeof includingObject === 'undefined'){
+				console.log('INFO: [RPC] '+"No service found with id/type " + service);
+				return;
+			}
+
+			// takes care of finding functions bound to attributes in nested objects
+			idx = request.method.lastIndexOf('.');
+			var methodPathParts = request.method.substring(0, idx);
+			methodPathParts = methodPathParts.split('.');
+			// loop through the nested attributes
+			for (var pIx = 0; pIx<methodPathParts.length; pIx++) {
+				if (methodPathParts[pIx] && methodPathParts[pIx].indexOf('@') >= 0) continue;
+				if (methodPathParts[pIx] && includingObject[methodPathParts[pIx]]) {
+					includingObject = includingObject[methodPathParts[pIx]];
+				}
+			}
+
+			if (typeof includingObject === 'object'){
+				var id = request.id;
+				var that = this;
+				var fromObjectRef;
+
+				// callback registration (one request to many responses)
+				if (typeof request.fromObjectRef !== 'undefined' && request.fromObjectRef != null) {
+					this.requesterMapping[request.fromObjectRef] = from;
+					this.objRefCacheTable[request.fromObjectRef] = {'from':from, msgId: msgid};
+					fromObjectRef = request.fromObjectRef;
+				}
+
+				function successCallback(result) {
+					if (typeof id === 'undefined') return;
+					var rpc = newJSONRPCResponseResult(id, result);
+					that.executeRPC(rpc, undefined, undefined, from, msgid);
+
+					// CONTEXT LOGGING HOOK
+//					if (contextEnabled){
+//					webinos.context.logContext(request,res);
+//					}
+				}
+				function errorCallback(error) {
+					if (typeof id === 'undefined') return;
+					var rpc = newJSONRPCResponseError(id, error);
+					that.executeRPC(rpc, undefined, undefined, from, msgid);
+				}
+
+				// call the requested method
+				includingObject[method](request.params, successCallback, errorCallback, fromObjectRef);
+			}
+		}
+	};
+	
+	/**
+	 * Handles a JSON RPC response.
+	 * @param response JSON RPC response object.
+	 * @function
+	 * @private
+	 */
+	var handleResponse = function (response) {
+		//if no id is provided we cannot invoke a callback
+		if (typeof response.id === 'undefined' || response.id == null) return;
+
+		console.log('INFO: [RPC] '+"Received a response that is registered for " + response.id);
+
+		//invoking linked error / success callback
+		if (typeof this.awaitingResponse[response.id] !== 'undefined'){
+			if (this.awaitingResponse[response.id] != null){
+
+				if (typeof this.awaitingResponse[response.id].onResult === 'function' && typeof response.result !== 'undefined'){
+
+					this.awaitingResponse[response.id].onResult(response.result);
+					console.log('INFO: [RPC] '+"called SCB");
+				}
+
+				if (typeof this.awaitingResponse[response.id].onError === 'function' && typeof response.error !== 'undefined'){
+					if (typeof response.error.data !== 'undefined'){
+						console.log('INFO: [RPC] '+"Propagating error to application");
+						this.awaitingResponse[response.id].onError(response.error.data);
+					}
+					else this.awaitingResponse[response.id].onError();
+				}
+
+				delete this.awaitingResponse[response.id];
+			}
+		}
+	};
+	
+	/**
 	 * Handles a new JSON RPC message (as string)
 	 * @param message The RPC message coming in.
 	 * @param from The sender.
 	 * @param msgid An id.
 	 */
-	_RPCHandler.prototype.handleMessage = function (message, from, msgid){
+	_RPCHandler.prototype.handleMessage = function (jsonRPC, from, msgid){
 		console.log('INFO: [RPC] '+"New packet from messaging");
 		console.log('INFO: [RPC] '+"Response to " + from);
-		var myObject = message;
-		//logObj(myObject, "rpc");
 
-		//received message is RPC request
-		if (typeof myObject.method !== 'undefined' && myObject.method != null) {
-			var idx = myObject.method.lastIndexOf('.');
-			var service = myObject.method.substring(0, idx);
-			var method = myObject.method.substring(idx + 1);
-			var serviceId = undefined;
-			idx = service.indexOf('@');
-			if (idx !== -1) {
-				var serviceIdRest = service.substring(idx + 1);
-				service = service.substring(0, idx);
-				var idx2 = serviceIdRest.indexOf('.');
-				if (idx2 !== -1) {
-					serviceId = serviceIdRest.substring(0, idx2);
-				} else {
-					serviceId = serviceIdRest;
-				}
-			}
-			//TODO send back error if service and method is not webinos style
-
-			if (typeof service !== 'undefined'){
-				console.log('INFO: [RPC] '+"Got message to invoke " + method + " on " + service + (serviceId ? "@" + serviceId : "") +" with params: " + myObject.params );
-
-				var receiverObjs = this.objects[service];
-				if (!receiverObjs)
-					receiverObjs = [];
-				var filteredRO = receiverObjs.filter(function(el, idx, array) {
-					return el.id === serviceId;
-				});
-				var includingObject = filteredRO[0]; 
-				if (typeof includingObject === 'undefined') includingObject = receiverObjs[0]; 
-
-				if (typeof includingObject === 'undefined'){
-					console.log('INFO: [RPC] '+"No service found with id/type " + service);
-					return;
-				}
-
-				//enable functions bound to attributes in nested objects, TODO
-				idx = myObject.method.lastIndexOf('.');
-				var methodPathParts = myObject.method.substring(0, idx);
-				methodPathParts = methodPathParts.split('.');
-				for (var pIx = 0; pIx<methodPathParts.length; pIx++) {
-					if (methodPathParts[pIx] && methodPathParts[pIx].indexOf('@') >= 0) continue;
-					if (methodPathParts[pIx] && includingObject[methodPathParts[pIx]]) {
-						includingObject = includingObject[methodPathParts[pIx]];
-					}
-				}
-
-				if (typeof includingObject === 'object'){
-					var id = myObject.id;
-
-					if (typeof myObject.fromObjectRef !== 'undefined' && myObject.fromObjectRef != null) {
-						// callback registration case (one request to many responses)
-
-						this.requesterMapping[myObject.fromObjectRef] = from;
-
-						this.objRefCachTable[myObject.fromObjectRef] = {'from':from, msgId: msgid};
-
-						var that = this;
-						includingObject[method](
-								myObject.params, 
-								function (result) {
-									if (typeof id === 'undefined') return;
-									var res = {};
-									res.jsonrpc = "2.0";
-									if (typeof result !== 'undefined') res.result = result;
-									else res.result = {};
-									res.id = id;						
-									that.executeRPC(res, undefined, undefined, from, msgid);
-									// CONTEXT LOGGING HOOK
-//									if (contextEnabled){
-//										webinos.context.logContext(myObject,res);
-//									}
-								},
-								function (error){
-									if (typeof id === 'undefined') return;
-									var res = {};
-									res.jsonrpc = "2.0";
-									res.error = {};
-									res.error.data = error;
-									res.error.code = 32000;  //webinos specific error code representing that an API specific error occured
-									res.error.message = "Method Invocation returned with error";
-									res.id = id;
-									that.executeRPC(res, undefined, undefined, from, msgid);
-								}, 
-								myObject.fromObjectRef
-						);
-					}
-					else {
-						// default request-response case
-						var that = this;
-						includingObject[method](
-								myObject.params, 
-								function (result) {
-									if (typeof id === 'undefined') return;
-									var res = {};
-									res.jsonrpc = "2.0";
-									if (typeof result !== 'undefined') res.result = result;
-									else res.result = {};
-									res.id = id;
-									that.executeRPC(res, undefined, undefined, from, msgid);
-
-									// CONTEXT LOGGING HOOK
-//									if (contextEnabled){
-//										webinos.context.logContext(myObject,res);
-//									}
-								},
-								function (error){
-									if (typeof id === 'undefined') return;
-									var res = {};
-									res.jsonrpc = "2.0";
-									res.error = {};
-									res.error.data = error;
-									res.error.code = 32000;
-									res.error.message = "Method Invocation returned with error";
-									res.id = id;
-									that.executeRPC(res, undefined, undefined, from, msgid);
-								}
-						);
-					}
-				}
-			}
+		if (typeof jsonRPC.method !== 'undefined' && jsonRPC.method != null) {
+			// received message is RPC request
+			handleRequest.call(this, jsonRPC, from, msgid);
+		} else {
+			// received message is RPC response
+			handleResponse.call(this, jsonRPC, from, msgid);
 		}
-		else {
-			//if no id is provided we cannot invoke a callback
-			if (typeof myObject.id === 'undefined' || myObject.id == null) return;
-
-			console.log('INFO: [RPC] '+"Received a response that is registered for " + myObject.id);
-
-			//invoking linked error / success callback
-			if (typeof this.awaitingResponse[myObject.id] !== 'undefined'){
-				if (this.awaitingResponse[myObject.id] != null){
-
-					if (typeof this.awaitingResponse[myObject.id].onResult !== 'undefined' && typeof myObject.result !== 'undefined'){
-
-						this.awaitingResponse[myObject.id].onResult(myObject.result);
-						console.log('INFO: [RPC] '+"called SCB");
-					}
-
-					if (typeof this.awaitingResponse[myObject.id].onError !== 'undefined' && typeof myObject.error !== 'undefined'){
-						if (typeof myObject.error.data !== 'undefined'){
-							console.log('INFO: [RPC] '+"Propagating error to application");
-							this.awaitingResponse[myObject.id].onError(myObject.error.data);
-						}
-						else this.awaitingResponse[myObject.id].onError();
-					}
-
-					delete this.awaitingResponse[myObject.id];
-				}
-			}
-		}
-
 	};
 
 	/**
@@ -325,8 +353,8 @@
 
 			if (rpc.method && rpc.method.indexOf('@') === -1) {
 				var objectRef = rpc.method.split('.')[0];
-				if (typeof this.objRefCachTable[objectRef] !== 'undefined') {
-					from = this.objRefCachTable[objectRef].from;
+				if (typeof this.objRefCacheTable[objectRef] !== 'undefined') {
+					from = this.objRefCacheTable[objectRef].from;
 
 				}
 				console.log('INFO: [RPC] '+'RPC MESSAGE' + " to " + from + " for callback " + objectRef);
@@ -335,8 +363,8 @@
 		}
 		else if (rpc.method && rpc.method.indexOf('@') === -1) {
 			var objectRef = rpc.method.split('.')[0];
-			if (typeof this.objRefCachTable[objectRef] !== 'undefined') {
-				from = this.objRefCachTable[objectRef].from;
+			if (typeof this.objRefCacheTable[objectRef] !== 'undefined') {
+				from = this.objRefCacheTable[objectRef].from;
 
 			}
 			console.log('INFO: [RPC] '+'RPC MESSAGE' + " to " + from + " for callback " + objectRef);
@@ -344,9 +372,10 @@
 
 		//TODO check if rpc is request on a specific object (objectref) and get mapped from / destination session
 
+		
 		this.messageHandler.write(rpc, from, msgid);
 	};
-
+	
 	/**
 	 * Creates a JSON RPC 2.0 compliant object.
 	 * @param service The service (e.g., the file reader or the
@@ -355,30 +384,27 @@
 	 * @param params An optional array of parameters to be used.
 	 */
 	_RPCHandler.prototype.createRPC = function (service, method, params) {
-
 		if (typeof service === 'undefined') throw "Service is undefined";
 		if (typeof method === 'undefined') throw "Method is undefined";
 
-		var rpc = {};
-		rpc.jsonrpc = "2.0";
-		rpc.id = Math.floor(Math.random()*101);
-
-		if (typeof service === "object") {
-			// e.g. FileReader@2375443534.truncate
-			rpc.method = service.api + "@" + service.id + "." + method;
-
-			// TODO find a better way to store the service address?
-			if (typeof service.serviceAddress !== 'undefined') {
-				rpc.serviceAddress = service.serviceAddress;
-			}			
+		var rpcMethod;
+		
+		if (typeof service === 'object') {
+			// e.g. FileReader@cc44b4793332831dc44d30b0f60e4e80.truncate
+			// i.e. (class name) @ (md5 hash of service meta data) . (method in class to invoke)
+			rpcMethod = service.api + "@" + service.id + "." + method;
 		} else {
-			rpc.method = service + "." + method;
+			rpcMethod = service + "." + method;
 		}
 
-		if (typeof params === 'undefined') rpc.params = [];
-		else rpc.params = params;
-
-		return rpc;
+		var rpcRequest = newJSONRPCRequest(rpcMethod, params);
+		
+		if (typeof service === 'object' && typeof service.serviceAddress !== 'undefined') {
+			// FIXME not a defined member of the JSON-RPC spec, maybe encode as part of the method
+			rpcRequest.serviceAddress = service.serviceAddress;
+		}
+		
+		return rpcRequest;
 	};
 	
 	/**
@@ -416,17 +442,7 @@
 	 * @returns Function which when called does the rpc.
 	 */
 	_RPCHandler.prototype.notify = function (service, method, objectRef) {
-		var self = this; // TODO Bind returned function to "this", i.e., an instance of RPCHandler?
-		
-		return function () {
-			var params = Array.prototype.slice.call(arguments);
-			var message = self.createRPC(service, method, params);
-
-			if (objectRef)
-				message.fromObjectRef = objectRef;
-
-			self.executeRPC(message);
-		};
+		this.request(service, method, objectRef, function(){}, function(){});
 	};
 
 	/**
@@ -442,7 +458,8 @@
 				receiverObjs = [];
 
 			// generate id
-			callback.id = md5.hexhash(callback.api + callback.displayName + callback.description);
+			var md5sum = crypto.createHash('md5');
+			callback.id = md5sum.update(callback.api + callback.displayName + callback.description).digest('hex');
 			// verify id isn't existing already
 			var filteredRO = receiverObjs.filter(function(el, idx, array) {
 				return el.id === callback.id;
@@ -558,7 +575,6 @@
 			
 			// store callback in map for lookup on returned remote results
 			var callbackId = Math.floor(Math.random()*101);
-			console.log(callbackId);
 			this.remoteServicesFoundCallbacks[callbackId] = (function(res) {
 				return function(remoteServices) {
 					
@@ -608,6 +624,7 @@
 	 * @param exceptAddress Address of services that match will be excluded from
 	 * results.
 	 * @returns Array with known services.
+	 * @private
 	 */
 	_RPCHandler.prototype.getAllServices = function(exceptAddress) {
 		var results = [];
@@ -625,9 +642,9 @@
 	/**
 	 * Get an array of all registered Service objects. 
 	 * @returns Array with said objects.
+	 * @private
 	 */
 	_RPCHandler.prototype.getRegisteredServices = function() {
-		// FIXME this shouldn't be a public method i guess
 		var results = [];
 		
 		for (var service in this.objects) {
@@ -760,7 +777,7 @@
 		exports.ServiceType = ServiceType;
 		//exports.setSessionId = setSessionId;
 		// none webinos modules
-		var md5 = require('../contrib/md5.js');
+		var crypto = require('crypto');
 
 	} else {
 		// export for web browser

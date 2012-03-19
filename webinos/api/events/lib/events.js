@@ -42,7 +42,7 @@
 		 */
 		this.WebinosEvent.dispatchWebinosEvent = function (params, successCB, errorCB, ref){
 			//callbacks, referenceTimeout, sync
-			console.log("dispatchWebinosEvent was invoked: Payload: " + params.webinosevent.payload);
+			console.log("dispatchWebinosEvent was invoked: Payload: " + params.webinosevent.payload + " Type: " + params.webinosevent.type);
 
 			var objectRef = ref;
 			var useCB = false;
@@ -60,14 +60,21 @@
 
 			console.log("Available Listeners:" + registeredListener.length);
 			for (i = 0; i < registeredListener.length; i++){
-				console.log("Listener@" + registeredListener[i].source);
+				console.log("Listener@" + registeredListener[i].source + " listening on: " + registeredListener[i].type);
 			}
 
 
 			//TODO, check conditions like type etc.
 			//going through all registered subscribers and forward event
 			for (i = 0; i < registeredListener.length; i++){
-			
+				
+				console.log("Dispatch type: " + params.webinosevent.type + " vs listener type: " + registeredListener[i].type);
+				
+				if (params.webinosevent.type != registeredListener[i].type){
+					
+					if (typeof registeredListener[i].type !== 'undefined' || registeredListener[i].type != null)continue;
+					
+				}
 
 
 				console.log("Sending to LISTENER: " + registeredListener[i].source);
@@ -184,6 +191,7 @@
 	req.destination = destination;
 	req.listenerID = listenerID;*/
 		params.objectRef = objectRef;
+		
 		registeredListener.push(params);
 	};
 

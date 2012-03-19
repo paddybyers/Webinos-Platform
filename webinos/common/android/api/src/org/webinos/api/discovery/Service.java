@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright 2011-2012 Paddy Byers
+* Copyright 2012 Samsung Electronics(UK) Ltd
 *
 ******************************************************************************/
 
@@ -42,6 +42,10 @@ public abstract class Service extends Base {
     
     //added to collect HRM data
     public long[] values;
+    
+    //added to collect discovery device details
+    public String[] deviceNames;
+    public String[] deviceAddresses;
     
     public abstract PendingOperation bind(BindCallback bindCallBack, String serviceId) 
     		throws DiscoveryError;

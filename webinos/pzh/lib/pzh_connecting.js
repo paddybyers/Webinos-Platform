@@ -52,14 +52,14 @@ pzhConnecting.connectOtherPZH = function(pzh, server, callback) {
 	
 	config.fetchKey(self.config.conn.key_id, function(key_id) {
 		try {
-			var pzh_id, caList = [], crlList = [];
+			var caList = [], crlList = [];
 			caList.push(self.config.master.cert);
 			crlList.push(self.config.master.crl);
 			
-			for (pzh_id in self.config.otherCert) {
-				if (typeof self.config.otherCert[pzh_id] !== "undefined") {
-					caList.push(self.config.otherCert[pzh_id].cert);
-					crlList.push(self.config.otherCert[pzh_id].crl);
+			for (var i=0; i<self.config.otherCert.length; i++) {
+				if (typeof self.config.otherCert[i] !== "undefined") {
+					caList.push(self.config.otherCert[i].cert);
+					crlList.push(self.config.otherCert[i].crl);
 				}
 			}
 			//No CRL support yet, as this is out-of-zone communication.  TBC.

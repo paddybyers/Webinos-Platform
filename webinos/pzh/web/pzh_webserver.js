@@ -277,6 +277,7 @@ function fetchOpenIdDetails(req, res, callback){
 				} else {
 					details.id =  parsed.path.split('/')[2];
 					details.provider = 'yahoo';
+					details.country = 'UK'; // set a default country as appearantly yahoo doesn't always provide one, but certificate mgr needs it
 					
 				}
 				callback(details.provider, details.id)
@@ -291,8 +292,7 @@ function fetchOpenIdDetails(req, res, callback){
 				details.username += userDetails.lastname;
 			}
 			if(userDetails.fullname){
-				var name = userDetails.fullname.split(' ');
-				details.username = name[0]+name[1];
+				details.username = userDetails.fullname.replace(/ /g, '');
 			}
 			if(userDetails.email){
 				details.email = userDetails.email;

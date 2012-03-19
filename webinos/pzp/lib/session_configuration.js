@@ -33,9 +33,16 @@ var common        = require(path.join(webinosRoot, dependencies.pzp.location, 'l
 configure.pzhPort    = 8000; // used by PZP
 configure.farmPort   = 8000; // used by farm when starting
 
-//PZH webserver uses these ports 
+// PZH webserver uses these ports 
 configure.httpServerPort = 8001;
 configure.webServerPort  = 9000;
+
+// Default webinos services available when no configuration exists yet
+configure.pzhDefaultServices = [
+    {name: "context", param: {}},
+    {name: "events", param: {}},
+    {name: "get42", param: {}}
+]
 
 /**
 * @descripton Checks for master certificate, if certificate is not found it calls generating certificate function defined in certificate manager. This function is crypto sensitive.
