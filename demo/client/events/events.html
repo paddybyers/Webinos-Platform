@@ -122,6 +122,15 @@
                     		logObj(event,"event");
                     	});
                      }); 
+                    
+                    $('#registertype').bind('click', function() {
+                    	eventAPIToUse.addWebinosEventListener(function (event) {
+                    		console.log("New event received");
+                    		$("#textIn").val(event.payload);
+                    		$('#messages').append('<li> Received event from ' + event.addressing.source + ': ' + event.payload + ' </li>');
+                    		logObj(event,"event");
+                    	},  $("#servicetypelistener").val());
+                     }); 
                      
                      $('#remove').bind('click', function() {
                     	 eventAPIToUse.removeWebinosEventListener();
@@ -129,6 +138,7 @@
                      
                      $('#send').bind('click', function() {
                     	var ev = eventAPIToUse.createWebinosEvent();
+                    	if ($("#servicetype").val().length > 0) ev.type = $("#servicetype").val();
                     	ev.payload = $("#textOut").val();
                     	//console.log(ev.payLoad);
                     	ev.dispatchWebinosEvent(callback);
@@ -146,9 +156,11 @@
 				
 				<button id="bind">Bind</button>
 		    	<button id="create">Create Event</button>
-		    	<button id="register">Register Event Listener</button>
+		    	<button id="register">Register To all Events</button>
 		    	<button id="remove">Remove Event Listener</button>
 		    	<button id="send">Send Event</button>
+		    	<br><button id="registertype">Register to type: </button><textarea id="servicetypelistener" rows="1" cols="40"></textarea>
+		    	
 			</p>
 			<p><div style="color:#ffffff;">
 				1. Press "Find Eventing Service" Button
@@ -156,6 +168,7 @@
 			</div><p>
 				<textarea id="textOut" rows="5" cols="40">Type your Message here</textarea>
 				<textarea id="textIn" rows="5" cols="40" readonly>Incoming Messages will appear here</textarea>
+				<br>Service Type for next message: <textarea id="servicetype" rows="1" cols="40"></textarea>
 			</p>
 			<p>
 				<ul id="sensorResult">
