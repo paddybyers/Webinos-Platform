@@ -218,7 +218,7 @@
 			else if(data[0] === 'Pzp' ) {
 				var sessionId, err1;
 				try {
-					sessionId = self.sessionId+'/'+data[1].split(':')[0];
+					sessionId = self.sessionId+'/'+data[1];
 				} catch(err1) {
 					log(self.sessionId, 'ERROR ','[PZH  -' + self.sessionId + '] Exception in reading common name of PZP certificate ' + err1);
 					return;
@@ -409,7 +409,7 @@
 				configuration.setConfiguration(name, 'Pzh', uri, function(config, conn_key) {
 					pzh.config    = config;
 					// Set sessionId by reading common value.
-					pzh.sessionId = name + '_'+config.details.type;//Pzh_DeviceName
+					pzh.sessionId = name ;//Pzh_DeviceName
 					// modules loaded in pzh
 					pzh.modules   = modules;
 					// pzh servername

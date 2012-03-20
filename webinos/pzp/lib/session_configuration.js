@@ -64,7 +64,7 @@ configure.setConfiguration = function (name, type, url, callback) {
 	}
 	
 	if (name === '' && (type === 'Pzp' || type === 'PzhFarm')){
-		name = type+'%'+os.type()+'%'+os.hostname(); //(PzhFarm%Linux%x86%devicename)
+		name = type+'%'+os.hostname(); //(PzhFarm%Linux%x86%devicename)os.type()+'%'+
 	}
 	
 	fs.readFile(( webinosDemo+'/config/'+ name +'.json'), function(err, data) {
