@@ -15,7 +15,7 @@
 		</rule>
 	
 		<rule effect="permit">
-			<condition>
+			<condition combine="or">
 				<resource-match attr="api-feature" match="http://webinos.org/api/context.read"/>
 				<resource-match attr="api-feature" match="http://webinos.org/api/discovery"/>
 			</condition>
