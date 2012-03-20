@@ -277,8 +277,6 @@ function fetchOpenIdDetails(req, res, callback){
 				} else {
 					details.id =  parsed.path.split('/')[2];
 					details.provider = 'yahoo';
-					details.country = 'UK'; // set a default country as appearantly yahoo doesn't always provide one, but certificate mgr needs it
-					
 				}
 				callback(details.provider, details.id)
 			}
