@@ -57,8 +57,12 @@ certificate.selfSigned = function(config, type, callback) {
 		return;
 	}
 
-	var cn = type+':'+config.details.name+':DeviceId('+uniqueID.getUUID_40.substring(0,10)+')';
-
+	var cn = type+':'+config.details.name;
+	if (cn.length > 40) {
+		
+		cn = cn.substring(0, 40);
+	}
+	
 	if (type === 'PzhFarmCA' ||  type === 'PzhCA') {
 		certType = 0;
 	} else if (type === 'Pzh' || type === 'PzhFarm' || type === 'PzhWebServer' || type === 'PzhWebSocketServer') {
