@@ -1,22 +1,3 @@
-/*******************************************************************************
-*  Code contributed to the webinos project
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-* Copyright 2011-2012 Paddy Byers
-*
-******************************************************************************/
-
 (function() {
   if(typeof webinos === "undefined") {
     webinos = {}
@@ -32,17 +13,9 @@
     var utils = webinos.utils || (webinos.utils = {})
   }
   var sessionId;
-  function logObj(obj, name) {
-    for(var myKey in obj) {
-      console.log(name + "[" + myKey + "] = " + obj[myKey]);
-      if(typeof obj[myKey] == "object") {
-        logObj(obj[myKey], name + "." + myKey)
-      }
-    }
-  }
   _RPCHandler = function(parent) {
     this.parent = parent;
-    this.objRefCachTable = {};
+    this.objRefCacheTable = {};
     this.awaitingResponse = {};
     this.objects = {};
     this.remoteServiceObjects = [];
@@ -60,150 +33,142 @@
       })
     }
     this.requesterMapping = [];
-    this.messageHandler = null
+    this.messageHandler = {write:function() {
+      console.log("INFO: [RPC] could not execute RPC, messageHandler was not set.")
+    }}
   };
   _RPCHandler.prototype.setMessageHandler = function(messageHandler) {
     this.messageHandler = messageHandler
   };
-  _RPCHandler.prototype.handleMessage = function(message, from, msgid) {
-    console.log("New packet from messaging");
-    console.log("Response to " + from);
-    var myObject = message;
-    logObj(myObject, "rpc");
-    if(typeof myObject.method !== "undefined" && myObject.method != null) {
-      var idx = myObject.method.lastIndexOf(".");
-      var service = myObject.method.substring(0, idx);
-      var method = myObject.method.substring(idx + 1);
-      var serviceId = undefined;
-      idx = service.indexOf("@");
-      if(idx !== -1) {
-        var serviceIdRest = service.substring(idx + 1);
-        service = service.substring(0, idx);
-        var idx2 = serviceIdRest.indexOf(".");
-        if(idx2 !== -1) {
-          serviceId = serviceIdRest.substring(0, idx2)
-        }else {
-          serviceId = serviceIdRest
-        }
+  var newJSONRPCObj = function(id) {
+    return{jsonrpc:"2.0", id:id || Math.floor(Math.random() * 101)}
+  };
+  var newJSONRPCRequest = function(method, params) {
+    var rpc = newJSONRPCObj();
+    rpc.method = method;
+    rpc.params = params || [];
+    return rpc
+  };
+  var newJSONRPCResponseResult = function(id, result) {
+    var rpc = newJSONRPCObj(id);
+    rpc.result = result || {};
+    return rpc
+  };
+  var newJSONRPCResponseError = function(id, error) {
+    var rpc = newJSONRPCObj(id);
+    rpc.error = {data:error, code:32E3, message:"Method Invocation returned with error"};
+    return rpc
+  };
+  var handleRequest = function(request, from, msgid) {
+    var idx = request.method.lastIndexOf(".");
+    var service = request.method.substring(0, idx);
+    var method = request.method.substring(idx + 1);
+    var serviceId = undefined;
+    idx = service.indexOf("@");
+    if(idx !== -1) {
+      var serviceIdRest = service.substring(idx + 1);
+      service = service.substring(0, idx);
+      var idx2 = serviceIdRest.indexOf(".");
+      if(idx2 !== -1) {
+        serviceId = serviceIdRest.substring(0, idx2)
+      }else {
+        serviceId = serviceIdRest
       }
-      if(typeof service !== "undefined") {
-        console.log("Got message to invoke " + method + " on " + service + (serviceId ? "@" + serviceId : "") + " with params: " + myObject.params);
-        var receiverObjs = this.objects[service];
-        if(!receiverObjs) {
-          receiverObjs = []
-        }
-        var filteredRO = receiverObjs.filter(function(el, idx, array) {
-          return el.id === serviceId
-        });
-        var includingObject = filteredRO[0];
-        if(typeof includingObject === "undefined") {
-          includingObject = receiverObjs[0]
-        }
-        if(typeof includingObject === "undefined") {
-          console.log("No service found with id/type " + service);
-          return
-        }
-        idx = myObject.method.lastIndexOf(".");
-        var methodPathParts = myObject.method.substring(0, idx);
-        methodPathParts = methodPathParts.split(".");
-        for(var pIx = 0;pIx < methodPathParts.length;pIx++) {
-          if(methodPathParts[pIx] && methodPathParts[pIx].indexOf("@") >= 0) {
-            continue
-          }
-          if(methodPathParts[pIx] && includingObject[methodPathParts[pIx]]) {
-            includingObject = includingObject[methodPathParts[pIx]]
-          }
-        }
-        if(typeof includingObject === "object") {
-          var id = myObject.id;
-          if(typeof myObject.fromObjectRef !== "undefined" && myObject.fromObjectRef != null) {
-            this.requesterMapping[myObject.fromObjectRef] = from;
-            this.objRefCachTable[myObject.fromObjectRef] = {"from":from, msgId:msgid};
-            var that = this;
-            includingObject[method](myObject.params, function(result) {
-              if(typeof id === "undefined") {
-                return
-              }
-              var res = {};
-              res.jsonrpc = "2.0";
-              if(typeof result !== "undefined") {
-                res.result = result
-              }else {
-                res.result = {}
-              }
-              res.id = id;
-              that.executeRPC(res, undefined, undefined, from, msgid)
-            }, function(error) {
-              if(typeof id === "undefined") {
-                return
-              }
-              var res = {};
-              res.jsonrpc = "2.0";
-              res.error = {};
-              res.error.data = error;
-              res.error.code = 32E3;
-              res.error.message = "Method Invocation returned with error";
-              res.id = id;
-              that.executeRPC(res, undefined, undefined, from, msgid)
-            }, myObject.fromObjectRef)
-          }else {
-            var that = this;
-            includingObject[method](myObject.params, function(result) {
-              if(typeof id === "undefined") {
-                return
-              }
-              var res = {};
-              res.jsonrpc = "2.0";
-              if(typeof result !== "undefined") {
-                res.result = result
-              }else {
-                res.result = {}
-              }
-              res.id = id;
-              that.executeRPC(res, undefined, undefined, from, msgid)
-            }, function(error) {
-              if(typeof id === "undefined") {
-                return
-              }
-              var res = {};
-              res.jsonrpc = "2.0";
-              res.error = {};
-              res.error.data = error;
-              res.error.code = 32E3;
-              res.error.message = "Method Invocation returned with error";
-              res.id = id;
-              that.executeRPC(res, undefined, undefined, from, msgid)
-            })
-          }
-        }
+    }
+    if(typeof service !== "undefined") {
+      console.log("INFO: [RPC] " + "Got request to invoke " + method + " on " + service + (serviceId ? "@" + serviceId : "") + " with params: " + request.params);
+      var receiverObjs = this.objects[service];
+      if(!receiverObjs) {
+        receiverObjs = []
       }
-    }else {
-      if(typeof myObject.id === "undefined" || myObject.id == null) {
+      var filteredRO = receiverObjs.filter(function(el, idx, array) {
+        return el.id === serviceId
+      });
+      var includingObject = filteredRO[0];
+      if(typeof includingObject === "undefined") {
+        includingObject = receiverObjs[0]
+      }
+      if(typeof includingObject === "undefined") {
+        console.log("INFO: [RPC] " + "No service found with id/type " + service);
         return
       }
-      console.log("Received a response that is registered for " + myObject.id);
-      if(typeof this.awaitingResponse[myObject.id] !== "undefined") {
-        if(this.awaitingResponse[myObject.id] != null) {
-          if(typeof this.awaitingResponse[myObject.id].onResult !== "undefined" && typeof myObject.result !== "undefined") {
-            this.awaitingResponse[myObject.id].onResult(myObject.result);
-            console.log("called SCB")
-          }
-          if(typeof this.awaitingResponse[myObject.id].onError !== "undefined" && typeof myObject.error !== "undefined") {
-            if(typeof myObject.error.data !== "undefined") {
-              console.log("Propagating error to application");
-              this.awaitingResponse[myObject.id].onError(myObject.error.data)
-            }else {
-              this.awaitingResponse[myObject.id].onError()
-            }
-          }
-        //  delete this.awaitingResponse[myObject.id]
+      idx = request.method.lastIndexOf(".");
+      var methodPathParts = request.method.substring(0, idx);
+      methodPathParts = methodPathParts.split(".");
+      for(var pIx = 0;pIx < methodPathParts.length;pIx++) {
+        if(methodPathParts[pIx] && methodPathParts[pIx].indexOf("@") >= 0) {
+          continue
+        }
+        if(methodPathParts[pIx] && includingObject[methodPathParts[pIx]]) {
+          includingObject = includingObject[methodPathParts[pIx]]
         }
       }
+      if(typeof includingObject === "object") {
+        var id = request.id;
+        var that = this;
+        var fromObjectRef;
+        if(typeof request.fromObjectRef !== "undefined" && request.fromObjectRef != null) {
+          this.requesterMapping[request.fromObjectRef] = from;
+          this.objRefCacheTable[request.fromObjectRef] = {"from":from, msgId:msgid};
+          fromObjectRef = request.fromObjectRef
+        }
+        function successCallback(result) {
+          if(typeof id === "undefined") {
+            return
+          }
+          var rpc = newJSONRPCResponseResult(id, result);
+          that.executeRPC(rpc, undefined, undefined, from, msgid)
+        }
+        function errorCallback(error) {
+          if(typeof id === "undefined") {
+            return
+          }
+          var rpc = newJSONRPCResponseError(id, error);
+          that.executeRPC(rpc, undefined, undefined, from, msgid)
+        }
+        includingObject[method](request.params, successCallback, errorCallback, fromObjectRef)
+      }
+    }
+  };
+  var handleResponse = function(response) {
+    if(typeof response.id === "undefined" || response.id == null) {
+      return
+    }
+    console.log("INFO: [RPC] " + "Received a response that is registered for " + response.id);
+    if(typeof this.awaitingResponse[response.id] !== "undefined") {
+      if(this.awaitingResponse[response.id] != null) {
+        if(typeof this.awaitingResponse[response.id].onResult === "function" && typeof response.result !== "undefined") {
+          this.awaitingResponse[response.id].onResult(response.result);
+          console.log("INFO: [RPC] " + "called SCB")
+        }
+        if(typeof this.awaitingResponse[response.id].onError === "function" && typeof response.error !== "undefined") {
+          if(typeof response.error.data !== "undefined") {
+            console.log("INFO: [RPC] " + "Propagating error to application");
+            this.awaitingResponse[response.id].onError(response.error.data)
+          }else {
+            this.awaitingResponse[response.id].onError()
+          }
+        }
+        delete this.awaitingResponse[response.id]
+      }
+    }
+  };
+  _RPCHandler.prototype.handleMessage = function(jsonRPC, from, msgid) {
+    console.log("INFO: [RPC] " + "New packet from messaging");
+    console.log("INFO: [RPC] " + "Response to " + from);
+    if(typeof jsonRPC.method !== "undefined" && jsonRPC.method != null) {
+      handleRequest.call(this, jsonRPC, from, msgid)
+    }else {
+      handleResponse.call(this, jsonRPC, from, msgid)
     }
   };
   _RPCHandler.prototype.executeRPC = function(rpc, callback, errorCB, from, msgid) {
     if(typeof rpc.serviceAddress !== "undefined") {
-      webinos.session.message_send(rpc, rpc.serviceAddress);
+      if(typeof module !== "undefined") {
+        this.messageHandler.write(rpc, rpc.serviceAddress)
+      }else {
+        webinos.session.message_send(rpc, rpc.serviceAddress)
+      }
       if(typeof callback === "function") {
         var cb = {};
         cb.onResult = callback;
@@ -227,18 +192,18 @@
       }
       if(rpc.method && rpc.method.indexOf("@") === -1) {
         var objectRef = rpc.method.split(".")[0];
-        if(typeof this.objRefCachTable[objectRef] !== "undefined") {
-          from = this.objRefCachTable[objectRef].from
+        if(typeof this.objRefCacheTable[objectRef] !== "undefined") {
+          from = this.objRefCacheTable[objectRef].from
         }
-        console.log("RPC MESSAGE" + " to " + from + " for callback " + objectRef)
+        console.log("INFO: [RPC] " + "RPC MESSAGE" + " to " + from + " for callback " + objectRef)
       }
     }else {
       if(rpc.method && rpc.method.indexOf("@") === -1) {
         var objectRef = rpc.method.split(".")[0];
-        if(typeof this.objRefCachTable[objectRef] !== "undefined") {
-          from = this.objRefCachTable[objectRef].from
+        if(typeof this.objRefCacheTable[objectRef] !== "undefined") {
+          from = this.objRefCacheTable[objectRef].from
         }
-        console.log("RPC MESSAGE" + " to " + from + " for callback " + objectRef)
+        console.log("INFO: [RPC] " + "RPC MESSAGE" + " to " + from + " for callback " + objectRef)
       }
     }
     this.messageHandler.write(rpc, from, msgid)
@@ -250,23 +215,17 @@
     if(typeof method === "undefined") {
       throw"Method is undefined";
     }
-    var rpc = {};
-    rpc.jsonrpc = "2.0";
-    rpc.id = Math.floor(Math.random() * 101);
+    var rpcMethod;
     if(typeof service === "object") {
-      rpc.method = service.api + "@" + service.id + "." + method;
-      if(typeof service.serviceAddress !== "undefined") {
-        rpc.serviceAddress = service.serviceAddress
-      }
+      rpcMethod = service.api + "@" + service.id + "." + method
     }else {
-      rpc.method = service + "." + method
+      rpcMethod = service + "." + method
     }
-    if(typeof params === "undefined") {
-      rpc.params = []
-    }else {
-      rpc.params = params
+    var rpcRequest = newJSONRPCRequest(rpcMethod, params);
+    if(typeof service === "object" && typeof service.serviceAddress !== "undefined") {
+      rpcRequest.serviceAddress = service.serviceAddress
     }
-    return rpc
+    return rpcRequest
   };
   _RPCHandler.prototype.request = function(service, method, objectRef, successCallback, errorCallback) {
     var self = this;
@@ -280,24 +239,19 @@
     }
   };
   _RPCHandler.prototype.notify = function(service, method, objectRef) {
-    var self = this;
-    return function() {
-      var params = Array.prototype.slice.call(arguments);
-      var message = self.createRPC(service, method, params);
-      if(objectRef) {
-        message.fromObjectRef = objectRef
-      }
-      self.executeRPC(message)
-    }
+    this.request(service, method, objectRef, function() {
+    }, function() {
+    })
   };
   _RPCHandler.prototype.registerObject = function(callback) {
     if(typeof callback !== "undefined") {
-      console.log("Adding handler: " + callback.api);
+      console.log("INFO: [RPC] " + "Adding handler: " + callback.api);
       var receiverObjs = this.objects[callback.api];
       if(!receiverObjs) {
         receiverObjs = []
       }
-      callback.id = md5.hexhash(callback.api + callback.displayName + callback.description);
+      var md5sum = crypto.createHash("md5");
+      callback.id = md5sum.update(callback.api + callback.displayName + callback.description).digest("hex");
       var filteredRO = receiverObjs.filter(function(el, idx, array) {
         return el.id === callback.id
       });
@@ -310,7 +264,7 @@
   };
   _RPCHandler.prototype.registerCallbackObject = function(callback) {
     if(typeof callback !== "undefined") {
-      console.log("Adding handler: " + callback.api);
+      console.log("INFO: [RPC] " + "Adding handler: " + callback.api);
       var receiverObjs = this.objects[callback.api];
       if(!receiverObjs) {
         receiverObjs = []
@@ -321,7 +275,7 @@
   };
   _RPCHandler.prototype.unregisterObject = function(callback) {
     if(typeof callback !== "undefined" && callback != null) {
-      console.log("Removing handler: " + callback.api);
+      console.log("INFO: [RPC] " + "Removing handler: " + callback.api);
       var receiverObjs = this.objects[callback.api];
       if(!receiverObjs) {
         receiverObjs = []
@@ -333,7 +287,7 @@
     }
   };
   _RPCHandler.prototype.findServices = function(serviceType, callback) {
-    console.log("findService: searching for ServiceType: " + serviceType.api);
+    console.log("INFO: [RPC] " + "findService: searching for ServiceType: " + serviceType.api);
     var results = [];
     var cstar = serviceType.api.indexOf("*");
     if(cstar !== -1) {
@@ -369,14 +323,14 @@
     }else {
       for(var i in this.objects) {
         if(i === serviceType.api) {
-          console.log("findService: found matching service(s) for ServiceType: " + serviceType.api);
+          console.log("INFO: [RPC] " + "findService: found matching service(s) for ServiceType: " + serviceType.api);
           results = this.objects[i]
         }
       }
       for(var i = 0;i < results.length;i++) {
         results[i].serviceAddress = sessionId
       }
-      if(!this.parent.pzhId) {
+      if(!this.parent || !this.parent.pzhId) {
         callback(results);
         return
       }
@@ -394,7 +348,7 @@
     }
   };
   _RPCHandler.prototype.addRemoteServiceObjects = function(services) {
-    console.log("addRemoteServiceObjects: found " + (services && services.length) || 0 + " services.");
+    console.log("INFO: [RPC] " + "addRemoteServiceObjects: found " + (services && services.length) || 0 + " services.");
     this.remoteServiceObjects = this.remoteServiceObjects.concat(services)
   };
   _RPCHandler.prototype.removeRemoteServiceObjects = function(address) {
@@ -460,29 +414,31 @@
     var dependencies = require(path.resolve(__dirname, "../" + moduleRoot.root.location + "/dependencies.json"));
     var webinosRoot = path.resolve(__dirname, "../" + moduleRoot.root.location) + "/";
     require(webinosRoot + dependencies.manager.context_manager.location);
-    if(typeof modules === "undefined") {
-      modules = []
+    var _modules;
+    if(!modules) {
+      _modules = []
+    }else {
+      _modules = modules.slice(0)
     }
-    modules.unshift({name:"service_discovery", param:{}});
-    for(var i = 0;i < modules.length;i++) {
+    _modules.unshift({name:"service_discovery", param:{}});
+    for(var i = 0;i < _modules.length;i++) {
       try {
-        var Service = require(webinosRoot + dependencies.api[modules[i].name].location).Service;
-        this.registerObject(new Service(this, modules[i].params))
+        var Service = require(webinosRoot + dependencies.api[_modules[i].name].location).Service;
+        this.registerObject(new Service(this, _modules[i].params))
       }catch(error) {
-        console.log(error);
-        console.log("Could not load module " + modules[i].name + " with message: " + error)
+        console.log("INFO: [RPC] " + error);
+        console.log("INFO: [RPC] " + "Could not load module " + _modules[i].name + " with message: " + error)
       }
     }
   };
-  function setSessionId(id) {
+  _RPCHandler.prototype.setSessionId = function(id) {
     sessionId = id
-  }
+  };
   if(typeof module !== "undefined") {
     exports.RPCHandler = _RPCHandler;
     exports.RPCWebinosService = RPCWebinosService;
     exports.ServiceType = ServiceType;
-    exports.setSessionId = setSessionId;
-    var md5 = require("../contrib/md5.js")
+    var crypto = require("crypto")
   }else {
     this.RPCHandler = _RPCHandler
   }
@@ -490,8 +446,8 @@
 (function() {
   function logObj(obj, name) {
     for(var myKey in obj) {
-      console.log(name + "[" + myKey + "] = " + obj[myKey]);
       if(typeof obj[myKey] === "object") {
+        console.log(name + "[" + myKey + "] = " + obj[myKey]);
         logObj(obj[myKey], name + "." + myKey)
       }
     }
@@ -558,13 +514,12 @@
   MessageHandler.prototype.write = function(rpc, respto, msgid) {
     var options = {};
     options.to = respto;
-    options.resp_to = respto;
+    options.resp_to = this.ownId;
     options.from = this.ownId;
-    if(typeof msgid !== undefined && msgid != null) {
-      options.id = msgid
-    }else {
+    if(!msgid) {
       msgid = 1 + Math.floor(Math.random() * 1024)
     }
+    options.id = msgid;
     if(typeof rpc.jsonrpc !== "undefined") {
       options.type = "JSONRPC"
     }
@@ -609,7 +564,11 @@
   };
   MessageHandler.prototype.onMessageReceived = function(message, sessionid) {
     if(typeof message === "string") {
-      message = JSON.parse(message)
+      try {
+        message = JSON.parse(message)
+      }catch(e) {
+        console.log("JSON.parse (message) - error: " + e.message)
+      }
     }
     if(message.hasOwnProperty("register") && message.register) {
       var from = message.from;
@@ -624,14 +583,14 @@
             this.clients[regid] = sessionid
           }
         }
-        logObj(message, "register Message")
+        console.log("register Message")
       }
       return
     }else {
       if(message.hasOwnProperty("to") && message.to) {
         this.self = this.ownId;
         if(message.to !== this.self) {
-          logObj(message, "forward Message");
+          console.log("forward Message");
           var to = message.to;
           var session1 = [to, this.self];
           session1.join("->");
@@ -667,13 +626,11 @@
         }else {
           if(message.payload) {
             if(message.to != message.resp_to) {
-              console.log(message.payload);
               var from = message.from;
               var msgid = message.id;
               this.rpcHandler.handleMessage(message.payload, from, msgid)
             }else {
               if(typeof message.payload.method !== "undefined") {
-                logObj(message, "Message forwarded to RPC to handle callback");
                 var from = message.from;
                 var msgid = message.id;
                 this.rpcHandler.handleMessage(message.payload, from, msgid)
@@ -810,6 +767,147 @@
   }
 })();
 (function() {
+  var ServiceDiscovery = function(rpcHandler) {
+    this.rpcHandler = rpcHandler;
+    this.registeredServices = 0
+  };
+  if(typeof module !== "undefined") {
+    exports.ServiceDiscovery = ServiceDiscovery
+  }else {
+    this.ServiceDiscovery = ServiceDiscovery
+  }
+  ServiceDiscovery.prototype.findServices = function(serviceType, callback) {
+    var that = this;
+    if(serviceType == "BlobBuilder") {
+      var tmp = new BlobBuilder;
+      this.registeredServices++;
+      callback.onFound(tmp);
+      return
+    }
+    function success(params) {
+      var baseServiceObj = params;
+      console.log("servicedisco: service found.");
+      var typeMap = {};
+      if(typeof webinos.file !== "undefined" && typeof webinos.file.LocalFileSystem !== "undefined") {
+        typeMap["http://webinos.org/api/file"] = webinos.file.LocalFileSystem
+      }
+      if(typeof TestModule !== "undefined") {
+        typeMap["http://webinos.org/api/test"] = TestModule
+      }
+      if(typeof WebinosGeolocation !== "undefined") {
+        typeMap["http://www.w3.org/ns/api-perms/geolocation"] = WebinosGeolocation
+      }
+      if(typeof WebinosDeviceOrientation !== "undefined") {
+        typeMap["http://webinos.org/api/deviceorientation"] = WebinosDeviceOrientation
+      }
+      if(typeof Vehicle !== "undefined") {
+        typeMap["http://webinos.org/api/vehicle"] = Vehicle
+      }
+      if(typeof EventsModule !== "undefined") {
+        typeMap["http://webinos.org/api/events"] = EventsModule
+      }
+      if(typeof AppLauncherModule !== "undefined") {
+        typeMap["http://webinos.org/api/applauncher"] = AppLauncherModule
+      }
+      if(typeof Sensor !== "undefined") {
+        typeMap["http://webinos.org/api/sensors"] = Sensor;
+        typeMap["http://webinos.org/api/sensors.temperature"] = Sensor
+      }
+      if(typeof PaymentManager !== "undefined") {
+        typeMap["http://webinos.org/api/payment"] = PaymentManager
+      }
+      if(typeof UserProfileIntModule !== "undefined") {
+        typeMap["UserProfileInt"] = UserProfileIntModule
+      }
+      if(typeof TVManager !== "undefined") {
+        typeMap["http://webinos.org/api/tv"] = TVManager
+      }
+      if(typeof DeviceStatusManager !== "undefined") {
+        typeMap["http://wacapps.net/api/devicestatus"] = DeviceStatusManager
+      }
+      if(typeof Contacts !== "undefined") {
+        typeMap["http://www.w3.org/ns/api-perms/contacts"] = Contacts
+      }
+      if(typeof webinos.Context !== "undefined") {
+        typeMap["http://webinos.org/api/context"] = webinos.Context
+      }
+      if(typeof DiscoveryModule !== "undefined") {
+        typeMap["http://webinos.org/api/discovery"] = DiscoveryModule
+      }
+      if(typeof AuthenticationModule !== "undefined") {
+        typeMap["http://webinos.org/api/authentication"] = AuthenticationModule
+      }
+      if(typeof module !== "undefined") {
+        var path = require("path");
+        var moduleRoot = path.resolve(__dirname, "../") + "/";
+        var moduleDependencies = require(moduleRoot + "/dependencies.json");
+        var webinosRoot = path.resolve(moduleRoot + moduleDependencies.root.location) + "/";
+        var dependencies = require(path.resolve(webinosRoot + "/dependencies.json"));
+        var Context = require(path.join(webinosRoot, dependencies.wrt.location, "lib/webinos.context.js")).Context;
+        typeMap["http://webinos.org/api/context"] = Context
+      }
+      var ServiceConstructor = typeMap[baseServiceObj.api];
+      if(typeof ServiceConstructor !== "undefined") {
+        var service = new ServiceConstructor(baseServiceObj, that.rpcHandler);
+        this.registeredServices++;
+        callback.onFound(service)
+      }else {
+        var serviceErrorMsg = "Cannot instantiate webinos service.";
+        console.log(serviceErrorMsg);
+        if(typeof callback.onError === "function") {
+          callback.onError(new DiscoveryError(102, serviceErrorMsg))
+        }
+      }
+    }
+    var id = Math.floor(Math.random() * 1001);
+    var rpc = this.rpcHandler.createRPC("ServiceDiscovery", "findServices", [serviceType]);
+    rpc.fromObjectRef = Math.floor(Math.random() * 101);
+    var callback2 = new RPCWebinosService({api:rpc.fromObjectRef});
+    callback2.onservicefound = function(params, successCallback, errorCallback, objectRef) {
+      success(params)
+    };
+    this.rpcHandler.registerCallbackObject(callback2);
+    var serviceAddress;
+    if(typeof this.rpcHandler.parent !== "undefined") {
+      serviceAddress = this.rpcHandler.parent.pzhId
+    }else {
+      serviceAddress = webinos.session.getServiceLocation()
+    }
+    rpc.serviceAddress = serviceAddress;
+    this.rpcHandler.executeRPC(rpc);
+    return
+  };
+  var DiscoveryError = function(code, message) {
+    this.code = code;
+    this.message = message
+  };
+  DiscoveryError.prototype.FIND_SERVICE_CANCELED = 101;
+  DiscoveryError.prototype.FIND_SERVICE_TIMEOUT = 102;
+  DiscoveryError.prototype.PERMISSION_DENIED_ERROR = 103;
+  WebinosService = function(obj) {
+    this.base = RPCWebinosService;
+    this.base(obj)
+  };
+  WebinosService.prototype = new RPCWebinosService;
+  WebinosService.prototype.state = "";
+  WebinosService.prototype.icon = "";
+  WebinosService.prototype.bindService = function(bindCB) {
+    if(typeof bindCB === "undefined") {
+      return
+    }
+    if(typeof bindCB.onBind === "function") {
+      bindCB.onBind(this)
+    }
+  };
+  WebinosService.prototype.unbind = function() {
+    webinos.ServiceDiscovery.registeredServices--;
+    if(channel != null && webinos.ServiceDiscovery.registeredServices > 0) {
+      channel.close();
+      channel = null
+    }
+  }
+})();
+(function() {
   if(typeof webinos === "undefined") {
     webinos = {}
   }
@@ -853,136 +951,7 @@
   }
   webinos.rpcHandler = new RPCHandler;
   webinos.messageHandler = new MessageHandler(webinos.rpcHandler);
-  function logObj(obj, name) {
-    for(var myKey in obj) {
-      console.log(name + "[" + myKey + "] = " + obj[myKey]);
-      if(typeof obj[myKey] == "object") {
-        logObj(obj[myKey], name + "." + myKey)
-      }
-    }
-  }
-  webinos.ServiceDiscovery = {};
-  webinos.ServiceDiscovery.registeredServices = 0;
-  webinos.ServiceDiscovery.findServices = function(serviceType, callback) {
-    if(serviceType == "BlobBuilder") {
-      var tmp = new BlobBuilder;
-      webinos.ServiceDiscovery.registeredServices++;
-      callback.onFound(tmp);
-      return
-    }
-    function success(params) {
-      var baseServiceObj = params;
-      console.log("servicedisco: service found.");
-      $("#message").append("<li> Found Service: " + baseServiceObj.api + "</li>");
-      var typeMap = {};
-      if(typeof webinos.file !== "undefined" && typeof webinos.file.LocalFileSystem !== "undefined") {
-        typeMap["http://webinos.org/api/file"] = webinos.file.LocalFileSystem
-      }
-      if(typeof TestModule !== "undefined") {
-        typeMap["http://webinos.org/api/test"] = TestModule
-      }
-      if(typeof oAuthModule !== "undefined") {
-        typeMap["http://webinos.org/mwc/oauth"] = oAuthModule
-      }
-      if(typeof WebinosGeolocation !== "undefined") {
-        typeMap["http://www.w3.org/ns/api-perms/geolocation"] = WebinosGeolocation
-      }
-      if(typeof WebinosDeviceOrientation !== "undefined") {
-        typeMap["http://webinos.org/api/deviceorientation"] = WebinosDeviceOrientation
-      }
-      if(typeof Vehicle !== "undefined") {
-        typeMap["http://webinos.org/api/vehicle"] = Vehicle
-      }
-      if(typeof EventsModule !== "undefined") {
-        typeMap["http://webinos.org/api/events"] = EventsModule
-      }
-      if(typeof AppLauncherModule !== "undefined") {
-        typeMap["http://webinos.org/api/applauncher"] = AppLauncherModule
-      }
-      if(typeof Sensor !== "undefined") {
-        typeMap["http://webinos.org/api/sensors"] = Sensor;
-        typeMap["http://webinos.org/api/sensors.temperature"] = Sensor
-      }
-      if(typeof PaymentManager !== "undefined") {
-        typeMap["http://webinos.org/api/payment"] = PaymentManager
-      }
-      if(typeof UserProfileIntModule !== "undefined") {
-        typeMap["UserProfileInt"] = UserProfileIntModule
-      }
-      if(typeof TVManager !== "undefined") {
-        typeMap["http://webinos.org/api/tv"] = TVManager
-      }
-      if(typeof DeviceStatusManager !== "undefined") {
-        typeMap["http://wacapps.net/api/devicestatus"] = DeviceStatusManager
-      }
-      if(typeof Contacts !== "undefined") {
-        typeMap["http://www.w3.org/ns/api-perms/contacts"] = Contacts
-      }
-      if(typeof Context !== "undefined") {
-        typeMap["http://webinos.org/api/context"] = Context
-      }
-      if(typeof DiscoveryModule !== "undefined") {
-        typeMap["http://webinos.org/api/discovery"] = DiscoveryModule
-      }
-      if(typeof AuthenticationModule !== "undefined") {
-        typeMap["http://webinos.org/api/authentication"] = AuthenticationModule
-      }
-      console.log(typeMap);
-      console.log(baseServiceObj);
-      var serviceConstructor = typeMap[baseServiceObj.api];
-      if(typeof serviceConstructor !== "undefined") {
-        var service = new serviceConstructor(baseServiceObj);
-        webinos.ServiceDiscovery.registeredServices++;
-        callback.onFound(service)
-      }else {
-        var serviceErrorMsg = "Cannot instantiate service in the browser.";
-        console.log(serviceErrorMsg);
-        if(typeof callback.onError === "function") {
-          callback.onError(new DiscoveryError(102, serviceErrorMsg))
-        }
-      }
-    }
-    var id = Math.floor(Math.random() * 1001);
-    var rpc = webinos.rpcHandler.createRPC("ServiceDiscovery", "findServices", [serviceType, webinos.session.getSessionId(), id]);
-    rpc.fromObjectRef = Math.floor(Math.random() * 101);
-    var callback2 = new RPCWebinosService({api:rpc.fromObjectRef});
-    callback2.onservicefound = function(params, successCallback, errorCallback, objectRef) {
-      success(params)
-    };
-    webinos.rpcHandler.registerCallbackObject(callback2);
-    rpc.serviceAddress = webinos.session.getServiceLocation();
-    webinos.rpcHandler.executeRPC(rpc);
-    return
-  };
-  var DiscoveryError = function(code, message) {
-    this.code = code;
-    this.message = message
-  };
-  DiscoveryError.prototype.FIND_SERVICE_CANCELED = 101;
-  DiscoveryError.prototype.FIND_SERVICE_TIMEOUT = 102;
-  DiscoveryError.prototype.PERMISSION_DENIED_ERROR = 103;
-  WebinosService = function(obj) {
-    this.base = RPCWebinosService;
-    this.base(obj)
-  };
-  WebinosService.prototype = new RPCWebinosService;
-  WebinosService.prototype.state = "";
-  WebinosService.prototype.icon = "";
-  WebinosService.prototype.bindService = function(bindCB) {
-    if(typeof bindCB === "undefined") {
-      return
-    }
-    if(typeof bindCB.onBind === "function") {
-      bindCB.onBind(this)
-    }
-  };
-  WebinosService.prototype.unbind = function() {
-    webinos.ServiceDiscovery.registeredServices--;
-    if(channel != null && webinos.ServiceDiscovery.registeredServices > 0) {
-      channel.close();
-      channel = null
-    }
-  }
+  webinos.ServiceDiscovery = new ServiceDiscovery(webinos.rpcHandler)
 })();
 if(typeof module === "undefined") {
   if(typeof webinos === "undefined") {
@@ -1082,122 +1051,7 @@ if(typeof module === "undefined") {
     this.next = next
   }
 })(typeof module === "undefined" ? webinos.utils : module.exports);
-var MD5_T = new Array(0, 3614090360, 3905402710, 606105819, 3250441966, 4118548399, 1200080426, 2821735955, 4249261313, 1770035416, 2336552879, 4294925233, 2304563134, 1804603682, 4254626195, 2792965006, 1236535329, 4129170786, 3225465664, 643717713, 3921069994, 3593408605, 38016083, 3634488961, 3889429448, 568446438, 3275163606, 4107603335, 1163531501, 2850285829, 4243563512, 1735328473, 2368359562, 4294588738, 2272392833, 1839030562, 4259657740, 2763975236, 1272893353, 4139469664, 3200236656, 681279174, 
-3936430074, 3572445317, 76029189, 3654602809, 3873151461, 530742520, 3299628645, 4096336452, 1126891415, 2878612391, 4237533241, 1700485571, 2399980690, 4293915773, 2240044497, 1873313359, 4264355552, 2734768916, 1309151649, 4149444226, 3174756917, 718787259, 3951481745);
-var MD5_round1 = new Array(new Array(0, 7, 1), new Array(1, 12, 2), new Array(2, 17, 3), new Array(3, 22, 4), new Array(4, 7, 5), new Array(5, 12, 6), new Array(6, 17, 7), new Array(7, 22, 8), new Array(8, 7, 9), new Array(9, 12, 10), new Array(10, 17, 11), new Array(11, 22, 12), new Array(12, 7, 13), new Array(13, 12, 14), new Array(14, 17, 15), new Array(15, 22, 16));
-var MD5_round2 = new Array(new Array(1, 5, 17), new Array(6, 9, 18), new Array(11, 14, 19), new Array(0, 20, 20), new Array(5, 5, 21), new Array(10, 9, 22), new Array(15, 14, 23), new Array(4, 20, 24), new Array(9, 5, 25), new Array(14, 9, 26), new Array(3, 14, 27), new Array(8, 20, 28), new Array(13, 5, 29), new Array(2, 9, 30), new Array(7, 14, 31), new Array(12, 20, 32));
-var MD5_round3 = new Array(new Array(5, 4, 33), new Array(8, 11, 34), new Array(11, 16, 35), new Array(14, 23, 36), new Array(1, 4, 37), new Array(4, 11, 38), new Array(7, 16, 39), new Array(10, 23, 40), new Array(13, 4, 41), new Array(0, 11, 42), new Array(3, 16, 43), new Array(6, 23, 44), new Array(9, 4, 45), new Array(12, 11, 46), new Array(15, 16, 47), new Array(2, 23, 48));
-var MD5_round4 = new Array(new Array(0, 6, 49), new Array(7, 10, 50), new Array(14, 15, 51), new Array(5, 21, 52), new Array(12, 6, 53), new Array(3, 10, 54), new Array(10, 15, 55), new Array(1, 21, 56), new Array(8, 6, 57), new Array(15, 10, 58), new Array(6, 15, 59), new Array(13, 21, 60), new Array(4, 6, 61), new Array(11, 10, 62), new Array(2, 15, 63), new Array(9, 21, 64));
-function MD5_F(x, y, z) {
-  return x & y | ~x & z
-}
-function MD5_G(x, y, z) {
-  return x & z | y & ~z
-}
-function MD5_H(x, y, z) {
-  return x ^ y ^ z
-}
-function MD5_I(x, y, z) {
-  return y ^ (x | ~z)
-}
-var MD5_round = new Array(new Array(MD5_F, MD5_round1), new Array(MD5_G, MD5_round2), new Array(MD5_H, MD5_round3), new Array(MD5_I, MD5_round4));
-function MD5_pack(n32) {
-  return String.fromCharCode(n32 & 255) + String.fromCharCode(n32 >>> 8 & 255) + String.fromCharCode(n32 >>> 16 & 255) + String.fromCharCode(n32 >>> 24 & 255)
-}
-function MD5_unpack(s4) {
-  return s4.charCodeAt(0) | s4.charCodeAt(1) << 8 | s4.charCodeAt(2) << 16 | s4.charCodeAt(3) << 24
-}
-function MD5_number(n) {
-  while(n < 0) {
-    n += 4294967296
-  }
-  while(n > 4294967295) {
-    n -= 4294967296
-  }
-  return n
-}
-function MD5_apply_round(x, s, f, abcd, r) {
-  var a, b, c, d;
-  var kk, ss, ii;
-  var t, u;
-  a = abcd[0];
-  b = abcd[1];
-  c = abcd[2];
-  d = abcd[3];
-  kk = r[0];
-  ss = r[1];
-  ii = r[2];
-  u = f(s[b], s[c], s[d]);
-  t = s[a] + u + x[kk] + MD5_T[ii];
-  t = MD5_number(t);
-  t = t << ss | t >>> 32 - ss;
-  t += s[b];
-  s[a] = MD5_number(t)
-}
-function MD5_hash(data) {
-  var abcd, x, state, s;
-  var len, index, padLen, f, r;
-  var i, j, k;
-  var tmp;
-  state = new Array(1732584193, 4023233417, 2562383102, 271733878);
-  len = data.length;
-  index = len & 63;
-  padLen = index < 56 ? 56 - index : 120 - index;
-  if(padLen > 0) {
-    data += "\u0080";
-    for(i = 0;i < padLen - 1;i++) {
-      data += "\0"
-    }
-  }
-  data += MD5_pack(len * 8);
-  data += MD5_pack(0);
-  len += padLen + 8;
-  abcd = new Array(0, 1, 2, 3);
-  x = new Array(16);
-  s = new Array(4);
-  for(k = 0;k < len;k += 64) {
-    for(i = 0, j = k;i < 16;i++, j += 4) {
-      x[i] = data.charCodeAt(j) | data.charCodeAt(j + 1) << 8 | data.charCodeAt(j + 2) << 16 | data.charCodeAt(j + 3) << 24
-    }
-    for(i = 0;i < 4;i++) {
-      s[i] = state[i]
-    }
-    for(i = 0;i < 4;i++) {
-      f = MD5_round[i][0];
-      r = MD5_round[i][1];
-      for(j = 0;j < 16;j++) {
-        MD5_apply_round(x, s, f, abcd, r[j]);
-        tmp = abcd[0];
-        abcd[0] = abcd[3];
-        abcd[3] = abcd[2];
-        abcd[2] = abcd[1];
-        abcd[1] = tmp
-      }
-    }
-    for(i = 0;i < 4;i++) {
-      state[i] += s[i];
-      state[i] = MD5_number(state[i])
-    }
-  }
-  return MD5_pack(state[0]) + MD5_pack(state[1]) + MD5_pack(state[2]) + MD5_pack(state[3])
-}
-function MD5_hexhash(data) {
-  var i, out, c;
-  var bit128;
-  bit128 = MD5_hash(data);
-  out = "";
-  for(i = 0;i < 16;i++) {
-    c = bit128.charCodeAt(i);
-    out += "0123456789abcdef".charAt(c >> 4 & 15);
-    out += "0123456789abcdef".charAt(c & 15)
-  }
-  return out
-}
-if(typeof exports !== "undefined") {
-  exports.hash = MD5_hash;
-  exports.hexhash = MD5_hexhash
-}
-;if(typeof module === "undefined") {
+if(typeof module === "undefined") {
   if(typeof webinos === "undefined") {
     webinos = {}
   }
@@ -1869,6 +1723,64 @@ if(typeof webinos.file === "undefined") {
   TVManager.prototype = new WebinosService
 })();
 (function() {
+  oAuthModule = function(obj) {
+    this.base = WebinosService;
+    this.base(obj)
+  };
+  oAuthModule.prototype = new WebinosService;
+  oAuthModule.prototype.init = function(requestTokenUrl, consumer_key, consumer_secret, callbackUrl, successCB, errorCB) {
+    var params = [];
+    params.push(requestTokenUrl);
+    params.push(consumer_key);
+    params.push(consumer_secret);
+    params.push(callbackUrl);
+    var rpc = webinos.rpcHandler.createRPC(this, "init", [params]);
+    webinos.rpcHandler.executeRPC(rpc, function(pars) {
+      if(successCB) {
+        successCB(pars)
+      }
+    }, function(error) {
+      if(errorCB) {
+        errorCB(error)
+      }
+    })
+  };
+  oAuthModule.prototype.get = function(requestUrl, access_token, access_token_secret, successCB, errorCB) {
+    var params = [];
+    params.push(requestUrl);
+    params.push(access_token);
+    params.push(access_token_secret);
+    var rpc = webinos.rpcHandler.createRPC(this, "get", params);
+    webinos.rpcHandler.executeRPC(rpc, function(pars) {
+      if(successCB) {
+        successCB(pars)
+      }
+    }, function(error) {
+      if(errorCB) {
+        errorCB(error)
+      }
+    })
+  };
+  oAuthModule.prototype.post = function(requestUrl, access_token, access_token_secret, post_body, post_content_type, successCB, errorCB) {
+    var params = [];
+    params.push(requestUrl);
+    params.push(access_token);
+    params.push(access_token_secret);
+    params.push(post_body);
+    params.push(post_content_type);
+    var rpc = webinos.rpcHandler.createRPC(this, "post", params);
+    webinos.rpcHandler.executeRPC(rpc, function(pars) {
+      if(successCB) {
+        successCB(pars)
+      }
+    }, function(error) {
+      if(errorCB) {
+        errorCB(error)
+      }
+    })
+  }
+})();
+(function() {
   TestModule = function(obj) {
     this.base = WebinosService;
     this.base(obj);
@@ -1920,21 +1832,21 @@ if(typeof webinos.file === "undefined") {
       bindCB.onBind(this)
     }
   };
-  function getCurrentPosition(PositionCB, PositionErrorCB, PositionOptions) {
-    var rpc = webinos.rpcHandler.createRPC(this, "getCurrentPosition", PositionOptions);
+  function getCurrentPosition(positionCB, positionErrorCB, positionOptions) {
+    var rpc = webinos.rpcHandler.createRPC(this, "getCurrentPosition", positionOptions);
     webinos.rpcHandler.executeRPC(rpc, function(position) {
-      PositionCB(position)
+      positionCB(position)
     }, function(error) {
-      PositionErrorCB(error)
+      positionErrorCB(error)
     })
   }
-  function watchPosition(PositionCB, PositionErrorCB, PositionOptions) {
+  function watchPosition(positionCB, positionErrorCB, positionOptions) {
     var watchIdKey = Math.floor(Math.random() * 101);
-    var rpc = webinos.rpcHandler.createRPC(this, "watchPosition", [PositionOptions, watchIdKey]);
+    var rpc = webinos.rpcHandler.createRPC(this, "watchPosition", [positionOptions, watchIdKey]);
     rpc.fromObjectRef = Math.floor(Math.random() * 101);
     var callback = new RPCWebinosService({api:rpc.fromObjectRef});
     callback.onEvent = function(position) {
-      PositionCB(position)
+      positionCB(position)
     };
     webinos.rpcHandler.registerCallbackObject(callback);
     webinos.rpcHandler.executeRPC(rpc);
@@ -1953,7 +1865,7 @@ if(typeof webinos.file === "undefined") {
     this.base(obj)
   };
   Sensor.prototype = new WebinosService;
-  Sensor.prototype.bindService = function(success) {
+  Sensor.prototype.bind = function(bindCB) {
     var self = this;
     var rpc = webinos.rpcHandler.createRPC(this, "getStaticData", []);
     webinos.rpcHandler.executeRPC(rpc, function(result) {
@@ -1984,7 +1896,9 @@ if(typeof webinos.file === "undefined") {
         webinos.rpcHandler.registerCallbackObject(callback);
         webinos.rpcHandler.executeRPC(rpc)
       };
-      success()
+      if(typeof bindCB.onBind === "function") {
+        bindCB.onBind(this)
+      }
     }, function(error) {
     })
   }
@@ -2000,8 +1914,10 @@ if(typeof webinos.file === "undefined") {
     this.temporaryRandomAppID = webinos.messageHandler.getOwnId()
   };
   EventsModule.prototype = new WebinosService;
-  EventsModule.prototype.bind = function(success) {
-    success()
+  EventsModule.prototype.bind = function(bindCB) {
+    if(typeof bindCB.onBind === "function") {
+      bindCB.onBind(this)
+    }
   };
   EventsModule.prototype.createWebinosEvent = function(type, addressing, payload, inResponseTo, withTimeStamp, expiryTimeStamp, addressingSensitive) {
     var anEvent = new WebinosEvent;
@@ -2119,8 +2035,10 @@ if(typeof webinos.file === "undefined") {
     this.base(obj)
   };
   AppLauncherModule.prototype = new WebinosService;
-  AppLauncherModule.prototype.bind = function(success) {
-    success()
+  AppLauncherModule.prototype.bind = function(bindCB) {
+    if(typeof bindCB.onBind === "function") {
+      bindCB.onBind(this)
+    }
   };
   AppLauncherModule.prototype.launchApplication = function(successCallback, errorCallback, applicationID, params) {
     var reqParams = {};
@@ -2358,21 +2276,22 @@ if(typeof webinos.file === "undefined") {
   }
 })();
 (function() {
-  Context = function(obj) {
+  var Context = function(obj, rpcHandler) {
     this.base = WebinosService;
-    this.base(obj)
+    this.base(obj);
+    this.rpcHandler = rpcHandler
   };
   Context.prototype = new WebinosService;
   Context.prototype.bindService = function(bindCB, serviceId) {
-    this.find = find;
-    this.executeQuery = executeQuery;
+    this.find = find.bind(this);
+    this.executeQuery = executeQuery.bind(this);
     if(typeof bindCB.onBind === "function") {
       bindCB.onBind(this)
     }
   };
   function find(params, successCB, errorCB) {
-    var rpc = webinos.rpcHandler.createRPC(this, "find", params);
-    webinos.rpcHandler.executeRPC(rpc, function(params) {
+    var rpc = this.rpcHandler.createRPC(this, "find", params);
+    this.rpcHandler.executeRPC(rpc, function(params) {
       successCB(params)
     }, function(error) {
       errorCB(error)
@@ -2387,12 +2306,17 @@ if(typeof webinos.file === "undefined") {
     })
   }
   function executeQuery(query, successCB, errorCB) {
-    var rpc = webinos.rpcHandler.createRPC(this, "executeQuery", query);
-    webinos.rpcHandler.executeRPC(rpc, function(params) {
+    var rpc = this.rpcHandler.createRPC(this, "executeQuery", query);
+    this.rpcHandler.executeRPC(rpc, function(params) {
       successCB(params)
     }, function(error) {
       errorCB(error)
     })
+  }
+  if(typeof module !== "undefined") {
+    exports.Context = Context
+  }else {
+    webinos.Context = Context
   }
 })();
 (function() {
@@ -2580,55 +2504,51 @@ if(typeof webinos.file === "undefined") {
   PropertyRef.prototype.property = String
 })();
 (function() {
-
-	DiscoveryModule = function(obj) {
-		this.base = WebinosService;
-		this.base(obj);
-	};
-	
-	DiscoveryModule.prototype = new WebinosService;
-	
-	
-	//General - both Android and Linux
-	DiscoveryModule.prototype.BTfindservice = function(data, success){
-		console.log("BT findservice");
-  		var rpc = webinos.rpcHandler.createRPC(this, "BTfindservice",data);
-  		webinos.rpcHandler.executeRPC(rpc, function(params) {
-		success(params);
-  	 });
-	};
-	
-	//Android
-	DiscoveryModule.prototype.findHRM = function(data, success){
-		console.log("HRM find HRM");
-  		var rpc = webinos.rpcHandler.createRPC(this, "findHRM",data);
-	  	webinos.rpcHandler.executeRPC(rpc, function(params) {
-		success(params);
-  	 });
-	};
-
-	//Linux
-	DiscoveryModule.prototype.bindservice = function(data, success){
-		console.log("Linux BT bindservice");
-		var rpc = webinos.rpcHandler.createRPC(this, "bindservice",arguments);
-	  	webinos.rpcHandler.executeRPC(rpc, function(params) {
-		success(params);
-  	 });
-	};
-
-	DiscoveryModule.prototype.listfile = function(data, success){
-		console.log("Linux BT listfile");
-		var rpc = webinos.rpcHandler.createRPC(this, "listfile",arguments);
-	  	webinos.rpcHandler.executeRPC(rpc, function(params) {
-		success(params);
-  	 });
-	};
-
-	DiscoveryModule.prototype.transferfile = function(data, success){
-		console.log("Linux BT transferfile");
-		var rpc = webinos.rpcHandler.createRPC(this, "transferfile",arguments);
-	  	webinos.rpcHandler.executeRPC(rpc, function(params) {
-		success(params);
-  	 });
-	};
-}());
+  DiscoveryModule = function(obj) {
+    this.base = WebinosService;
+    this.base(obj)
+  };
+  DiscoveryModule.prototype = new WebinosService;
+  DiscoveryModule.prototype.BTauthenticate = function(data, success) {
+    console.log("BT Authenticate");
+    var rpc = webinos.rpcHandler.createRPC(this, "BTauthenticate", data);
+    webinos.rpcHandler.executeRPC(rpc, function(params) {
+      success(params)
+    })
+  };
+  DiscoveryModule.prototype.BTfindservice = function(data, success) {
+    console.log("BT findservice");
+    var rpc = webinos.rpcHandler.createRPC(this, "BTfindservice", arguments);
+    webinos.rpcHandler.executeRPC(rpc, function(params) {
+      success(params)
+    })
+  };
+  DiscoveryModule.prototype.findHRM = function(data, success) {
+    console.log("HRM find HRM");
+    var rpc = webinos.rpcHandler.createRPC(this, "findHRM", data);
+    webinos.rpcHandler.executeRPC(rpc, function(params) {
+      success(params)
+    })
+  };
+  DiscoveryModule.prototype.bindservice = function(data, success) {
+    console.log("Linux BT bindservice");
+    var rpc = webinos.rpcHandler.createRPC(this, "bindservice", arguments);
+    webinos.rpcHandler.executeRPC(rpc, function(params) {
+      success(params)
+    })
+  };
+  DiscoveryModule.prototype.listfile = function(data, success) {
+    console.log("Linux BT listfile");
+    var rpc = webinos.rpcHandler.createRPC(this, "listfile", arguments);
+    webinos.rpcHandler.executeRPC(rpc, function(params) {
+      success(params)
+    })
+  };
+  DiscoveryModule.prototype.transferfile = function(data, success) {
+    console.log("Linux BT transferfile");
+    var rpc = webinos.rpcHandler.createRPC(this, "transferfile", arguments);
+    webinos.rpcHandler.executeRPC(rpc, function(params) {
+      success(params)
+    })
+  }
+})();
