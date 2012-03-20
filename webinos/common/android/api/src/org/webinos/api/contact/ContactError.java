@@ -20,16 +20,6 @@ package org.webinos.api.contact;
 
 import org.meshpoint.anode.idl.Dictionary;
 
-public class ContactOrganization implements Dictionary {
-	public boolean pref;
-	public String type;
-	public String name;
-	public String department;
-	public String title;
-}package org.webinos.api.contact;
-
-import org.meshpoint.anode.idl.Dictionary;
-
 public class ContactError implements Dictionary {
 	public static final int UNKNOWN_ERROR = 0;
     public static final int INVALID_ARGUMENT_ERROR = 1;
