@@ -5,7 +5,7 @@
 				<subject-match attr="user-id" match="user1"/>
 			</subject>
 		</target>
-		<rule effect="prompt-oneshot">
+		<rule effect="permit">
 			<condition combine="or">
 				<resource-match attr="api-feature" match="http://www.w3.org/ns/api-perms/calendar.read"/>
 				<resource-match attr="api-feature" match="http://www.w3.org/ns/api-perms/contacts.read"/>
@@ -38,7 +38,7 @@
 				<resource-match attr="api-feature" match="http://www.w3.org/ns/api-perms/contacts.read"/>
 			</condition>
 		</rule>
-		<rule effect="prompt-oneshot">
+		<rule effect="permit">
 			<condition combine="or">
 				<resource-match attr="api-feature" match="http://www.w3.org/ns/api-perms/calendar.read"/>
 			</condition>

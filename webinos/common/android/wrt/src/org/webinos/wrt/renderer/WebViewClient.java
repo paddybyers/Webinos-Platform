@@ -44,8 +44,12 @@ public class WebViewClient extends android.webkit.WebViewClient {
 	public void onPageStarted(android.webkit.WebView webView, String url, Bitmap favicon) {
 		WebView wgtView = (WebView)webView;
 		try {
-			wgtView.injectScript(AssetUtils.getAssetAsString(WrtManager.getInstance(), ClientSocket.SOCKETJS_ASSET));
-			wgtView.injectScript(AssetUtils.getAssetAsString(WrtManager.getInstance(), ClientSocket.WEBINOSJS_ASSET));
+//			wgtView.injectScript(AssetUtils.getAssetAsString(WrtManager.getInstance(), ClientSocket.SOCKETJS_ASSET));
+//			wgtView.injectScript(AssetUtils.getAssetAsString(WrtManager.getInstance(), ClientSocket.WEBINOSJS_ASSET));
+			wgtView.injectScripts(new String[] {
+					AssetUtils.getAssetAsString(WrtManager.getInstance(), ClientSocket.SOCKETJS_ASSET),
+					AssetUtils.getAssetAsString(WrtManager.getInstance(), ClientSocket.WEBINOSJS_ASSET)
+			});
 		} catch(IOException ioe) {
 			Log.v(TAG, "Unable to inject scripts; exception: ", ioe);
 		}

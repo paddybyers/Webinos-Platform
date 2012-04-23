@@ -60,7 +60,7 @@
 	<variableList>
 		<variable>
 			<name>ANODE_ROOT</name>
-			<value>file:/FILL_THIS_IN</value>
+			<value>file:/Users/paddy/data/work/dev/android/anode/</value>
 		</variable>
 	</variableList>
 </projectDescription>

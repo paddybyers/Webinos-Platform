@@ -20,6 +20,7 @@
 package org.webinos.app.wrt.provider;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.net.URI;
 
@@ -27,18 +28,49 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Parcel;
 import android.os.ParcelFileDescriptor;
+import android.util.Log;
 
 public class WidgetContentProvider extends ContentProvider {
 	
 	private static final String FILE_BASE_URI = "file:///data/data/org.webinos.app/wrt";
+	
+	class WrappedFileDescriptor extends ParcelFileDescriptor {
+
+		public WrappedFileDescriptor(ParcelFileDescriptor descriptor) {
+			super(descriptor);
+			// TODO Auto-generated constructor stub
+		}
+		
+		public FileDescriptor getFileDescriptor() {
+			Log.v("WrappedFileDescriptor", "getFileDescriptor()");
+			return super.getFileDescriptor();
+		}
+		
+//		public ParcelFileDescriptor dup() {
+//			Log.v("WrappedFileDescriptor", "dup()");
+//			return super.dup();
+//		}
+
+//		public int getFd() {
+//			Log.v("WrappedFileDescriptor", "getFd()");
+//			return super.getFd();
+//		}
+	
+		public void writeToParcel(Parcel out, int flags) {
+			Log.v("WrappedFileDescriptor", "writeToParcel()");
+			try {Thread.sleep(1000L);} catch(InterruptedException e) {}
+			super.writeToParcel(out, flags);
+		}
+	}
 
 	@Override
 	public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
 		URI uri1 = URI.create(FILE_BASE_URI + uri.getPath());
 		File file = new File(uri1.getPath());
 		ParcelFileDescriptor parcel = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
-		return parcel;
+		return new WrappedFileDescriptor(parcel);
 	}
 
 	@Override

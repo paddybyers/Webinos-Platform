@@ -72,7 +72,7 @@
 	WebinosSocket.prototype.send = function(data) {
 		if(this.readyState != OPEN)
 			throw new Error('IllegalStateError');
-		
+
 		exports.__webinos.send(this.id, data);
 	};
 	

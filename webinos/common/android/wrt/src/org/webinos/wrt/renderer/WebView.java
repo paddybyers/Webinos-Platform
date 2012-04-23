@@ -32,7 +32,34 @@ public class WebView extends android.webkit.WebView {
 
     public void injectScript(String script) {
     	try {
-    		loadUrl("javascript:(function(){var s=document.createElement('script');s.text=" + script + ";var target = document.head || document; target.appendChild(s);})()");
+    		String functionBody =
+    			"var s=document.createElement('script');" +
+    			"s.text=" + script + ";" +
+    			"var target = document.head || document;" +
+    			"target.appendChild(s);" +
+    			"console.log('injected script');";
+    		loadUrl("javascript:(function(){" + functionBody + "})()");
+    	} catch(Throwable t) {
+    		Log.v("org.webinos.wrt.renderer.WebView", "Error in injecting script", t);
+    	}
+    }
+
+    public void injectScripts(String[] scripts) {
+    	try {
+    		String functionBody =
+        		"var target = document.head || document;" +
+    			"var child = target.firstChild;" +
+        		"var insert = child ? function(x){target.insertBefore(x, child);} : function(x){target.appendChild(x);};";
+    		for(String script : scripts) {
+    			functionBody += 
+	    			"var s=document.createElement('script');" +
+	    			"s.text=" + script + ";" +
+	    			"console.log('injecting script...');" +
+	    			"insert(s);" +
+	    			"console.log('injected script');" +
+	    			"";
+    		}
+    		loadUrl("javascript:(function(){" + functionBody + "})()");
     	} catch(Throwable t) {
     		Log.v("org.webinos.wrt.renderer.WebView", "Error in injecting script", t);
     	}
