@@ -189,6 +189,7 @@ this.WidgetConfigProcessor = (function() {
 				 * widget package as an invalid widget package.
 				 */
 				if(name != 'widget' || !isWidget) {
+					processingResult.setError(new Artifact(WidgetConfig.STATUS_IO_ERROR, Artifact.CODE_MALFORMED, "Configuration document does not have a root <widget> element", undefined));
 					parser.emit('error', new Error('ta-ACCJfDGwDQ'));
 					return;
 				}
