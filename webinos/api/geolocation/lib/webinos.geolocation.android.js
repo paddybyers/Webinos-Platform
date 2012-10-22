@@ -45,12 +45,16 @@ function watchPosition (args, successCB, errorCB, objectRef) {
   }
   watchIdTable[objectRef.rpcId] = androidImpl.watchPosition(function(position) {
     //console.log('GeolocationImpl watchPosition returned position: ' + position);
-	var rpc = rpcHandler.createRPC(objectRef, 'onEvent', position);
-	rpcHandler.executeRPC(rpc);
+    process.nextTick(function() {
+      var rpc = rpcHandler.createRPC(objectRef, 'onEvent', position);
+      rpcHandler.executeRPC(rpc);
+    });
   }, function(err) {
     //console.log('GeolocationImpl watchPosition returned err: ' + err);
-	var rpc = rpcHandler.createRPC(objectRef, 'onError', err);
-	rpcHandler.executeRPC(rpc);
+    process.nextTick(function() {
+      var rpc = rpcHandler.createRPC(objectRef, 'onError', err);
+      rpcHandler.executeRPC(rpc);
+    });
   }, args[0]);
   successCB();
 }
