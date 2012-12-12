@@ -23,13 +23,12 @@ import org.meshpoint.anode.AndroidContext;
 import org.meshpoint.anode.bridge.Env;
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
-import org.webinos.api.DeviceAPIError;
 import org.webinos.api.payment.PaymentErrorCB;
 import org.webinos.api.payment.PaymentManager;
 import org.webinos.api.payment.PaymentSuccessCB;
+import org.webinos.api.payment.SuccessShoppingBasketCallback;
 
 import android.content.Context;
-import android.content.Intent;
 
 public class PaymentImpl extends PaymentManager implements IModule {
 	static final String TAG = PaymentImpl.class.getCanonicalName();
@@ -42,21 +41,15 @@ public class PaymentImpl extends PaymentManager implements IModule {
 	/*****************************
 	 * PaymentManager methods
 	 *****************************/
+
 	@Override
-	public void checkout(PaymentSuccessCB successCB, PaymentErrorCB errorCB, long implCustomerID, long implShopID,  long totalBill, String currency) {
-
-		if (successCB == null) throw new DeviceAPIError(DeviceAPIError.TYPE_MISMATCH_ERR);
-
-		Intent paymentActivityIntent = new Intent(androidContext, PaymentActivity.class);
-		paymentActivityIntent.putExtra("customerId", implCustomerID);
-		paymentActivityIntent.putExtra("shopId", implShopID);
-		paymentActivityIntent.putExtra("totalBill", totalBill);
-		paymentActivityIntent.putExtra("currency", currency);
-
-		pendingSuccessCB = successCB;
-		pendingErrorCB = errorCB;
-
-		androidContext.startActivity(paymentActivityIntent);
+	public void createShoppingBasket(
+			SuccessShoppingBasketCallback successCallback,
+			PaymentErrorCB errorCallback, String serviceProviderID,
+			String customerID, String shopID) {
+		ShoppingBasketImpl.createShoppingBasket(androidContext, successCallback,
+				errorCallback, serviceProviderID,
+				customerID, shopID);
 	}
 
 	/*****************************
@@ -68,9 +61,6 @@ public class PaymentImpl extends PaymentManager implements IModule {
 		/*
 		 * perform module initialisation here ...
 		 */
-
-
-
 		return this;
 	}
 
@@ -80,4 +70,5 @@ public class PaymentImpl extends PaymentManager implements IModule {
 		 * perform any module shutdown here ...
 		 */
 	}
+
 }
