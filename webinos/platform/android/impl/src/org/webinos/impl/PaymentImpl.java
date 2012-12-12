@@ -70,4 +70,5 @@ public class PaymentImpl extends PaymentManager implements IModule {
 		 * perform any module shutdown here ...
 		 */
 	}
+
 }
