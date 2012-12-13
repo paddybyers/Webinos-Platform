@@ -19,7 +19,11 @@
     
     (function() {
 
-var wPayment = require('./impl_payment.js');
+var wPayment;
+if(process.platform == 'android)
+  wPayment = require('./mwallet_android.js');
+else
+  wPayment = require('./impl_payment.js');
 var RPCWebinosService = require('webinos-jsonrpc2').RPCWebinosService;
         
 var basket = null;
@@ -80,21 +84,27 @@ PaymentModule.prototype.createShoppingBasket = function ( params, successCallbac
 PaymentModule.prototype.addItem = function ( params, successCallback,  errorCallback){
 
           console.log("addItem called on rpc receiver");
-          basket = new wPayment.ShoppingBasket();
-          // fill basket with items so far      
-          basket.items=params[3].items;
-          basket.extras=params[3].extras;
-          basket.totalBill=params[3].totalBill;
-          // add the new item   
-          basket.addItem( 
-          function (){
-             successCallback(basket);
-          },
-          function (error){
-            errorCallback(error);
-         },
-         params[4]
-       );
+          if(params[5]) {
+            /* we were passed a basketId, so this basket is a
+             * reference to the the underlying implementation */
+             wPayment.addItem(params[5], successCallback,  errorCallback, params[4]);
+          } else {
+            basket = new wPayment.ShoppingBasket();
+            // fill basket with items so far      
+            basket.items=params[3].items;
+            basket.extras=params[3].extras;
+            basket.totalBill=params[3].totalBill;
+            // add the new item   
+            basket.addItem( 
+            function (){
+               successCallback(basket);
+           },
+            function (error){
+              errorCallback(error);
+           },
+           params[4]
+         );
+      }
 };
 
 /**

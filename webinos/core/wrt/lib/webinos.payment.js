@@ -54,7 +54,9 @@
                 var rpc = webinos.rpcHandler.createRPC(this, "createShoppingBasket", arguments);
                 webinos.rpcHandler.executeRPC(rpc,
                                 function (params){
-                                        successCallback(new ShoppingBasket(self));
+                                        /* FIXME: check we get basketId in params[0] */
+                                        var basketId = params[0];
+                                        successCallback(new ShoppingBasket(self, basketId));
                                 },
                                 function (error){errorCallback(error);}
                 );
@@ -65,6 +67,7 @@
      * 
      * The shopping basket represents a current payment action and allows to 
      * add a number of items to the basket before proceeding to checkout.
+     * @param obj the PaymentModule instance
      * 
      */
     ShoppingItem = function (obj) {
@@ -144,9 +147,12 @@
      * 
      * The shopping basket represents a current payment action and allows to 
      * add a number of items to the basket before proceeding to checkout.
+     * @param obj the PaymentModule instance
+     * @param basketId an opaque basket id string, for implementations that
+     * manage multiple basket instances by reference
      * 
      */
-    ShoppingBasket = function (obj) {
+    ShoppingBasket = function (obj, basketId) {
 
         // initialize attributes
         this.items =new Array(); 
@@ -154,6 +160,7 @@
         this.totalBill = 0.0;        
         this.base = WebinosService;
         this.base(obj);
+        this.basketId = basketId;
     };
   
     
@@ -204,8 +211,9 @@
                 arguments[0]=rpcServiceProviderID;
                 arguments[1]=rpcCustomerID;
                 arguments[2]=rpcShopID;
-                arguments[3]=this;
+                arguments[3]=this; /* FIXME: does this pass the whole basket ? */
                 arguments[4]=item;
+                arguments[5]=this.basketId;
                 var self = this;
                 var rpc = webinos.rpcHandler.createRPC(this, "addItem", arguments);
                 webinos.rpcHandler.executeRPC(rpc,
@@ -220,6 +228,7 @@
                 );
     };
 
+    /* FIXME: add removeItem? */
   /**
      * Updates the shopping basket
      *
@@ -230,7 +239,8 @@
                 arguments[0]=rpcServiceProviderID;
                 arguments[1]=rpcCustomerID;
                 arguments[2]=rpcShopID;
-                arguments[3]=this;
+                arguments[3]=this; /* FIXME: does this pass the whole basket ? */
+                arguments[4]=this.basketId;
                 var self = this;
                 var rpc = webinos.rpcHandler.createRPC(this, "update", arguments);
                 webinos.rpcHandler.executeRPC(rpc,
@@ -259,7 +269,8 @@
                 arguments[0]=rpcServiceProviderID;
                 arguments[1]=rpcCustomerID;
                 arguments[2]=rpcShopID;
-                arguments[3]=this;
+                arguments[3]=this; /* FIXME: does this pass the whole basket ? */
+                arguments[4]=this.basketId;
                 var self = this;
                 var rpc = webinos.rpcHandler.createRPC(this, "checkout", arguments);
                 webinos.rpcHandler.executeRPC(rpc,
@@ -279,7 +290,8 @@
                 arguments[0]=rpcServiceProviderID;
                 arguments[1]=rpcCustomerID;
                 arguments[2]=rpcShopID;
-                arguments[3]=this;
+                arguments[3]=this; /* FIXME: does this pass the whole basket ? */
+                arguments[4]=this.basketId;
                 var self = this;
     
                  // now call thr release on the server, in case it needs to do some clean-up there                       
