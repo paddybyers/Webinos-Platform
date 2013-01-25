@@ -23,10 +23,11 @@ import org.meshpoint.anode.AndroidContext;
 import org.meshpoint.anode.bridge.Env;
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
+import org.webinos.api.payment.PaymentChallengeCB;
 import org.webinos.api.payment.PaymentErrorCB;
 import org.webinos.api.payment.PaymentManager;
 import org.webinos.api.payment.PaymentSuccessCB;
-import org.webinos.api.payment.SuccessShoppingBasketCallback;
+import org.webinos.api.payment.ShoppingItem;
 
 import android.content.Context;
 
@@ -43,13 +44,19 @@ public class PaymentImpl extends PaymentManager implements IModule {
 	 *****************************/
 
 	@Override
-	public void createShoppingBasket(
-			SuccessShoppingBasketCallback successCallback,
-			PaymentErrorCB errorCallback, String serviceProviderID,
-			String customerID, String shopID) {
-		ShoppingBasketImpl.createShoppingBasket(androidContext, successCallback,
-				errorCallback, serviceProviderID,
-				customerID, shopID);
+	public void pay(final PaymentSuccessCB successCallback,
+			final PaymentErrorCB errorCallback, final PaymentChallengeCB challengeCallback,
+			final ShoppingItem[] itemList, final ShoppingItem bill, final String customerID,
+			final String sellerID) {
+
+		(new Thread() {
+			@Override
+			public void run() {
+				PaymentTransaction transaction = new PaymentTransaction(androidContext, customerID, sellerID, successCallback, errorCallback);
+				transaction.addItemList(itemList, bill);
+				transaction.checkout();
+			}
+		}).start();
 	}
 
 	/*****************************
