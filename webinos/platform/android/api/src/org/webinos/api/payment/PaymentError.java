@@ -24,4 +24,5 @@ import org.meshpoint.anode.idl.Dictionary;
 public class PaymentError implements Dictionary {
     public String code;
     public String message;
+    public boolean permanent;
 }
