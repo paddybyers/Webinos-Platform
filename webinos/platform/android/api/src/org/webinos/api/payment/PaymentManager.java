@@ -26,6 +26,5 @@ public abstract class PaymentManager extends Base {
 	private static short classId = Env.getInterfaceId(PaymentManager.class);
 	protected PaymentManager() { super(classId); }
 
-	public abstract void createShoppingBasket(SuccessShoppingBasketCallback successCallback, PaymentErrorCB errorCallback,
-	        String serviceProviderID, String customerID, String shopID);
+	public abstract void pay(PaymentSuccessCB successCallback, PaymentErrorCB errorCallback, PaymentChallengeCB challengeCallback, ShoppingItem [] itemList, ShoppingItem bill, String customerID, String sellerID);
 }

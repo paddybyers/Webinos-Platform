@@ -20,5 +20,5 @@
 package org.webinos.api.payment;
 
 public interface PaymentSuccessCB {
-	public void onSuccess ();
+	public void onSuccess (String proofOfPurchase);
 }

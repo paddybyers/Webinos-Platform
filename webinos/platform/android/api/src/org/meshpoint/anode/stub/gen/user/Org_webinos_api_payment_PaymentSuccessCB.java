@@ -10,9 +10,10 @@ public final class Org_webinos_api_payment_PaymentSuccessCB extends org.meshpoin
 
 	public void finalize() { super.release(classId); }
 
-	private static Object[] __args = new Object[0];
+	private static Object[] __args = new Object[1];
 
-	public void onSuccess() {
+	public void onSuccess(String arg0) {
+		__args[0] = arg0;
 		__invoke(classId, 0, __args);
 	}
 
