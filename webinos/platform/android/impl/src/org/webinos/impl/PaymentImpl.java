@@ -30,6 +30,7 @@ import org.webinos.api.payment.PaymentSuccessCB;
 import org.webinos.api.payment.ShoppingItem;
 
 import android.content.Context;
+import android.os.Looper;
 
 public class PaymentImpl extends PaymentManager implements IModule {
 	static final String TAG = PaymentImpl.class.getCanonicalName();
@@ -52,6 +53,7 @@ public class PaymentImpl extends PaymentManager implements IModule {
 		(new Thread() {
 			@Override
 			public void run() {
+				Looper.prepare();
 				PaymentTransaction transaction = new PaymentTransaction(androidContext, customerID, sellerID, successCallback, errorCallback);
 				transaction.addItemList(itemList, bill);
 				transaction.checkout();
