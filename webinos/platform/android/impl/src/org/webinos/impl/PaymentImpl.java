@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Copyright 2011-2012 Toby Ealden
+ * Copyright 2011-2013 Paddy Byers
  *
  ******************************************************************************/
 
@@ -30,14 +30,11 @@ import org.webinos.api.payment.PaymentSuccessCB;
 import org.webinos.api.payment.ShoppingItem;
 
 import android.content.Context;
-import android.os.Looper;
 
 public class PaymentImpl extends PaymentManager implements IModule {
 	static final String TAG = PaymentImpl.class.getCanonicalName();
 
 	private Context androidContext;
-	static PaymentSuccessCB pendingSuccessCB;
-	static PaymentErrorCB pendingErrorCB;
 	static Env env = Env.getCurrent();
 
 	/*****************************
@@ -50,15 +47,8 @@ public class PaymentImpl extends PaymentManager implements IModule {
 			final ShoppingItem[] itemList, final ShoppingItem bill, final String customerID,
 			final String sellerID) {
 
-		(new Thread() {
-			@Override
-			public void run() {
-				Looper.prepare();
-				PaymentTransaction transaction = new PaymentTransaction(androidContext, customerID, sellerID, successCallback, errorCallback);
-				transaction.addItemList(itemList, bill);
-				transaction.checkout();
-			}
-		}).start();
+		PaymentTransaction transaction = new PaymentTransaction(androidContext, customerID, sellerID, successCallback, errorCallback);
+		transaction.perform(itemList, bill);
 	}
 
 	/*****************************
