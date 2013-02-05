@@ -116,6 +116,7 @@
                     typeMap['http://webinos.org/api/sensors.heartratemonitor'] = Sensor;
                 }
                 if (typeof PaymentModule !== 'undefined') typeMap['http://webinos.org/api/payment'] = PaymentModule;
+                if (typeof Payment2Module !== 'undefined') typeMap['http://webinos.org/api/payment2'] = Payment2Module;
                 if (typeof UserProfileIntModule !== 'undefined') typeMap['UserProfileInt'] = UserProfileIntModule;
                 if (typeof TVManager !== 'undefined') typeMap['http://webinos.org/api/tv'] = TVManager;
                 if (typeof DeviceStatusManager !== 'undefined') typeMap['http://wacapps.net/api/devicestatus'] = DeviceStatusManager;
