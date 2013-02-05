@@ -29,12 +29,12 @@
     <module>geolocation</module>
     <module>get42</module>
     <module>payment</module>
+    <module>payment2</module>
     <module>sensors</module>
     <module>servicedisco</module>
     <module>tv</module>
     <module>contacts</module>
     <module>vehicle</module>
-    <module>corePZinformation</module>
     <module>nfc</module>
   </modules>
 </project>
