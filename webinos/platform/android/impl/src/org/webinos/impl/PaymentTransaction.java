@@ -1,6 +1,7 @@
 package org.webinos.impl;
 
-import java.util.Stack;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import org.meshpoint.anode.bridge.Env;
 import org.webinos.api.payment.PaymentError;
@@ -28,12 +29,12 @@ public class PaymentTransaction {
 	private String sellerID;
 	final private PaymentSuccessCB successCallback;
 	final private PaymentErrorCB errorCallback;
-	private String proofOfPurchase;
 	private Looper answerLooper;
 	private Handler answerHandler;
 	private Handler.Callback answerCallback;
+	private boolean exit;
 
-	private Stack<AsyncCall> callQueue = new Stack<AsyncCall>();
+	private Queue<AsyncCall> callQueue = new LinkedList<AsyncCall>();
 
 	private abstract class AsyncCall implements Runnable {
 		private void call() { answerHandler.postDelayed(this, 400L); }
@@ -73,11 +74,15 @@ public class PaymentTransaction {
 		@Override
 		public void run() {
 			shopEngine.checkout();
-			proofOfPurchase = ""; /* we don't get one from the engine */
 		}
 	}
 
 	private PaymentError handleAnswer(Answer answer) {
+		/* if we've been told to exit, then this answer
+		 * is the answer we were waiting for .. so exit on return */
+		if(exit)
+			answerLooper.quit();
+
 		if(answer.state == Answer.STATE_OK || answer.state == Answer.STATE_CHECKOUT_SUCCESSFUL) {
 			return null;
 		}
@@ -85,6 +90,11 @@ public class PaymentTransaction {
 		PaymentError error = new PaymentError();
 		error.message = answer.message;
 		switch(answer.state) {
+		case Answer.STATE_ERROR_SHOP_ALLREADY_OPENED:
+			/* we allow this to pass as a non-error - if the shop
+			 * is already open, then we treat the openShop() call as
+			 * having succeeded */
+			return null;
 		case Answer.STATE_CHECKOUT_FAILED:
 			//error.code = PaymentErrors.PAYMENT_AUTHENTICATION_FAILED;
 			//error.code = PaymentErrors.PAYMENT_CHARGEABLE_EXCEEDED;
@@ -101,9 +111,6 @@ public class PaymentTransaction {
 			break;
 		case Answer.STATE_ERROR_NO_SHOP:
 			error.code = PaymentErrors.UNKNOWN_SHOP;
-			break;
-		case Answer.STATE_ERROR_SHOP_ALLREADY_OPENED:
-			error.code = PaymentErrors.INVALID_OPTION;
 			break;
 		case Answer.STATE_ERROR_UNKNOWN_ITEM:
 			error.code = PaymentErrors.INVALID_OPTION;
@@ -129,9 +136,9 @@ public class PaymentTransaction {
 	}
 
 	void perform(final ShoppingItem[] itemList, final ShoppingItem bill) {
-		callQueue.push(new Checkout());
-		callQueue.push(new AddItems(bill));
-		callQueue.push(new OpenShop());
+		callQueue.add(new OpenShop());
+		callQueue.add(new AddItems(bill));
+		callQueue.add(new Checkout());
 
 		/* Callbacks for async indications from the shop engine */
 		answerCallback = new Handler.Callback() {
@@ -142,19 +149,20 @@ public class PaymentTransaction {
 				if(error != null) {
 					/* if there was an error, end here */
 					errorCallback.onError(error);
-					answerLooper.quit();
+					finish();
 					return true;
 				}
 				/* if there's no next call, we're done */
 				if(callQueue.isEmpty()) {
-					successCallback.onSuccess(proofOfPurchase);
-					answerLooper.quit();
+					if(finish()) {
+						String proofOfPurchase = ""; /* we don't get one from the engine */
+						successCallback.onSuccess(proofOfPurchase);
+					}
 					return true;
 				}
 
 				/* if there's a next item, call it */
-				callQueue.pop().call();
-				answerLooper.quit();
+				callQueue.remove().call();
 				return true;
 			}
 		};
@@ -172,8 +180,6 @@ public class PaymentTransaction {
 					synchronized(PaymentTransaction.this) {PaymentTransaction.this.notify();}
 					answerLooper = Looper.myLooper();
 					Looper.loop();
-//					if(shopEngine != null)
-//						shopEngine.release();
 				}
 			}).start();
 			try {
@@ -182,6 +188,25 @@ public class PaymentTransaction {
 		}
 
 		/* call the first item in the queue */
-		callQueue.pop().call();
+		callQueue.remove().call();
+	}
+
+	private boolean finish() {
+		/* ensure we don't reenter this */
+		if(exit)
+			return false;
+
+		if(shopEngine != null) {
+			/* we need to release the engine, and don't
+			 * exit the looper until we've had the answer to that */
+			exit = true;
+			shopEngine.release();
+			shopEngine = null;
+			return true;
+		}
+		/* otherwise there's nothing to do, so we can
+		 * quit immediately */
+		answerLooper.quit();
+		return true;
 	}
 }
