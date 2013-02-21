@@ -31,10 +31,11 @@ LOCAL_C_INCLUDES := $(NODE_ROOT)/src \
 
 # Add any additional required shared libraries that the addon depends on.
 LOCAL_LDLIBS := \
-	$(ANODE_ROOT)/libs/armeabi/libjninode.so \
 	$(ANODE_ROOT)/libs/armeabi/libcrypto.so \
 	$(ANODE_ROOT)/libs/armeabi/libssl.so \
-        -llog
+    -llog
+
+LOCAL_ALLOW_UNDEFINED_SYMBOLS := true
 
 LOCAL_CPP_EXTENSION := .cc .cpp
 
