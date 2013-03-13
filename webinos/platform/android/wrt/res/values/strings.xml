@@ -4,4 +4,5 @@
     <string name="wrt_receiver">WRT renderer intent receiver</string>
     <string name="wrt_receiver_description">An intent receiver that controls intents relating to WRT renderer lifecycle</string>
     <string name="renderer_activity_title">Widget</string>
+    <string name="loading_video">Loading video</string>
 </resources>

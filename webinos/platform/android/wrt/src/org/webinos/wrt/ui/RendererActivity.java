@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *	 http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,18 +19,16 @@
 
 package org.webinos.wrt.ui;
 
-import org.webinos.wrt.R;
 import org.webinos.wrt.channel.ClientSocket;
 import org.webinos.wrt.core.WidgetConfig;
 import org.webinos.wrt.core.WrtManager;
 import org.webinos.wrt.core.WrtReceiver;
-import org.webinos.wrt.renderer.WebChromeClient;
 import org.webinos.wrt.renderer.WebView;
-import org.webinos.wrt.renderer.WebViewClient;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 
 public class RendererActivity extends Activity implements WrtManager.LaunchListener {
 
@@ -44,7 +42,8 @@ public class RendererActivity extends Activity implements WrtManager.LaunchListe
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
+		webView = new WebView(this);
+		setContentView(webView.getLayout());
 
 		WrtManager wrtManager = WrtManager.getInstance(this, this);
 		if(wrtManager != null)
@@ -74,9 +73,6 @@ public class RendererActivity extends Activity implements WrtManager.LaunchListe
 		}
 		instanceId = inst;
 
-		webView = (WebView) findViewById(R.id.webview);
-		webView.setWebViewClient(new WebViewClient(this));
-		webView.setWebChromeClient(new WebChromeClient(this));
 		socket = new ClientSocket(webView, widgetConfig, instanceId);
 		/* Inject the socket object */
 		webView.addJavascriptInterface(socket, "__webinos");
@@ -88,6 +84,17 @@ public class RendererActivity extends Activity implements WrtManager.LaunchListe
 
 	public ClientSocket getClientSocket() {
 		return socket;
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+			if (webView.inCustomView()) {
+				webView.hideCustomView();
+				return true;
+			}
+		}
+		return super.onKeyDown(keyCode, event);
 	}
 
 	@Override

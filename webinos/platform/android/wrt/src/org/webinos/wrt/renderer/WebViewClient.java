@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *	 http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,12 +31,13 @@ import android.util.Log;
 
 public class WebViewClient extends android.webkit.WebViewClient {
 
-	private RendererActivity activity;
-
 	private static final String TAG = "org.webinos.wrt.renderer.WebViewClient";
 
-	public WebViewClient(RendererActivity activity) {
-		this.activity = activity;
+	public WebViewClient(RendererActivity activity) {}
+
+	@Override
+	public boolean shouldOverrideUrlLoading(android.webkit.WebView view, String url) {
+		return false;
 	}
 
 	@Override
@@ -47,8 +48,8 @@ public class WebViewClient extends android.webkit.WebViewClient {
 		WebView wgtView = (WebView) webView;
 		try {
 			wgtView.injectScripts(new String[] {
-					AssetUtils.getAssetAsString(WrtManager.getInstance(),
-							ClientSocket.SOCKETJS_ASSET)});
+				AssetUtils.getAssetAsString(WrtManager.getInstance(), ClientSocket.SOCKETJS_ASSET)
+			});
 		} catch (IOException ioe) {
 			Log.v(TAG, "Unable to inject scripts; exception: ", ioe);
 		}
