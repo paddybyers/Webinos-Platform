@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="debug" basedir="..">
+
+<!-- base directory and other property definitions -->
+<property environment="env"/>
+<property name="tools.dir" value="${basedir}/tools"/>
+<property name="app.dir" value="${basedir}/app"/>
+<property name="api.dir" value="${basedir}/api"/>
+<property name="impl.dir" value="${basedir}/impl"/>
+<property name="build.tmp.dir" value="${impl.dir}/build-tmp"/>
+<property name="out.dir" value="${impl.dir}/bin"/>
+<import file="build.versions.xml" />
+
+<!-- dependencies on webinos runtime expressed as classpath -->
+<path id="app.classpath">
+	<pathelement location="${app.dir}/bin/classes"/>
+	<fileset dir="${app.dir}/libs">
+		<include name="**/*.jar"/>
+	</fileset>
+</path>
+
+<!-- build an instance of the module apk for a given target and platform api version -->
+<macrodef name="build-target-for-version">
+	<!-- macro takes api-version and target params -->
+	<attribute name="api-version"/>
+	<attribute name="target"/>
+
+	<sequential>
+		<!-- define the tmp destination of source files for build -->
+		<property name="build.tmp.version.dir" value="${build.tmp.dir}/@{api-version}"/>
+		<!-- create tmp copy of the required files -->
+		<copy todir="${build.tmp.version.dir}">
+			<path refid="module-source-@{api-version}"/>
+		</copy>
+		<!-- define source path for build -->
+        <property name="build.source.dir" value="${build.tmp.version.dir}"/>
+        <!-- specify minSdkVersion -->
+		<replaceregexp file="${impl.dir}/AndroidManifest.xml" match='android:minSdkVersion="(.*)"'
+			replace='android:minSdkVersion="@{api-version}"'/>
+		<!-- build the module apk -->
+        <ant antfile="${impl.dir}/build.base.xml" dir="${impl.dir}" target="@{target}">
+        	<property name="api-version" value="@{api-version}"/>
+        	<property name="source.dir" value="${build.source.dir}"/>
+        	<property name="out.dir" value="${out.dir}"/>
+        	<property name="java.compiler.classpath" value="${toString:app.classpath}"/>
+        	<property name="out.module.name" value="org.webinos.modules.@{api-version}"/>
+        </ant>
+    </sequential>
+</macrodef>
+
+<!-- top-level targets -->
+<target name="clean">
+	<delete dir="${build.tmp.dir}" verbose="${verbose}" />
+	<delete dir="${out.dir}" verbose="${verbose}" />
+</target>
+
+<target name="debug">
+	<build-target-for-version target="debug" api-version="10"/>
+	<build-target-for-version target="debug" api-version="17"/>
+</target>
+
+<target name="release">
+	<build-target-for-version target="release" api-version="10"/>
+	<build-target-for-version target="release" api-version="17"/>
+</target>
+
+</project>

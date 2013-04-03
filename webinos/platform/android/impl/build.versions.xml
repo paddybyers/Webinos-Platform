@@ -1,0 +1,16 @@
+<project>
+<path id="module-source-10">
+	<fileset dir="${api.dir}/src">
+		<exclude name="org/webinos/api/media/*"/>
+	</fileset>
+	<fileset dir="${impl.dir}/src">
+		<exclude name="org/webinos/impl/media/*"/>
+	</fileset>
+</path>
+
+<path id="module-source-17">
+	<fileset dir="${basedir}/api/src"/>
+	<fileset dir="${basedir}/impl/src"/>
+</path>
+</project>
+
